@@ -1,0 +1,77 @@
+spring:
+  application:
+    name: CP25MS1-backend
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+        provider:
+          google:
+            authorization-uri: ${GOOGLE_AUTH_URI}
+            token-uri: ${GOOGLE_TOKEN_URI}
+            user-info-uri: ${GOOGLE_USERINFO_URI}
+            user-name-attribute: sub
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 3600000
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
+  client-secret: ${GOOGLE_CLIENT_SECRET}
+  base-uri: ${GOOGLE_OAUTH_BASE_URI}
+  redirect-uri: ${GOOGLE_REDIRECT_URI}
+  certificate-uri: ${GOOGLE_CERTS_URI}
+
+server:
+  port: 8000
+  reactive:
+    session:
+      cookie:
+        name: jwt
+        http-only: true
+        secure: false # set to true in production with HTTPS
+        same-site: lax
+        path: /
+        max-age: 3600 # 1 hour
+
+mail:
+  imap:
+    host: imap.gmail.com
+    port: 993
+    user: ${GMAIL_USERNAME}
+    password: ${GMAIL_APP_PASSWORD}
+    prefer-html: true # prefer HTML parts when alternative exists
+    max-attachment-size: 10485760 # 10MB
+
+ocr:
+  service:
+    url: http://localhost:8000/ocr
+
+frontend:
+  url: http://localhost:3000
+
+#logging:
+#  level:
+#    root: INFO
+#    org.springframework.web: DEBUG
+#    com.example: DEBUG
+#  pattern:
+#    console: "%d{dd-MM-yyyy HH:mm:ss} - %msg%n"

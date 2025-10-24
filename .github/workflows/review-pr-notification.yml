@@ -1,0 +1,20 @@
+name: PR Ready → Discord
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  notify_ready:
+    if: github.event.label.name == 'ready to review'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discord Notify (Ready to Review)
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.READY_TO_REVIEW_DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: |
+            @everyone | PR: `${{ github.event.pull_request.title }}`
+            from ${{ github.event.pull_request.user.login }} is ready to review.
+            ${{ github.event.pull_request.html_url }}

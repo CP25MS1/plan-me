@@ -1,0 +1,63 @@
+name: Auto Promotion Pull Request
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - develop
+      - staging
+      - uat
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-pr:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine target branch
+        id: branch
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            develop) echo "target=staging" >> $GITHUB_OUTPUT ;;
+            staging) echo "target=uat" >> $GITHUB_OUTPUT ;;
+            uat) echo "target=main" >> $GITHUB_OUTPUT ;;
+            *) echo "No matching branch for ${GITHUB_REF_NAME}. Exiting."; exit 0 ;;
+          esac
+
+      - name: Authenticate with GitHub
+        run: |
+          echo "🔐 Authenticating with GitHub..."
+          TOKEN="${{ secrets.GH_PAT || github.token }}"
+          echo "$TOKEN" | gh auth login --with-token
+          gh auth status
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+          SRC: ${{ github.ref_name }}
+          TARGET: ${{ steps.branch.outputs.target }}
+        run: |
+          set -e
+          echo "Creating PR from $SRC → $TARGET"
+
+          if [ -z "$TARGET" ]; then
+            echo "⚠️ No target branch — nothing to do."
+            exit 0
+          fi
+
+          # Try to create PR
+          if ! gh pr create --base "$TARGET" --head "$SRC" \
+            --title "Auto PR: $SRC → $TARGET" \
+            --body "Automatically created when $SRC was merged."; then
+            echo "⚠️ PR already exists or creation failed."
+            exit 1
+          fi
+
+          echo "✅ Pull Request created successfully!"

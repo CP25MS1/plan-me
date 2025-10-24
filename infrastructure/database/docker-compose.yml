@@ -1,0 +1,105 @@
+services:
+  db:
+    image: ${POSTGRES_IMAGE:-postgres:17}
+    container_name: CP25MS1-postgresql
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - '${PG_HOST_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: always
+
+  flyway:
+    image: ${FLYWAY_IMAGE:-flyway/flyway:11.11}
+    container_name: CP25MS1-flyway
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./flyway/sql:/flyway/sql:ro
+      - ./flyway/conf:/flyway/conf:ro
+    env_file:
+      - .env
+    environment:
+      FLYWAY_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      FLYWAY_USER: ${POSTGRES_USER}
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
+    command: >
+      -configFiles=/flyway/conf/flyway-common.conf,/flyway/conf/flyway-${ENVIRONMENT}.conf
+      migrate
+    restart: 'no'
+
+  pgadmin:
+    image: ${PGADMIN_IMAGE:-dpage/pgadmin4:7}
+    container_name: CP25MS1-pgadmin-ui
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - '${PGADMIN_HOST_PORT:-8080}:80'
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: always
+
+  redis:
+    image: ${REDIS_IMAGE:-redis:7}
+    container_name: CP25MS1-redis
+    env_file:
+      - .env
+    command: ['redis-server', '--appendonly', '${REDIS_APPENDONLY:-yes}']
+    ports:
+      - '${REDIS_HOST_PORT:-6379}:6379'
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  minio:
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-01-01}
+    container_name: CP25MS1-minio
+    env_file:
+      - .env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":${MINIO_CONSOLE_PORT:-9001}"
+    ports:
+      - '${MINIO_HOST_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_HOST_PORT:-9001}:9001'
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'curl -fsS http://localhost:${MINIO_HOST_PORT:-9000}/minio/health/ready || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+volumes:
+  pgdata:
+  pgadmin_data:
+  redisdata:
+  miniodata:
