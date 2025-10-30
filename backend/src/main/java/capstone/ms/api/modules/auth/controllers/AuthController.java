@@ -1,17 +1,13 @@
 package capstone.ms.api.modules.auth.controllers;
 
-import capstone.ms.api.common.properties.CookieProperties;
-import capstone.ms.api.common.properties.FrontendProperties;
+import capstone.ms.api.modules.auth.dto.UserDto;
 import capstone.ms.api.modules.auth.services.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -20,23 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
-    private final FrontendProperties frontendProps;
-    private final CookieProperties cookieProperties;
 
     @GetMapping("/google/callback")
-    public void loginWithGoogleCallback(@RequestParam final String code, final HttpServletResponse response) {
-        final String jwt = authService.loginWithGoogle(code);
-        setJwtCookie(response, jwt);
-
-        try {
-            response.sendRedirect(frontendProps.getUrl());
-        } catch (Exception e) {
-            log.error("Failed to redirect to frontend: {}", e.getMessage());
-        }
+    public ResponseEntity<UserDto> loginWithGoogleCallback(@RequestParam final String code, final HttpServletResponse response) {
+        return ResponseEntity.ok(authService.login(code, response));
     }
 
-    private void setJwtCookie(final HttpServletResponse response, final String jwt) {
-        final ResponseCookie cookie = ResponseCookie.from(cookieProperties.getName(), jwt).build();
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    @PostMapping("/register")
+    public ResponseEntity<UserDto> registerUser(@Valid @RequestBody final UserDto userDto) {
+        return ResponseEntity.ok(authService.createUser(userDto));
     }
 }
