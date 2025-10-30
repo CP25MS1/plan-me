@@ -61,7 +61,7 @@ public class AuthService {
         final var tokenResponse = exchangeCodeForTokens(code);
 
         if (tokenResponse == null || !tokenResponse.containsKey("id_token")) {
-            throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve ID token from Google");
+            throw new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "Failed to retrieve ID token from Google");
         }
 
         final String idToken = (String) tokenResponse.get("id_token");

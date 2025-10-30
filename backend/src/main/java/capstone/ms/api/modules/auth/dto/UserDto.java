@@ -2,6 +2,7 @@ package capstone.ms.api.modules.auth.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,15 +14,18 @@ import java.util.List;
 public class UserDto {
     private boolean registered;
     private Integer userId;
-    @NotNull(message = "Username cannot be null")
+    @NotNull(message = "username cannot be null")
+    @Size(max = 80, message = "username cannot exceed 80 characters")
     private String username;
-    @NotNull(message = "Email cannot be null")
+    @NotNull(message = "email cannot be null")
+    @Size(max = 80, message = "email cannot exceed 80 characters")
     private String email;
-    @NotNull(message = "IDP cannot be null")
+    @NotNull(message = "idp cannot be null")
+    @Size(min = 2, max = 2, message = "idp must be exactly 2 characters")
     private String idp;
-    @NotNull(message = "IDP ID cannot be null")
+    @NotNull(message = "idpId cannot be null")
     private String idpId;
-    @NotNull(message = "Profile picture URL cannot be null")
+    @NotNull(message = "profilePicUrl cannot be null")
     private String profilePicUrl;
     private Preference preference;
     private List<Object> followers;
