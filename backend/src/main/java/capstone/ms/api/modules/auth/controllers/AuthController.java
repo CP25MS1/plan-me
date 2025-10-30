@@ -1,12 +1,11 @@
 package capstone.ms.api.modules.auth.controllers;
 
-import capstone.ms.api.modules.user.dto.UserDto;
+import capstone.ms.api.modules.auth.dto.UserDto;
 import capstone.ms.api.modules.auth.services.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +23,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> registerUser(@Valid @RequestBody final UserDto userDto, final HttpServletResponse response) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(authService.createUser(userDto, response));
+    public ResponseEntity<UserDto> registerUser(@Valid @RequestBody final UserDto userDto) {
+        return ResponseEntity.ok(authService.createUser(userDto));
     }
 }

@@ -8,6 +8,3 @@ CREATE TABLE "user" (
     "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE ("idp", "idp_id")
 );
-
-CREATE UNIQUE INDEX idx_user_email ON "user" ("email");
-CREATE INDEX idx_user_idp_id ON "user" ("idp_id");
