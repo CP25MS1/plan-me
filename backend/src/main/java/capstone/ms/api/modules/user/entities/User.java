@@ -4,35 +4,37 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.data.annotation.CreatedDate;
+
+import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "user")
+@Table(name = "user", schema = "public")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Integer id;
 
-    @Column(name = "username", nullable = false, length = 50)
+    @Column(name = "username", nullable = false, length = 80)
     private String username;
 
-    @Column(name = "email", nullable = false, length = 50)
+    @Column(name = "email", nullable = false, length = 80)
     private String email;
 
     @Column(name = "profile_pic_url")
     private String profilePicUrl;
 
-    @ColumnDefault("'GOOGLE'")
-    @Column(name = "idp", nullable = false, length = 10)
+    @ColumnDefault("'GG'")
+    @Column(name = "idp", nullable = false, length = 2)
     private String idp;
 
-    @Column(name = "idp_id", nullable = false, length = 15)
+    @Column(name = "idp_id", nullable = false)
     private String idpId;
 
-    @ColumnDefault("'TH'")
-    @Column(name = "preferred_language", nullable = false, length = 3)
-    private String preferredLanguage;
-
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 }
