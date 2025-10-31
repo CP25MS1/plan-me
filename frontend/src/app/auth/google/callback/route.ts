@@ -1,19 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const code = searchParams.get("code");
+  const code = searchParams.get('code');
 
-  if (!code)
-    return NextResponse.json({ error: "Missing code" }, { status: 400 });
+  if (!code) return NextResponse.json({ error: 'Missing code' }, { status: 400 });
 
-  const res = await fetch(
-    `${process.env.BACKEND_URL}/auth/google/callback?code=${code}`,
-    {
-      method: "GET",
-      credentials: "include",
-    }
-  );
+  const res = await fetch(`${process.env.BACKEND_URL}/auth/google/callback?code=${code}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
 
   const data = await res.json();
   // const data = {
@@ -33,9 +29,9 @@ export async function GET(req: Request) {
   const response = NextResponse.redirect(redirectUrl);
 
   // เซ็ต cookie user_tmp สำหรับหน้า login (หรือใช้ใน /home ก็ได้)
-  response.cookies.set("user_tmp", JSON.stringify(data), {
+  response.cookies.set('user_tmp', JSON.stringify(data), {
     httpOnly: false,
-    path: "/",
+    path: '/',
     maxAge: 3600,
   });
 

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import Taskbar from "../../components/ui/taskbar";
+import Taskbar from '../../components/ui/taskbar';
 
 export default function ProfilePage() {
   return (
