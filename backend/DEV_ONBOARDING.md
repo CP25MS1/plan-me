@@ -27,7 +27,7 @@ Apply แล้วกด OK
    - Connection tab:
      - Host name/address: `db`
      - Port: `5432`
-     - Maintenance database: `postgresql`
+     - Maintenance database: `cp25ms1`
      - Username: จาก .env file
      - Password: จาก .env file
    - กด Save
