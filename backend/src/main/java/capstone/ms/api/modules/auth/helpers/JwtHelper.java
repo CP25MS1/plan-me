@@ -50,7 +50,7 @@ public class JwtHelper {
                     .build()
                     .parseClaimsJws(token);
             return true;
-        } catch (JwtException e) {
+        } catch (Exception e) {
             log.error("Invalid JWT token: {}", e.getMessage());
             return false;
         }
