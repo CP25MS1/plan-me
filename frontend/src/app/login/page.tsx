@@ -1,33 +1,28 @@
-"use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import Image from "next/image";
-import { getCookie, setCookie } from "@/lib/cookie";
-import { startGoogleLogin } from "./actions";
+'use client';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import Image from 'next/image';
+import { getCookie, setCookie } from '@/lib/cookie';
+import { startGoogleLogin } from './actions';
 
 export default function LoginPage() {
   const router = useRouter();
   const [showDialog, setShowDialog] = useState(false);
 
   useEffect(() => {
-    const userTmp = getCookie("user_tmp");
+    const userTmp = getCookie('user_tmp');
     if (userTmp) {
       try {
         const data = JSON.parse(userTmp);
         if (data.registered) {
-          router.push("/home");
+          router.push('/home');
         } else {
           setShowDialog(true);
         }
       } catch (err) {
-        console.error("Invalid cookie data", err);
+        console.error('Invalid cookie data', err);
       }
     }
   }, [router]);
@@ -37,7 +32,7 @@ export default function LoginPage() {
   };
 
   const handleCreateAccount = async () => {
-    const userTmp = getCookie("user_tmp");
+    const userTmp = getCookie('user_tmp');
     if (!userTmp) return;
 
     try {
@@ -51,24 +46,24 @@ export default function LoginPage() {
         profilePicUrl: data.profilePicUrl,
       };
 
-      const res = await fetch("http://localhost:8000/auth/register", {
-        method: "POST",
+      const res = await fetch('http://localhost:8000/auth/register', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         const updatedUser = { ...data, registered: true };
-        setCookie("user_tmp", JSON.stringify(updatedUser), { path: "/" });
+        setCookie('user_tmp', JSON.stringify(updatedUser), { path: '/' });
 
-        router.push("/home");
+        router.push('/home');
       } else {
-        console.error("Failed to create account");
+        console.error('Failed to create account');
       }
     } catch (err) {
-      console.error("Invalid user data", err);
+      console.error('Invalid user data', err);
     }
   };
 
@@ -77,13 +72,7 @@ export default function LoginPage() {
       <h1 className="text-2xl font-bold mb-4 text-primary">PLAN ME</h1>
 
       <Button variant="outline" onClick={handleLogin}>
-        <Image
-          alt="Google"
-          src="/images/google-icon.png"
-          width={25}
-          height={25}
-          className="mr-2"
-        />
+        <Image alt="Google" src="/images/google-icon.png" width={25} height={25} className="mr-2" />
         เข้าสู่ระบบด้วย Google
       </Button>
 
