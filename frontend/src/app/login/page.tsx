@@ -1,54 +1,45 @@
 'use client';
 import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { getCookie } from '@/lib/cookie';
 
-import { GoogleCallbackResponse } from '../auth/google/callback';
 import { startGoogleLogin } from './actions';
+import useLogin from './hooks/use-login';
 import useCreateUser from './hooks/use-create-user';
-
-const useUserTmp = () => {
-  const [userTmp, setUserTmp] = useState<GoogleCallbackResponse | null>(null);
-  useEffect(() => {
-    const cookie = getCookie('user_tmp');
-    if (cookie) {
-      try {
-        setUserTmp(JSON.parse(cookie));
-      } catch {
-        console.error('Invalid cookie data');
-      }
-    }
-  }, []);
-  return userTmp;
-};
 
 const LoginPage = () => {
   const router = useRouter();
-  const userTmp = useUserTmp();
+  const searchParams = useSearchParams();
   const [showDialog, setShowDialog] = useState(false);
   const createUserMutation = useCreateUser();
+  const login = useLogin(searchParams.get('code') || '');
 
   useEffect(() => {
-    if (!userTmp) return;
-    if (userTmp.registered) {
+    const { isSuccess, data } = login;
+
+    if (!isSuccess || !data) return;
+
+    if (data.registered) {
       router.push('/home');
     } else {
       setShowDialog(true);
     }
-  }, [userTmp, router]);
+  }, [login, router]);
 
   const handleLogin = useCallback(() => startGoogleLogin(), []);
   const handleCreateAccount = useCallback(() => {
-    if (!userTmp) return;
-    createUserMutation.mutate(userTmp, {
-      onSuccess: () => router.push('/home'),
+    if (!login.isSuccess) return;
+    createUserMutation.mutate(login.data, {
+      onSuccess: () => {
+        setShowDialog(false);
+        router.push('/home');
+      },
       onError: console.error,
     });
-  }, [userTmp, createUserMutation, router]);
+  }, [login, createUserMutation, router]);
 
   //TODO: Dialog component needs to be refactored for standard usage
   return (
