@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { getCookie } from '@/lib/cookie';
+import { getCookie, deleteCookie } from '@/lib/cookie';
 
 import { GoogleCallbackResponse } from '../auth/google/callback';
 import { startGoogleLogin } from './actions';
@@ -45,7 +45,11 @@ const LoginPage = () => {
   const handleCreateAccount = useCallback(() => {
     if (!userTmp) return;
     createUserMutation.mutate(userTmp, {
-      onSuccess: () => router.push('/home'),
+      onSuccess: () => {
+        setShowDialog(false);
+        deleteCookie('user_tmp');
+        router.push('/home');
+      },
       onError: console.error,
     });
   }, [userTmp, createUserMutation, router]);
