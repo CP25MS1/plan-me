@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.auth.dto;
 
+import capstone.ms.api.modules.user.dto.PreferenceDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -27,13 +28,7 @@ public class UserDto {
     private String idpId;
     @NotNull(message = "profilePicUrl cannot be null")
     private String profilePicUrl;
-    private Preference preference;
+    private PreferenceDto preference;
     private List<Object> followers;
     private List<Object> followings;
-
-    @Builder
-    @Data
-    public static class Preference {
-        private String language;
-    }
 }

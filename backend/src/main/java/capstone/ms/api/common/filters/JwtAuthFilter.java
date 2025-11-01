@@ -30,14 +30,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private static final String AUTH_HEADER = "Authorization";
 
     private String resolveToken(HttpServletRequest request) {
-        String header = request.getHeader(AUTH_HEADER);
+        final String header = request.getHeader(AUTH_HEADER);
         if (header != null && header.startsWith("Bearer ")) {
             return header.substring(7);
         }
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if (cookieProperties.getName().equals(cookie.getName())) {
-                    return cookie.getValue().isEmpty() ? null : cookie.getValue();
+                    final var cookieValue = cookie.getValue();
+                    return cookieValue.isEmpty() ? null : cookieValue;
                 }
             }
         }
@@ -48,9 +49,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        String token = resolveToken(request);
+        final String token = resolveToken(request);
+        final boolean isTokenValid = jwtHelper.validateJwtToken(token);
 
-        if (token != null && jwtHelper.validateJwtToken(token)) {
+        //STUB: Throw 401 if token is invalid
+
+        if (token != null && isTokenValid) {
             Integer userId = jwtHelper.getUserIdFromJwtToken(token);
             User user = userRepository.findById(userId).orElse(null);
             if (user != null) {

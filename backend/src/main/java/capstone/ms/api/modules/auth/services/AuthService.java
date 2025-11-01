@@ -6,6 +6,7 @@ import capstone.ms.api.modules.auth.dto.UserDto;
 import capstone.ms.api.modules.auth.helpers.GoogleIdTokenVerifier;
 import capstone.ms.api.modules.auth.helpers.JwtHelper;
 import capstone.ms.api.modules.auth.properties.GoogleOAuthProperties;
+import capstone.ms.api.modules.user.dto.PreferenceDto;
 import capstone.ms.api.modules.user.services.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,7 +35,7 @@ public class AuthService {
     private final GoogleOAuthProperties googleProps;
     private final CookieProperties cookieProps;
 
-    public UserDto createUser(final UserDto userDto) {
+    public UserDto createUser(final UserDto userDto, final HttpServletResponse response) {
         final boolean userExists = userService.findUserByIdpId(userDto.getIdpId()).isPresent();
 
         if (userExists) {
@@ -42,6 +43,8 @@ public class AuthService {
         }
 
         final var user = userService.createUserByDto(userDto);
+        setJwtCookie(response, jwtHelper.generateJwtToken(user.getId()));
+
         return UserDto.builder()
                 .registered(true)
                 .userId(user.getId())
@@ -50,7 +53,11 @@ public class AuthService {
                 .idp(user.getIdp())
                 .idpId(user.getIdpId())
                 .profilePicUrl(user.getProfilePicUrl())
-                .preference(UserDto.Preference.builder().language("TH").build())
+                .preference(
+                        PreferenceDto.builder()
+                                .language(user.getPreference().getLanguage())
+                                .build()
+                )
                 .followers(new ArrayList<>())
                 .followings(new ArrayList<>())
                 .build();
