@@ -7,6 +7,8 @@ const useLogin = (code: string) => {
     queryKey: [USERS.LOGIN, code],
     queryFn: () => login(code),
     enabled: !!code,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 };
 

@@ -6,6 +6,13 @@ export const middleware = async (request: NextRequest) => {
   const { nextUrl: url, cookies } = request;
   const pathname = url.pathname;
 
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.match(/\.(.*)$/) // static asset
+  ) {
+    return NextResponse.next();
+  }
+
   if (pathname === '/login') {
     const token = cookies.get('jwt')?.value;
 

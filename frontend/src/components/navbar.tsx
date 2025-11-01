@@ -36,37 +36,42 @@ const Navbar = ({
   activeClass = 'text-primary',
 }) => {
   const pathname = usePathname();
-  const current = normalizePath(pathname) as typeof HREFS[number];
+  const current = normalizePath(pathname) as (typeof HREFS)[number];
 
-  return HREFS.includes(current) &&  (
-    <nav
-      aria-label="Primary navigation"
-      className={cn('w-full bg-white border-t shadow-md', className)}
-    >
-      <ul role="list" className={listClassName}>
-        {items.map(({ href, label, icon, disabled }) => {
-          const active = normalizePath(href) === current;
-          return (
-            <li key={href}>
-              <Link
-                // @ts-expect-error href can be Route type
-                href={href}
-                onClick={disabled || current === href ? (e) => e.preventDefault() : undefined}
-                aria-current={active ? 'page' : undefined}
-                className={cn(
-                  itemClass,
-                  active ? activeClass : 'text-gray-400',
-                  'focus-visible:ring-2 focus-visible:ring-offset-2'
-                )}
-              >
-                <i className={cn(icon, 'text-xl', active ? activeClass : '')} aria-hidden="true" />
-                <span className="mt-1">{label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+  return (
+    HREFS.includes(current) && (
+      <nav
+        aria-label="Primary navigation"
+        className={cn('w-full bg-white border-t shadow-md', className)}
+      >
+        <ul role="list" className={listClassName}>
+          {items.map(({ href, label, icon, disabled }) => {
+            const active = normalizePath(href) === current;
+            return (
+              <li key={href}>
+                <Link
+                  // @ts-expect-error href can be Route type
+                  href={href}
+                  onClick={disabled || current === href ? (e) => e.preventDefault() : undefined}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    itemClass,
+                    active ? activeClass : 'text-gray-400',
+                    'focus-visible:ring-2 focus-visible:ring-offset-2'
+                  )}
+                >
+                  <i
+                    className={cn(icon, 'text-xl', active ? activeClass : '')}
+                    aria-hidden="true"
+                  />
+                  <span className="mt-1">{label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    )
   );
 };
 
