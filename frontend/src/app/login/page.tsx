@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import FullPageLoading from '@/components/full-page-loading';
 
 import { startGoogleLogin } from './actions';
 import useLogin from './hooks/use-login';
@@ -14,32 +15,35 @@ const LoginPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [showDialog, setShowDialog] = useState(false);
-  const createUserMutation = useCreateUser();
+  const { mutate, isPending: createPending } = useCreateUser();
   const login = useLogin(searchParams.get('code') || '');
-
-  useEffect(() => {
-    const { isSuccess, data } = login;
-
-    if (!isSuccess || !data) return;
-
-    if (data.registered) {
-      router.push('/home');
-    } else {
-      setShowDialog(true);
-    }
-  }, [login, router]);
+  const { isSuccess: loginSuccess, data: userData } = login;
 
   const handleLogin = useCallback(() => startGoogleLogin(), []);
   const handleCreateAccount = useCallback(() => {
-    if (!login.isSuccess) return;
-    createUserMutation.mutate(login.data, {
+    if (!loginSuccess) return;
+    mutate(userData, {
       onSuccess: () => {
         setShowDialog(false);
         router.push('/home');
       },
       onError: console.error,
     });
-  }, [login, createUserMutation, router]);
+  }, [userData, loginSuccess, mutate, router]);
+
+  useEffect(() => {
+    if (!loginSuccess) return;
+
+    if (userData.registered) {
+      router.push('/home');
+    } else {
+      setShowDialog(true);
+    }
+  }, [loginSuccess, userData, router]);
+
+  if (login.isFetching || createPending) {
+    return <FullPageLoading />;
+  }
 
   //TODO: Dialog component needs to be refactored for standard usage
   return (
@@ -52,18 +56,20 @@ const LoginPage = () => {
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-sm text-center">
-          <DialogHeader>
-            <DialogTitle>สร้างบัญชีใหม่</DialogTitle>
+        <DialogContent
+          className="max-w-sm text-center"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="sm:text-center">
+            <DialogTitle className="sm:text-xl">สร้างบัญชีใหม่</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-600 my-2">
-            ไม่พบข้อมูลบัญชี PLAN ME ที่เชื่อมกับ Google ของคุณ
-            <br />
-            คุณต้องการสร้างบัญชีใหม่หรือไม่
-          </p>
-          <div className="flex justify-center gap-3 mt-3">
-            <Button onClick={handleCreateAccount} disabled={createUserMutation.isPending}>
-              {createUserMutation.isPending ? 'กำลังสร้าง...' : 'สร้างบัญชีใหม่'}
+          <div className="flex flex-col gap-2 text-sm sm:text-lg text-gray-600 my-2">
+            <p>ไม่พบข้อมูลบัญชี PLAN ME ที่เชื่อมกับ Google ของคุณ</p>
+            <p>คุณต้องการสร้างบัญชีใหม่หรือไม่</p>
+          </div>
+          <div className="flex justify-center gap-3 mt-2">
+            <Button onClick={handleCreateAccount} disabled={createPending}>
+              {createPending ? 'กำลังสร้าง...' : 'สร้างบัญชีใหม่'}
             </Button>
           </div>
         </DialogContent>
