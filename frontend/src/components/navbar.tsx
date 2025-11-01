@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { href: '/profile', label: 'โปรไฟล์', icon: 'fi fi-rr-user' },
 ] as const;
 
-export const HREFS = NAV_ITEMS.map((item) => item.href);
+const HREFS = NAV_ITEMS.map((item) => item.href);
 
 const activate = (
   items: typeof NAV_ITEMS,
@@ -36,9 +36,9 @@ const Navbar = ({
   activeClass = 'text-primary',
 }) => {
   const pathname = usePathname();
-  const current = normalizePath(pathname);
+  const current = normalizePath(pathname) as typeof HREFS[number];
 
-  return (
+  return HREFS.includes(current) &&  (
     <nav
       aria-label="Primary navigation"
       className={cn('w-full bg-white border-t shadow-md', className)}
