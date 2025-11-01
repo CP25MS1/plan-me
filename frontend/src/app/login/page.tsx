@@ -1,101 +1,84 @@
 'use client';
-import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import Image from 'next/image';
-import { getCookie, setCookie } from '@/lib/cookie';
-import { startGoogleLogin } from './actions';
+import { getCookie } from '@/lib/cookie';
 
-export default function LoginPage() {
+import { GoogleCallbackResponse } from '../auth/google/callback';
+import { startGoogleLogin } from './actions';
+import useCreateUser from './hooks/use-create-user';
+
+const useUserTmp = () => {
+  const [userTmp, setUserTmp] = useState<GoogleCallbackResponse | null>(null);
+  useEffect(() => {
+    const cookie = getCookie('user_tmp');
+    if (cookie) {
+      try {
+        setUserTmp(JSON.parse(cookie));
+      } catch {
+        console.error('Invalid cookie data');
+      }
+    }
+  }, []);
+  return userTmp;
+};
+
+const LoginPage = () => {
   const router = useRouter();
+  const userTmp = useUserTmp();
   const [showDialog, setShowDialog] = useState(false);
+  const createUserMutation = useCreateUser();
 
   useEffect(() => {
-    const userTmp = getCookie('user_tmp');
-    if (userTmp) {
-      try {
-        const data = JSON.parse(userTmp);
-        if (data.registered) {
-          router.push('/home');
-        } else {
-          setShowDialog(true);
-        }
-      } catch (err) {
-        console.error('Invalid cookie data', err);
-      }
-    }
-  }, [router]);
-
-  const handleLogin = () => {
-    startGoogleLogin();
-  };
-
-  const handleCreateAccount = async () => {
-    const userTmp = getCookie('user_tmp');
     if (!userTmp) return;
-
-    try {
-      const data = JSON.parse(userTmp);
-
-      const payload = {
-        username: data.username,
-        email: data.email,
-        idp: data.idp,
-        idpId: data.idpId,
-        profilePicUrl: data.profilePicUrl,
-      };
-
-      const res = await fetch('http://localhost:8000/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        const updatedUser = { ...data, registered: true };
-        setCookie('user_tmp', JSON.stringify(updatedUser), { path: '/' });
-
-        router.push('/home');
-      } else {
-        console.error('Failed to create account');
-      }
-    } catch (err) {
-      console.error('Invalid user data', err);
+    if (userTmp.registered) {
+      router.push('/home');
+    } else {
+      setShowDialog(true);
     }
-  };
+  }, [userTmp, router]);
 
+  const handleLogin = useCallback(() => startGoogleLogin(), []);
+  const handleCreateAccount = useCallback(() => {
+    if (!userTmp) return;
+    createUserMutation.mutate(userTmp, {
+      onSuccess: () => router.push('/home'),
+      onError: console.error,
+    });
+  }, [userTmp, createUserMutation, router]);
+
+  //TODO: Dialog component needs to be refactored for standard usage
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <h1 className="text-2xl font-bold mb-4 text-primary">PLAN ME</h1>
 
       <Button variant="outline" onClick={handleLogin}>
-        <Image alt="Google" src="/images/google-icon.png" width={25} height={25} className="mr-2" />
+        <Image src="/images/google-icon.png" width={25} height={25} alt="Google" className="mr-2" />
         เข้าสู่ระบบด้วย Google
       </Button>
 
-      {showDialog && (
-        <Dialog open={showDialog} onOpenChange={setShowDialog}>
-          <DialogContent
-            className="max-w-sm text-center"
-            onInteractOutside={(e) => e.preventDefault()}
-          >
-            <DialogHeader>
-              <DialogTitle>สร้างบัญชีใหม่</DialogTitle>
-            </DialogHeader>
-            <p className="text-sm text-gray-600 my-2">
-              ไม่พบข้อมูลบัญชี PLAN ME ที่เชื่อมกับ Google ของคุณ
-              <br />
-              คุณต้องการสร้างบัญชีใหม่หรือไม่
-            </p>
-            <div className="flex justify-center gap-3 mt-3">
-              <Button onClick={handleCreateAccount}>สร้างบัญชีใหม่</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle>สร้างบัญชีใหม่</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600 my-2">
+            ไม่พบข้อมูลบัญชี PLAN ME ที่เชื่อมกับ Google ของคุณ
+            <br />
+            คุณต้องการสร้างบัญชีใหม่หรือไม่
+          </p>
+          <div className="flex justify-center gap-3 mt-3">
+            <Button onClick={handleCreateAccount} disabled={createUserMutation.isPending}>
+              {createUserMutation.isPending ? 'กำลังสร้าง...' : 'สร้างบัญชีใหม่'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
+};
+
+export default LoginPage;

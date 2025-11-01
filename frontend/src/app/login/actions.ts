@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 
-export async function startGoogleLogin() {
+export const startGoogleLogin = async () => {
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
   const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI!;
   const SCOPE = ['openid', 'email', 'profile'].join(' ');
@@ -17,4 +17,4 @@ export async function startGoogleLogin() {
   });
 
   redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
-}
+};
