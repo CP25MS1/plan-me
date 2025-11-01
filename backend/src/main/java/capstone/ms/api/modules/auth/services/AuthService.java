@@ -94,7 +94,13 @@ public class AuthService {
     }
 
     private void setJwtCookie(final HttpServletResponse response, final String jwt) {
-        final ResponseCookie cookie = ResponseCookie.from(cookieProps.getName(), jwt).build();
+        final ResponseCookie cookie = ResponseCookie.from(cookieProps.getName(), jwt)
+                .path(cookieProps.getPath())
+                .httpOnly(cookieProps.getHttpOnly())
+                .secure(cookieProps.getSecure())
+                .maxAge(cookieProps.getMaxAge())
+                .sameSite(cookieProps.getSameSite())
+                .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 
