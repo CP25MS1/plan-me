@@ -20,3 +20,8 @@ export const setCookie = (
 
   document.cookie = cookieStr;
 };
+
+export const deleteCookie = (name: string, path: string = '/') => {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=; path=${path}; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+};
