@@ -9,9 +9,7 @@ const withPWA = withPWAInit({
 
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    typedRoutes: true,
-  },
+  typedRoutes: true,
   output: 'standalone',
   basePath: process.env.BASE_PATH || '',
 };
