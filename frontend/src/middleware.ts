@@ -18,6 +18,13 @@ export const middleware = async (request: NextRequest) => {
     return NextResponse.next();
   }
 
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.match(/\.(.*)$/) // static asset
+  ) {
+    return NextResponse.next();
+  }
+
   if (pathname === '/login') {
     const token = cookies.get('jwt')?.value;
 
