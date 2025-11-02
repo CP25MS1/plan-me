@@ -20,7 +20,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 
 @Service
@@ -58,8 +58,8 @@ public class AuthService {
                                 .language(user.getPreference().getLanguage())
                                 .build()
                 )
-                .followers(new ArrayList<>())
-                .followings(new ArrayList<>())
+                .followers(new HashSet<>())
+                .followings(new HashSet<>())
                 .build();
     }
 

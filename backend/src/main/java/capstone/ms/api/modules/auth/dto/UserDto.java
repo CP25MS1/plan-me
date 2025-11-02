@@ -1,13 +1,14 @@
 package capstone.ms.api.modules.auth.dto;
 
 import capstone.ms.api.modules.user.dto.PreferenceDto;
+import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
@@ -29,6 +30,6 @@ public class UserDto {
     @NotNull(message = "profilePicUrl cannot be null")
     private String profilePicUrl;
     private PreferenceDto preference;
-    private List<Object> followers;
-    private List<Object> followings;
+    private Set<PublicUserInfo> followers;
+    private Set<PublicUserInfo> followings;
 }
