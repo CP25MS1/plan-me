@@ -4,6 +4,7 @@ import capstone.ms.api.common.clients.GoogleOAuthClient;
 import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.UnauthorizedException;
 import capstone.ms.api.common.properties.CookieProperties;
+import capstone.ms.api.modules.user.dto.UserDto;
 import capstone.ms.api.modules.auth.dto.GoogleClaimsDto;
 import capstone.ms.api.modules.auth.helpers.GoogleIdTokenVerifier;
 import capstone.ms.api.modules.auth.helpers.JwtHelper;
