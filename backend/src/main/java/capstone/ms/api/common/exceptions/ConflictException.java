@@ -3,14 +3,14 @@ package capstone.ms.api.common.exceptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class NotFoundException extends MainException {
+@ResponseStatus(HttpStatus.CONFLICT)
+public class ConflictException extends MainException {
 
-    public NotFoundException(String messageKey) {
+    public ConflictException(String messageKey) {
         super(messageKey);
     }
 
-    public NotFoundException(String messageKey, String detailsKey) {
+    public ConflictException(String messageKey, String detailsKey) {
         super(messageKey, detailsKey);
     }
 }

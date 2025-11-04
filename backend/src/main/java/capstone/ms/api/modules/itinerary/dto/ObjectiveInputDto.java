@@ -1,10 +1,12 @@
 package capstone.ms.api.modules.itinerary.dto;
 
+import capstone.ms.api.common.annotations.ErrorMessage;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
+@ErrorMessage(messageKey = "400")
 public class ObjectiveInputDto {
     private Integer id;
     private Boolean systemOwned;
@@ -18,7 +20,7 @@ public class ObjectiveInputDto {
 
     public void setBadgeColor(String badgeColor) {
         if (badgeColor != null && !badgeColor.matches("^#([A-Fa-f0-9]{6})$")) {
-            throw new BadRequestException("Invalid color format: " + badgeColor);
+            throw new BadRequestException("400", "trip.400.badgeColor.format");
         }
 
         this.badgeColor = badgeColor;

@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.dto;
 
+import capstone.ms.api.common.annotations.ErrorMessage;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 @Data
+@ErrorMessage(messageKey = "trip.400.create")
 public class CreateTripDto {
     @NotNull(message = "Trip name cannot be null")
     @Size(max = 50, message = "Trip name cannot exceed 50 characters")

@@ -1,6 +1,6 @@
 package capstone.ms.api.modules.auth.controllers;
 
-import capstone.ms.api.modules.auth.dto.UserDto;
+import capstone.ms.api.modules.user.dto.UserDto;
 import capstone.ms.api.modules.auth.services.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

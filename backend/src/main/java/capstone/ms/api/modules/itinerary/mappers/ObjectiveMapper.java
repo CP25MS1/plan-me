@@ -19,9 +19,9 @@ public interface ObjectiveMapper {
     @Mapping(target = "badgeColor", ignore = true)
     Objective toEntity(ObjectiveInputDto dto, @Context BasicObjectiveRepository repository);
 
-    default Set<Objective> toEntitySet(Set<ObjectiveInputDto> dtos, @Context BasicObjectiveRepository repository) {
-        if (dtos == null) return Set.of();
-        return dtos.stream()
+    default Set<Objective> toEntitySet(Set<ObjectiveInputDto> dtoSet, @Context BasicObjectiveRepository repository) {
+        if (dtoSet == null) return Set.of();
+        return dtoSet.stream()
                 .map(dto -> toEntity(dto, repository))
                 .collect(Collectors.toSet());
     }
@@ -34,8 +34,8 @@ public interface ObjectiveMapper {
         String name = firstNonNull(dto.getName(), base != null ? base.getThName() : null);
         String badgeColor = firstNonNull(dto.getBadgeColor(), base != null ? base.getBadgeColor() : null);
 
-        validateNonNull(name, "Objective name cannot be null.");
-        validateNonNull(badgeColor, "Objective badge color cannot be null.");
+        validateNonNull(name, "trip.400.name.null");
+        validateNonNull(badgeColor, "trip.400.badgeColor.null");
 
         obj.setName(name);
         obj.setBadgeColor(badgeColor);
@@ -50,10 +50,9 @@ public interface ObjectiveMapper {
         return primary != null ? primary : fallback;
     }
 
-    default void validateNonNull(Object value, String message) {
-        if (value == null) throw new BadRequestException(message);
+    default void validateNonNull(Object value, String detail) {
+        if (value == null) throw new BadRequestException("400", detail);
     }
-
 
     default MergedObjective objectiveToMerged(Objective o) {
         if (o == null) return null;

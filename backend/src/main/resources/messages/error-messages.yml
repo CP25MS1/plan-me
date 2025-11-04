@@ -1,0 +1,33 @@
+400:
+  th: "โปรดตรวจสอบข้อมูลอีกครั้ง"
+  en: "Please check your input and try again."
+
+401:
+  th: "ไม่สามารถเข้าถึงได้ กรุณาตรวจสอบสิทธิ์ของคุณ"
+  en: "Access denied. Please check your permissions."
+  noToken:
+    th: "ไม่พบข้อมูลยืนยันตัวตน กรุณาลองอีกครั้ง"
+    en: "Authentication token not found. Please try again."
+
+404:
+  th: "ไม่พบข้อมูลที่คุณต้องการ"
+  en: "The requested resource was not found."
+
+user:
+  400:
+    create:
+      th: "ไม่สามารถลงทะเบียนได้ โปรดตรวจสอบข้อมูลอีกครั้ง"
+      en: "Unable to register. Please check your input and try again."
+  409:
+    email:
+      th: "อีเมลนี้ถูกใช้แล้ว โปรดตรวจสอบข้อมูลอีกครั้ง"
+      en: "This email was already used. Please check your input and try again."
+  404:
+    th: "ไม่พบผู้ใช้นี้ในระบบ"
+    en: "This user is not found in the system."
+
+trip:
+  400:
+    create:
+      th: "ไม่สามารถสร้างทริปได้ โปรดตรวจสอบข้อมูลอีกครั้ง"
+      en: "Unable to create trip. Please check your input and try again."

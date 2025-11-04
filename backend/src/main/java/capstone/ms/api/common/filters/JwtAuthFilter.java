@@ -1,5 +1,6 @@
 package capstone.ms.api.common.filters;
 
+import capstone.ms.api.common.exceptions.UnauthorizedException;
 import capstone.ms.api.common.properties.CookieProperties;
 import capstone.ms.api.modules.auth.helpers.JwtHelper;
 import capstone.ms.api.modules.user.entities.User;
@@ -23,11 +24,10 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
+    private static final String AUTH_HEADER = "Authorization";
     private final JwtHelper jwtHelper;
     private final UserRepository userRepository;
     private final CookieProperties cookieProperties;
-
-    private static final String AUTH_HEADER = "Authorization";
 
     private String resolveToken(HttpServletRequest request) {
         final String header = request.getHeader(AUTH_HEADER);
@@ -49,10 +49,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
+        final String path = request.getRequestURI();
+
+        if (path.startsWith("/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String token = resolveToken(request);
         final boolean isTokenValid = jwtHelper.validateJwtToken(token);
-
-        //STUB: Throw 401 if token is invalid
 
         if (token != null && isTokenValid) {
             Integer userId = jwtHelper.getUserIdFromJwtToken(token);
@@ -63,6 +68,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
+        } else {
+            throw new UnauthorizedException("401.noToken");
         }
 
         filterChain.doFilter(request, response);

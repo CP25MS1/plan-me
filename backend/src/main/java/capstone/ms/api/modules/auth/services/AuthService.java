@@ -1,12 +1,14 @@
 package capstone.ms.api.modules.auth.services;
 
 import capstone.ms.api.common.clients.GoogleOAuthClient;
+import capstone.ms.api.common.exceptions.ConflictException;
+import capstone.ms.api.common.exceptions.UnauthorizedException;
 import capstone.ms.api.common.properties.CookieProperties;
-import capstone.ms.api.modules.auth.dto.UserDto;
 import capstone.ms.api.modules.auth.helpers.GoogleIdTokenVerifier;
 import capstone.ms.api.modules.auth.helpers.JwtHelper;
 import capstone.ms.api.modules.auth.properties.GoogleOAuthProperties;
 import capstone.ms.api.modules.user.dto.PreferenceDto;
+import capstone.ms.api.modules.user.dto.UserDto;
 import capstone.ms.api.modules.user.services.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,8 +19,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class AuthService {
         final boolean userExists = userService.findUserByIdpId(userDto.getIdpId()).isPresent();
 
         if (userExists) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "User already exists");
+            throw new ConflictException("user.409.email");
         }
 
         final var user = userService.createUserByDto(userDto);
@@ -68,7 +68,7 @@ public class AuthService {
         final var tokenResponse = exchangeCodeForTokens(code);
 
         if (tokenResponse == null || !tokenResponse.containsKey("id_token")) {
-            throw new HttpServerErrorException(HttpStatus.UNAUTHORIZED, "Failed to retrieve ID token from Google");
+            throw new UnauthorizedException("401", "401.google.token.null");
         }
 
         final String idToken = (String) tokenResponse.get("id_token");
@@ -78,7 +78,7 @@ public class AuthService {
         try {
             claims = googleIdTokenVerifier.verify(idToken);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid ID token");
+            throw new UnauthorizedException("401", "401.google.token.invalid");
         }
 
         // Find user and generate JWT

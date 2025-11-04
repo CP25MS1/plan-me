@@ -36,7 +36,7 @@ public class TripService {
 
     private void validateDates(LocalDate startDate, LocalDate endDate) {
         if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
-            throw new BadRequestException("End date cannot be before start date.");
+            throw new BadRequestException("400", "trip.400.endDate.conflict");
         }
     }
 }

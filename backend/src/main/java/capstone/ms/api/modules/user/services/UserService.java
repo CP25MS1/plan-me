@@ -1,16 +1,15 @@
 package capstone.ms.api.modules.user.services;
 
-import capstone.ms.api.modules.auth.dto.UserDto;
+import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.user.dto.PreferenceDto;
+import capstone.ms.api.modules.user.dto.UserDto;
 import capstone.ms.api.modules.user.entities.Preference;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.repositories.PreferenceRepository;
 import capstone.ms.api.modules.user.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -49,7 +48,7 @@ public class UserService {
         final var preferenceOptional = preferenceRepository.findByUser_Id(userId);
 
         if (preferenceOptional.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User preference not found");
+            throw new NotFoundException("404", "user.404.preference");
         }
 
         var preference = preferenceOptional.get();
