@@ -85,12 +85,6 @@ public class GlobalExceptionHandler {
         return handleMainException(HttpStatus.NOT_FOUND, exception, request);
     }
 
-    @ExceptionHandler(ForbiddenException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException exception, WebRequest request) {
-        return handleMainException(HttpStatus.FORBIDDEN, exception, request);
-    }
-
     @ExceptionHandler(ConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseEntity<ErrorResponse> handleConflictException(ConflictException exception, WebRequest request) {

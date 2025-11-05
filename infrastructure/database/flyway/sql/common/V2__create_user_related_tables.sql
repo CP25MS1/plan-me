@@ -19,3 +19,6 @@ CREATE TABLE "following" (
     CONSTRAINT fk_following_user FOREIGN KEY ("user_id") REFERENCES "user" ("user_id") ON DELETE CASCADE,
     CONSTRAINT fk_following_following FOREIGN KEY ("following_id") REFERENCES "user" ("user_id") ON DELETE CASCADE
 );
+
+CREATE INDEX idx_follower_follower_id ON "follower" ("follower_id");
+CREATE INDEX idx_following_following_id ON "following" ("following_id");

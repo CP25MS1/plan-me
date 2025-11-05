@@ -28,7 +28,7 @@ public interface ObjectiveMapper {
 
     @AfterMapping
     default void afterMapping(ObjectiveInputDto dto, @MappingTarget Objective obj, @Context BasicObjectiveRepository repository) {
-        BasicObjective base = findBaseObjective(dto.getBoId(), repository);
+        BasicObjective base = findBaseObjective(dto.getId(), repository);
         obj.setBo(base);
 
         String name = firstNonNull(dto.getName(), base != null ? base.getThName() : null);
@@ -58,8 +58,8 @@ public interface ObjectiveMapper {
         if (o == null) return null;
         BasicObjective bo = o.getBo();
         return MergedObjective.builder()
-                .id(o.getId())
-                .boId(bo != null ? bo.getId() : null)
+                .id(bo != null ? bo.getId() : null)
+                .systemOwned(bo != null)
                 .thName(bo != null ? bo.getThName() : null)
                 .enName(bo != null ? bo.getEnName() : null)
                 .name(o.getName())
@@ -69,10 +69,10 @@ public interface ObjectiveMapper {
 
     default MergedObjective basicObjectiveToMerged(BasicObjective bo) {
         return MergedObjective.builder()
-                .boId(bo.getId())
+                .id(bo.getId())
+                .systemOwned(true)
                 .thName(bo.getThName())
                 .enName(bo.getEnName())
-                .name(bo.getThName())
                 .badgeColor(bo.getBadgeColor())
                 .build();
     }
