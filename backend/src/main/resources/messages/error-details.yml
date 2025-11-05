@@ -6,7 +6,7 @@
 
 user:
   400:
-    preference: "User preference must be TH or EN."
+    preference: "User preference not found"
 
 trip:
   400:

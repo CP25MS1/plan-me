@@ -14,8 +14,8 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @ErrorMessage(messageKey = "user.400.create")
 public class UserDto {
-    private Boolean registered;
-    private Integer id;
+    private boolean registered;
+    private Integer userId;
     @NotNull(message = "username cannot be null")
     @Size(max = 80, message = "username cannot exceed 80 characters")
     private String username;
@@ -31,5 +31,5 @@ public class UserDto {
     private String profilePicUrl;
     private PreferenceDto preference;
     private Set<PublicUserInfo> followers;
-    private Set<PublicUserInfo> following;
+    private Set<PublicUserInfo> followings;
 }
