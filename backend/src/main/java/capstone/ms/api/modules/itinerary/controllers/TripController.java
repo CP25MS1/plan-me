@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
 import capstone.ms.api.modules.itinerary.dto.CreateTripDto;
+import capstone.ms.api.modules.itinerary.dto.MergedObjective;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.services.TripService;
 import capstone.ms.api.modules.user.entities.User;
@@ -9,10 +10,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 @RestController
 @AllArgsConstructor
@@ -28,5 +28,10 @@ public class TripController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(tripService.createTrip(tripInfo, user));
+    }
+
+    @GetMapping("/objectives")
+    public ResponseEntity<Set<MergedObjective>> getAllDefaultObjectives() {
+        return ResponseEntity.ok(tripService.getAllDefaultObjectives());
     }
 }

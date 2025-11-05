@@ -2,6 +2,7 @@ package capstone.ms.api.modules.itinerary.services;
 
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.modules.itinerary.dto.CreateTripDto;
+import capstone.ms.api.modules.itinerary.dto.MergedObjective;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.mappers.ObjectiveMapper;
@@ -14,6 +15,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -32,6 +35,14 @@ public class TripService {
         Trip savedTrip = tripRepository.save(trip);
 
         return tripMapper.tripToTripOverviewDto(savedTrip);
+    }
+
+    public Set<MergedObjective> getAllDefaultObjectives() {
+        var defaultObjectives = basicObjectiveRepository.findAll();
+
+        return defaultObjectives.stream()
+                .map(objectiveMapper::basicObjectiveToMerged)
+                .collect(Collectors.toSet());
     }
 
     private void validateDates(LocalDate startDate, LocalDate endDate) {

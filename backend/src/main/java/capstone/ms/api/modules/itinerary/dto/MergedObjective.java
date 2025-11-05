@@ -9,6 +9,7 @@ import lombok.Data;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MergedObjective {
+    private final Integer id;
     private final Boolean systemOwned;
     @JsonProperty("TH")
     private final String thName;

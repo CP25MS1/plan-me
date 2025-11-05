@@ -58,11 +58,22 @@ public interface ObjectiveMapper {
         if (o == null) return null;
         BasicObjective bo = o.getBo();
         return MergedObjective.builder()
+                .id(bo != null ? bo.getId() : null)
                 .systemOwned(bo != null)
                 .thName(bo != null ? bo.getThName() : null)
                 .enName(bo != null ? bo.getEnName() : null)
                 .name(o.getName())
                 .badgeColor(o.getBadgeColor())
+                .build();
+    }
+
+    default MergedObjective basicObjectiveToMerged(BasicObjective bo) {
+        return MergedObjective.builder()
+                .id(bo.getId())
+                .systemOwned(true)
+                .thName(bo.getThName())
+                .enName(bo.getEnName())
+                .badgeColor(bo.getBadgeColor())
                 .build();
     }
 
