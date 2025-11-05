@@ -1,10 +1,7 @@
 package capstone.ms.api.common;
 
 import capstone.ms.api.common.annotations.ErrorMessage;
-import capstone.ms.api.common.exceptions.BadRequestException;
-import capstone.ms.api.common.exceptions.MainException;
-import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.common.exceptions.ServerErrorException;
+import capstone.ms.api.common.exceptions.*;
 import capstone.ms.api.common.models.ErrorResponse;
 import capstone.ms.api.common.models.LocalizedText;
 import capstone.ms.api.common.services.YamlMessageService;
@@ -86,6 +83,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ErrorResponse> handleNotFoundException(NotFoundException exception, WebRequest request) {
         return handleMainException(HttpStatus.NOT_FOUND, exception, request);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<ErrorResponse> handleConflictException(ConflictException exception, WebRequest request) {
+        return handleMainException(HttpStatus.CONFLICT, exception, request);
     }
 
     @ExceptionHandler(ServerErrorException.class)

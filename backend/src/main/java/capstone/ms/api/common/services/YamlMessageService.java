@@ -29,7 +29,7 @@ public class YamlMessageService {
     }
 
     /**
-     * get LocalizedText by dot-delimited key, e.g. "key11.key21".
+     * Get LocalizedText by dot-delimited key, e.g. "key11.key21".
      * returns null if not found.
      */
     public LocalizedText getMessage(String key) {
@@ -44,14 +44,15 @@ public class YamlMessageService {
     }
 
     /**
-     * get details map by key. If details node is a scalar -> return map with root->value,
+     * Get details map by key. If details node is a scalar -> return map with last key -> value,
      * if a nested map -> flatten keys into dot paths.
      */
     public Map<String, String> getDetails(String key) {
         Object node = findNode(detailsRoot, key);
         if (node == null) return Map.of();
         Map<String, String> out = new LinkedHashMap<>();
-        flatten("", node, out);
+        String lastKey = key.isEmpty() ? "value" : key.substring(key.lastIndexOf('.') + 1);
+        flatten(node, lastKey, out);
         return out;
     }
 
@@ -73,30 +74,39 @@ public class YamlMessageService {
         Object cur = root;
         for (String p : parts) {
             if (!(cur instanceof Map<?, ?> curMap)) return null;
-            if (!curMap.containsKey(p)) return null;
-            cur = curMap.get(p);
+            boolean found = false;
+            for (Map.Entry<?, ?> e : curMap.entrySet()) {
+                if (String.valueOf(e.getKey()).equals(p)) {
+                    cur = e.getValue();
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) return null;
         }
         return cur;
     }
 
-    private void flatten(String prefix, Object node, Map<String, String> out) {
+    /**
+     * Flatten YAML node into map with only the last key as key.
+     * Works for scalars, maps, and lists.
+     */
+    private void flatten(Object node, String prefix, Map<String, String> out) {
         switch (node) {
             case Map<?, ?> map -> {
                 for (Map.Entry<?, ?> e : map.entrySet()) {
                     String k = String.valueOf(e.getKey());
-                    String newPrefix = prefix.isEmpty() ? k : prefix + "." + k;
-                    flatten(newPrefix, e.getValue(), out);
+                    flatten(e.getValue(), k, out);
                 }
             }
             case List<?> list -> {
                 for (int i = 0; i < list.size(); i++) {
-                    String newPrefix = prefix + "[" + i + "]";
-                    flatten(newPrefix, list.get(i), out);
+                    flatten(list.get(i), prefix + "[" + i + "]", out);
                 }
             }
-            case null, default -> out.put(prefix, node == null ? null : node.toString());
+            default -> out.put(prefix, node.toString()); // scalar node: use prefix (last key)
+
         }
     }
-
 }
 

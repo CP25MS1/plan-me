@@ -8,6 +8,9 @@
   noToken:
     th: "ไม่พบข้อมูลยืนยันตัวตน กรุณาลองอีกครั้ง"
     en: "Authentication token not found. Please try again."
+  invalidUser:
+    th: "ผู้ใช้นี้ไม่ได้อยู่ในระบบ โปรดลงทะเบียนอีกครั้ง"
+    en: "This user doesn't belong to the system, Please register again."
 
 404:
   th: "ไม่พบข้อมูลที่คุณต้องการ"

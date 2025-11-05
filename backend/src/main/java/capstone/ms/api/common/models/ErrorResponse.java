@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @Data
@@ -34,10 +35,10 @@ public class ErrorResponse {
     ) {
         return ErrorResponse.builder()
                 .status(httpStatus.value())
-                .error(httpStatus.toString())
+                .error(httpStatus.getReasonPhrase())
                 .message(LocalizedText.builder().th(th).en(en).build())
                 .path(path)
-                .timestamp(ZonedDateTime.now().toString())
+                .timestamp(ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
                 .details(details)
                 .build();
     }
