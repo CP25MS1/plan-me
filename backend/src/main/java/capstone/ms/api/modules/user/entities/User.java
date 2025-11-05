@@ -7,6 +7,8 @@ import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -41,4 +43,15 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Preference preference;
 
+    @ManyToMany
+    @JoinTable(name = "follower",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "follower_id"))
+    private Set<User> followers = new LinkedHashSet<>();
+
+    @ManyToMany
+    @JoinTable(name = "following",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "following_id"))
+    private Set<User> followings = new LinkedHashSet<>();
 }
