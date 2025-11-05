@@ -25,12 +25,6 @@ user:
     email:
       th: "อีเมลนี้ถูกใช้แล้ว โปรดตรวจสอบข้อมูลอีกครั้ง"
       en: "This email was already used. Please check your input and try again."
-    following:
-      th: "คุณยังไม่ได้ติดตามผู้ใช้นี้"
-      en: "You have not followed this user yet."
-    follower:
-      th: "ผูัใช้นี้ยังไม่ได้ติดตามคุณ"
-      en: "This user have not followed you yet."
   404:
     th: "ไม่พบผู้ใช้นี้ในระบบ"
     en: "This user is not found in the system."
@@ -40,30 +34,3 @@ trip:
     create:
       th: "ไม่สามารถสร้างทริปได้ โปรดตรวจสอบข้อมูลอีกครั้ง"
       en: "Unable to create trip. Please check your input and try again."
-  403:
-    th: "คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้"
-    en: "You do not have permission to view this trip."
-  404:
-    th: "ไม่พบทริปนี้ในระบบ"
-    en: "This trip is not found in the system."
-
-place:
-  400:
-    th: "ไม่สามารถเพิ่มสถานที่ได้ โปรดตรวจสอบข้อมูลอีกครั้ง"
-    en: "Unable to add place. Please check your input and try again."
-  404:
-    th: "ไม่พบสถานที่นี้ในระบบ"
-    en: "This place is not found in the system."
-  409:
-    added:
-      th: "คุณเพิ่มสถานที่ซ้ำ"
-      en: "You added a duplicate place."
-
-reservation:
-  400:
-    th: "ไม่สามารถเพิ่มข้อมูลการจองได้ โปรดตรวจสอบข้อมูลอีกครั้ง"
-    en: "Unable to add information reservation. Please check your input and try again."
-  404:
-    th: "ไม่พบข้อมูลการจองนี้ในระบบ"
-    en: "This reservation is not found in the system."
-

@@ -10,12 +10,12 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MergedObjective {
     private final Integer id;
-    private final Integer boId;
+    private final Boolean systemOwned;
     @JsonProperty("TH")
     private final String thName;
     @JsonProperty("EN")
     private final String enName;
 
-    private final String name; // If this belongs to BasicObjective, use TH by default.
+    private final String name;
     private final String badgeColor;
 }

@@ -1,6 +1,6 @@
 package capstone.ms.api.modules.user.mappers;
 
-import capstone.ms.api.modules.user.dto.GoogleClaimsDto;
+import capstone.ms.api.modules.auth.dto.GoogleClaimsDto;
 import capstone.ms.api.modules.user.dto.PreferenceDto;
 import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import capstone.ms.api.modules.user.dto.UserDto;
@@ -14,9 +14,8 @@ import java.util.Set;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    @Mapping(target = "registered", ignore = true)
     @Mapping(target = "followers", source = "followers")
-    @Mapping(target = "following", source = "following")
+    @Mapping(target = "followings", source = "followings")
     @Mapping(target = "preference", source = "preference")
     UserDto userToUserDto(User user);
 
