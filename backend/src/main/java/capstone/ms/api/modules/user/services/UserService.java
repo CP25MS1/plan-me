@@ -1,7 +1,6 @@
 package capstone.ms.api.modules.user.services;
 
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import capstone.ms.api.modules.user.dto.UserDto;
 import capstone.ms.api.modules.user.dto.PreferenceDto;
 import capstone.ms.api.modules.user.entities.Preference;
@@ -14,8 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -64,34 +61,7 @@ public class UserService {
 
     public UserDto getUserProfile(final Integer userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        return UserDto.builder()
-                .userId(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .profilePicUrl(user.getProfilePicUrl())
-                .preference(user.getPreference() != null
-                        ? PreferenceDto.builder().language(user.getPreference().getLanguage()).build()
-                        : null)
-                .followers(mapUsersToPublicUserInfo(user.getFollowers(), true))
-                .followings(mapUsersToPublicUserInfo(user.getFollowings(), false))
-                .build();
-    }
-
-    private List<PublicUserInfo> mapUsersToPublicUserInfo(List<?> list, boolean isFollower) {
-        List<PublicUserInfo> result = new ArrayList<>();
-        if (list == null) return result;
-
-        for (Object item : list) {
-            User u = isFollower ? ((Follower) item).getFollower() : ((Following) item).getFollowing();
-            result.add(PublicUserInfo.builder()
-                    .id(u.getId())
-                    .username(u.getUsername())
-                    .email(u.getEmail())
-                    .profilePicUrl(u.getProfilePicUrl())
-                    .build());
-        }
-        return result;
+                .orElseThrow(() -> new NotFoundException("user.404"));
+        return userMapper.userToUserDto(user);
     }
 }
