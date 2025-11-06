@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.auth.dto;
+package capstone.ms.api.modules.user.dto;
 
 import io.jsonwebtoken.Claims;
 import lombok.Builder;
