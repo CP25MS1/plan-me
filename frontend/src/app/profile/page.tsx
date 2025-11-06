@@ -1,15 +1,32 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+// import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getUserFromToken } from '@/lib/auth-client';
+import useGetProfile from './hooks/use-get-profile';
+import { useRouter } from 'next/navigation';
+import FullPageLoading from '@/components/full-page-loading';
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [lang, setLang] = useState<'TH' | 'EN'>('TH');
+  const userId = 3;
 
+  useEffect(() => {
+    const user = getUserFromToken();
+    if (user?.sub) {
+    }
+  }, []);
+
+  const { data: profileData, isFetching } = useGetProfile(`${userId}` || '');
   const handleToggle = () => {
     setLang(lang === 'TH' ? 'EN' : 'TH');
   };
+
+  if (isFetching) {
+    return <FullPageLoading />;
+  }
 
   return (
     <div className="relative flex flex-col items-center px-6 h-[calc(100vh-64px)] overflow-hidden bg-gray-50">
@@ -40,38 +57,40 @@ export default function ProfilePage() {
           />
         </div>
       </button>
-
       <div className="flex flex-col items-center justify-start h-full pt-5">
-        <h1 className="text-2xl font-bold text-black mb-8">John Doe</h1>
+        <h1 className="text-2xl font-bold text-black mb-8">{profileData?.username || 'User'}</h1>
 
         <div className="relative w-28 h-28 mb-3">
           <Image
-            src="https://lh3.googleusercontent.com/a/ACg8ocLCADjdUMHt8Xsv5XKifBFzUpL_R8zmQ69pR4iiLs4-BWWvyCme=s96-c"
+            src={profileData?.profilePicUrl}
             alt="Profile picture"
             fill
             className="rounded-full object-cover border-4 border-primary/30"
           />
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-800">John Doe</h2>
-        <p className="text-gray-500 text-sm mb-3">johndoe@example.com</p>
+        <h2 className="text-xl font-semibold text-gray-800 mb-3">
+          {profileData?.username || 'User'}
+        </h2>
+        <p className="text-gray-500 text-sm mb-2">{profileData?.email || '-'}</p>
 
-        <Button
+        {/* <Button
           variant="outline"
           className="w-[300px] border-green-500 text-green-600 bg-transparent hover:bg-green-50"
         >
           ออกจากระบบ
-        </Button>
+        </Button> */}
 
         <div className="w-3/4 border-b border-gray-200 my-5" />
+
         <div className="flex items-center justify-center gap-10 text-center">
           <div>
-            <p className="text-sm font-semibold text-gray-800">120</p>
+            <p className="text-sm font-semibold text-gray-800">{profileData?.followers.length}</p>
             <p className="text-sm text-gray-500">ผู้ติดตาม</p>
           </div>
-          <div className="h-8 w-[1px] bg-gray-300"></div>
+          <div className="h-8 w-[1px] bg-gray-300" />
           <div>
-            <p className="text-sm font-semibold text-gray-800">98</p>
+            <p className="text-sm font-semibold text-gray-800">{profileData?.following.length}</p>
             <p className="text-sm text-gray-500">กำลังติดตาม</p>
           </div>
         </div>

@@ -21,6 +21,11 @@ export const createUser = async (user: CreateUserPayload): Promise<CreateUserRes
   return data;
 };
 
+export const profile = async (id: string) => {
+  const { data } = await apiClient.get(`/users/${id}/profile`);
+  return data;
+};
+
 export const followUser = async (followingId: number): Promise<PublicUserInfo> => {
   const { data } = await apiClient.post('/users/me/following', { followingId });
   return data;
