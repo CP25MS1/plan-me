@@ -53,5 +53,5 @@ public class User {
     @JoinTable(name = "following",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "following_id"))
-    private Set<User> followings = new LinkedHashSet<>();
+    private Set<User> following = new LinkedHashSet<>();
 }

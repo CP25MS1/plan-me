@@ -1,8 +1,8 @@
 package capstone.ms.api.modules.user.services;
 
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.user.dto.PreferenceDto;
 import capstone.ms.api.modules.user.dto.UserDto;
+import capstone.ms.api.modules.user.dto.PreferenceDto;
 import capstone.ms.api.modules.user.entities.Preference;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.mappers.UserMapper;
@@ -57,5 +57,11 @@ public class UserService {
         final var savedPreference = preferenceRepository.save(preference);
 
         return userMapper.preferenceToPreferenceDto(savedPreference);
+    }
+
+    public UserDto getUserProfile(final Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("user.404"));
+        return userMapper.userToUserDto(user);
     }
 }
