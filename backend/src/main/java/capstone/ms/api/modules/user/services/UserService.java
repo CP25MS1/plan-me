@@ -12,9 +12,6 @@ import capstone.ms.api.modules.user.repositories.PreferenceRepository;
 import capstone.ms.api.modules.user.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -70,52 +67,53 @@ public class UserService {
         return userMapper.userToUserDto(user);
     }
 
-        public User getCurrentUser() {
-        return userRepository.findById(2)
-                .orElseThrow(() -> new NotFoundException("user.404"));
-    }
-
     @Transactional
-    public PublicUserInfo followUser(Integer followingId) {
-        User me = getCurrentUser();
+    public PublicUserInfo followUser(User user, Integer followingId) {
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("user.404"));
+
         User followUser = userRepository.findById(followingId)
                 .orElseThrow(() -> new NotFoundException("user.404"));
 
-        me.getFollowing().add(followUser);
-        followUser.getFollowers().add(me);
-        userRepository.save(me);
+        currentUser.getFollowing().add(followUser);
+        followUser.getFollowers().add(currentUser);
+        userRepository.save(currentUser);
 
         return userMapper.userToPublicUserInfo(followUser);
     }
 
     @Transactional
-    public void unfollowUser(Integer followingId) {
-        User me = getCurrentUser();
+    public void unfollowUser(User user, Integer followingId) {
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("user.404"));
+
         User following = userRepository.findById(followingId)
                 .orElseThrow(() -> new NotFoundException("user.404"));
 
-        if (!me.getFollowing().contains(following)) {
+        if (!currentUser.getFollowing().contains(following)) {
             throw new ConflictException("user.409.following");
         }
 
-        me.getFollowing().remove(following);
-        following.getFollowers().remove(me);
+        currentUser.getFollowing().remove(following);
+        following.getFollowers().remove(currentUser);
 
-        userRepository.save(me);
+        userRepository.save(currentUser);
     }
 
     @Transactional
-    public void removeFollower(Integer followerId) {
-        User me = getCurrentUser();
+    public void removeFollower(User user, Integer followerId) {
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("user.404"));
+
         User follower = userRepository.findById(followerId)
                 .orElseThrow(() -> new NotFoundException("user.404"));
 
-        if (!me.getFollowers().contains(follower)) {
+        if (!currentUser.getFollowers().contains(follower)) {
             throw new ConflictException("user.409.follower");
         }
 
-        me.getFollowers().remove(follower);
-        follower.getFollowing().remove(me);
-        userRepository.save(me);
+        currentUser.getFollowers().remove(follower);
+        follower.getFollowing().remove(currentUser);
+        userRepository.save(currentUser);
     }
 }
