@@ -12,6 +12,14 @@ const nextConfig = {
   typedRoutes: true,
   output: 'standalone',
   basePath: process.env.BASE_PATH || '',
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+    ],
+  },
 };
 
 // @ts-expect-error: next-pwa types conflict with Next.js types
