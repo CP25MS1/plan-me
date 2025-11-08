@@ -7,19 +7,22 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/style-utils';
 import { normalizePath } from '@/lib/string';
 
+import { useTranslation } from 'react-i18next';
+
 const NAV_ITEMS = [
-  { href: '/home', label: 'หน้าหลัก', icon: 'fi fi-rs-home' },
-  { href: '/trip/all', label: 'ทริปทั้งหมด', icon: 'fi fi-rs-map' },
-  { href: '/trip/create', label: 'สร้างทริป', icon: 'fi fi-rs-add' },
-  { href: '/memory', label: 'ความทรงจำ', icon: 'fi fi-rs-copy-image' },
-  { href: '/profile', label: 'โปรไฟล์', icon: 'fi fi-rr-user' },
+  { href: '/home', label: 'navbar.home', icon: 'fi fi-rs-home' },
+  { href: '/trip/all', label: 'navbar.trips', icon: 'fi fi-rs-map' },
+  { href: '/trip/create', label: 'navbar.create', icon: 'fi fi-rs-add' },
+  { href: '/memory', label: 'navbar.memories', icon: 'fi fi-rs-copy-image' },
+  { href: '/profile', label: 'navbar.profile', icon: 'fi fi-rr-user' },
 ] as const;
 
 const HREFS = NAV_ITEMS.map((item) => item.href);
+type MainHref = (typeof HREFS)[number];
 
 const activate = (
   items: typeof NAV_ITEMS,
-  href: string[],
+  href: MainHref[],
   options: { negate: boolean } = { negate: false }
 ) => {
   return items.map((item) => ({
@@ -29,14 +32,15 @@ const activate = (
 };
 
 const Navbar = ({
-  items = activate(NAV_ITEMS, ['/home']),
+  items = activate(NAV_ITEMS, ['/home', '/profile']),
   className = '',
   listClassName = 'flex justify-around items-center py-2',
   itemClass = 'flex flex-col items-center text-xs',
   activeClass = 'text-primary',
 }) => {
+  const { t } = useTranslation('common');
   const pathname = usePathname();
-  const current = normalizePath(pathname) as (typeof HREFS)[number];
+  const current = normalizePath(pathname) as MainHref;
 
   return (
     HREFS.includes(current) && (
@@ -50,7 +54,6 @@ const Navbar = ({
             return (
               <li key={href}>
                 <Link
-                  // @ts-expect-error href can be Route type
                   href={href}
                   onClick={disabled || current === href ? (e) => e.preventDefault() : undefined}
                   aria-current={active ? 'page' : undefined}
@@ -64,7 +67,7 @@ const Navbar = ({
                     className={cn(icon, 'text-xl', active ? activeClass : '')}
                     aria-hidden="true"
                   />
-                  <span className="mt-1">{label}</span>
+                  <span className="mt-1">{t(label)}</span>
                 </Link>
               </li>
             );

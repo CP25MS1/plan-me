@@ -1,10 +1,10 @@
 export default {
   i18n: {
-    defaultLocale: 'th',
+    defaultLocale: 'en',
     locales: ['en', 'th'],
     localeDetection: false,
   },
-  ns: ['common', 'trip_create', 'profile', 'trip_overview'],
+  ns: ['common'],
   defaultNS: 'common',
   localePath: './public/locales',
 };

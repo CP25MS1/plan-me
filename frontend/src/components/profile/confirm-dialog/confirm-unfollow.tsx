@@ -7,7 +7,6 @@ import { TruncatedTooltip } from '@/components/atoms';
 import { useUnfollowUser } from '@/app/profile/hooks';
 import { useAppDispatch } from '@/store';
 import { unfollowUser as unfollowUserAction } from '@/store/profile-slice';
-import { Trans, useTranslation } from 'react-i18next';
 
 type Props = {
   id: number;
@@ -15,8 +14,12 @@ type Props = {
   className?: string;
 };
 
+/**
+ * ConfirmUnfollow
+ * - Self-contained confirm dialog + mutation + redux update.
+ * - Reusable wherever you need a "ยกเลิกติดตาม" flow.
+ */
 export const ConfirmUnfollow: React.FC<Props> = ({ id, username, className }) => {
-  const { t } = useTranslation('common');
   const dispatch = useAppDispatch();
   const unfollowMutation = useUnfollowUser();
 
@@ -30,7 +33,9 @@ export const ConfirmUnfollow: React.FC<Props> = ({ id, username, className }) =>
         dispatch(unfollowUserAction(id));
         setLoading(false);
       },
-      onError: () => setLoading(false),
+      onError: () => {
+        setLoading(false);
+      },
     });
     setOpen(false);
   }, [id, unfollowMutation, dispatch]);
@@ -45,33 +50,30 @@ export const ConfirmUnfollow: React.FC<Props> = ({ id, username, className }) =>
         onClick={() => setOpen(true)}
         disabled={loading}
       >
-        {loading ? t('profile.unfollow.loading') : t('profile.unfollow.action')}
+        {loading ? 'กำลังยกเลิก...' : 'ยกเลิกติดตาม'}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('profile.unfollow.title')}</DialogTitle>
+            <DialogTitle>ยืนยันการยกเลิกติดตาม</DialogTitle>
           </DialogHeader>
 
           <p className="my-4 text-center">
-            <Trans
-              i18nKey="profile.unfollow.confirmText"
-              values={{ username }}
-              components={{
-                strong: <strong />,
-                tooltip: <TruncatedTooltip text={username} className="max-w-1/2!" />,
-              }}
-            />
+            คุณต้องการยกเลิกติดตาม{' '}
+            <strong>
+              <TruncatedTooltip text={username} className="max-w-1/2!" />
+            </strong>{' '}
+            หรือไม่
           </p>
 
           <div className="flex justify-end gap-2">
             <Button variant="ghost" radius="md" onClick={() => setOpen(false)} disabled={loading}>
-              {t('common.cancel')}
+              ยกเลิก
             </Button>
 
             <Button variant="destructive" radius="md" onClick={handleConfirm} disabled={loading}>
-              {loading ? t('profile.unfollow.loading') : t('profile.unfollow.action')}
+              {loading ? 'กำลังยกเลิก...' : 'ยกเลิกติดตาม'}
             </Button>
           </div>
         </DialogContent>
