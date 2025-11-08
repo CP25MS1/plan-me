@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 ] as const;
 
 const HREFS = NAV_ITEMS.map((item) => item.href);
-type MainHref = (typeof HREFS)[number]
+type MainHref = (typeof HREFS)[number];
 
 const activate = (
   items: typeof NAV_ITEMS,

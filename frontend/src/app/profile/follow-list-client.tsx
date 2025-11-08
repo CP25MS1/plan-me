@@ -51,7 +51,7 @@ const FollowListClient: React.FC<Props> = ({ defaultTab = 'followers' }) => {
         onValueChange={handleChange}
         variant="underline"
         fullWidth
-        className='h-full'
+        className="h-full"
       >
         <TabsList className="bg-background">
           <TabsTrigger value="followers">ผู้ติดตาม {followers.length} คน</TabsTrigger>
@@ -59,7 +59,7 @@ const FollowListClient: React.FC<Props> = ({ defaultTab = 'followers' }) => {
         </TabsList>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
-          <TabsContent value="followers" className='h-full'>
+          <TabsContent value="followers" className="h-full">
             <UserListCta
               users={followersWithCta}
               empty={
@@ -71,7 +71,7 @@ const FollowListClient: React.FC<Props> = ({ defaultTab = 'followers' }) => {
             />
           </TabsContent>
 
-          <TabsContent value="following" className='h-full'>
+          <TabsContent value="following" className="h-full">
             <UserListCta
               users={following.map((u) => ({
                 ...u,
