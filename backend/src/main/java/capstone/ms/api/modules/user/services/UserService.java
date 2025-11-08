@@ -1,6 +1,8 @@
 package capstone.ms.api.modules.user.services;
 
+import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.NotFoundException;
+import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import capstone.ms.api.modules.user.dto.UserDto;
 import capstone.ms.api.modules.user.dto.PreferenceDto;
 import capstone.ms.api.modules.user.entities.Preference;
@@ -63,5 +65,55 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("user.404"));
         return userMapper.userToUserDto(user);
+    }
+
+    @Transactional
+    public PublicUserInfo followUser(User user, Integer followingId) {
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("user.404"));
+
+        User followUser = userRepository.findById(followingId)
+                .orElseThrow(() -> new NotFoundException("user.404"));
+
+        currentUser.getFollowing().add(followUser);
+        followUser.getFollowers().add(currentUser);
+        userRepository.save(currentUser);
+
+        return userMapper.userToPublicUserInfo(followUser);
+    }
+
+    @Transactional
+    public void unfollowUser(User user, Integer followingId) {
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("user.404"));
+
+        User following = userRepository.findById(followingId)
+                .orElseThrow(() -> new NotFoundException("user.404"));
+
+        if (!currentUser.getFollowing().contains(following)) {
+            throw new ConflictException("user.409.following");
+        }
+
+        currentUser.getFollowing().remove(following);
+        following.getFollowers().remove(currentUser);
+
+        userRepository.save(currentUser);
+    }
+
+    @Transactional
+    public void removeFollower(User user, Integer followerId) {
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("user.404"));
+
+        User follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new NotFoundException("user.404"));
+
+        if (!currentUser.getFollowers().contains(follower)) {
+            throw new ConflictException("user.409.follower");
+        }
+
+        currentUser.getFollowers().remove(follower);
+        follower.getFollowing().remove(currentUser);
+        userRepository.save(currentUser);
     }
 }
