@@ -34,3 +34,26 @@ export interface UserProfile extends PublicUserInfo {
   followers: PublicUserInfo[];
   following: PublicUserInfo[];
 }
+
+export interface PublicUserInfo {
+  id: number;
+  username: string;
+  email: string;
+  profilePicUrl: string;
+}
+
+export interface UserPreference {
+  language: 'TH' | 'EN';
+}
+
+export interface UserProfile {
+  userId: number;
+  username: string;
+  email: string;
+  idp: string;
+  idpId: string;
+  profilePicUrl: string;
+  preference: UserPreference;
+  followers: PublicUserInfo[];
+  following: PublicUserInfo[];
+}
