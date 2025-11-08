@@ -20,7 +20,7 @@ export const getUserFromToken = (): JwtPayload | null => {
   try {
     return jwtDecode<JwtPayload>(token);
   } catch (err) {
-    console.error('❌ Failed to decode token:', err);
+    console.error('Failed to decode token:', err);
     return null;
   }
 };

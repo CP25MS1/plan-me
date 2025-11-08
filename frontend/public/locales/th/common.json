@@ -1,0 +1,18 @@
+{
+  "profile": {
+    "logout": "ออกจากระบบ",
+    "followers": "ผู้ติดตาม",
+    "following": "กำลังติดตาม"
+  },
+  "navbar": {
+    "home": "หน้าหลัก",
+    "trips": "ทริปทั้งหมด",
+    "create": "สร้างทริป",
+    "memories": "ความทรงจำ",
+    "profile": "โปรไฟล์"
+  },
+  "language": {
+    "th": "TH",
+    "en": "EN"
+  }
+}

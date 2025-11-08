@@ -1,4 +1,5 @@
 import withPWAInit from 'next-pwa';
+import i18n from './next-i18next.config';
 
 const withPWA = withPWAInit({
   dest: 'public',
@@ -20,6 +21,7 @@ const nextConfig = {
       },
     ],
   },
+  i18n,
 };
 
 // @ts-expect-error: next-pwa types conflict with Next.js types
