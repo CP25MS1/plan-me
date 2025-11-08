@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.services;
 
 import capstone.ms.api.common.exceptions.BadRequestException;
+import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.CreateTripDto;
 import capstone.ms.api.modules.itinerary.dto.MergedObjective;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
@@ -49,5 +50,12 @@ public class TripService {
         if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
             throw new BadRequestException("400", "trip.400.endDate.conflict");
         }
+    }
+
+    public TripOverviewDto getTripOverview(Integer tripId) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+
+        return tripMapper.tripToTripOverviewDto(trip);
     }
 }

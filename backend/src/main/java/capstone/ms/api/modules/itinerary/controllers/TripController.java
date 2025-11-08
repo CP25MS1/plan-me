@@ -34,4 +34,10 @@ public class TripController {
     public ResponseEntity<Set<MergedObjective>> getAllDefaultObjectives() {
         return ResponseEntity.ok(tripService.getAllDefaultObjectives());
     }
+
+    @GetMapping("/{tripId}/overview")
+    public ResponseEntity<TripOverviewDto> getTripOverview(@PathVariable Integer tripId) {
+        TripOverviewDto overview = tripService.getTripOverview(tripId);
+        return ResponseEntity.ok(overview);
+    }
 }
