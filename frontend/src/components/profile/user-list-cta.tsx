@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import React, { memo, useMemo } from 'react';
-import { Empty, EmptyDescription, EmptyTitle } from '@/components/ui/empty';
 
 import { TruncatedTooltip } from '../atoms';
 

@@ -1,5 +1,11 @@
 import { apiClient } from '@/api/client';
-import { LoginResponse, CreateUserPayload, CreateUserResponse, PublicUserInfo } from './type';
+import {
+  LoginResponse,
+  CreateUserPayload,
+  CreateUserResponse,
+  PublicUserInfo,
+  UserPreference,
+} from './type';
 
 export const login = async (code: string): Promise<LoginResponse> => {
   const { data } = await apiClient.get('/auth/google/callback', {
@@ -23,6 +29,11 @@ export const createUser = async (user: CreateUserPayload): Promise<CreateUserRes
 
 export const profile = async (id: string) => {
   const { data } = await apiClient.get(`/users/${id}/profile`);
+  return data;
+};
+
+export const updatePreference = async (preference: UserPreference): Promise<UserPreference> => {
+  const { data } = await apiClient.put('/users/me/preference', preference);
   return data;
 };
 

@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { useDispatch, TypedUseSelectorHook, useSelector } from 'react-redux';
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import profileReducer from './profile-slice';
+import i18nReducer from './i18n-slice';
 
 export const store = configureStore({
   reducer: {
     profile: profileReducer,
+    i18n: i18nReducer,
   },
 });
 

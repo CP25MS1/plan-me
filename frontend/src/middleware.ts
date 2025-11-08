@@ -38,8 +38,6 @@ export const middleware = async (request: NextRequest) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  // const payload = await verifyJwt(token)
-
   return NextResponse.next();
 };
 

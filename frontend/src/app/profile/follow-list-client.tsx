@@ -32,6 +32,7 @@ const FollowListClient: React.FC<Props> = ({ defaultTab = 'followers' }) => {
   const handleChange = (value: string) => {
     const v = value as 'followers' | 'following';
     setTab(v);
+    // @ts-ignore
     router.push(`/profile/${v}`);
   };
 

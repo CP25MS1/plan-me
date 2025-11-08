@@ -1,6 +1,5 @@
 'use client';
 
-// import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { getUserFromToken } from '@/lib/auth-client';
@@ -73,13 +72,6 @@ export default function ProfilePage() {
           {profileData?.username || 'User'}
         </h2>
         <p className="text-gray-500 text-sm mb-2">{profileData?.email || '-'}</p>
-
-        {/* <Button
-          variant="outline"
-          className="w-[300px] border-green-500 text-green-600 bg-transparent hover:bg-green-50"
-        >
-          ออกจากระบบ
-        </Button> */}
 
         <div className="w-3/4 border-b border-gray-200 my-5" />
 

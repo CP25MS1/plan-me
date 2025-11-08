@@ -1,4 +1,4 @@
-import { jwtVerify } from 'jose';
+import { jwtVerify, JWTPayload } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
@@ -8,7 +8,7 @@ export const verifyJwt = async (token: string): Promise<boolean> => {
     .catch(() => false);
 };
 
-export const decodeJwt = async (token: string): Promise<any | null> => {
+export const decodeJwt = async (token: string): Promise<JWTPayload | null> => {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     return payload;

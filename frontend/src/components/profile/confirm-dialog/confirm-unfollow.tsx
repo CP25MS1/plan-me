@@ -34,7 +34,6 @@ export const ConfirmUnfollow: React.FC<Props> = ({ id, username, className }) =>
         setLoading(false);
       },
       onError: () => {
-        // add toast/error handling here if needed
         setLoading(false);
       },
     });
