@@ -2,44 +2,8 @@
   "profile": {
     "logout": "ออกจากระบบ",
     "followers": "ผู้ติดตาม",
-    "following": "กำลังติดตาม",
-
-    "followers_count": "ผู้ติดตาม {{count}} คน",
-    "followers_count_plural": "ผู้ติดตาม {{count}} คน",
-    "following_count": "กำลังติดตาม {{count}} คน",
-    "following_count_plural": "กำลังติดตาม {{count}} คน",
-
-    "followers_empty_title": "ยังไม่มีผู้ติดตาม",
-    "followers_empty_description": "เมื่อมีคนติดตาม คุณจะเห็นรายชื่อที่นี่",
-    "following_empty_title": "ยังไม่ได้ติดตามใคร",
-    "following_empty_description": "บัญชีที่คุณติดตามจะแสดงในหน้านี้",
-
-    "unfollow": {
-      "action": "เลิกติดตาม",
-      "loading": "กำลังยกเลิก...",
-      "title": "ยืนยันการเลิกติดตาม",
-      "confirmText": "คุณต้องการเลิกติดตาม <strong><tooltip>{{username}}</tooltip></strong> หรือไม่?"
-    },
-
-    "follower": {
-      "following": "กำลังติดตาม",
-      "loading": "กำลังดำเนินการ...",
-      "followBack": "ติดตามกลับ",
-      "followBackLoading": "กำลังติดตาม...",
-      "removeAction": "ลบผู้ติดตาม",
-      "removing": "กำลังลบ...",
-      "removeTitle": "ยืนยันการลบ",
-      "confirmText": "คุณต้องการลบ <strong><tooltip>{{username}}</tooltip></strong> ออกจากผู้ติดตามหรือไม่?"
-    },
-
-    "unfollow_confirm_button": "ยกเลิกติดตาม",
-    "remove_follower_button": "ลบผู้ติดตาม"
+    "following": "กำลังติดตาม"
   },
-
-  "common": {
-    "cancel": "ยกเลิก"
-  },
-
   "navbar": {
     "home": "หน้าหลัก",
     "trips": "ทริปทั้งหมด",
@@ -47,23 +11,8 @@
     "memories": "ความทรงจำ",
     "profile": "โปรไฟล์"
   },
-
   "language": {
     "th": "TH",
     "en": "EN"
-  },
-
-  "placeholder": {
-    "search": "ค้นหาผู้ใช้"
-  },
-
-  "empty": {
-    "no_users_found": "ไม่พบผู้ใช้",
-    "no_results": "ไม่พบข้อมูล",
-    "no_results_cta_text": "ลองใช้คำค้นหาอื่นหรือเช็กการสะกดอีกครั้ง",
-    "image": "ไม่พบรูปภาพ"
-  },
-
-  "confirm": "ยืนยัน",
-  "cancel": "ยกเลิก"
+  }
 }

@@ -14,15 +14,18 @@ import useRemoveFollower from '@/app/profile/hooks/use-remove-follower';
 import { useAppDispatch } from '@/store';
 import { removeFollower as removeFollowerAction } from '@/store/profile-slice';
 import type { PublicUserInfo } from '@/api/users';
-import { Trans, useTranslation } from 'react-i18next';
 
 type Props = {
   follower: PublicUserInfo;
   triggerClassName?: string;
 };
 
+/**
+ * ConfirmRemoveFollower
+ * - Dropdown trigger "กำลังติดตาม" -> menu item "ลบผู้ติดตาม" -> confirm dialog
+ * - Handles mutation + redux dispatch
+ */
 export const ConfirmRemoveFollower: React.FC<Props> = ({ follower, triggerClassName }) => {
-  const { t } = useTranslation('common');
   const dispatch = useAppDispatch();
   const removeMutation = useRemoveFollower();
 
@@ -36,7 +39,10 @@ export const ConfirmRemoveFollower: React.FC<Props> = ({ follower, triggerClassN
         dispatch(removeFollowerAction(follower.id));
         setLoading(false);
       },
-      onError: () => setLoading(false),
+      onError: () => {
+        // show error/toast if you use one
+        setLoading(false);
+      },
     });
     setOpenDialog(false);
   }, [follower.id, removeMutation, dispatch]);
@@ -52,7 +58,7 @@ export const ConfirmRemoveFollower: React.FC<Props> = ({ follower, triggerClassN
             className={triggerClassName ?? 'px-5'}
             disabled={loading}
           >
-            {loading ? t('profile.follower.loading') : t('profile.follower.following')}
+            {loading ? 'กำลังดำเนินการ...' : 'กำลังติดตาม'}
           </Button>
         </DropdownMenuTrigger>
 
@@ -63,7 +69,7 @@ export const ConfirmRemoveFollower: React.FC<Props> = ({ follower, triggerClassN
               setOpenDialog(true);
             }}
           >
-            <span className="text-danger">{t('profile.follower.removeAction')}</span>
+            <span className="text-danger">ลบผู้ติดตาม</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -71,18 +77,15 @@ export const ConfirmRemoveFollower: React.FC<Props> = ({ follower, triggerClassN
       <Dialog open={openDialog} onOpenChange={(val) => !val && setOpenDialog(false)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('profile.follower.removeTitle')}</DialogTitle>
+            <DialogTitle>ยืนยันการลบ</DialogTitle>
           </DialogHeader>
 
           <p className="my-4 text-center">
-            <Trans
-              i18nKey="profile.follower.confirmText"
-              values={{ username: follower.username }}
-              components={{
-                strong: <strong />,
-                tooltip: <TruncatedTooltip text={follower.username} className="max-w-1/2!" />,
-              }}
-            />
+            คุณต้องการลบ{' '}
+            <strong>
+              <TruncatedTooltip text={follower.username} className="max-w-1/2!" />
+            </strong>{' '}
+            ออกจากผู้ติดตามหรือไม่
           </p>
 
           <div className="flex justify-end gap-2">
@@ -92,11 +95,11 @@ export const ConfirmRemoveFollower: React.FC<Props> = ({ follower, triggerClassN
               onClick={() => setOpenDialog(false)}
               disabled={loading}
             >
-              {t('common.cancel')}
+              ยกเลิก
             </Button>
 
             <Button variant="destructive" radius="md" onClick={handleRemove} disabled={loading}>
-              {loading ? t('profile.follower.removing') : t('profile.follower.removeAction')}
+              {loading ? 'กำลังลบ...' : 'ลบผู้ติดตาม'}
             </Button>
           </div>
         </DialogContent>
