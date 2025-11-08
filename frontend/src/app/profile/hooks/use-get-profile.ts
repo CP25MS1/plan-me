@@ -1,13 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { USERS } from '@/constants/query-keys';
-import { profile } from '@/api/users/api';
+import { getProfile } from '@/api/users/api';
 
-export const useGetProfile = (userId: string) => {
+export const useGetProfile = (userId: number) => {
   return useQuery({
     queryKey: [USERS.PROFILE, userId],
-    queryFn: () => profile(userId),
+    queryFn: () => getProfile(userId),
     enabled: !!userId,
-    retry: false,
     refetchOnWindowFocus: false,
   });
 };

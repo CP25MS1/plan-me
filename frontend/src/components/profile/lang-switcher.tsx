@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setLocale, type Locale } from '@/store/i18n-slice';
 import { UserPreference } from '@/api/users';
 import { useUpdatePreference } from '@/app/profile/hooks';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { RootState } from '@/store';
 
 export const LangSwitcher = () => {
@@ -27,22 +26,37 @@ export const LangSwitcher = () => {
   );
 
   return (
-    <ToggleGroup
-      type="single"
-      value={currentLang}
-      onValueChange={(lng) => {
-        if (!lng) return;
-        switchTo({ language: lng } as UserPreference);
-      }}
-      className="flex gap-2"
+    <div
+      className="relative flex w-[85px] h-[34px] rounded-full overflow-hidden cursor-pointer select-none"
+      style={{ backgroundColor: '#D7D8DB' }}
     >
-      <ToggleGroupItem value="EN" aria-label="Switch to English">
-        EN
-      </ToggleGroupItem>
-      <ToggleGroupItem value="TH" aria-label="เปลี่ยนเป็นภาษาไทย">
+      {/* พื้นหลังเลื่อน */}
+      <span
+        className="absolute top-[3px] left-[3px] h-[28px] w-[43px] rounded-full transition-transform duration-300"
+        style={{
+          backgroundColor: '#2ECC71',
+          transform: currentLang?.toUpperCase() === 'EN' ? 'translateX(36px)' : 'translateX(0)',
+        }}
+      />
+      {/* TH */}
+      <span
+        onClick={() => switchTo({ language: 'TH' } as UserPreference)}
+        className={`w-1/2 text-center z-10 flex items-center justify-center font-semibold text-[13px] transition-colors ${
+          currentLang?.toUpperCase() === 'TH' ? 'text-white' : 'text-gray-700'
+        }`}
+      >
         TH
-      </ToggleGroupItem>
-    </ToggleGroup>
+      </span>
+      {/* EN */}
+      <span
+        onClick={() => switchTo({ language: 'EN' } as UserPreference)}
+        className={`w-1/2 text-center z-10 flex items-center justify-center font-semibold text-[13px] transition-colors ${
+          currentLang?.toUpperCase() === 'EN' ? 'text-white' : 'text-gray-700'
+        }`}
+      >
+        EN
+      </span>
+    </div>
   );
 };
 

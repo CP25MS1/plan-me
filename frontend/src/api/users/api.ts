@@ -5,6 +5,7 @@ import {
   CreateUserResponse,
   PublicUserInfo,
   UserPreference,
+  UserProfile,
 } from './type';
 
 export const login = async (code: string): Promise<LoginResponse> => {
@@ -27,7 +28,7 @@ export const createUser = async (user: CreateUserPayload): Promise<CreateUserRes
   return data;
 };
 
-export const profile = async (id: string) => {
+export const getProfile = async (id: number): Promise<UserProfile> => {
   const { data } = await apiClient.get(`/users/${id}/profile`);
   return data;
 };
