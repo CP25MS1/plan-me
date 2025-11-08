@@ -31,23 +31,23 @@ public class UserController {
     }
 
     @PostMapping("/me/following")
-    public ResponseEntity<PublicUserInfo> followUser(@AuthenticationPrincipal User user,
-                                                     @Valid @RequestBody final FollowingDto followingDto) {
-        PublicUserInfo followedUser = userService.followUser(user, followingDto.getFollowingId());
+    public ResponseEntity<PublicUserInfo> followUser(@AuthenticationPrincipal User currentUser,
+                                                     @Valid @RequestBody final FollowingIdDto targetUser) {
+        PublicUserInfo followedUser = userService.followUser(currentUser, targetUser.getFollowingId());
         return ResponseEntity.status(HttpStatus.CREATED).body(followedUser);
     }
 
     @DeleteMapping("/me/following")
-    public ResponseEntity<Void> unfollow(@AuthenticationPrincipal User user,
-                                         @Valid @RequestBody final FollowingDto followingDto) {
-        userService.unfollowUser(user, followingDto.getFollowingId());
+    public ResponseEntity<Void> unfollow(@AuthenticationPrincipal User currentUser,
+                                         @Valid @RequestBody final FollowingIdDto targetUser) {
+        userService.unfollowUser(currentUser, targetUser.getFollowingId());
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/me/followers")
-    public ResponseEntity<Void> removeFollower(@AuthenticationPrincipal User user,
-                                               @Valid @RequestBody final FollowerDto followerDto) {
-        userService.removeFollower(user, followerDto.getFollowerId());
+    public ResponseEntity<Void> removeFollower(@AuthenticationPrincipal User currentUser,
+                                               @Valid @RequestBody final FollowerIdDto targetUser) {
+        userService.removeFollower(currentUser, targetUser.getFollowerId());
         return ResponseEntity.noContent().build();
     }
 
