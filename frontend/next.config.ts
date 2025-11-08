@@ -7,14 +7,11 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === 'development',
 });
 
-const basePath = process.env.BASE_PATH || '';
-
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
   output: 'standalone',
-  basePath,
-  assetPrefix: basePath,
+  basePath: process.env.BASE_PATH || '',
   images: {
     remotePatterns: [
       {

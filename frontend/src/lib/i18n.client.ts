@@ -9,10 +9,10 @@ if (!isInitialized) {
     .use(HttpBackend)
     .use(initReactI18next)
     .init({
-      fallbackLng: 'th',
+      fallbackLng: 'en',
       supportedLngs: ['en', 'th'],
       defaultNS: 'common',
-      ns: ['common', 'trip_create', 'profile', 'trip_overview'],
+      ns: ['common'],
       backend: {
         loadPath: '/locales/{{lng}}/{{ns}}.json',
       },

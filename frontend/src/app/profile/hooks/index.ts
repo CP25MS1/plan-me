@@ -3,4 +3,3 @@ export * from './use-update-preference';
 export * from './use-follow-user';
 export * from './use-remove-follower';
 export * from './use-unfollow-user';
-export * from './use-follow-action-button';

@@ -9,7 +9,7 @@ interface BackButtonProps extends ButtonProps {
   iconOnly?: boolean;
 }
 
-export const BackButton = ({
+const BackButton = ({
   onBack,
   variant = 'ghost',
   className,
@@ -19,7 +19,8 @@ export const BackButton = ({
 }: BackButtonProps) => {
   const handle = () => {
     if (onBack) return onBack();
-    if (globalThis.history.length > 1) return globalThis.history.back();
+    if (typeof window !== 'undefined' && window.history.length > 1) return window.history.back();
+    return;
   };
 
   return (
