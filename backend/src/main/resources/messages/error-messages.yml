@@ -40,3 +40,9 @@ trip:
     create:
       th: "ไม่สามารถสร้างทริปได้ โปรดตรวจสอบข้อมูลอีกครั้ง"
       en: "Unable to create trip. Please check your input and try again."
+  403:
+    th: "คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้"
+    en: "You do not have permission to view this trip."
+  404:
+    th: "ไม่พบทริปนี้ในระบบ"
+    en: "This trip is not found in the system."
