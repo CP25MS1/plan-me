@@ -25,6 +25,12 @@ user:
     email:
       th: "อีเมลนี้ถูกใช้แล้ว โปรดตรวจสอบข้อมูลอีกครั้ง"
       en: "This email was already used. Please check your input and try again."
+    following:
+      th: "คุณยังไม่ได้ติดตามผู้ใช้นี้"
+      en: "You have not followed this user yet."
+    follower:
+      th: "ผูัใช้นี้ยังไม่ได้ติดตามคุณ"
+      en: "This user have not followed you yet."
   404:
     th: "ไม่พบผู้ใช้นี้ในระบบ"
     en: "This user is not found in the system."
