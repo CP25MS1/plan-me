@@ -16,10 +16,11 @@ const NAV_ITEMS = [
 ] as const;
 
 const HREFS = NAV_ITEMS.map((item) => item.href);
+type MainHref = (typeof HREFS)[number]
 
 const activate = (
   items: typeof NAV_ITEMS,
-  href: string[],
+  href: MainHref[],
   options: { negate: boolean } = { negate: false }
 ) => {
   return items.map((item) => ({
@@ -29,14 +30,14 @@ const activate = (
 };
 
 const Navbar = ({
-  items = activate(NAV_ITEMS, ['/home']),
+  items = activate(NAV_ITEMS, ['/home', '/profile']),
   className = '',
   listClassName = 'flex justify-around items-center py-2',
   itemClass = 'flex flex-col items-center text-xs',
   activeClass = 'text-primary',
 }) => {
   const pathname = usePathname();
-  const current = normalizePath(pathname) as (typeof HREFS)[number];
+  const current = normalizePath(pathname) as MainHref;
 
   return (
     HREFS.includes(current) && (

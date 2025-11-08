@@ -3,7 +3,7 @@ import { Sarabun } from 'next/font/google';
 import type { Metadata } from 'next';
 
 import './globals.css';
-import { Providers } from './providers';
+import { QueryProvider, ReduxProvider } from './providers';
 import Navbar from '@/components/navbar';
 
 const sarabun = Sarabun({
@@ -34,12 +34,14 @@ const RootLayout = ({
         <link rel="manifest" href="/manifest.webmanifest" />
       </head>
       <body className={`${sarabun.variable} antialiased`}>
-        <Providers>
-          <div className="flex flex-col min-h-screen">
-            <main className="grow">{children}</main>
-            <Navbar />
-          </div>
-        </Providers>
+        <ReduxProvider>
+          <QueryProvider>
+            <div className="flex flex-col min-h-screen">
+              <div className="grow">{children}</div>
+              <Navbar />
+            </div>
+          </QueryProvider>
+        </ReduxProvider>
         <Script
           src="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/license.min.js"
           strategy="afterInteractive"
