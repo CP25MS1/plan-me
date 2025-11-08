@@ -1,0 +1,18 @@
+{
+  "profile": {
+    "logout": "Log out",
+    "followers": "Followers",
+    "following": "Following"
+  },
+  "navbar": {
+    "home": "Home",
+    "trips": "Trips",
+    "create": "Create Trip",
+    "memories": "Memories",
+    "profile": "Profile"
+  },
+  "language": {
+    "th": "TH",
+    "en": "EN"
+  }
+}

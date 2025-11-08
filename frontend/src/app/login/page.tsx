@@ -14,7 +14,10 @@ import useCreateUser from './hooks/use-create-user';
 const LoginPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const [showDialog, setShowDialog] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+
   const { mutate, isPending: createPending } = useCreateUser();
   const login = useLogin(searchParams.get('code') || '');
   const { isSuccess: loginSuccess, data: userData } = login;
@@ -24,7 +27,7 @@ const LoginPage = () => {
     if (!loginSuccess) return;
     mutate(userData, {
       onSuccess: () => {
-        setShowDialog(false);
+        setIsNavigating(false);
         router.push('/home');
       },
       onError: console.error,
@@ -35,13 +38,14 @@ const LoginPage = () => {
     if (!loginSuccess) return;
 
     if (userData.registered) {
+      setIsNavigating(true);
       router.push('/home');
     } else {
       setShowDialog(true);
     }
   }, [loginSuccess, userData, router]);
 
-  if (login.isFetching || createPending) {
+  if (login.isFetching || createPending || isNavigating) {
     return <FullPageLoading />;
   }
 

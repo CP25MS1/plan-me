@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Plan ME', //TODO: Change this later
+    name: 'Plan ME',
     short_name: 'Plan ME',
     description: 'A trip planning app that helps you organize your travels.',
     start_url: '/',
