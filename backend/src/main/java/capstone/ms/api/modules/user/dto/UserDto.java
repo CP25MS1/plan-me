@@ -15,7 +15,7 @@ import java.util.Set;
 @ErrorMessage(messageKey = "user.400.create")
 public class UserDto {
     private Boolean registered;
-    private Integer userId;
+    private Integer id;
     @NotNull(message = "username cannot be null")
     @Size(max = 80, message = "username cannot exceed 80 characters")
     private String username;

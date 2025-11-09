@@ -2,7 +2,6 @@ import { apiClient } from '@/api/client';
 import {
   LoginResponse,
   CreateUserPayload,
-  CreateUserResponse,
   PublicUserInfo,
   UserPreference,
   UserProfile,
@@ -15,7 +14,7 @@ export const login = async (code: string): Promise<LoginResponse> => {
   return data;
 };
 
-export const createUser = async (user: CreateUserPayload): Promise<CreateUserResponse> => {
+export const createUser = async (user: CreateUserPayload): Promise<UserProfile> => {
   const payload = {
     username: user.username,
     email: user.email,

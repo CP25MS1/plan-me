@@ -3,10 +3,12 @@ import { PublicUserInfo, UserProfile } from '@/api/users';
 
 type ProfileState = {
   currentUser: UserProfile | null;
+  currentUserId: number | null;
 };
 
 const initialState: ProfileState = {
   currentUser: null,
+  currentUserId: null,
 };
 
 const profileSlice = createSlice({
@@ -15,9 +17,13 @@ const profileSlice = createSlice({
   reducers: {
     setCurrentUser(state, action: PayloadAction<UserProfile>) {
       state.currentUser = action.payload;
+      state.currentUserId = action.payload.id;
     },
     setCurrentUserId(state, action: PayloadAction<number>) {
-      state.currentUser = { ...state.currentUser, userId: action.payload } as UserProfile;
+      state.currentUserId = action.payload;
+      if (state.currentUser) {
+        state.currentUser.id = action.payload;
+      }
     },
     followUser(state, action: PayloadAction<PublicUserInfo>) {
       if (!state.currentUser) return;
