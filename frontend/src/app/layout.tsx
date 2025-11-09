@@ -8,9 +8,10 @@ import AppProvider from '../providers';
 import Navbar from '@/components/navbar';
 
 const sarabun = Sarabun({
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800'],
+  weight: ['300', '400', '700'],
   variable: '--font-sarabun',
   subsets: ['latin', 'latin-ext', 'thai'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { QueryClient } from '@tanstack/query-core';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
@@ -15,7 +15,18 @@ import { type Locale, setLocale } from '@/store/i18n-slice';
 import { getProfile } from '@/api/users';
 
 export const QueryProvider = ({ children }: { children: ReactNode }) => {
-  const client = new QueryClient();
+  const [client] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 1000 * 60,
+            refetchOnWindowFocus: false,
+          },
+        },
+      })
+  );
+
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 };
 
