@@ -27,8 +27,11 @@ export const createUser = async (user: CreateUserPayload): Promise<UserProfile> 
   return data;
 };
 
-export const getProfile = async (id: number): Promise<UserProfile> => {
-  const { data } = await apiClient.get(`/users/${id}/profile`);
+export const getProfile = async (arg: number | { me: true }): Promise<UserProfile> => {
+  const endpoint =
+    typeof arg === 'object' && arg.me ? '/users/me/profile' : `/users/${arg}/profile`;
+
+  const { data } = await apiClient.get(endpoint);
   return data;
 };
 
