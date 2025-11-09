@@ -43,28 +43,27 @@ export const I18nProvider = ({ children }: { children: ReactNode }) => {
 };
 
 const ProfileInitializer = () => {
-    const pathname = usePathname();
-    const dispatch = useDispatch();
-    const currentUser = useSelector((s: RootState) => s.profile.currentUser);
+  const pathname = usePathname();
+  const dispatch = useDispatch();
+  const currentUser = useSelector((s: RootState) => s.profile.currentUser);
 
-    const shouldFetch = pathname !== '/login' && !currentUser;
+  const shouldFetch = pathname !== '/login' && !currentUser;
 
-    const { data } = useQuery({
-        queryKey: ['me'],
-        queryFn: () => getProfile({ me: true }),
-        enabled: shouldFetch,
-        retry: false,
-    });
+  const { data } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => getProfile({ me: true }),
+    enabled: shouldFetch,
+    retry: false,
+  });
 
-    useEffect(() => {
-        if (data) {
-            dispatch(setCurrentUser(data));
-        }
-    }, [data, dispatch]);
+  useEffect(() => {
+    if (data) {
+      dispatch(setCurrentUser(data));
+    }
+  }, [data, dispatch]);
 
-    return null;
+  return null;
 };
-
 
 export const ReduxProvider = ({ children }: { children: ReactNode }) => {
   return (

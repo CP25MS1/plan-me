@@ -19,8 +19,7 @@ const BackButton = ({
 }: BackButtonProps) => {
   const handle = () => {
     if (onBack) return onBack();
-    if (typeof window !== 'undefined' && window.history.length > 1) return window.history.back();
-    return;
+    if (globalThis.history.length > 1) return globalThis.history.back();
   };
 
   return (

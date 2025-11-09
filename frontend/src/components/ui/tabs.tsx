@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useMemo } from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { cn } from '@/lib/style-utils';
 
@@ -14,8 +15,10 @@ type TabsProps = React.ComponentProps<typeof TabsPrimitive.Root> & {
 const TabsContext = React.createContext<{ variant: Variant; fullWidth: boolean } | null>(null);
 
 export function Tabs({ variant = 'filled', fullWidth = false, className, ...props }: TabsProps) {
+  const contextValue = useMemo(() => ({ variant, fullWidth }), [variant, fullWidth]);
+
   return (
-    <TabsContext.Provider value={{ variant, fullWidth }}>
+    <TabsContext.Provider value={contextValue}>
       <TabsPrimitive.Root className={cn('flex flex-col gap-2', className)} {...props} />
     </TabsContext.Provider>
   );
