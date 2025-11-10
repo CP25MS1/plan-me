@@ -16,9 +16,6 @@ const profileSlice = createSlice({
     setCurrentUser(state, action: PayloadAction<UserProfile>) {
       state.currentUser = action.payload;
     },
-    setCurrentUserId(state, action: PayloadAction<number>) {
-      state.currentUser = { ...state.currentUser, userId: action.payload } as UserProfile;
-    },
     followUser(state, action: PayloadAction<PublicUserInfo>) {
       if (!state.currentUser) return;
       const exists = state.currentUser.following.find((u) => u.id === action.payload.id);
@@ -39,6 +36,5 @@ const profileSlice = createSlice({
   },
 });
 
-export const { setCurrentUser, setCurrentUserId, followUser, unfollowUser, removeFollower } =
-  profileSlice.actions;
+export const { setCurrentUser, followUser, unfollowUser, removeFollower } = profileSlice.actions;
 export default profileSlice.reducer;

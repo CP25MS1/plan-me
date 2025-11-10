@@ -2,8 +2,44 @@
   "profile": {
     "logout": "Log out",
     "followers": "Followers",
-    "following": "Following"
+    "following": "Following",
+
+    "followers_count": "{{count}} follower",
+    "followers_count_plural": "{{count}} followers",
+    "following_count": "{{count}} following",
+    "following_count_plural": "{{count}} following",
+
+    "followers_empty_title": "No followers yet",
+    "followers_empty_description": "When someone follows you, their name will appear here.",
+    "following_empty_title": "Not following anyone",
+    "following_empty_description": "Accounts you follow will appear on this page.",
+
+    "unfollow": {
+      "action": "Unfollow",
+      "loading": "Unfollowing...",
+      "title": "Confirm unfollow",
+      "confirmText": "Are you sure you want to unfollow <strong><tooltip>{{username}}</tooltip></strong>?"
+    },
+
+    "follower": {
+      "following": "Following",
+      "loading": "Processing...",
+      "followBack": "Follow back",
+      "followBackLoading": "Following...",
+      "removeAction": "Remove follower",
+      "removing": "Removing...",
+      "removeTitle": "Confirm remove",
+      "confirmText": "Do you want to remove <strong><tooltip>{{username}}</tooltip></strong> from your followers?"
+    },
+
+    "unfollow_confirm_button": "Unfollow",
+    "remove_follower_button": "Remove follower"
   },
+
+  "common": {
+    "cancel": "Cancel"
+  },
+
   "navbar": {
     "home": "Home",
     "trips": "Trips",
@@ -11,6 +47,7 @@
     "memories": "Memories",
     "profile": "Profile"
   },
+
   "language": {
     "th": "TH",
     "en": "EN"
