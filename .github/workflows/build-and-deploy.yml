@@ -9,6 +9,11 @@ on:
     types:
       - closed
   workflow_dispatch:
+    inputs:
+      build_all:
+        description: 'Build all services regardless of changes'
+        required: false
+        default: 'false'
 
 permissions:
   contents: read
@@ -30,11 +35,15 @@ jobs:
           echo "🔎 Detecting changed files..."
           rm -f changed_files.txt || true
 
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
+          # Manual run with build_all=true
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.build_all }}" = "true" ]; then
+            echo "⚡ Manual trigger with build_all=true — building everything"
+            # List all directories containing Dockerfile
+            find . -name Dockerfile -exec dirname {} \; | tr '\n' ' ' | xargs > changed_files.txt
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "Event: pull_request — using base/head SHAs"
             BASE_SHA="${{ github.event.pull_request.base.sha }}"
             HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-
             git fetch --no-tags --prune origin "$BASE_SHA" "$HEAD_SHA" || true
             git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed_files.txt || true
           else
@@ -52,7 +61,7 @@ jobs:
       - name: Detect changed services
         id: services
         run: |
-          echo "🔎 Detecting changed services from changed_files.txt..."
+          echo "🔎 Detecting services from changed_files.txt..."
           SERVICES=""
 
           while IFS= read -r file || [ -n "$file" ]; do
@@ -68,7 +77,6 @@ jobs:
           done < changed_files.txt
 
           SERVICES=$(echo $SERVICES | tr ' ' '\n' | sed '/^$/d' | sort -u | tr '\n' ' ' | xargs || true)
-
           echo "Changed services: $SERVICES"
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
 
@@ -79,7 +87,7 @@ jobs:
           username: cp25ms1
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push changed services
+      - name: Build and push services
         if: ${{ steps.services.outputs.services != '' }}
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
