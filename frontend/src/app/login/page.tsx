@@ -1,6 +1,7 @@
 'use client';
+
 import Image from 'next/image';
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { startGoogleLogin } from './actions';
 import useLogin from './hooks/use-login';
 import useCreateUser from './hooks/use-create-user';
 
-const LoginPage = () => {
+const LoginContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -49,7 +50,6 @@ const LoginPage = () => {
     return <FullPageLoading />;
   }
 
-  //TODO: Dialog component needs to be refactored for standard usage
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <h1 className="text-2xl font-bold mb-4 text-primary">PLAN ME</h1>
@@ -79,6 +79,14 @@ const LoginPage = () => {
         </DialogContent>
       </Dialog>
     </div>
+  );
+};
+
+const LoginPage = () => {
+  return (
+    <Suspense fallback={<FullPageLoading />}>
+      <LoginContent />
+    </Suspense>
   );
 };
 
