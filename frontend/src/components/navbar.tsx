@@ -57,7 +57,7 @@ const Navbar = ({
             return (
               <li key={href}>
                 <Link
-                  href={href}
+                  href={href as any}
                   onClick={disabled || current === href ? (e) => e.preventDefault() : undefined}
                   aria-current={active ? 'page' : undefined}
                   className={cn(

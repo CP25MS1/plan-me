@@ -17,4 +17,3 @@ export const decodeJwt = async (token: string): Promise<JWTPayload | null> => {
     return null;
   }
 };
-
