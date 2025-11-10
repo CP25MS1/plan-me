@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.services;
 
 import capstone.ms.api.common.exceptions.BadRequestException;
+import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.CreateTripDto;
 import capstone.ms.api.modules.itinerary.dto.MergedObjective;
@@ -52,9 +53,14 @@ public class TripService {
         }
     }
 
-    public TripOverviewDto getTripOverview(Integer tripId) {
+    public TripOverviewDto getTripOverview(Integer tripId, User currentUser) {
         Trip trip = tripRepository.findById(tripId)
                 .orElseThrow(() -> new NotFoundException("trip.404"));
+
+        boolean isOwner = trip.getOwner().getId().equals(currentUser.getId());
+        if (!isOwner) {
+            throw new ForbiddenException("trip.403");
+        }
 
         return tripMapper.tripToTripOverviewDto(trip);
     }

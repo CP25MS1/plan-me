@@ -36,8 +36,9 @@ public class TripController {
     }
 
     @GetMapping("/{tripId}/overview")
-    public ResponseEntity<TripOverviewDto> getTripOverview(@PathVariable Integer tripId) {
-        TripOverviewDto overview = tripService.getTripOverview(tripId);
+    public ResponseEntity<TripOverviewDto> getTripOverview(@PathVariable Integer tripId,
+                                                           @AuthenticationPrincipal User currentUser) {
+        TripOverviewDto overview = tripService.getTripOverview(tripId, currentUser);
         return ResponseEntity.ok(overview);
     }
 }
