@@ -2,7 +2,6 @@ import { apiClient } from '@/api/client';
 import {
   LoginResponse,
   CreateUserPayload,
-  CreateUserResponse,
   PublicUserInfo,
   UserPreference,
   UserProfile,
@@ -15,7 +14,7 @@ export const login = async (code: string): Promise<LoginResponse> => {
   return data;
 };
 
-export const createUser = async (user: CreateUserPayload): Promise<CreateUserResponse> => {
+export const createUser = async (user: CreateUserPayload): Promise<UserProfile> => {
   const payload = {
     username: user.username,
     email: user.email,
@@ -28,8 +27,11 @@ export const createUser = async (user: CreateUserPayload): Promise<CreateUserRes
   return data;
 };
 
-export const getProfile = async (id: number): Promise<UserProfile> => {
-  const { data } = await apiClient.get(`/users/${id}/profile`);
+export const getProfile = async (arg: number | { me: true }): Promise<UserProfile> => {
+  const endpoint =
+    typeof arg === 'object' && arg.me ? '/users/me/profile' : `/users/${arg}/profile`;
+
+  const { data } = await apiClient.get(endpoint);
   return data;
 };
 
