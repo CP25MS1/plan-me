@@ -8,7 +8,7 @@ export const middleware = async (request: NextRequest) => {
 
   if (
     pathname.startsWith('/_next') ||
-    pathname.match(/\.(.*)$/) // static asset
+    new RegExp(/\.(.*)$/).exec(pathname) // static asset
   ) {
     return NextResponse.next();
   }
@@ -37,8 +37,6 @@ export const middleware = async (request: NextRequest) => {
     const loginUrl = new URL('/login', request.url);
     return NextResponse.redirect(loginUrl);
   }
-
-  // const payload = await verifyJwt(token)
 
   return NextResponse.next();
 };

@@ -15,20 +15,6 @@ export interface CreateUserPayload {
   profilePicUrl: string;
 }
 
-export interface CreateUserResponse {
-  userId: number;
-  username: string;
-  email: string;
-  idp: string;
-  idpId: string;
-  profilePicUrl: string;
-  preference: {
-    language: 'TH' | 'EN';
-  };
-  followers: [];
-  followings: [];
-}
-
 export interface PublicUserInfo {
   id: number;
   username: string;
@@ -40,13 +26,10 @@ export interface UserPreference {
   language: 'TH' | 'EN';
 }
 
-export interface UserProfile {
-  userId: number;
-  username: string;
-  email: string;
+export interface UserProfile extends PublicUserInfo {
+  id: number;
   idp: string;
   idpId: string;
-  profilePicUrl: string;
   preference: UserPreference;
   followers: PublicUserInfo[];
   following: PublicUserInfo[];

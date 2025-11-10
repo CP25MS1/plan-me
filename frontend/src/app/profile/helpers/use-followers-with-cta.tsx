@@ -1,4 +1,6 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+
 import { Button } from '@/components/ui/button';
 import type { UserProfile, PublicUserInfo } from '@/api/users';
 import useFollowUser from '@/app/profile/hooks/use-follow-user';
@@ -14,6 +16,7 @@ export type FollowerWithCta = PublicUserInfo & { cta: React.JSX.Element };
  * - uses useFollowUser mutation internally and dispatches redux on success
  */
 export const useFollowersWithCta = (currentUser: UserProfile | null): FollowerWithCta[] => {
+  const { t } = useTranslation('common');
   const dispatch = useAppDispatch();
   const followMutation = useFollowUser();
 
@@ -60,7 +63,9 @@ export const useFollowersWithCta = (currentUser: UserProfile | null): FollowerWi
           onClick={() => handleFollowBack(follower)}
           disabled={isFollowingBackLoading}
         >
-          {isFollowingBackLoading ? 'กำลังติดตาม...' : 'ติดตามกลับ'}
+          {isFollowingBackLoading
+            ? t('profile.follower.followBackLoading')
+            : t('profile.follower.followBack')}
         </Button>
       );
 

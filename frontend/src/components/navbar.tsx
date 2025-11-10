@@ -39,7 +39,7 @@ const Navbar = ({
   activeClass = 'text-primary',
 }) => {
   const { t } = useTranslation('common');
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '/';
   const current = normalizePath(pathname) as MainHref;
 
   return (
@@ -54,7 +54,7 @@ const Navbar = ({
             return (
               <li key={href}>
                 <Link
-                  href={href}
+                  href={href as any}
                   onClick={disabled || current === href ? (e) => e.preventDefault() : undefined}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
