@@ -35,10 +35,8 @@ jobs:
           echo "🔎 Detecting changed files..."
           rm -f changed_files.txt || true
 
-          # Manual run with build_all=true
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.build_all }}" = "true" ]; then
-            echo "⚡ Manual trigger with build_all=true — building everything"
-            # List all directories containing Dockerfile
+            echo "⚡ Manual trigger with build_all=true — listing all Dockerfiles"
             find . -name Dockerfile -exec dirname {} \; | tr '\n' ' ' | xargs > changed_files.txt
           elif [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "Event: pull_request — using base/head SHAs"
@@ -47,36 +45,38 @@ jobs:
             git fetch --no-tags --prune origin "$BASE_SHA" "$HEAD_SHA" || true
             git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed_files.txt || true
           else
-            echo "Event: ${{ github.event_name }} — falling back to HEAD~1..HEAD diff"
+            echo "Event: ${{ github.event_name }} — fallback to HEAD~1..HEAD diff"
             git fetch --no-tags --prune --unshallow || true
             git diff --name-only HEAD~1 HEAD > changed_files.txt || true
           fi
 
           echo "Changed files:"
           cat changed_files.txt || true
-
           CHANGED=$(tr '\n' ' ' < changed_files.txt | xargs || true)
           echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
 
       - name: Detect changed services
         id: services
         run: |
-          echo "🔎 Detecting services from changed_files.txt..."
-          SERVICES=""
-
-          while IFS= read -r file || [ -n "$file" ]; do
-            [ -z "$file" ] && continue
-            DIR=$(dirname "$file")
-            while [ "$DIR" != "." ] && [ "$DIR" != "/" ]; do
-              if [ -f "$DIR/Dockerfile" ]; then
-                SERVICES="$SERVICES $DIR"
-                break
-              fi
-              DIR=$(dirname "$DIR")
-            done
-          done < changed_files.txt
-
-          SERVICES=$(echo $SERVICES | tr ' ' '\n' | sed '/^$/d' | sort -u | tr '\n' ' ' | xargs || true)
+          echo "🔎 Detecting services..."
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.build_all }}" = "true" ]; then
+            # Manual run with build_all=true: include all services
+            SERVICES=$(find . -name Dockerfile -exec dirname {} \; | sort -u | tr '\n' ' ' | xargs)
+          else
+            SERVICES=""
+            while IFS= read -r file || [ -n "$file" ]; do
+              [ -z "$file" ] && continue
+              DIR=$(dirname "$file")
+              while [ "$DIR" != "." ] && [ "$DIR" != "/" ]; do
+                if [ -f "$DIR/Dockerfile" ]; then
+                  SERVICES="$SERVICES $DIR"
+                  break
+                fi
+                DIR=$(dirname "$DIR")
+              done
+            done < changed_files.txt
+            SERVICES=$(echo $SERVICES | tr ' ' '\n' | sed '/^$/d' | sort -u | tr '\n' ' ' | xargs || true)
+          fi
           echo "Changed services: $SERVICES"
           echo "services=$SERVICES" >> $GITHUB_OUTPUT
 
