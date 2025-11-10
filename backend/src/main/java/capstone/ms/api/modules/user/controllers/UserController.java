@@ -30,6 +30,11 @@ public class UserController {
         return ResponseEntity.ok(userDto);
     }
 
+    @GetMapping("/me/profile")
+    public ResponseEntity<UserDto> getUserMeProfile(@AuthenticationPrincipal final User user) {
+        return ResponseEntity.ok(userService.getUserProfile(user.getId()));
+    }
+
     @PostMapping("/me/following")
     public ResponseEntity<PublicUserInfo> followUser(@AuthenticationPrincipal User currentUser,
                                                      @Valid @RequestBody final FollowingIdDto targetUser) {

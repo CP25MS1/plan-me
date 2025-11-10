@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { QueryClient } from '@tanstack/query-core';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
@@ -11,11 +11,8 @@ import type { RootState } from '@/store';
 import { store } from '@/store';
 import i18n from '@/lib/i18n.client';
 import { setCurrentUser } from '@/store/profile-slice';
-import { setDefaultObjectives } from '@/store/constant-slice';
 import { type Locale, setLocale } from '@/store/i18n-slice';
 import { getProfile } from '@/api/users';
-import { getDefaultObjectives } from '@/api/trips';
-import ThemeProvider from './theme/theme-provider';
 
 export const QueryProvider = ({ children }: { children: ReactNode }) => {
   const [client] = useState(
@@ -56,42 +53,25 @@ export const I18nProvider = ({ children }: { children: ReactNode }) => {
   return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
 };
 
-const StateInitializer = () => {
+const ProfileInitializer = () => {
   const pathname = usePathname();
   const dispatch = useDispatch();
   const currentUser = useSelector((s: RootState) => s.profile.currentUser);
-  const defaultObjectives = useSelector((s: RootState) => s.constant.defaultObjectives);
 
-  const shouldFetch = {
-    profile: pathname !== '/login' && !currentUser,
-    objectives: pathname !== '/login' && !defaultObjectives.length,
-  };
+  const shouldFetch = pathname !== '/login' && !currentUser;
 
-  const { data: profile } = useQuery({
+  const { data } = useQuery({
     queryKey: ['me'],
     queryFn: () => getProfile({ me: true }),
-    enabled: shouldFetch.profile,
-    retry: false,
-  });
-
-  const { data: objectives } = useQuery({
-    queryKey: ['default_objectives'],
-    queryFn: () => getDefaultObjectives(),
-    enabled: shouldFetch.objectives,
+    enabled: shouldFetch,
     retry: false,
   });
 
   useEffect(() => {
-    if (profile) {
-      dispatch(setCurrentUser(profile));
+    if (data) {
+      dispatch(setCurrentUser(data));
     }
-  }, [profile, dispatch]);
-
-  useEffect(() => {
-    if (objectives) {
-      dispatch(setDefaultObjectives(objectives));
-    }
-  }, [objectives, dispatch]);
+  }, [data, dispatch]);
 
   return null;
 };
@@ -100,7 +80,7 @@ export const ReduxProvider = ({ children }: { children: ReactNode }) => {
   return (
     <StoreProvider store={store}>
       <I18nProvider>
-        <StateInitializer />
+        <ProfileInitializer />
         {children}
       </I18nProvider>
     </StoreProvider>
@@ -110,9 +90,7 @@ export const ReduxProvider = ({ children }: { children: ReactNode }) => {
 const AppProvider = ({ children }: { children: ReactNode }) => {
   return (
     <QueryProvider>
-      <ReduxProvider>
-        <ThemeProvider>{children}</ThemeProvider>
-      </ReduxProvider>
+      <ReduxProvider>{children}</ReduxProvider>
     </QueryProvider>
   );
 };
