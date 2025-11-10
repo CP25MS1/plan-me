@@ -71,7 +71,7 @@ export const useFollowersWithCta = (currentUser: UserProfile | null): FollowerWi
 
       return { ...follower, cta };
     });
-  }, [currentUser, followingBackId, handleFollowBack]);
+  }, [currentUser, followingBackId, handleFollowBack, t]);
 };
 
 export default useFollowersWithCta;
