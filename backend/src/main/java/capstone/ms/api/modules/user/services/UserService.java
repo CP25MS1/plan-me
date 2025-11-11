@@ -19,8 +19,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -47,6 +49,9 @@ public class UserService {
             unless = "#result == null || #result.totalElements == 0"
     )
     public UserPageCache searchUsersCached(String q, String idp, String email, Pageable pageable) {
+        if (!StringUtils.hasText(q) && !StringUtils.hasText(idp) && !StringUtils.hasText(email)) {
+            return new UserPageCache(List.of(), 0, 0, pageable.getPageNumber(), pageable.getPageSize());
+        }
 
         Specification<User> spec = UserSpecs.search(q)
                 .and(UserSpecs.idpEquals(idp))
