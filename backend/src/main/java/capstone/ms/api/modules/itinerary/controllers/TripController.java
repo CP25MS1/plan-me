@@ -41,4 +41,13 @@ public class TripController {
         TripOverviewDto overview = tripService.getTripOverview(tripId, currentUser);
         return ResponseEntity.ok(overview);
     }
+
+    @PutMapping("/{tripId}")
+    public ResponseEntity<TripOverviewDto> updateTripOverview(
+            @AuthenticationPrincipal final User currentUser,
+            @PathVariable final Integer tripId,
+            @RequestBody final CreateTripDto tripInfo
+    ) {
+        return ResponseEntity.ok(tripService.updateTripOverview(currentUser, tripId, tripInfo));
+    }
 }

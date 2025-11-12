@@ -32,11 +32,7 @@ public class TripService {
     @Transactional
     public TripOverviewDto createTrip(CreateTripDto tripInfo, User tripOwner) {
         validateDates(tripInfo.getStartDate(), tripInfo.getEndDate());
-
-        Trip trip = tripMapper.tripDtoToEntity(tripInfo, tripOwner, objectiveMapper, basicObjectiveRepository);
-        Trip savedTrip = tripRepository.save(trip);
-
-        return tripMapper.tripToTripOverviewDto(savedTrip);
+        return saveTripFromDto(tripInfo, tripOwner, null);
     }
 
     public Set<MergedObjective> getAllDefaultObjectives() {
@@ -54,14 +50,44 @@ public class TripService {
     }
 
     public TripOverviewDto getTripOverview(Integer tripId, User currentUser) {
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new NotFoundException("trip.404"));
+        Trip trip = loadTripOrThrow(tripId);
+        ensureOwnerOrThrow(currentUser, trip);
+        return tripMapper.tripToTripOverviewDto(trip);
+    }
 
-        boolean isOwner = trip.getOwner().getId().equals(currentUser.getId());
-        if (!isOwner) {
+    @Transactional
+    public TripOverviewDto updateTripOverview(final User currentUser, final Integer tripId, final CreateTripDto tripInfo) {
+        Trip existing = loadTripOrThrow(tripId);
+        ensureOwnerOrThrow(currentUser, existing);
+
+        validateDates(tripInfo.getStartDate(), tripInfo.getEndDate());
+
+        return saveTripFromDto(tripInfo, currentUser, tripId);
+    }
+
+    private Trip loadTripOrThrow(final Integer tripId) {
+        return tripRepository.findById(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+    }
+
+    private void ensureOwnerOrThrow(final User user, final Trip trip) {
+        if (trip == null) {
+            throw new NotFoundException("trip.404");
+        }
+        if (!trip.getOwner().getId().equals(user.getId())) {
             throw new ForbiddenException("trip.403");
         }
+    }
 
-        return tripMapper.tripToTripOverviewDto(trip);
+    private TripOverviewDto saveTripFromDto(final CreateTripDto dto, final User owner, final Integer existingTripId) {
+        Trip tripEntity = tripMapper.tripDtoToEntity(dto, owner, objectiveMapper, basicObjectiveRepository);
+
+        if (existingTripId != null) {
+            tripEntity.setId(existingTripId);
+            tripEntity.setOwner(owner);
+        }
+
+        Trip saved = tripRepository.save(tripEntity);
+        return tripMapper.tripToTripOverviewDto(saved);
     }
 }
