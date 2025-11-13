@@ -11,7 +11,7 @@ import java.util.Set;
 
 @Data
 @ErrorMessage(messageKey = "trip.400.create")
-public class CreateTripDto {
+public class UpsertTripDto {
     @NotNull(message = "Trip name cannot be null")
     @Size(max = 50, message = "Trip name cannot exceed 50 characters")
     private String name;

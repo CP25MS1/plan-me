@@ -1,6 +1,6 @@
 package capstone.ms.api.modules.itinerary.mappers;
 
-import capstone.ms.api.modules.itinerary.dto.CreateTripDto;
+import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.repositories.BasicObjectiveRepository;
@@ -19,13 +19,13 @@ public interface TripMapper {
     TripOverviewDto tripToTripOverviewDto(Trip trip);
 
     @Mapping(target = "objectives", ignore = true)
-    Trip tripDtoToEntity(CreateTripDto dto, User owner,
+    Trip tripDtoToEntity(UpsertTripDto dto, User owner,
                          @Context ObjectiveMapper objectiveMapper,
                          @Context BasicObjectiveRepository repository);
 
 
     @AfterMapping
-    default void afterTripDtoToEntity(CreateTripDto dto, User owner, @MappingTarget Trip trip,
+    default void afterTripDtoToEntity(UpsertTripDto dto, User owner, @MappingTarget Trip trip,
                                       @Context ObjectiveMapper objectiveMapper,
                                       @Context BasicObjectiveRepository repository) {
         if (dto.getObjectives() != null) {

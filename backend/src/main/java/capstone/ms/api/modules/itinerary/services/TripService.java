@@ -3,7 +3,7 @@ package capstone.ms.api.modules.itinerary.services;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.itinerary.dto.CreateTripDto;
+import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.itinerary.dto.MergedObjective;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.entities.Trip;
@@ -30,7 +30,7 @@ public class TripService {
     private final ObjectiveMapper objectiveMapper;
 
     @Transactional
-    public TripOverviewDto createTrip(CreateTripDto tripInfo, User tripOwner) {
+    public TripOverviewDto createTrip(UpsertTripDto tripInfo, User tripOwner) {
         validateDates(tripInfo.getStartDate(), tripInfo.getEndDate());
         return saveTripFromDto(tripInfo, tripOwner, null);
     }
@@ -56,7 +56,7 @@ public class TripService {
     }
 
     @Transactional
-    public TripOverviewDto updateTripOverview(final User currentUser, final Integer tripId, final CreateTripDto tripInfo) {
+    public TripOverviewDto updateTripOverview(final User currentUser, final Integer tripId, final UpsertTripDto tripInfo) {
         Trip existing = loadTripOrThrow(tripId);
         ensureOwnerOrThrow(currentUser, existing);
 
@@ -79,7 +79,7 @@ public class TripService {
         }
     }
 
-    private TripOverviewDto saveTripFromDto(final CreateTripDto dto, final User owner, final Integer existingTripId) {
+    private TripOverviewDto saveTripFromDto(final UpsertTripDto dto, final User owner, final Integer existingTripId) {
         Trip tripEntity = tripMapper.tripDtoToEntity(dto, owner, objectiveMapper, basicObjectiveRepository);
 
         if (existingTripId != null) {
