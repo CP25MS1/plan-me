@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { QueryClient } from '@tanstack/query-core';
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
@@ -13,6 +13,7 @@ import i18n from '@/lib/i18n.client';
 import { setCurrentUser } from '@/store/profile-slice';
 import { type Locale, setLocale } from '@/store/i18n-slice';
 import { getProfile } from '@/api/users';
+import ThemeProvider from './theme/theme-provider';
 
 export const QueryProvider = ({ children }: { children: ReactNode }) => {
   const [client] = useState(
@@ -90,7 +91,9 @@ export const ReduxProvider = ({ children }: { children: ReactNode }) => {
 const AppProvider = ({ children }: { children: ReactNode }) => {
   return (
     <QueryProvider>
-      <ReduxProvider>{children}</ReduxProvider>
+      <ReduxProvider>
+        <ThemeProvider>{children}</ThemeProvider>
+      </ReduxProvider>
     </QueryProvider>
   );
 };
