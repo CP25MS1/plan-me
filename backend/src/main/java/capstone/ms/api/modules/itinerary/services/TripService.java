@@ -3,9 +3,9 @@ package capstone.ms.api.modules.itinerary.services;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.itinerary.dto.MergedObjective;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
+import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.mappers.ObjectiveMapper;
 import capstone.ms.api.modules.itinerary.mappers.TripMapper;
@@ -32,7 +32,10 @@ public class TripService {
     @Transactional
     public TripOverviewDto createTrip(UpsertTripDto tripInfo, User tripOwner) {
         validateDates(tripInfo.getStartDate(), tripInfo.getEndDate());
-        return saveTripFromDto(tripInfo, tripOwner, null);
+
+        final Trip tripEntity = tripMapper.tripDtoToEntity(tripInfo, tripOwner, objectiveMapper, basicObjectiveRepository);
+        final Trip saved = tripRepository.save(tripEntity);
+        return tripMapper.tripToTripOverviewDto(saved);
     }
 
     public Set<MergedObjective> getAllDefaultObjectives() {
@@ -57,12 +60,26 @@ public class TripService {
 
     @Transactional
     public TripOverviewDto updateTripOverview(final User currentUser, final Integer tripId, final UpsertTripDto tripInfo) {
-        Trip existing = loadTripOrThrow(tripId);
+        final Trip existing = loadTripOrThrow(tripId);
         ensureOwnerOrThrow(currentUser, existing);
 
         validateDates(tripInfo.getStartDate(), tripInfo.getEndDate());
 
-        return saveTripFromDto(tripInfo, currentUser, tripId);
+        existing.getObjectives().clear();
+        tripRepository.saveAndFlush(existing);
+
+        if (tripInfo.getObjectives() != null && !tripInfo.getObjectives().isEmpty()) {
+            final var newObjectives = objectiveMapper.toEntitySet(tripInfo.getObjectives(), basicObjectiveRepository);
+            newObjectives.forEach(obj -> obj.setTrip(existing));
+            existing.getObjectives().addAll(newObjectives);
+        }
+
+        existing.setName(tripInfo.getName());
+        existing.setStartDate(tripInfo.getStartDate());
+        existing.setEndDate(tripInfo.getEndDate());
+
+        final Trip saved = tripRepository.save(existing);
+        return tripMapper.tripToTripOverviewDto(saved);
     }
 
     private Trip loadTripOrThrow(final Integer tripId) {
@@ -77,17 +94,5 @@ public class TripService {
         if (!trip.getOwner().getId().equals(user.getId())) {
             throw new ForbiddenException("trip.403");
         }
-    }
-
-    private TripOverviewDto saveTripFromDto(final UpsertTripDto dto, final User owner, final Integer existingTripId) {
-        Trip tripEntity = tripMapper.tripDtoToEntity(dto, owner, objectiveMapper, basicObjectiveRepository);
-
-        if (existingTripId != null) {
-            tripEntity.setId(existingTripId);
-            tripEntity.setOwner(owner);
-        }
-
-        Trip saved = tripRepository.save(tripEntity);
-        return tripMapper.tripToTripOverviewDto(saved);
     }
 }
