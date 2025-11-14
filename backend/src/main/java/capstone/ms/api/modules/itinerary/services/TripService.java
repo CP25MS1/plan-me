@@ -3,9 +3,9 @@ package capstone.ms.api.modules.itinerary.services;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.itinerary.dto.CreateTripDto;
 import capstone.ms.api.modules.itinerary.dto.MergedObjective;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
+import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.mappers.ObjectiveMapper;
 import capstone.ms.api.modules.itinerary.mappers.TripMapper;
@@ -30,13 +30,12 @@ public class TripService {
     private final ObjectiveMapper objectiveMapper;
 
     @Transactional
-    public TripOverviewDto createTrip(CreateTripDto tripInfo, User tripOwner) {
+    public TripOverviewDto createTrip(UpsertTripDto tripInfo, User tripOwner) {
         validateDates(tripInfo.getStartDate(), tripInfo.getEndDate());
 
-        Trip trip = tripMapper.tripDtoToEntity(tripInfo, tripOwner, objectiveMapper, basicObjectiveRepository);
-        Trip savedTrip = tripRepository.save(trip);
-
-        return tripMapper.tripToTripOverviewDto(savedTrip);
+        final Trip tripEntity = tripMapper.tripDtoToEntity(tripInfo, tripOwner, objectiveMapper, basicObjectiveRepository);
+        final Trip saved = tripRepository.save(tripEntity);
+        return tripMapper.tripToTripOverviewDto(saved);
     }
 
     public Set<MergedObjective> getAllDefaultObjectives() {
@@ -54,14 +53,46 @@ public class TripService {
     }
 
     public TripOverviewDto getTripOverview(Integer tripId, User currentUser) {
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new NotFoundException("trip.404"));
+        Trip trip = loadTripOrThrow(tripId);
+        ensureOwnerOrThrow(currentUser, trip);
+        return tripMapper.tripToTripOverviewDto(trip);
+    }
 
-        boolean isOwner = trip.getOwner().getId().equals(currentUser.getId());
-        if (!isOwner) {
-            throw new ForbiddenException("trip.403");
+    @Transactional
+    public TripOverviewDto updateTripOverview(final User currentUser, final Integer tripId, final UpsertTripDto tripInfo) {
+        final Trip existing = loadTripOrThrow(tripId);
+        ensureOwnerOrThrow(currentUser, existing);
+
+        validateDates(tripInfo.getStartDate(), tripInfo.getEndDate());
+
+        existing.getObjectives().clear();
+        tripRepository.saveAndFlush(existing);
+
+        if (tripInfo.getObjectives() != null && !tripInfo.getObjectives().isEmpty()) {
+            final var newObjectives = objectiveMapper.toEntitySet(tripInfo.getObjectives(), basicObjectiveRepository);
+            newObjectives.forEach(obj -> obj.setTrip(existing));
+            existing.getObjectives().addAll(newObjectives);
         }
 
-        return tripMapper.tripToTripOverviewDto(trip);
+        existing.setName(tripInfo.getName());
+        existing.setStartDate(tripInfo.getStartDate());
+        existing.setEndDate(tripInfo.getEndDate());
+
+        final Trip saved = tripRepository.save(existing);
+        return tripMapper.tripToTripOverviewDto(saved);
+    }
+
+    private Trip loadTripOrThrow(final Integer tripId) {
+        return tripRepository.findById(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+    }
+
+    private void ensureOwnerOrThrow(final User user, final Trip trip) {
+        if (trip == null) {
+            throw new NotFoundException("trip.404");
+        }
+        if (!trip.getOwner().getId().equals(user.getId())) {
+            throw new ForbiddenException("trip.403");
+        }
     }
 }
