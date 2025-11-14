@@ -1,6 +1,0 @@
-openapi: 3.0.3
-info:
-  title: Trip Planning API
-  version: 1.0.0
-
-paths:

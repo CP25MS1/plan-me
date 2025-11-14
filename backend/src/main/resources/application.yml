@@ -28,6 +28,10 @@ spring:
             token-uri: ${GOOGLE_TOKEN_URI}
             user-info-uri: ${GOOGLE_USERINFO_URI}
             user-name-attribute: sub
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_HOST_PORT}
 
 jwt:
   secret: ${JWT_SECRET}

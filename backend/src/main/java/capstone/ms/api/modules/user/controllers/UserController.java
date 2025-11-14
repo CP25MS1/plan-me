@@ -1,10 +1,15 @@
 package capstone.ms.api.modules.user.controllers;
 
+import capstone.ms.api.common.redis.SearchAnalytics;
 import capstone.ms.api.modules.user.dto.*;
 import capstone.ms.api.modules.user.entities.User;
+import capstone.ms.api.modules.user.models.UserPageCache;
 import capstone.ms.api.modules.user.services.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,13 +20,21 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
+    private final SearchAnalytics searchAnalytics;
 
-    @PutMapping("/me/preference")
-    public ResponseEntity<PreferenceDto> updateUserPreference(
-            @AuthenticationPrincipal User user,
-            @Valid @RequestBody final PreferenceDto updatedPreference
+    @GetMapping("/search")
+    public ResponseEntity<UserPageCache> searchUsers(
+            @RequestParam(value = "q", required = false) String q,
+            @RequestParam(value = "idp", required = false) String idp,
+            @RequestParam(value = "email", required = false) String email,
+            @PageableDefault(size = 20, sort = "username", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        return ResponseEntity.ok(userService.updateUserPreference(user.getId(), updatedPreference));
+        if (q != null && q.trim().length() >= 3) {
+            searchAnalytics.recordQuery(SearchAnalytics.USER_KEY, q);
+        }
+
+        UserPageCache cache = userService.searchUsersCached(q, idp, email, pageable);
+        return ResponseEntity.ok(cache);
     }
 
     @GetMapping("/{userId}/profile")
@@ -56,4 +69,11 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/me/preference")
+    public ResponseEntity<PreferenceDto> updateUserPreference(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody final PreferenceDto updatedPreference
+    ) {
+        return ResponseEntity.ok(userService.updateUserPreference(user.getId(), updatedPreference));
+    }
 }

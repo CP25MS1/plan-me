@@ -155,6 +155,10 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -253,37 +257,6 @@
                     </excludes>
                 </configuration>
             </plugin>
-
-            <!-- OpenAPI Generator (Commented) -->
-            <!--
-            <plugin>
-                <groupId>org.openapitools</groupId>
-                <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>7.8.0</version>
-                <executions>
-                    <execution>
-                        <id>generate-api</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <generatorName>spring</generatorName>
-                            <inputSpec>${project.basedir}/openapi/spec/openapi.yml</inputSpec>
-                            <output>${project.basedir}/generated</output>
-                            <apiPackage>capstone.ms.api</apiPackage>
-                            <modelPackage>capstone.ms.model</modelPackage>
-                            <configOptions>
-                                <interfaceOnly>true</interfaceOnly>
-                                <useTags>true</useTags>
-                                <dateLibrary>java8</dateLibrary>
-                                <useJakartaEe>true</useJakartaEe>
-                            </configOptions>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            -->
-
         </plugins>
     </build>
 
