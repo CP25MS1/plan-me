@@ -1,6 +1,6 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
-import capstone.ms.api.modules.itinerary.dto.CreateTripDto;
+import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.itinerary.dto.MergedObjective;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.services.TripService;
@@ -23,7 +23,7 @@ public class TripController {
     @PostMapping
     public ResponseEntity<TripOverviewDto> createTrip(
             @AuthenticationPrincipal User user,
-            @Valid @RequestBody final CreateTripDto tripInfo
+            @Valid @RequestBody final UpsertTripDto tripInfo
     ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -39,5 +39,14 @@ public class TripController {
     public ResponseEntity<TripOverviewDto> getTripOverview(@PathVariable Integer tripId) {
         TripOverviewDto overview = tripService.getTripOverview(tripId);
         return ResponseEntity.ok(overview);
+    }
+
+    @PutMapping("/{tripId}")
+    public ResponseEntity<TripOverviewDto> updateTripOverview(
+            @AuthenticationPrincipal final User currentUser,
+            @PathVariable final Integer tripId,
+            @RequestBody final UpsertTripDto tripInfo
+    ) {
+        return ResponseEntity.ok(tripService.updateTripOverview(currentUser, tripId, tripInfo));
     }
 }
