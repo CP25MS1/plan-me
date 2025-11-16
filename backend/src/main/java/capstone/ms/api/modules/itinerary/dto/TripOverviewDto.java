@@ -20,5 +20,5 @@ public class TripOverviewDto {
     private final Set<MergedObjective> objectives;
     private final Set<PublicUserInfo> tripmates;
     private final Set<Object> reservations;
-    private final Set<Object> wishlistPlaces;
+    private final Set<WishlistPlaceDto> wishlistPlaces;
 }

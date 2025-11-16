@@ -1,17 +1,25 @@
 package capstone.ms.api.modules.itinerary.services;
 
 import capstone.ms.api.common.exceptions.BadRequestException;
+import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.MergedObjective;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
+import capstone.ms.api.modules.itinerary.dto.WishlistPlaceDto;
+import capstone.ms.api.modules.itinerary.entities.GoogleMapPlace;
 import capstone.ms.api.modules.itinerary.entities.Trip;
+import capstone.ms.api.modules.itinerary.entities.WishlistPlace;
 import capstone.ms.api.modules.itinerary.mappers.ObjectiveMapper;
 import capstone.ms.api.modules.itinerary.mappers.TripMapper;
 import capstone.ms.api.modules.itinerary.repositories.BasicObjectiveRepository;
+import capstone.ms.api.modules.itinerary.repositories.GoogleMapPlaceRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
+import capstone.ms.api.modules.itinerary.repositories.WishlistPlaceRepository;
 import capstone.ms.api.modules.user.entities.User;
+import capstone.ms.api.modules.user.repositories.UserRepository;
+import jakarta.persistence.Table;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +36,8 @@ public class TripService {
     private final BasicObjectiveRepository basicObjectiveRepository;
     private final TripMapper tripMapper;
     private final ObjectiveMapper objectiveMapper;
+    private final WishlistPlaceRepository wishlistPlaceRepository;
+    private final GoogleMapPlaceRepository googleMapPlaceRepository;
 
     @Transactional
     public TripOverviewDto createTrip(UpsertTripDto tripInfo, User tripOwner) {
@@ -94,5 +104,28 @@ public class TripService {
         if (!trip.getOwner().getId().equals(user.getId())) {
             throw new ForbiddenException("trip.403");
         }
+    }
+
+    @Transactional
+    public WishlistPlaceDto addPlaceToWishlist(Integer tripId, String ggmpId, User currentUser) {
+        Trip trip = loadTripOrThrow(tripId);
+        ensureOwnerOrThrow(currentUser, trip);
+
+        GoogleMapPlace place = googleMapPlaceRepository.findById(ggmpId)
+                .orElseThrow(() -> new NotFoundException("place.404"));
+
+        boolean exists = wishlistPlaceRepository.existsByTripAndPlace(trip, place);
+
+        if (exists) {
+            throw new ConflictException("place.409");
+        }
+
+        WishlistPlace wp = new WishlistPlace();
+        wp.setTrip(trip);
+        wp.setPlace(place);
+        wp.setNotes(null);
+        WishlistPlace saved = wishlistPlaceRepository.save(wp);
+
+        return tripMapper.mapWishlistPlaceToDto(saved);
     }
 }
