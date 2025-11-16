@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 @Builder
 @ErrorMessage(messageKey = "place.400")
-public class AddPlaceDto {
+public class AddWishlistPlaceDto {
     @NotBlank(message = "ggmpId is required")
     private String ggmpId;
 }

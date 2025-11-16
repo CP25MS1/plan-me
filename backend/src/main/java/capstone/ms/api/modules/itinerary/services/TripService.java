@@ -4,10 +4,7 @@ import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.itinerary.dto.MergedObjective;
-import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
-import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
-import capstone.ms.api.modules.itinerary.dto.WishlistPlaceDto;
+import capstone.ms.api.modules.itinerary.dto.*;
 import capstone.ms.api.modules.itinerary.entities.GoogleMapPlace;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.WishlistPlace;
@@ -18,8 +15,6 @@ import capstone.ms.api.modules.itinerary.repositories.GoogleMapPlaceRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.WishlistPlaceRepository;
 import capstone.ms.api.modules.user.entities.User;
-import capstone.ms.api.modules.user.repositories.UserRepository;
-import jakarta.persistence.Table;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -127,5 +122,20 @@ public class TripService {
         WishlistPlace saved = wishlistPlaceRepository.save(wp);
 
         return tripMapper.mapWishlistPlaceToDto(saved);
+    }
+
+    @Transactional
+    public UpdateWishlistPlaceNoteDto updateWishlistPlaceNote(User currentUser, Integer tripId, Integer placeId, UpdateWishlistPlaceNoteDto newNote) {
+        Trip trip = loadTripOrThrow(tripId);
+        ensureOwnerOrThrow(currentUser, trip);
+
+        WishlistPlace wp = wishlistPlaceRepository.findById(placeId).orElseThrow(() -> new NotFoundException("place.404"));
+
+        wp.setNotes(newNote.getNotes());
+        WishlistPlace saved = wishlistPlaceRepository.save(wp);
+
+        return UpdateWishlistPlaceNoteDto.builder()
+                .notes(saved.getNotes())
+                .build();
     }
 }
