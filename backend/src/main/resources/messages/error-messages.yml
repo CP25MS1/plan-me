@@ -62,7 +62,4 @@ place:
     added:
       th: "คุณเพิ่มสถานที่ซ้ำ"
       en: "You added a duplicate place."
-    deleted:
-      th: "คุณลบสถานที่ที่ไม่เคยเพิ่ม"
-      en: "You deleted a place that was never added."
 

@@ -130,7 +130,7 @@ public class TripService {
         ensureOwnerOrThrow(currentUser, trip);
 
         WishlistPlace wp = wishlistPlaceRepository.findById(placeId)
-                .orElseThrow(() -> new NotFoundException("place.404"));
+                .orElseThrow(() -> new NotFoundException("place.404.system"));
 
         if (!wp.getTrip().getId().equals(tripId)) {
             throw new NotFoundException("place.404.trip");
