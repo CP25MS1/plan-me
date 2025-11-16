@@ -112,7 +112,7 @@ public class TripService {
         boolean exists = wishlistPlaceRepository.existsByTripAndPlace(trip, place);
 
         if (exists) {
-            throw new ConflictException("place.409");
+            throw new ConflictException("place.409.added");
         }
 
         WishlistPlace wp = new WishlistPlace();
@@ -129,7 +129,12 @@ public class TripService {
         Trip trip = loadTripOrThrow(tripId);
         ensureOwnerOrThrow(currentUser, trip);
 
-        WishlistPlace wp = wishlistPlaceRepository.findById(placeId).orElseThrow(() -> new NotFoundException("place.404"));
+        WishlistPlace wp = wishlistPlaceRepository.findById(placeId)
+                .orElseThrow(() -> new NotFoundException("place.404"));
+
+        if (!wp.getTrip().getId().equals(tripId)) {
+            throw new NotFoundException("place.404.trip");
+        }
 
         wp.setNotes(newNote.getNotes());
         WishlistPlace saved = wishlistPlaceRepository.save(wp);
@@ -137,5 +142,20 @@ public class TripService {
         return UpdateWishlistPlaceNoteDto.builder()
                 .notes(saved.getNotes())
                 .build();
+    }
+
+    @Transactional
+    public void removePlaceFromWishlist(User currentUser, Integer tripId, Integer placeId) {
+        Trip trip = loadTripOrThrow(tripId);
+        ensureOwnerOrThrow(currentUser, trip);
+
+        WishlistPlace wp = wishlistPlaceRepository.findById(placeId)
+                .orElseThrow(() -> new NotFoundException("place.404.system"));
+
+        if (!wp.getTrip().getId().equals(tripId)) {
+            throw new NotFoundException("place.404.trip");
+        }
+
+        wishlistPlaceRepository.delete(wp);
     }
 }

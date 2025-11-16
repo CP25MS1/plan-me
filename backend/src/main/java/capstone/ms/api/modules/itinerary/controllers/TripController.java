@@ -65,4 +65,12 @@ public class TripController {
         UpdateWishlistPlaceNoteDto updated = tripService.updateWishlistPlaceNote(currentUser, tripId, placeId, newNote);
         return ResponseEntity.ok(updated);
     }
+
+    @DeleteMapping("/{tripId}/wishlist-places/{placeId}")
+    public ResponseEntity<Void> removePlaceFromWishlist(@AuthenticationPrincipal final User currentUser,
+                                                        @PathVariable Integer tripId,
+                                                        @PathVariable Integer placeId) {
+        tripService.removePlaceFromWishlist(currentUser, tripId, placeId);
+        return ResponseEntity.noContent().build();
+    }
 }
