@@ -107,7 +107,7 @@ public class TripService {
         ensureOwnerOrThrow(currentUser, trip);
 
         GoogleMapPlace place = googleMapPlaceRepository.findById(ggmpId)
-                .orElseThrow(() -> new NotFoundException("place.404"));
+                .orElseThrow(() -> new NotFoundException("place.404.system"));
 
         boolean exists = wishlistPlaceRepository.existsByTripAndPlace(trip, place);
 
