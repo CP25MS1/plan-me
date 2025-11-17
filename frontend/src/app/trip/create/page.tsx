@@ -19,7 +19,6 @@ import { Dayjs } from 'dayjs';
 import DateRangePicker from '@/components/common/date-time/date-range-picker';
 import ObjectivePickerDialog, {
   MAX_OBJECTIVES,
-  USER_OBJECTIVE_BADGE_COLOR,
   useDefaultObjectives,
   getKey,
 } from '@/components/trip/objective-picker-dialog';
@@ -189,7 +188,7 @@ const CreateTripPage = () => {
                     deleteIcon={<XIcon size={14} />}
                     size="small"
                     sx={{
-                      bgcolor: (s as DefaultObjective).badgeColor ?? USER_OBJECTIVE_BADGE_COLOR,
+                      bgcolor: s.badgeColor,
                       mr: 0.5,
                       mb: 0.5,
                     }}

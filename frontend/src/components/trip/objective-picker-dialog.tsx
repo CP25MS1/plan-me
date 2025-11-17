@@ -7,10 +7,10 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 
 import { DefaultObjective, CustomObjective, Objective } from '@/api/trips';
+import { generateRandomLightColor } from '@/lib/color';
 
 export const MAX_OBJECTIVES = 3;
 export const MAX_OBJECTIVE_NAME_LENGTH = 25;
-export const USER_OBJECTIVE_BADGE_COLOR = 'primary';
 
 export const useDefaultObjectives = () =>
   useSelector((s: RootState) => s.constant.defaultObjectives);
@@ -65,7 +65,7 @@ const ObjectivePickerDialog = ({
     const newObj: CustomObjective = {
       id: null,
       name: trimmed,
-      badgeColor: USER_OBJECTIVE_BADGE_COLOR,
+      badgeColor: generateRandomLightColor(),
     };
     onChange([...selected, newObj]);
     setInput('');
