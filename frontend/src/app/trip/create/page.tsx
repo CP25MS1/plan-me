@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { X as XIcon } from 'lucide-react';
 import { Dayjs } from 'dayjs';
+import { useTranslation } from 'react-i18next';
 
 import DateRangePicker from '@/components/common/date-time/date-range-picker';
 import ObjectivePickerDialog, {
@@ -28,6 +29,7 @@ import useCreateTrip from '@/app/trip/create/hooks/use-create-trip';
 type DateRange = [Dayjs | null, Dayjs | null];
 
 const CreateTripPage = () => {
+  const { t } = useTranslation('trip_create');
   const defaultObjectives = useDefaultObjectives();
   const { mutateAsync } = useCreateTrip();
 
@@ -40,7 +42,7 @@ const CreateTripPage = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!tripName.trim()) {
-      setTripNameError('กรุณากรอกชื่อทริป');
+      setTripNameError(t('fields.name.helperText'));
       return;
     }
 
@@ -98,7 +100,7 @@ const CreateTripPage = () => {
           <Box sx={{ width: 40 }} />
           <Box sx={{ flex: 1, textAlign: 'center' }}>
             <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
-              สร้างทริปใหม่
+              {t('title')}
             </Typography>
           </Box>
           <Box sx={{ width: 40, display: 'flex', justifyContent: 'flex-end' }}>
@@ -111,14 +113,14 @@ const CreateTripPage = () => {
         <Stack spacing={3} sx={{ flex: '0 1 auto' }}>
           <FormControl fullWidth>
             <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
-              ชื่อทริป{' '}
+              {t('fields.name.label')}{' '}
               <Box component="span" color="error.main">
                 *
               </Box>
             </Typography>
 
             <TextField
-              placeholder="ชื่อของทริป"
+              placeholder={`${t('fields.name.label')}`}
               value={tripName}
               onChange={(e) => setTripName(e.target.value)}
               fullWidth
@@ -129,7 +131,7 @@ const CreateTripPage = () => {
 
           <FormControl fullWidth>
             <DateRangePicker
-              label="วันที่"
+              label={`${t('fields.date.label')}`}
               required={false}
               value={dateRange}
               onChange={setDateRange}
@@ -137,13 +139,13 @@ const CreateTripPage = () => {
           </FormControl>
 
           <FormControl fullWidth>
-            <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
-              จุดประสงค์ของทริป
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              {t('fields.objectives.label')}
             </Typography>
 
             {selectedObjectives.length === 0 ? (
               <TextField
-                placeholder="พักผ่อน, เปลี่ยนบรรยากาศ, ทำงาน"
+                placeholder={`${t('fields.objectives.placeholder')}`}
                 onClick={() => setOpenObjectiveModal(true)}
                 fullWidth
                 slotProps={{ input: { readOnly: true } }}
@@ -211,7 +213,7 @@ const CreateTripPage = () => {
               fontSize: 18,
             }}
           >
-            ถัดไป
+            {t('submit')}
           </Button>
         </Box>
       </Paper>

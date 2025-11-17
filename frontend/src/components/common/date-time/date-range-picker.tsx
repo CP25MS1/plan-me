@@ -19,6 +19,11 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { PickersDay, PickersDayProps } from '@mui/x-date-pickers/PickersDay';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 import { Dayjs } from 'dayjs';
+import 'dayjs/locale/th';
+import 'dayjs/locale/en';
+import { useTranslation } from 'react-i18next';
+
+import { useI18nSelector } from '@/store/selectors';
 
 export type DateRange = [Dayjs | null, Dayjs | null];
 export type PickersDaySx = {
@@ -45,6 +50,8 @@ const DateRangePicker = ({
   label?: string;
   required?: boolean;
 }) => {
+  const { t } = useTranslation('trip_create');
+  const { locale } = useI18nSelector();
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const [tempRange, setTempRange] = useState<DateRange>(value);
@@ -143,10 +150,10 @@ const DateRangePicker = ({
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={locale}>
       <FormControl fullWidth>
         {label && (
-          <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
             {label}
             {required && (
               <Box component="span" color="error.main">
@@ -160,7 +167,7 @@ const DateRangePicker = ({
         <Box ref={anchorRef} onClick={() => setOpen(true)} sx={{ cursor: 'pointer' }}>
           <TextField
             value={formatRange(value)}
-            placeholder="วันที่เริ่มต้น - วันที่สิ้นสุด"
+            placeholder={`${t('fields.date.placeholder')}`}
             fullWidth
             slotProps={{
               input: {
@@ -175,7 +182,7 @@ const DateRangePicker = ({
                     <IconButton
                       size="small"
                       onClick={(e) => {
-                        e.stopPropagation(); // prevent opening popover when clearing
+                        e.stopPropagation();
                         clearAll();
                       }}
                       aria-label="clear dates"
@@ -193,7 +200,7 @@ const DateRangePicker = ({
           <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
             <Box sx={{ p: 2 }}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                เลือกวันที่เริ่ม
+                {t('fields.date.start')}
               </Typography>
               <DateCalendar
                 value={tempRange[0]}
@@ -204,7 +211,7 @@ const DateRangePicker = ({
               />
 
               <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-                เลือกวันที่สิ้นสุด
+                {t('fields.date.end')}
               </Typography>
 
               <DateCalendar
@@ -230,7 +237,7 @@ const DateRangePicker = ({
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Box>
                 <Typography variant="subtitle2" sx={{ mt: 2, ml: 2 }}>
-                  วันที่เริ่ม
+                  {t('fields.date.start')}
                 </Typography>
                 <DateCalendar
                   value={tempRange[0]}
@@ -243,7 +250,7 @@ const DateRangePicker = ({
 
               <Box>
                 <Typography variant="subtitle2" sx={{ mt: 2, ml: 2 }}>
-                  วันที่สิ้นสุด
+                  {t('fields.date.end')}
                 </Typography>
 
                 <DateCalendar

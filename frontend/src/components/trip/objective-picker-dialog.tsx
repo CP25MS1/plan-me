@@ -4,10 +4,12 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Box, IconButton, Chip, Dialog, DialogContent, Divider } from '@mui/material';
 import { X as XIcon } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
+import { useTranslation } from 'react-i18next';
 
+import { RootState } from '@/store';
 import { DefaultObjective, CustomObjective, Objective } from '@/api/trips';
 import { generateRandomLightColor } from '@/lib/color';
+import { useI18nSelector } from '@/store/selectors';
 
 export const MAX_OBJECTIVES = 3;
 export const MAX_OBJECTIVE_NAME_LENGTH = 25;
@@ -36,6 +38,8 @@ const ObjectivePickerDialog = ({
   onClose,
   onChange,
 }: ObjectivePickerDialogProps) => {
+  const { t } = useTranslation('trip_create');
+  const { locale } = useI18nSelector();
   const [input, setInput] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
   const selectedMap = useMemo(() => new Map(selected.map((s) => [getKey(s), s])), [selected]);
@@ -160,8 +164,9 @@ const ObjectivePickerDialog = ({
                 fontSize: 14,
                 padding: '6px 4px',
               }}
-              aria-label="เพิ่มจุดประสงค์"
-              placeholder={selected.length === 0 ? 'เพิ่มจุดประสงค์' : undefined}
+              placeholder={
+                selected.length === 0 ? `${t('fields.objectives.placeholder_modal')}` : undefined
+              }
             />
           </Box>
 
@@ -177,7 +182,7 @@ const ObjectivePickerDialog = ({
             {bottomDefaults.map((d) => (
               <Chip
                 key={getKey(d as Objective)}
-                label={d.TH}
+                label={locale === 'en' ? d.EN : d.TH}
                 onClick={() => handleSelectDefault(d)}
                 clickable
                 size="medium"

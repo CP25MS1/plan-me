@@ -22,6 +22,15 @@ export const theme = responsiveFontSizes(
       warning: { main: tokens.color.warning, dark: tokens.color.warningDark },
       info: { main: tokens.color.info, dark: tokens.color.infoDark },
     },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+          },
+        },
+      },
+    },
   })
 );
 
