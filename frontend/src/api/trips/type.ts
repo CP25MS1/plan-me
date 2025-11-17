@@ -1,7 +1,7 @@
 import { PublicUserInfo } from '@/api/users';
 
 export interface CustomObjective {
-  id: number;
+  id: number | null;
   name: string;
   badgeColor: string;
 }
@@ -14,16 +14,16 @@ export interface DefaultObjective extends CustomObjective {
 
 export type Objective = CustomObjective | DefaultObjective;
 
-type UpsertObjective =
+export type UpsertObjective =
   | Pick<DefaultObjective, 'boId'>
   | Pick<CustomObjective, 'name' | 'badgeColor'>;
 
 export interface UpsertTrip {
-  id: number | null;
+  id?: number;
   name: string;
-  startDate: string;
-  endDate: string;
-  objectives: UpsertObjective[];
+  startDate?: string;
+  endDate?: string;
+  objectives?: UpsertObjective[];
 }
 
 export interface TripOverview {
