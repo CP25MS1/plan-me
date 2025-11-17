@@ -52,12 +52,8 @@ place:
     th: "ไม่สามารถเพิ่มสถานที่ได้ โปรดตรวจสอบข้อมูลอีกครั้ง"
     en: "Unable to add place. Please check your input and try again."
   404:
-    system:
-      th: "ไม่พบสถานที่นี้ในระบบ"
-      en: "This place is not found in the system."
-    trip:
-      th: "ไม่พบสถานที่นี้ในทริปนี้"
-      en: "This place is not found in this trip."
+    th: "ไม่พบสถานที่นี้ในระบบ"
+    en: "This place is not found in the system."
   409:
     added:
       th: "คุณเพิ่มสถานที่ซ้ำ"
