@@ -1,6 +1,6 @@
 package capstone.ms.api.modules.itinerary.repositories;
 
-import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
+import capstone.ms.api.modules.itinerary.entities.GoogleMapPlace;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.WishlistPlace;
 import org.springframework.data.jpa.repository.JpaRepository;
