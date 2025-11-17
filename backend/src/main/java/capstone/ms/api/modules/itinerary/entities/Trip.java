@@ -43,4 +43,6 @@ public class Trip {
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Objective> objectives = new LinkedHashSet<>();
 
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<WishlistPlace> wishlistPlaces = new LinkedHashSet<>();
 }
