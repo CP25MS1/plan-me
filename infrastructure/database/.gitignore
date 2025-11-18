@@ -1,4 +1,0 @@
-.env
-secrets/
-*.dump
-.DS_Store
