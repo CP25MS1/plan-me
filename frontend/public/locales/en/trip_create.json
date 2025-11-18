@@ -4,8 +4,7 @@
     "name": {
       "label": "Trip Name",
       "placeholder": "Name of the trip",
-      "null": "Please enter the trip name",
-      "maxLength": "Trip name length must be less than 50 characters."
+      "helperText": "Please enter the trip name"
     },
     "date": {
       "label": "Date",

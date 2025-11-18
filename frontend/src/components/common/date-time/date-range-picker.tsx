@@ -34,7 +34,7 @@ export type PickersDaySx = {
 
 const formatRange = (value: DateRange) => {
   const [s, e] = value;
-  if (s && !e) return `${s.format('DD/MM')}`;
+  if (s && !e) return `${s.format('DD/MM')} - `;
   if (s && e) return `${s.format('DD/MM')} - ${e.format('DD/MM')}`;
   return '';
 };
@@ -44,13 +44,11 @@ const DateRangePicker = ({
   onChange,
   label,
   required,
-  noOutline = false,
 }: {
   value: DateRange;
   onChange: (v: DateRange) => void;
   label?: string;
   required?: boolean;
-  noOutline?: boolean;
 }) => {
   const { t } = useTranslation('trip_create');
   const { locale } = useI18nSelector();
@@ -60,6 +58,10 @@ const DateRangePicker = ({
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  useEffect(() => {
+    if (open) setTempRange(value);
+  }, [open, value]);
 
   const clearAll = () => {
     setTempRange([null, null]);
@@ -106,60 +108,52 @@ const DateRangePicker = ({
     return <PickersDay {...dayProps} sx={{ ...dayProps.sx, ...sx }} />;
   };
 
-  const handlePick = (picked: Dayjs) => {
+  const handleStartPick = (picked: Dayjs) => {
     const [ts, te] = tempRange;
 
-    if (!ts) {
-      setTempRange([picked, null]);
+    if (ts && picked.isSame(ts, 'day')) {
+      setTempRange([null, null]);
       return;
     }
 
-    if (ts && !te) {
-      if (picked.isSame(ts, 'day')) {
-        setTempRange([null, null]);
-        return;
-      }
-
-      if (picked.isBefore(ts, 'day')) {
+    if (te) {
+      if (picked.isAfter(te, 'day')) {
         setTempRange([picked, null]);
         return;
+      } else {
+        const newRange: DateRange = [picked, te];
+        setTempRange(newRange);
+        onChange(newRange);
+        setOpen(false);
+        return;
       }
-
-      const newRange: DateRange = [ts, picked];
-      setTempRange(newRange);
-      onChange(newRange);
-      setOpen(false);
-      return;
     }
 
     setTempRange([picked, null]);
   };
 
-  const isRangeEqual = (a: DateRange, b: DateRange) => {
-    const sameDay = (x?: Dayjs | null, y?: Dayjs | null) => {
-      if (!x && !y) return true;
-      if (!x || !y) return false;
-      return x.isSame(y, 'day');
-    };
-    return sameDay(a[0], b[0]) && sameDay(a[1], b[1]);
-  };
+  const handleEndPick = (picked: Dayjs) => {
+    const [ts, te] = tempRange;
+    if (!ts) return;
 
-  const handleClose = () => {
-    if (!isRangeEqual(tempRange, value)) {
-      onChange(tempRange);
+    if (te && picked.isSame(te, 'day')) {
+      setTempRange([ts, null]);
+      return;
     }
+
+    if (picked.isBefore(ts, 'day')) return;
+
+    const newRange: DateRange = [ts, picked];
+    setTempRange(newRange);
+    onChange(newRange);
     setOpen(false);
   };
 
-  useEffect(() => {
-    if (open) setTempRange(value);
-  }, [open, value]);
-
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={locale}>
-      <FormControl fullWidth={!noOutline}>
+      <FormControl fullWidth>
         {label && (
-          <Typography variant="subtitle2" sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
             {label}
             {required && (
               <Box component="span" color="error.main">
@@ -170,24 +164,8 @@ const DateRangePicker = ({
           </Typography>
         )}
 
-        <Box ref={anchorRef} onClick={() => setOpen(true)}>
+        <Box ref={anchorRef} onClick={() => setOpen(true)} sx={{ cursor: 'pointer' }}>
           <TextField
-            sx={
-              noOutline
-                ? {
-                    cursor: 'pointer',
-                    '& .MuiInputAdornment-root': { cursor: 'pointer' },
-                    '& .MuiInputBase-input': { cursor: 'pointer' },
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      border: '0',
-                    },
-                    '& .MuiInputBase-root': {
-                      paddingX: '0',
-                      cursor: 'pointer',
-                    },
-                  }
-                : null
-            }
             value={formatRange(value)}
             placeholder={`${t('fields.date.placeholder')}`}
             fullWidth
@@ -199,7 +177,7 @@ const DateRangePicker = ({
                     <CalendarIcon />
                   </InputAdornment>
                 ),
-                endAdornment: !noOutline && (
+                endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
                       size="small"
@@ -219,17 +197,33 @@ const DateRangePicker = ({
         </Box>
 
         {isMobile ? (
-          <Dialog open={open} onClose={handleClose} fullWidth>
+          <Dialog open={open} onClose={() => setOpen(false)} fullWidth>
             <Box sx={{ p: 2 }}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                {t('fields.date.start')} / {t('fields.date.end')}
+                {t('fields.date.start')}
+              </Typography>
+              <DateCalendar
+                value={tempRange[0]}
+                onChange={(d) => handleStartPick(d as Dayjs)}
+                slots={{
+                  day: renderDay,
+                }}
+              />
+
+              <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+                {t('fields.date.end')}
               </Typography>
 
               <DateCalendar
-                value={tempRange[0] ?? tempRange[1] ?? null}
-                onChange={(d) => handlePick(d as Dayjs)}
-                slots={{ day: renderDay }}
-                shouldDisableDate={() => false}
+                value={tempRange[1]}
+                onChange={(d) => handleEndPick(d as Dayjs)}
+                shouldDisableDate={(day) => {
+                  if (!tempRange[0]) return true;
+                  return day.isBefore(tempRange[0], 'day');
+                }}
+                slots={{
+                  day: renderDay,
+                }}
               />
             </Box>
           </Dialog>
@@ -237,19 +231,40 @@ const DateRangePicker = ({
           <Popover
             open={open}
             anchorEl={anchorRef.current}
-            onClose={handleClose}
+            onClose={() => setOpen(false)}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
           >
-            <Box sx={{ p: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1, ml: 1 }}>
-                {t('fields.date.start')} / {t('fields.date.end')}
-              </Typography>
-              <DateCalendar
-                value={tempRange[0] ?? tempRange[1] ?? null}
-                onChange={(d) => handlePick(d as Dayjs)}
-                slots={{ day: renderDay }}
-                shouldDisableDate={() => false}
-              />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Box>
+                <Typography variant="subtitle2" sx={{ mt: 2, ml: 2 }}>
+                  {t('fields.date.start')}
+                </Typography>
+                <DateCalendar
+                  value={tempRange[0]}
+                  onChange={(d) => handleStartPick(d as Dayjs)}
+                  slots={{
+                    day: renderDay,
+                  }}
+                />
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" sx={{ mt: 2, ml: 2 }}>
+                  {t('fields.date.end')}
+                </Typography>
+
+                <DateCalendar
+                  value={tempRange[1]}
+                  onChange={(d) => handleEndPick(d as Dayjs)}
+                  shouldDisableDate={(day) => {
+                    if (!tempRange[0]) return true;
+                    return day.isBefore(tempRange[0], 'day');
+                  }}
+                  slots={{
+                    day: renderDay,
+                  }}
+                />
+              </Box>
             </Box>
           </Popover>
         )}

@@ -6,7 +6,6 @@ export const tokens = {
 
     background: '#ffffff',
     textPrimary: '#090909',
-    textSecondary: '#7C7C7C',
     contrastText: '#ffffff',
 
     success: '#00bc7d',
