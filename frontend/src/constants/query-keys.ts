@@ -9,3 +9,5 @@ export const TRIPS = {};
 export const PLACES = {
   SEARCH: 'places:search',
 };
+
+export const TRIPS = {};
