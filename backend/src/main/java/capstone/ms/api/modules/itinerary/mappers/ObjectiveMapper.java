@@ -69,9 +69,10 @@ public interface ObjectiveMapper {
 
     default MergedObjective basicObjectiveToMerged(BasicObjective bo) {
         return MergedObjective.builder()
-                .id(bo.getId())
+                .boId(bo.getId())
                 .thName(bo.getThName())
                 .enName(bo.getEnName())
+                .name(bo.getThName())
                 .badgeColor(bo.getBadgeColor())
                 .build();
     }
