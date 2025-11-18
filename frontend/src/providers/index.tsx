@@ -11,8 +11,10 @@ import type { RootState } from '@/store';
 import { store } from '@/store';
 import i18n from '@/lib/i18n.client';
 import { setCurrentUser } from '@/store/profile-slice';
+import { setDefaultObjectives } from '@/store/constant-slice';
 import { type Locale, setLocale } from '@/store/i18n-slice';
 import { getProfile } from '@/api/users';
+import { getDefaultObjectives } from '@/api/trips';
 import ThemeProvider from './theme/theme-provider';
 
 export const QueryProvider = ({ children }: { children: ReactNode }) => {
@@ -54,25 +56,42 @@ export const I18nProvider = ({ children }: { children: ReactNode }) => {
   return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
 };
 
-const ProfileInitializer = () => {
+const StateInitializer = () => {
   const pathname = usePathname();
   const dispatch = useDispatch();
   const currentUser = useSelector((s: RootState) => s.profile.currentUser);
+  const defaultObjectives = useSelector((s: RootState) => s.constant.defaultObjectives);
 
-  const shouldFetch = pathname !== '/login' && !currentUser;
+  const shouldFetch = {
+    profile: pathname !== '/login' && !currentUser,
+    objectives: pathname !== '/login' && !defaultObjectives.length,
+  };
 
-  const { data } = useQuery({
+  const { data: profile } = useQuery({
     queryKey: ['me'],
     queryFn: () => getProfile({ me: true }),
-    enabled: shouldFetch,
+    enabled: shouldFetch.profile,
+    retry: false,
+  });
+
+  const { data: objectives } = useQuery({
+    queryKey: ['default_objectives'],
+    queryFn: () => getDefaultObjectives(),
+    enabled: shouldFetch.objectives,
     retry: false,
   });
 
   useEffect(() => {
-    if (data) {
-      dispatch(setCurrentUser(data));
+    if (profile) {
+      dispatch(setCurrentUser(profile));
     }
-  }, [data, dispatch]);
+  }, [profile, dispatch]);
+
+  useEffect(() => {
+    if (objectives) {
+      dispatch(setDefaultObjectives(objectives));
+    }
+  }, [objectives, dispatch]);
 
   return null;
 };
@@ -81,7 +100,7 @@ export const ReduxProvider = ({ children }: { children: ReactNode }) => {
   return (
     <StoreProvider store={store}>
       <I18nProvider>
-        <ProfileInitializer />
+        <StateInitializer />
         {children}
       </I18nProvider>
     </StoreProvider>
