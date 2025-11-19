@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -10,6 +10,8 @@ import {
   Button,
   Stack,
   Popover,
+  Chip,
+  Tooltip,
 } from '@mui/material';
 import { ArrowLeft, Calendar, Tag } from 'lucide-react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -20,19 +22,40 @@ import ObjectivePickerDialog, {
   getKey,
 } from '@/components/trip/objective-picker-dialog';
 import { Objective, DefaultObjective } from '@/api/trips';
+import { BackButton } from '@/components/button';
+import { useRouter } from 'next/navigation';
+import { X as XIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
 interface OverviewHeaderProps {
   tripName: string;
   members?: string[];
+  objectives?: Objective[];
+  startDate?: string;
+  endDate?: string;
   onBack?: () => void;
 }
 
-const OverviewHeader = ({ tripName, members = [], onBack }: OverviewHeaderProps) => {
+const OverviewHeader = ({
+  tripName,
+  members = [],
+  objectives = [],
+  startDate,
+  endDate,
+  onBack,
+}: OverviewHeaderProps) => {
+  const { t } = useTranslation('trip_overview');
+  const router = useRouter();
   const defaultObjectives = useDefaultObjectives();
-  const [dateRange, setDateRange] = useState<DateRange>([null, null]);
-  const [selectedObjectives, setSelectedObjectives] = useState<Objective[]>([]);
+
+  const [dateRange, setDateRange] = useState<DateRange>([
+    startDate ? dayjs(startDate) : null,
+    endDate ? dayjs(endDate) : null,
+  ]);
+
+  const [selectedObjectives, setSelectedObjectives] = useState<Objective[]>(objectives);
   const [openObjectiveModal, setOpenObjectiveModal] = useState(false);
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -41,19 +64,35 @@ const OverviewHeader = ({ tripName, members = [], onBack }: OverviewHeaderProps)
   const handleCalendarClose = () => setAnchorEl(null);
   const openCalendar = Boolean(anchorEl);
 
+  useEffect(() => {
+    setDateRange([startDate ? dayjs(startDate) : null, endDate ? dayjs(endDate) : null]);
+  }, [startDate, endDate]);
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       {/* ==== Header Row ==== */}
       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-        <IconButton onClick={onBack}>
-          <ArrowLeft />
+        <IconButton>
+          <BackButton onBack={() => router.push('/home')} />
         </IconButton>
 
-        <Typography variant="h5" sx={{ flex: 1, textAlign: 'center', fontWeight: 700 }}>
-          {tripName}
-        </Typography>
+        <Tooltip title={tripName} placement="top" arrow>
+          <Typography
+            variant="h5"
+            sx={{
+              flex: 1,
+              textAlign: 'center',
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              cursor: 'default',
+            }}
+          >
+            {tripName}
+          </Typography>
+        </Tooltip>
 
-        {/* AvatarGroup + Invite button vertically stacked */}
         <Stack direction="column" alignItems="center" spacing={0.5}>
           <AvatarGroup max={4} sx={{ '& .MuiAvatar-root': { width: 32, height: 32 } }}>
             {members.map((m, i) => (
@@ -74,7 +113,7 @@ const OverviewHeader = ({ tripName, members = [], onBack }: OverviewHeaderProps)
               '&:hover': { bgcolor: '#00A85C' },
             }}
           >
-            เชิญ
+            {t('shareButton')}
           </Button>
         </Stack>
       </Box>
@@ -111,20 +150,28 @@ const OverviewHeader = ({ tripName, members = [], onBack }: OverviewHeaderProps)
             <Tag />
           </IconButton>
 
-          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-            {selectedObjectives.map((obj, i) => (
-              <Box
-                key={i}
-                sx={{
-                  bgcolor: '#C8F7D8',
-                  px: 1.2,
-                  py: 0.4,
-                  borderRadius: '12px',
-                  fontSize: 14,
-                }}
-              >
-                {obj.name} ✕
-              </Box>
+          <Stack
+            direction="row"
+            flexWrap="wrap"
+            spacing={1}
+            sx={{
+              gap: '8px', // เว้นระยะแนวนอน
+              rowGap: '6px', // เว้นระยะแนวตั้งเวลาลงบรรทัดใหม่
+            }}
+          >
+            {selectedObjectives.map((obj) => (
+              <Chip
+                key={obj.id ?? obj.name}
+                label={obj.name}
+                size="small"
+                sx={{ bgcolor: obj.badgeColor ?? '#C8F7D8' }}
+                onDelete={() =>
+                  setSelectedObjectives((prev) =>
+                    prev.filter((o) => (o.id ?? o.name) !== (obj.id ?? obj.name))
+                  )
+                }
+                deleteIcon={<XIcon size={14} />}
+              />
             ))}
           </Stack>
         </Stack>

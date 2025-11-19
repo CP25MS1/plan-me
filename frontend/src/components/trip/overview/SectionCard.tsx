@@ -2,17 +2,18 @@
 
 import { useState } from 'react';
 import { Box, Typography, IconButton, Collapse } from '@mui/material';
-import AddItemButton from './AddItemButton';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import AddItemButton from './AddItemButton';
 
 interface SectionCardProps {
   title: string;
-  buttonLabel: string;
+  buttonLabel?: string;
   onAdd?: () => void;
+  children?: React.ReactNode;
 }
 
-const SectionCard = ({ title, buttonLabel, onAdd }: SectionCardProps) => {
-  const [open, setOpen] = useState(true); // ควบคุมเปิด/ปิด
+const SectionCard = ({ title, buttonLabel, onAdd, children }: SectionCardProps) => {
+  const [open, setOpen] = useState(true);
 
   return (
     <Box sx={{ mb: 3 }}>
@@ -42,13 +43,19 @@ const SectionCard = ({ title, buttonLabel, onAdd }: SectionCardProps) => {
       <Collapse in={open}>
         <Box
           sx={{
-            border: '1.5px dashed #27AE60',
+            width: '100%',
+            border: children ? 'none' : '2px dashed',
+            borderColor: 'primary.main',
             borderRadius: 2,
-            py: 2.5,
+            py: children ? 0 : 2.5, // ลด padding สำหรับ map
             textAlign: 'center',
           }}
         >
-          <AddItemButton label={buttonLabel} onClick={onAdd} />
+          {children ? (
+            children
+          ) : buttonLabel && onAdd ? (
+            <AddItemButton label={buttonLabel} onClick={onAdd} />
+          ) : null}
         </Box>
       </Collapse>
     </Box>

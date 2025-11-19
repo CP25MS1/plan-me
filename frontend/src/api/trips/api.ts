@@ -20,6 +20,6 @@ export const updateTripOverview = async (
   tripId: number,
   tripInfo: UpsertTrip
 ): Promise<TripOverview> => {
-  const { data } = await apiClient.patch(`/trips/${tripId}`, tripInfo);
+  const { data } = await apiClient.put(`/trips/${tripId}`, tripInfo);
   return data;
 };
