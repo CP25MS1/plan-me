@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import type { Route } from 'next';
 import {
   Box,
   Container,
@@ -17,6 +19,7 @@ import { X as XIcon } from 'lucide-react';
 import { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 
+import { useFullPageLoading } from '@/components/full-page-loading';
 import DateRangePicker from '@/components/common/date-time/date-range-picker';
 import ObjectivePickerDialog, {
   MAX_OBJECTIVES,
@@ -29,9 +32,11 @@ import useCreateTrip from '@/app/trip/create/hooks/use-create-trip';
 type DateRange = [Dayjs | null, Dayjs | null];
 
 const CreateTripPage = () => {
+  const router = useRouter();
   const { t } = useTranslation('trip_create');
   const defaultObjectives = useDefaultObjectives();
-  const { mutateAsync } = useCreateTrip();
+  const { mutate, isPending } = useCreateTrip();
+  const { isNavigating, setIsNavigating, FullPageLoading } = useFullPageLoading();
 
   const [tripName, setTripName] = useState('');
   const [tripNameError, setTripNameError] = useState<string | null>(null);
@@ -39,10 +44,15 @@ const CreateTripPage = () => {
   const [openObjectiveModal, setOpenObjectiveModal] = useState(false);
   const [selectedObjectives, setSelectedObjectives] = useState<Objective[]>([]);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!tripName.trim()) {
-      setTripNameError(t('fields.name.helperText'));
+      setTripNameError(t('fields.name.null'));
+      return;
+    }
+
+    if (tripName.trim().length > 50) {
+      setTripNameError(t('fields.name.maxLength'));
       return;
     }
 
@@ -69,17 +79,29 @@ const CreateTripPage = () => {
       objectives,
     };
 
-    const response = await mutateAsync(tripInfo);
-    if (response?.id) {
-      globalThis.location.href = `/trip/${response.id}`;
-    }
+    setIsNavigating(true);
+
+    mutate(tripInfo, {
+      onSuccess: (data) => {
+        if (data?.id) {
+          setIsNavigating(false);
+          router.push(`/trip/${data.id}/overview` as Route);
+        }
+      },
+    });
   };
 
   useEffect(() => {
-    if (tripName.trim()) {
-      setTripNameError(null);
+    if (tripNameError) {
+      if (tripName.trim() && tripName.trim().length <= 50) {
+        setTripNameError(null);
+      }
     }
-  }, [tripName]);
+  }, [tripName, tripNameError]);
+
+  if (isPending || isNavigating) {
+    return <FullPageLoading />;
+  }
 
   return (
     <Container maxWidth="sm" sx={{ py: { xs: 2, sm: 4 } }}>
@@ -104,7 +126,7 @@ const CreateTripPage = () => {
             </Typography>
           </Box>
           <Box sx={{ width: 40, display: 'flex', justifyContent: 'flex-end' }}>
-            <IconButton aria-label="close" onClick={() => globalThis.history.back()}>
+            <IconButton aria-label="close" onClick={() => router.back()}>
               <XIcon />
             </IconButton>
           </Box>
@@ -112,7 +134,7 @@ const CreateTripPage = () => {
 
         <Stack spacing={3} sx={{ flex: '0 1 auto' }}>
           <FormControl fullWidth>
-            <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
               {t('fields.name.label')}{' '}
               <Box component="span" color="error.main">
                 *
