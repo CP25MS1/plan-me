@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { Spinner } from './ui/spinner';
 
 const FullPageLoading = () => {
@@ -6,6 +8,15 @@ const FullPageLoading = () => {
       <Spinner className="size-8 text-primary" />
     </div>
   );
+};
+
+export const useFullPageLoading = () => {
+  const [isNavigating, setIsNavigating] = useState(false);
+  return {
+    isNavigating,
+    setIsNavigating,
+    FullPageLoading,
+  };
 };
 
 export default FullPageLoading;
