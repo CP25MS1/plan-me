@@ -1,48 +1,36 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TripOverview, WishlistPlace } from '@/api/trips/type';
+import { TripOverview } from '@/api/trips/type';
 
-interface TripDetailState {
-  overview: TripOverview | null;
+interface TripOverviewState {
+  data: TripOverview | null;
+  isLoaded: boolean;
 }
 
-const initialState: TripDetailState = {
-  overview: null,
+const initialState: TripOverviewState = {
+  data: null,
+  isLoaded: false,
 };
 
-const tripDetailSlice = createSlice({
-  name: 'tripDetail',
+const tripOverviewSlice = createSlice({
+  name: 'tripOverview',
   initialState,
   reducers: {
     setTripOverview: (state, action: PayloadAction<TripOverview>) => {
-      state.overview = action.payload;
+      state.data = action.payload;
+      state.isLoaded = true;
     },
-    addWishlistPlace: (state, action: PayloadAction<WishlistPlace>) => {
-      if (!state.overview) return;
-      state.overview.wishlistPlaces.push(action.payload);
+    updateTripOverview: (state, action: PayloadAction<Partial<TripOverview>>) => {
+      if (state.data) {
+        state.data = { ...state.data, ...action.payload };
+      }
     },
-    removeWishlistPlace: (state, action: PayloadAction<{ wishlistPlaceId: number }>) => {
-      if (!state.overview) return;
-      const removeIndex = state.overview.wishlistPlaces.findIndex(
-        (wp) => wp.id === action.payload.wishlistPlaceId
-      );
-      if (removeIndex === -1) return;
-      state.overview.wishlistPlaces.splice(removeIndex, 1);
-    },
-    updateWishlistPlace: (state, action: PayloadAction<{ wp: WishlistPlace }>) => {
-      if (!state.overview) return;
-      const { wp } = action.payload;
-      const updateIndex = state.overview.wishlistPlaces.findIndex((owp) => owp.id === wp.id);
-      const oldWishlistPlace = state.overview.wishlistPlaces[updateIndex];
-      state.overview.wishlistPlaces.splice(updateIndex, 1, {
-        ...wp,
-        id: oldWishlistPlace.id,
-        tripId: oldWishlistPlace.tripId,
-      });
+    clearTripOverview: (state) => {
+      state.data = null;
+      state.isLoaded = false;
     },
   },
 });
 
-export const { setTripOverview, addWishlistPlace, removeWishlistPlace, updateWishlistPlace } =
-  tripDetailSlice.actions;
+export const { setTripOverview, updateTripOverview, clearTripOverview } = tripOverviewSlice.actions;
 
-export default tripDetailSlice.reducer;
+export default tripOverviewSlice.reducer;

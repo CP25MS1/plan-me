@@ -12,29 +12,9 @@
       "title": "ข้อมูลการจอง",
       "button": "เพิ่มข้อมูลการจอง"
     },
-    "wishlistPlace": {
+    "whistlistPlace": {
       "title": "สถานที่ที่อยากไป",
-      "button": "เพิ่มสถานที่",
-      "search": {
-        "placeholder": "ค้นหาสถานที่..."
-      },
-      "remove": {
-        "confirm_message": "ลบสถานที่นี้ออกจากรายการใช่หรือไม่?"
-      },
-      "opening_hours": {
-        "closed": "ปิดอยู่",
-        "no_data": "ไม่พบข้อมูลเวลาทำการ"
-      },
-      "notes": {
-        "title": "โน้ต",
-        "cta_text": "คลิกเพื่อเพิ่มโน้ต"
-      }
+      "button": "เพิ่มสถานที่"
     }
-  },
-  "Header": {
-    "defaultName": "ไม่มีชื่อ",
-    "placeholderName": "ใส่ชื่อทริป",
-    "placeholderTime": "วันที่เริ่มต้น - วันที่สิ้นสุด",
-    "placeholderObjective": "จุดประสงค์ของทริป"
   }
 }

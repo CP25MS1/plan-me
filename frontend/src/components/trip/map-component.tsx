@@ -3,7 +3,9 @@
 import { GoogleMap, LoadScript } from '@react-google-maps/api';
 import { useState } from 'react';
 
-export default function CustomMap() {
+type CustomMapProps = {};
+
+export default function CustomMap({}: CustomMapProps) {
   // ตั้งค่าเริ่มต้นที่ Bangkok
   const [mapCenter, setMapCenter] = useState({ lat: 13.7563, lng: 100.5018 });
 
