@@ -12,29 +12,9 @@
       "title": "Reservation",
       "button": "Add Reservation"
     },
-    "wishlistPlace": {
-      "title": "Wishlist Place",
-      "button": "Add Place",
-      "search": {
-        "placeholder": "Search places..."
-      },
-      "remove": {
-        "confirm_message": "Remove this place from the list?"
-      },
-      "opening_hours": {
-        "closed": "Closed",
-        "no_data": "No opening hours available"
-      },
-      "notes": {
-        "title": "Notes",
-        "cta_text": "Click to add notes"
-      }
+    "whistlistPlace": {
+      "title": "Whistlist Place",
+      "button": "Add Place"
     }
-  },
-  "Header": {
-    "defaultName": "Untitled",
-    "placeholderName": "Enter a trip name",
-    "placeholderTime": "Start date - End date",
-    "placeholderObjective": "Trip's objectives"
   }
 }
