@@ -157,7 +157,7 @@ const DateRangePicker = ({
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={locale}>
       <FormControl fullWidth>
         {label && (
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          <Typography variant="subtitle2" sx={{ mb: 2 }}>
             {label}
             {required && (
               <Box component="span" color="error.main">

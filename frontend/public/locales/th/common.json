@@ -51,5 +51,16 @@
   "language": {
     "th": "TH",
     "en": "EN"
-  }
+  },
+
+  "placeholder": {
+    "search": "ค้นหาผู้ใช้"
+  },
+
+  "empty": {
+    "no_users_found": "ไม่พบผู้ใช้"
+  },
+
+  "confirm": "ยืนยัน",
+  "cancel": "ยกเลิก"
 }

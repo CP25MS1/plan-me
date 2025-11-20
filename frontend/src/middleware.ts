@@ -5,6 +5,11 @@ import { verifyJwt } from '@/lib/auth';
 export const middleware = async (request: NextRequest) => {
   const { nextUrl: url, cookies } = request;
   const pathname = url.pathname;
+  const homeUrl = new URL('/home', request.url);
+
+  if (pathname === '/') {
+    return NextResponse.redirect(homeUrl);
+  }
 
   if (
     pathname.startsWith('/_next') ||
@@ -17,7 +22,6 @@ export const middleware = async (request: NextRequest) => {
     const token = cookies.get('jwt')?.value;
 
     if (token && (await verifyJwt(token))) {
-      const homeUrl = new URL('/home', request.url);
       return NextResponse.redirect(homeUrl);
     }
 
