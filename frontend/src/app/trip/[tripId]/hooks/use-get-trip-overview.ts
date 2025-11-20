@@ -8,7 +8,7 @@ import { setTripOverview } from '@/store/trip-detail-slice';
 export const useGetTripOverview = (tripId: number) => {
   const dispatch = useAppDispatch();
 
-  const overview = useAppSelector((state) => state.tripDetail.overview);
+  const trip = useAppSelector((state) => state.tripOverview.data);
 
   const query = useQuery({
     queryKey: ['trip-overview', tripId],
@@ -24,7 +24,7 @@ export const useGetTripOverview = (tripId: number) => {
 
   return {
     ...query,
-    overview,
+    tripOverview: trip,
   };
 };
 
