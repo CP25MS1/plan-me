@@ -30,6 +30,13 @@ export const theme = responsiveFontSizes(
           },
         },
       },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+          },
+        },
+      },
     },
   })
 );

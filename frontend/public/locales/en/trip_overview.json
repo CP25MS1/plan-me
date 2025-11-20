@@ -1,0 +1,20 @@
+{
+  "shareButton": "Share",
+  "tabHeader": {
+    "overView": "Overview",
+    "daily": "Daily",
+    "budget": "Budget",
+    "checkList": "Checklist"
+  },
+  "sectionCard": {
+    "map": "Map",
+    "reservation": {
+      "title": "Reservation",
+      "button": "Add Reservation"
+    },
+    "whistlistPlace": {
+      "title": "Whistlist Place",
+      "button": "Add Place"
+    }
+  }
+}

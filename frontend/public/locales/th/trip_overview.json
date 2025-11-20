@@ -1,0 +1,20 @@
+{
+  "shareButton": "เชิญ",
+  "tabHeader": {
+    "overView": "ภาพรวม",
+    "daily": "รายวัน",
+    "budget": "งบประมาณ",
+    "checkList": "เช็คลิสต์"
+  },
+  "sectionCard": {
+    "map": "แผนที่",
+    "reservation": {
+      "title": "ข้อมูลการจอง",
+      "button": "เพิ่มข้อมูลการจอง"
+    },
+    "whistlistPlace": {
+      "title": "สถานที่ที่อยากไป",
+      "button": "เพิ่มสถานที่"
+    }
+  }
+}
