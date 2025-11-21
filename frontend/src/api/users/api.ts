@@ -6,6 +6,7 @@ import {
   UserPreference,
   UserProfile,
 } from './type';
+import { Page } from '@/api/shared-types';
 
 export const login = async (code: string): Promise<LoginResponse> => {
   const { data } = await apiClient.get('/auth/google/callback', {
@@ -51,4 +52,11 @@ export const unfollowUser = async (followingId: number) => {
 
 export const removeFollower = async (followerId: number) => {
   await apiClient.delete('/users/me/followers', { data: { followerId } });
+};
+
+export const searchUsers = async (q: string, page: number): Promise<Page<PublicUserInfo>> => {
+  const { data } = await apiClient.get(
+    `/users/search?q=${q}&page=${page}&size=10&sort=username,asc`
+  );
+  return data;
 };

@@ -9,7 +9,7 @@ interface BackButtonProps extends ButtonProps {
   iconOnly?: boolean;
 }
 
-const BackButton = ({
+export const BackButton = ({
   onBack,
   variant = 'ghost',
   className,
