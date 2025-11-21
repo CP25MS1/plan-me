@@ -47,8 +47,6 @@ public class PlacesService {
                     .map(map::get)
                     .filter(Objects::nonNull)
                     .toList();
-
-
         }
 
         MergeResult mergeResult = fetchFromGoogle(query);
