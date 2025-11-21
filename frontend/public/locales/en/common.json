@@ -51,5 +51,16 @@
   "language": {
     "th": "TH",
     "en": "EN"
-  }
+  },
+
+  "placeholder": {
+    "search": "Search users"
+  },
+
+  "empty": {
+    "no_users_found": "No users found"
+  },
+
+  "confirm": "Confirm",
+  "cancel": "Cancel"
 }
