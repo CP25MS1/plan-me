@@ -35,7 +35,7 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 3600000
+  expiration: 86400000
 
 google:
   client-id: ${GOOGLE_CLIENT_ID}
@@ -43,6 +43,10 @@ google:
   base-uri: ${GOOGLE_OAUTH_BASE_URI}
   redirect-uri: ${GOOGLE_REDIRECT_URI}
   certificate-uri: ${GOOGLE_CERTS_URI}
+  places:
+    base-url: ${GOOGLE_PLACES_BASE_URL}
+    api-key: ${GOOGLE_PLACES_API_KEY}
+    field-mask: ${GOOGLE_PLACES_FIELD_MASK}
 
 server:
   port: 8000
@@ -71,11 +75,3 @@ ocr:
 
 frontend:
   url: http://localhost:3000
-
-#logging:
-#  level:
-#    root: INFO
-#    org.springframework.web: DEBUG
-#    com.example: DEBUG
-#  pattern:
-#    console: "%d{dd-MM-yyyy HH:mm:ss} - %msg%n"
