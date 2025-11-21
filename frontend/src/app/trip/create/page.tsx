@@ -134,7 +134,7 @@ const CreateTripPage = () => {
 
         <Stack spacing={3} sx={{ flex: '0 1 auto' }}>
           <FormControl fullWidth>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ mb: 2 }}>
               {t('fields.name.label')}{' '}
               <Box component="span" color="error.main">
                 *
@@ -161,7 +161,7 @@ const CreateTripPage = () => {
           </FormControl>
 
           <FormControl fullWidth>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ mb: 2 }}>
               {t('fields.objectives.label')}
             </Typography>
 

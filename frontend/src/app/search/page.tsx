@@ -41,7 +41,7 @@ const SearchPage = () => {
       setPage(0);
       setUsers([]);
       setHasMore(true);
-    }, 1000);
+    }, 300);
     return () => clearTimeout(time);
   }, [query]);
 
@@ -105,6 +105,7 @@ const SearchPage = () => {
               <ListItem
                 component="div"
                 sx={{ alignItems: 'center', py: 1.25 }}
+                secondaryAction={null}
                 onClick={() => router.push(`/profile/${u.id}` as Route)}
               >
                 <ListItemAvatar>
