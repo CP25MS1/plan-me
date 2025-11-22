@@ -1,4 +1,5 @@
 'use client';
+
 import { use } from 'react';
 import { Container, Box } from '@mui/material';
 import OverviewHeader from '@/components/trip/overview/OverviewHeader';

@@ -12,6 +12,7 @@ import {
   Popover,
   Chip,
   InputBase,
+  Tooltip,
 } from '@mui/material';
 import { ArrowLeft, Calendar, Tag, X as XIcon } from 'lucide-react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -56,21 +57,39 @@ const OverviewHeader = ({
   const router = useRouter();
   const defaultObjectives = useDefaultObjectives();
 
-  const [editingName, setEditingName] = useState(tripName);
+  // ----------------------------
+  // TRIP NAME
+  // ----------------------------
+  const [editingName, setEditingName] = useState('');
   const [isNameFocused, setIsNameFocused] = useState(false);
+
+  // ตั้งค่าเริ่มต้นเมื่อโหลดหน้า
+  useEffect(() => {
+    setEditingName(tripName === '' ? t('Header.defaultName') : tripName);
+  }, [tripName, t]);
+
+  // แยก displayName สำหรับ UI และ InputBase
+  const displayName =
+    !isNameFocused && editingName.trim() === '' ? t('Header.defaultName') : editingName;
+
+  const handleFocus = () => {
+    setIsNameFocused(true);
+    if (editingName === t('Header.defaultName')) setEditingName('');
+  };
 
   const handleNameBlur = () => {
     if (!canEdit) return;
 
-    let value = editingName.trim();
-    if (value === '') value = t('defaultName');
-    if (value.length > 50) value = value.slice(0, 50);
-
-    setEditingName(value);
-    onUpdateTripName?.(value);
+    const trimmed = editingName.trim();
+    const valueToSave = trimmed; // save "" ถ้า user ไม่ใส่
+    setEditingName(trimmed === '' ? t('Header.defaultName') : trimmed);
+    onUpdateTripName?.(valueToSave);
     setIsNameFocused(false);
   };
 
+  // ----------------------------
+  // DATE PICKER
+  // ----------------------------
   const [dateRange, setDateRange] = useState<DateRange>([
     startDate ? dayjs(startDate) : null,
     endDate ? dayjs(endDate) : null,
@@ -78,18 +97,24 @@ const OverviewHeader = ({
 
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const openCalendar = Boolean(anchorEl);
+
   const handleCalendarClick = (e: React.MouseEvent<HTMLElement>) =>
     canEdit ? setAnchorEl(e.currentTarget) : null;
 
-  const handleCalendarClose = () => {
+  const handleCalendarClose = async () => {
     setAnchorEl(null);
-    if (!canEdit) return;
+    if (!onUpdateDates) return;
+
     const [start, end] = dateRange;
-    if (start && end && !end.isBefore(start)) {
-      onUpdateDates?.(start.toISOString(), end.toISOString());
-    }
+    await onUpdateDates(
+      start ? start.startOf('day').format('YYYY-MM-DD') : null,
+      end ? end.startOf('day').format('YYYY-MM-DD') : null
+    );
   };
 
+  // ----------------------------
+  // OBJECTIVES
+  // ----------------------------
   const [selectedObjectives, setSelectedObjectives] = useState<Objective[]>(objectives);
   const [openObjectiveModal, setOpenObjectiveModal] = useState(false);
 
@@ -106,34 +131,46 @@ const OverviewHeader = ({
     onUpdateObjectives?.(valid);
   };
 
-  useEffect(() => setEditingName(tripName), [tripName]);
+  useEffect(
+    () => setEditingName(tripName === '' ? t('Header.defaultName') : tripName),
+    [tripName, t]
+  );
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      {/* Header */}
+      {/* HEADER */}
       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
         <IconButton>
           <BackButton onBack={() => router.push('/home')} />
         </IconButton>
 
         <Box sx={{ flex: 1, textAlign: 'center' }}>
-          <InputBase
-            value={editingName}
-            onChange={(e) => setEditingName(e.target.value)}
-            onFocus={() => setIsNameFocused(true)}
-            onBlur={handleNameBlur}
-            disabled={!canEdit}
-            placeholder={t('placeholderName')}
-            inputProps={{
-              maxLength: 50,
-              style: { textAlign: 'center', fontSize: 20, fontWeight: 700 },
-            }}
-            sx={{
-              width: '100%',
-              color: !canEdit ? 'gray' : 'inherit',
-              '&::placeholder': { color: '#999' },
-            }}
-          />
+          <Tooltip title={editingName} arrow disableInteractive>
+            <InputBase
+              value={displayName}
+              onChange={(e) => setEditingName(e.target.value)}
+              onFocus={handleFocus}
+              onBlur={handleNameBlur}
+              disabled={!canEdit}
+              placeholder={t('Header.placeholderName')}
+              inputProps={{
+                maxLength: 50,
+                style: {
+                  textAlign: 'center',
+                  fontSize: 20,
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                },
+              }}
+              sx={{
+                width: '100%',
+                color: !canEdit ? 'gray' : 'inherit',
+                '&::placeholder': { color: '#999' },
+              }}
+            />
+          </Tooltip>
         </Box>
 
         <Stack direction="column" alignItems="center" spacing={0.5}>
@@ -160,35 +197,54 @@ const OverviewHeader = ({
         </Stack>
       </Box>
 
-      {/* Calendar & Objectives */}
+      {/* DATE + OBJECTIVES */}
       <Stack spacing={1.5} sx={{ mt: 2, width: '100%', px: 2 }}>
+        {/* DATE RANGE */}
         <Stack direction="row" spacing={1} alignItems="center">
           <IconButton onClick={handleCalendarClick} disabled={!canEdit}>
             <Calendar />
           </IconButton>
+
           {dateRange[0] && dateRange[1] ? (
             <Typography sx={{ fontSize: 16 }}>
               {dayjs(dateRange[0]).format('DD/MM')} - {dayjs(dateRange[1]).format('DD/MM')}
             </Typography>
           ) : (
-            <Typography sx={{ color: '#999' }}>{t('placeholderDates')}</Typography>
+            <Typography sx={{ color: '#999' }}>{t('Header.placeholderTime')}</Typography>
           )}
         </Stack>
 
+        {/* POPUP CALENDAR */}
         <Popover open={openCalendar} anchorEl={anchorEl} onClose={handleCalendarClose}>
           <Box sx={{ p: 2 }}>
-            <DateRangePicker value={dateRange} onChange={setDateRange} />
+            <DateRangePicker
+              value={dateRange}
+              onChange={(newValue) => {
+                setDateRange(newValue);
+
+                const [start, end] = newValue;
+                if (start && end && !end.isBefore(start)) {
+                  onUpdateDates?.(
+                    start ? dayjs(start).format('YYYY-MM-DD') : null,
+                    end ? dayjs(end).format('YYYY-MM-DD') : null
+                  );
+                }
+              }}
+            />
           </Box>
         </Popover>
 
+        {/* OBJECTIVES SECTION */}
         <Stack direction="row" spacing={1} alignItems="flex-start">
           <IconButton onClick={() => canEdit && setOpenObjectiveModal(true)} disabled={!canEdit}>
             <Tag />
           </IconButton>
+
           <Stack direction="row" flexWrap="wrap" spacing={1} sx={{ gap: '8px', rowGap: '6px' }}>
             {selectedObjectives.length === 0 && (
-              <Typography sx={{ color: '#999' }}>{t('placeholderObjectives')}</Typography>
+              <Typography sx={{ color: '#999' }}>{t('Header.placeholderObjective')}</Typography>
             )}
+
             {selectedObjectives.map((obj) => (
               <Chip
                 key={obj.id ?? obj.name}
