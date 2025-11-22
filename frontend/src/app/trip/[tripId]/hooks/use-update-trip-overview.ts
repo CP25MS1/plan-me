@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-
 import { updateTripOverview, UpsertTrip } from '@/api/trips';
 
 export const useUpdateTripOverview = (tripId: number) => {
