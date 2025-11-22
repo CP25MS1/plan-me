@@ -18,6 +18,7 @@ import {
 import { X as XIcon } from 'lucide-react';
 import { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
 import { useFullPageLoading } from '@/components/full-page-loading';
 import DateRangePicker from '@/components/common/date-time/date-range-picker';
@@ -28,10 +29,18 @@ import ObjectivePickerDialog, {
 } from '@/components/trip/objective-picker-dialog';
 import { DefaultObjective, Objective, UpsertObjective, UpsertTrip } from '@/api/trips';
 import useCreateTrip from '@/app/trip/create/hooks/use-create-trip';
+import { RootState } from '@/store';
+import { Locale } from '@/store/i18n-slice';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
+const getDefaultObjectiveName = (locale: Locale, obj: DefaultObjective) => {
+  if (locale === 'th') return obj.TH;
+  return obj.EN;
+};
+
 const CreateTripPage = () => {
+  const locale = useSelector((s: RootState) => s.i18n.locale);
   const router = useRouter();
   const { t } = useTranslation('trip_create');
   const defaultObjectives = useDefaultObjectives();
@@ -204,7 +213,7 @@ const CreateTripPage = () => {
                 {selectedObjectives.map((s) => (
                   <Chip
                     key={getKey(s)}
-                    label={s.name}
+                    label={'boId' in s ? getDefaultObjectiveName(locale, s) : s.name}
                     onDelete={(ev) => {
                       ev.stopPropagation();
                       setSelectedObjectives((prev) => prev.filter((x) => getKey(x) !== getKey(s)));
