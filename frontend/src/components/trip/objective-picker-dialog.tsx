@@ -10,6 +10,7 @@ import { RootState } from '@/store';
 import { DefaultObjective, CustomObjective, Objective } from '@/api/trips';
 import { generateRandomLightColor } from '@/lib/color';
 import { useI18nSelector } from '@/store/selectors';
+import { Locale } from '@/store/i18n-slice';
 
 export const MAX_OBJECTIVES = 3;
 export const MAX_OBJECTIVE_NAME_LENGTH = 25;
@@ -29,6 +30,11 @@ type ObjectivePickerDialogProps = {
   defaultObjectives: DefaultObjective[];
   onClose: () => void;
   onChange: (next: Objective[]) => void;
+};
+
+export const getDefaultObjectiveName = (locale: Locale, obj: DefaultObjective) => {
+  if (locale === 'th') return obj.TH;
+  return obj.EN;
 };
 
 const ObjectivePickerDialog = ({
@@ -132,7 +138,7 @@ const ObjectivePickerDialog = ({
             {selected.map((s) => (
               <Chip
                 key={getKey(s)}
-                label={s.name}
+                label={'boId' in s ? getDefaultObjectiveName(locale, s) : s.name}
                 onDelete={() => handleDeleteSelected(s)}
                 deleteIcon={<XIcon size={14} />}
                 variant="filled"

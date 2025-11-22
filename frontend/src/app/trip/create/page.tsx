@@ -26,18 +26,13 @@ import ObjectivePickerDialog, {
   MAX_OBJECTIVES,
   useDefaultObjectives,
   getKey,
+  getDefaultObjectiveName,
 } from '@/components/trip/objective-picker-dialog';
 import { DefaultObjective, Objective, UpsertObjective, UpsertTrip } from '@/api/trips';
 import useCreateTrip from '@/app/trip/create/hooks/use-create-trip';
 import { RootState } from '@/store';
-import { Locale } from '@/store/i18n-slice';
 
 type DateRange = [Dayjs | null, Dayjs | null];
-
-const getDefaultObjectiveName = (locale: Locale, obj: DefaultObjective) => {
-  if (locale === 'th') return obj.TH;
-  return obj.EN;
-};
 
 const CreateTripPage = () => {
   const locale = useSelector((s: RootState) => s.i18n.locale);
