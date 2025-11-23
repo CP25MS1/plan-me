@@ -16,5 +16,11 @@
       "title": "Whistlist Place",
       "button": "Add Place"
     }
+  },
+  "Header": {
+    "defaultName": "Untitled",
+    "placeholderName": "Enter a trip name",
+    "placeholderTime": "Start date - End date",
+    "placeholderObjective": "Trip's objectives"
   }
 }
