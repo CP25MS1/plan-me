@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Box, Typography, IconButton, Collapse } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import AddItemButton from './AddItemButton';
+import AddItemButton from './add-item-button';
 
 interface SectionCardProps {
   title: string;

@@ -2,9 +2,9 @@
 
 import { use } from 'react';
 import { Container, Box } from '@mui/material';
-import OverviewHeader from '@/components/trip/overview/OverviewHeader';
-import OverviewTabs from '@/components/trip/overview/OverviewTabs';
-import SectionCard from '@/components/trip/overview/SectionCard';
+import OverviewHeader from '@/components/trip/overview/overview-header';
+import OverviewTabs from '@/components/trip/overview/overview-tabs';
+import SectionCard from '@/components/trip/overview/section-card';
 import { useFullPageLoading } from '@/components/full-page-loading';
 import useGetTripOverview from '@/app/trip/[tripId]/hooks/use-get-trip-overview';
 import CustomMap from '@/components/trip/map-component';
@@ -28,13 +28,6 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: number }> }) =
         startDate: partial.startDate ?? tripOverview.startDate,
         endDate: partial.endDate ?? tripOverview.endDate,
         objectives: partial.objectives ?? tripOverview.objectives,
-      },
-      {
-        onError: (err: any) => {
-          if (err.response?.status === 403) {
-            alert(t('error.noPermission'));
-          }
-        },
       }
     );
   };
