@@ -16,5 +16,11 @@
       "title": "สถานที่ที่อยากไป",
       "button": "เพิ่มสถานที่"
     }
+  },
+  "Header": {
+    "defaultName": "ไม่มีชื่อ",
+    "placeholderName": "ใส่ชื่อทริป",
+    "placeholderTime": "วันที่เริ่มต้น - วันที่สิ้นสุด",
+    "placeholderObjective": "จุดประสงค์ของทริป"
   }
 }
