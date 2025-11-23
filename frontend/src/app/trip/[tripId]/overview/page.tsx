@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState, useEffect, useCallback } from 'react';
 import { Container, Box } from '@mui/material';
 import OverviewHeader from '@/components/trip/overview/overview-header';
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
@@ -14,23 +14,33 @@ import { useTranslation } from 'react-i18next';
 
 const TripOverviewPage = ({ params }: { params: Promise<{ tripId: number }> }) => {
   const { tripId } = use(params);
-  const { tripOverview, isLoading } = useGetTripOverview(tripId);
+  const { tripOverview: overviewResult, isLoading } = useGetTripOverview(tripId);
+  const [tripOverview, setTripOverview] = useState(overviewResult);
   const { FullPageLoading } = useFullPageLoading();
   const { mutate: updateTrip } = useUpdateTripOverview(tripId);
   const { t } = useTranslation('trip_overview');
 
-  if (isLoading || !tripOverview) return <FullPageLoading />;
+  const handleSave = useCallback(
+    (updates: UpsertTrip) => {
+      updateTrip(
+        {
+          ...updates,
+        },
+        {
+          onSuccess: (data) => {
+            setTripOverview(data);
+          },
+        }
+      );
+    },
+    [updateTrip]
+  );
 
-  const handleSave = (partial: Partial<UpsertTrip>) => {
-    updateTrip(
-      {
-        name: partial.name ?? tripOverview.name,
-        startDate: partial.startDate ?? tripOverview.startDate,
-        endDate: partial.endDate ?? tripOverview.endDate,
-        objectives: partial.objectives ?? tripOverview.objectives,
-      }
-    );
-  };
+  useEffect(() => {
+    setTripOverview(overviewResult);
+  }, [overviewResult]);
+
+  if (isLoading || !tripOverview) return <FullPageLoading />;
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
@@ -40,10 +50,11 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: number }> }) =
         objectives={tripOverview.objectives}
         startDate={tripOverview.startDate}
         endDate={tripOverview.endDate}
-        canEdit={tripOverview.canEdit}
-        onUpdateTripName={(name) => handleSave({ name })}
-        onUpdateDates={(start, end) => handleSave({ startDate: start, endDate: end })}
-        onUpdateObjectives={(objectives) => handleSave({ objectives })}
+        onUpdateTripName={(name) => handleSave({ ...tripOverview, name })}
+        onUpdateDates={(start, end) =>
+          handleSave({ ...tripOverview, startDate: start, endDate: end })
+        }
+        onUpdateObjectives={(objectives) => handleSave({ ...tripOverview, objectives })}
       />
 
       <OverviewTabs value={0} onChange={() => {}} />

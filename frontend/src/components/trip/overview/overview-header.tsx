@@ -9,23 +9,26 @@ import {
   IconButton,
   Button,
   Stack,
-  Popover,
   Chip,
   InputBase,
   Tooltip,
 } from '@mui/material';
-import { ArrowLeft, Calendar, Tag, X as XIcon } from 'lucide-react';
+import { Tag, X as XIcon } from 'lucide-react';
 import dayjs, { Dayjs } from 'dayjs';
+import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+
 import DateRangePicker from '@/components/common/date-time/date-range-picker';
 import ObjectivePickerDialog, {
   MAX_OBJECTIVES,
   useDefaultObjectives,
   getKey,
+  getDefaultObjectiveName,
 } from '@/components/trip/objective-picker-dialog';
 import { Objective } from '@/api/trips';
 import { BackButton } from '@/components/button';
-import { useRouter } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
@@ -37,9 +40,9 @@ interface OverviewHeaderProps {
   endDate?: string;
   canEdit?: boolean;
 
-  onUpdateTripName?: (name: string) => Promise<void>;
-  onUpdateDates?: (start: string | null, end: string | null) => Promise<void>;
-  onUpdateObjectives?: (objectives: Objective[]) => Promise<void>;
+  onUpdateTripName?: (name: string) => void;
+  onUpdateDates?: (start?: string, end?: string) => void;
+  onUpdateObjectives?: (objectives: Objective[]) => void;
 }
 
 const OverviewHeader = ({
@@ -53,6 +56,7 @@ const OverviewHeader = ({
   onUpdateDates,
   onUpdateObjectives,
 }: OverviewHeaderProps) => {
+  const locale = useSelector((s: RootState) => s.i18n.locale);
   const { t } = useTranslation('trip_overview');
   const router = useRouter();
   const defaultObjectives = useDefaultObjectives();
@@ -94,23 +98,6 @@ const OverviewHeader = ({
     startDate ? dayjs(startDate) : null,
     endDate ? dayjs(endDate) : null,
   ]);
-
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const openCalendar = Boolean(anchorEl);
-
-  const handleCalendarClick = (e: React.MouseEvent<HTMLElement>) =>
-    canEdit ? setAnchorEl(e.currentTarget) : null;
-
-  const handleCalendarClose = async () => {
-    setAnchorEl(null);
-    if (!onUpdateDates) return;
-
-    const [start, end] = dateRange;
-    await onUpdateDates(
-      start ? start.startOf('day').format('YYYY-MM-DD') : null,
-      end ? end.startOf('day').format('YYYY-MM-DD') : null
-    );
-  };
 
   // ----------------------------
   // OBJECTIVES
@@ -166,7 +153,7 @@ const OverviewHeader = ({
               }}
               sx={{
                 width: '100%',
-                color: !canEdit ? 'gray' : 'inherit',
+                color: canEdit ? 'inherit' : 'gray',
                 '&::placeholder': { color: '#999' },
               }}
             />
@@ -175,8 +162,8 @@ const OverviewHeader = ({
 
         <Stack direction="column" alignItems="center" spacing={0.5}>
           <AvatarGroup max={4} sx={{ '& .MuiAvatar-root': { width: 32, height: 32 } }}>
-            {members.map((m, i) => (
-              <Avatar key={i} src={m} />
+            {members.map((m) => (
+              <Avatar key={m} src={m} />
             ))}
           </AvatarGroup>
 
@@ -200,43 +187,35 @@ const OverviewHeader = ({
       {/* DATE + OBJECTIVES */}
       <Stack spacing={1.5} sx={{ mt: 2, width: '100%', px: 2 }}>
         {/* DATE RANGE */}
-        <Stack direction="row" spacing={1} alignItems="center">
-          <IconButton onClick={handleCalendarClick} disabled={!canEdit}>
-            <Calendar />
-          </IconButton>
-
-          {dateRange[0] && dateRange[1] ? (
-            <Typography sx={{ fontSize: 16 }}>
-              {dayjs(dateRange[0]).format('DD/MM')} - {dayjs(dateRange[1]).format('DD/MM')}
-            </Typography>
-          ) : (
-            <Typography sx={{ color: '#999' }}>{t('Header.placeholderTime')}</Typography>
-          )}
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{ cursor: 'pointer', maxWidth: 'fit-content' }}
+        >
+          <DateRangePicker
+            noOutline={true}
+            value={dateRange}
+            onChange={(newValue) => {
+              setDateRange(newValue);
+              const [start, end] = newValue;
+              onUpdateDates?.(
+                start ? dayjs(start).format('YYYY-MM-DD') : undefined,
+                end ? dayjs(end).format('YYYY-MM-DD') : undefined
+              );
+            }}
+          />
         </Stack>
 
-        {/* POPUP CALENDAR */}
-        <Popover open={openCalendar} anchorEl={anchorEl} onClose={handleCalendarClose}>
-          <Box sx={{ p: 2 }}>
-            <DateRangePicker
-              value={dateRange}
-              onChange={(newValue) => {
-                setDateRange(newValue);
-
-                const [start, end] = newValue;
-                if (start && end && !end.isBefore(start)) {
-                  onUpdateDates?.(
-                    start ? dayjs(start).format('YYYY-MM-DD') : null,
-                    end ? dayjs(end).format('YYYY-MM-DD') : null
-                  );
-                }
-              }}
-            />
-          </Box>
-        </Popover>
-
         {/* OBJECTIVES SECTION */}
-        <Stack direction="row" spacing={1} alignItems="flex-start">
-          <IconButton onClick={() => canEdit && setOpenObjectiveModal(true)} disabled={!canEdit}>
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          onClick={() => canEdit && setOpenObjectiveModal(true)}
+          sx={{ cursor: 'pointer', maxWidth: 'fit-content' }}
+        >
+          <IconButton sx={{ paddingX: '0' }}>
             <Tag />
           </IconButton>
 
@@ -248,17 +227,19 @@ const OverviewHeader = ({
             {selectedObjectives.map((obj) => (
               <Chip
                 key={obj.id ?? obj.name}
-                label={obj.name}
+                label={'boId' in obj ? getDefaultObjectiveName(locale, obj) : obj.name}
                 size="small"
                 sx={{ bgcolor: obj.badgeColor ?? '#C8F7D8' }}
-                onDelete={
-                  !canEdit
-                    ? undefined
-                    : () =>
-                        setSelectedObjectives((prev) =>
-                          prev.filter((o) => (o.id ?? o.name) !== (obj.id ?? obj.name))
-                        )
-                }
+                onDelete={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+
+                  setSelectedObjectives((prev) => {
+                    const updated = prev.filter((o) => (o.id ?? o.name) !== (obj.id ?? obj.name));
+                    onUpdateObjectives?.(updated);
+                    return updated;
+                  });
+                }}
                 deleteIcon={<XIcon size={14} />}
               />
             ))}

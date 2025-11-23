@@ -44,11 +44,13 @@ const DateRangePicker = ({
   onChange,
   label,
   required,
+  noOutline = false,
 }: {
   value: DateRange;
   onChange: (v: DateRange) => void;
   label?: string;
   required?: boolean;
+  noOutline?: boolean;
 }) => {
   const { t } = useTranslation('trip_create');
   const { locale } = useI18nSelector();
@@ -155,7 +157,7 @@ const DateRangePicker = ({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={locale}>
-      <FormControl fullWidth>
+      <FormControl fullWidth={!noOutline}>
         {label && (
           <Typography variant="subtitle2" sx={{ mb: 2 }}>
             {label}
@@ -168,8 +170,24 @@ const DateRangePicker = ({
           </Typography>
         )}
 
-        <Box ref={anchorRef} onClick={() => setOpen(true)} sx={{ cursor: 'pointer' }}>
+        <Box ref={anchorRef} onClick={() => setOpen(true)}>
           <TextField
+            sx={
+              noOutline
+                ? {
+                    cursor: 'pointer',
+                    '& .MuiInputAdornment-root': { cursor: 'pointer' },
+                    '& .MuiInputBase-input': { cursor: 'pointer' },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '0',
+                    },
+                    '& .MuiInputBase-root': {
+                      paddingX: '0',
+                      cursor: 'pointer',
+                    },
+                  }
+                : null
+            }
             value={formatRange(value)}
             placeholder={`${t('fields.date.placeholder')}`}
             fullWidth
@@ -181,7 +199,7 @@ const DateRangePicker = ({
                     <CalendarIcon />
                   </InputAdornment>
                 ),
-                endAdornment: (
+                endAdornment: !noOutline && (
                   <InputAdornment position="end">
                     <IconButton
                       size="small"
