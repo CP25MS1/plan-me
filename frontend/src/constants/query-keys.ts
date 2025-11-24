@@ -1,7 +1,11 @@
 export const USERS = {
-  LOGIN: 'login',
-  PROFILE: 'profile',
-  SEARCH: 'search',
+  LOGIN: 'users:login',
+  PROFILE: 'users:profile',
+  SEARCH: 'users:search',
 };
 
 export const TRIPS = {};
+
+export const PLACES = {
+  SEARCH: 'places:search',
+};

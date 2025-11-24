@@ -34,3 +34,25 @@ export interface TripOverview {
   owner: PublicUserInfo;
   objectives: Objective[];
 }
+
+// Wishlist Place
+
+export type WishlistPlace = {
+  id: number;
+  tripId: number;
+  notes: string;
+  place: {
+    ggmpId: string;
+    rating: number;
+    TH: LocalizedPlace;
+    EN: LocalizedPlace;
+    opening_hours: string;
+    default_pic_url: string;
+  };
+};
+
+type LocalizedPlace = {
+  name: string;
+  description: string;
+  address: string;
+};
