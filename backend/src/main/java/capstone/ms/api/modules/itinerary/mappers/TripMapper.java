@@ -3,7 +3,7 @@ package capstone.ms.api.modules.itinerary.mappers;
 import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.dto.WishlistPlaceDto;
-import capstone.ms.api.modules.itinerary.entities.GoogleMapPlace;
+import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.WishlistPlace;
 import capstone.ms.api.modules.itinerary.repositories.BasicObjectiveRepository;
