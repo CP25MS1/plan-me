@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.entities;
+package capstone.ms.api.modules.google_maps.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -15,7 +15,7 @@ public class GoogleMapPlace {
     private String ggmpId;
 
     @Column(name = "rating", nullable = false)
-    private short rating;
+    private Short rating;
 
     @Column(name = "th_name", nullable = false)
     private String thName;
