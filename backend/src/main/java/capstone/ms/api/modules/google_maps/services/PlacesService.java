@@ -9,7 +9,6 @@ import capstone.ms.api.modules.google_maps.repositories.GoogleMapPlaceRepository
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class PlacesService {
 
@@ -90,9 +88,6 @@ public class PlacesService {
     }
 
     private MergeResult fetchFromGoogle(final String query) {
-        final long startNs = System.nanoTime();
-        log.info("fetchFromGoogle - start, query='{}'", query);
-
         final TextSearchRequest reqTh = new TextSearchRequest();
         reqTh.setTextQuery(query);
         reqTh.setLanguageCode("th");
@@ -116,41 +111,23 @@ public class PlacesService {
         List<Place> placesTh = fTh.join();
         List<Place> placesEn = fEn.join();
 
-        log.info("Google Places raw counts - en: {}, th: {}", placesEn.size(), placesTh.size());
+        Map<String, Place> thMap = placesTh.stream().collect(Collectors.toMap(Place::getId, p -> p, (a, b) -> a, LinkedHashMap::new));
+        Map<String, Place> enMap = placesEn.stream().collect(Collectors.toMap(Place::getId, p -> p, (a, b) -> a, LinkedHashMap::new));
 
-        Map<String, Place> thMap = placesTh.stream()
-                .collect(Collectors.toMap(Place::getId, p -> p, (a, b) -> a, LinkedHashMap::new));
-        Map<String, Place> enMap = placesEn.stream()
-                .collect(Collectors.toMap(Place::getId, p -> p, (a, b) -> a, LinkedHashMap::new));
+        LinkedHashSet<String> allIds = new LinkedHashSet<>();
+        allIds.addAll(enMap.keySet());
+        allIds.addAll(thMap.keySet());
 
-        LinkedHashSet<String> enIds = new LinkedHashSet<>(enMap.keySet());
-        LinkedHashSet<String> thIds = new LinkedHashSet<>(thMap.keySet());
-
-        enIds.retainAll(thIds);
-
-        if (enIds.isEmpty()) {
-            long tookMs = (System.nanoTime() - startNs) / 1_000_000;
-            log.info("No common IDs between 'en' and 'th' for query='{}'. Returning empty. enCount={}, thCount={}, tookMs={}ms",
-                    query, enMap.size(), thMap.size(), tookMs);
-            return new MergeResult(Collections.emptyList(), enMap, thMap);
+        List<Place> merged = new ArrayList<>(allIds.size());
+        for (String id : allIds) {
+            Place pEn = enMap.get(id);
+            Place pTh = thMap.get(id);
+            Place toReturn = pEn != null ? pEn : pTh;
+            if (toReturn != null) merged.add(toReturn);
         }
-
-        log.info("Common IDs count: {}", enIds.size());
-
-        List<Place> merged = enIds.stream()
-                .map(id -> {
-                    Place pEn = enMap.get(id);
-                    Place pTh = thMap.get(id);
-                    return pEn != null ? pEn : pTh;
-                })
-                .toList();
-
-        long tookMs = (System.nanoTime() - startNs) / 1_000_000;
-        log.info("fetchFromGoogle - done. mergedCount={}, tookMs={}ms", merged.size(), tookMs);
 
         return new MergeResult(merged, enMap, thMap);
     }
-
 
     private void upsertPlacesBatch(Map<String, Place> enMap, Map<String, Place> thMap, List<Place> merged) {
         if (merged.isEmpty()) return;
@@ -186,6 +163,7 @@ public class PlacesService {
 
                     return existing;
                 })
+                .filter(p -> p.getRating() > 0)
                 .toList();
 
         googleMapPlaceRepository.saveAll(toSave);
