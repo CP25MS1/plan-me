@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.entities;
 
+import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
