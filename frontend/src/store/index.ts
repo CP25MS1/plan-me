@@ -10,7 +10,7 @@ export const store = configureStore({
     profile: profileReducer,
     i18n: i18nReducer,
     constant: constantReducer,
-    tripOverview: tripOverviewReducer,
+    tripDetail: tripOverviewReducer,
   },
 });
 

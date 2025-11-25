@@ -1,8 +1,9 @@
 'use client';
 
-import { use, useState, useEffect, useCallback } from 'react';
+import { use, useCallback } from 'react';
 import { Container, Box } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
 
 import OverviewHeader from '@/components/trip/overview/overview-header';
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
@@ -16,12 +17,13 @@ import useGetTripOverview from '../hooks/use-get-trip-overview';
 import useUpdateTripOverview from '../hooks/use-update-trip-overview';
 import { UpsertTrip } from '@/api/trips';
 import SearchAddWishlistPlace from './components/search-add-wishlist-place';
+import { setTripOverview } from '@/store/trip-detail-slice';
 
 const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) => {
+  const dispatch = useDispatch();
   const { tripId } = use(params);
   const tripIdAsNumber = Number(tripId);
-  const { tripOverview: overviewResult, isLoading } = useGetTripOverview(tripIdAsNumber);
-  const [tripOverview, setTripOverview] = useState(overviewResult);
+  const { overview: tripOverview, isLoading } = useGetTripOverview(tripIdAsNumber);
   const { FullPageLoading } = useFullPageLoading();
   const { mutate: updateTrip } = useUpdateTripOverview(tripIdAsNumber);
   const { t } = useTranslation('trip_overview');
@@ -40,17 +42,13 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
         },
         {
           onSuccess: (data) => {
-            setTripOverview(data);
+            dispatch(setTripOverview(data));
           },
         }
       );
     },
-    [updateTrip]
+    [updateTrip, dispatch]
   );
-
-  useEffect(() => {
-    setTripOverview(overviewResult);
-  }, [overviewResult]);
 
   if (isLoading || !tripOverview) return <FullPageLoading />;
 

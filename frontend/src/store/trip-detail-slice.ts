@@ -1,36 +1,24 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TripOverview } from '@/api/trips/type';
 
-interface TripOverviewState {
-  data: TripOverview | null;
-  isLoaded: boolean;
+interface TripDetailState {
+  overview: TripOverview | null;
 }
 
-const initialState: TripOverviewState = {
-  data: null,
-  isLoaded: false,
+const initialState: TripDetailState = {
+  overview: null,
 };
 
-const tripOverviewSlice = createSlice({
-  name: 'tripOverview',
+const tripDetailSlice = createSlice({
+  name: 'tripDetail',
   initialState,
   reducers: {
     setTripOverview: (state, action: PayloadAction<TripOverview>) => {
-      state.data = action.payload;
-      state.isLoaded = true;
-    },
-    updateTripOverview: (state, action: PayloadAction<Partial<TripOverview>>) => {
-      if (state.data) {
-        state.data = { ...state.data, ...action.payload };
-      }
-    },
-    clearTripOverview: (state) => {
-      state.data = null;
-      state.isLoaded = false;
+      state.overview = action.payload;
     },
   },
 });
 
-export const { setTripOverview, updateTripOverview, clearTripOverview } = tripOverviewSlice.actions;
+export const { setTripOverview } = tripDetailSlice.actions;
 
-export default tripOverviewSlice.reducer;
+export default tripDetailSlice.reducer;
