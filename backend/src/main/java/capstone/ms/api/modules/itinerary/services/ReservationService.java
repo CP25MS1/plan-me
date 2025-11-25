@@ -12,13 +12,15 @@ import capstone.ms.api.modules.user.entities.User;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
+import jakarta.mail.Store;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -320,6 +322,48 @@ public class ReservationService {
             final var emailData = emailService.extractEmailData(emailMap);
         } catch (MessagingException e) {
             log.info("Error accessing inbox: {}", e.getMessage());
+        }
+    }
+
+    public List<EmailInfoDto> checkEmailInfo(Integer tripId, User currentUser) {
+        if (tripId == null) return Collections.emptyList();
+
+        Trip trip = loadTripOrThrow(tripId);
+        ensureOwnerOrThrow(currentUser, trip);
+
+        String alias = String.valueOf(tripId);
+        String toAddress = emailService.buildAddressWithAlias(alias);
+
+        Map<String, String> criteria = new HashMap<>();
+        criteria.put("TO", toAddress);
+        criteria.put("UNREAD", "true");
+
+        try (Store store = emailService.openImapStore()
+                .orElseThrow(() -> new IllegalStateException("Cannot open IMAP store"))) {
+
+            Folder inbox = store.getFolder("INBOX");
+            inbox.open(Folder.READ_ONLY);
+
+            Message[] messages = inbox.search(emailService.buildSearchTerm(criteria).orElse(null));
+
+            return Arrays.stream(messages)
+                    .map(msg -> {
+                        try {
+                            if (msg.getSentDate() == null) return null;
+                            return EmailInfoDto.builder()
+                                    .emailId(msg.getMessageNumber())
+                                    .sentAt(ZonedDateTime.ofInstant(msg.getSentDate().toInstant(), ZoneId.of("Asia/Bangkok")))
+                                    .subject(msg.getSubject())
+                                    .build();
+                        } catch (MessagingException e) {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to fetch emails: " + e.getMessage(), e);
         }
     }
 }
