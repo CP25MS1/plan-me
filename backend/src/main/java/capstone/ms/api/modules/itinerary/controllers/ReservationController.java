@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
+import capstone.ms.api.modules.itinerary.dto.EmailInfoDto;
 import capstone.ms.api.modules.itinerary.dto.ReservationDto;
 import capstone.ms.api.modules.itinerary.services.ReservationService;
 import capstone.ms.api.modules.user.entities.User;
@@ -9,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/reservations")
@@ -31,6 +34,13 @@ public class ReservationController {
     ) {
         ReservationDto updated = reservationService.updateReservation(reservationId, reservationDto, currentUser);
         return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/emails/check-info")
+    public ResponseEntity<List<EmailInfoDto>> getAllReservations(@Valid @RequestParam Integer tripId,
+                                                                 @AuthenticationPrincipal User currentUser) {
+        List<EmailInfoDto> emails = reservationService.checkEmailInfo(tripId, currentUser);
+        return ResponseEntity.ok(emails);
     }
 
     @PostMapping("/imported-emails")
