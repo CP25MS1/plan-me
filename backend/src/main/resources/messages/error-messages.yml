@@ -59,3 +59,11 @@ place:
       th: "คุณเพิ่มสถานที่ซ้ำ"
       en: "You added a duplicate place."
 
+reservation:
+  400:
+    th: "ไม่สามารถเพิ่มข้อมูลการจองได้ โปรดตรวจสอบข้อมูลอีกครั้ง"
+    en: "Unable to add information reservation. Please check your input and try again."
+  404:
+    th: "ไม่พบข้อมูลการจองนี้ในระบบ"
+    en: "This reservation is not found in the system."
+
