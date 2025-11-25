@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
@@ -50,6 +51,7 @@ public class FlightReservation {
     @Column(name = "flight_class", length = 10)
     private String flightClass;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
     @JoinColumn(name = "reservation_id")

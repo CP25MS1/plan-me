@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class Reservation {
     @Column(name = "reservation_id", nullable = false)
     private Integer id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;

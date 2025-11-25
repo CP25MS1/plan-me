@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -41,6 +42,7 @@ public class CarRentalReservation {
     @Column(name = "dropoff_time", nullable = false)
     private LocalDateTime dropoffTime;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @MapsId
     @JoinColumn(name = "reservation_id")
