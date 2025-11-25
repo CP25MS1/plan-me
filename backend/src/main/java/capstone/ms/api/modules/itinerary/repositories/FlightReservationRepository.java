@@ -1,0 +1,8 @@
+package capstone.ms.api.modules.itinerary.repositories;
+
+import capstone.ms.api.modules.itinerary.entities.FlightReservation;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface FlightReservationRepository extends JpaRepository<FlightReservation, Integer> {
+
+}
