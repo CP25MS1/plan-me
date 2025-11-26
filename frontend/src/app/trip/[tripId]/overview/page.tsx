@@ -1,7 +1,8 @@
 'use client';
 
 import { use, useCallback } from 'react';
-import { Container, Box } from '@mui/material';
+import { Container, Box, List, ListItem, Button } from '@mui/material';
+import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 
@@ -15,8 +16,12 @@ import { useFullScreenDialog } from '@/components/common/dialog';
 
 import useGetTripOverview from '../hooks/use-get-trip-overview';
 import useUpdateTripOverview from '../hooks/use-update-trip-overview';
-import { UpsertTrip } from '@/api/trips';
-import SearchAddWishlistPlace from './components/search-add-wishlist-place';
+import { UpsertTrip, WishlistPlace } from '@/api/trips';
+import {
+  SearchAddWishlistPlace,
+  WishlistPlaceCard,
+  WishlistPlaceDetailContent,
+} from './components';
 import { setTripOverview } from '@/store/trip-detail-slice';
 
 const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) => {
@@ -28,11 +33,22 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
   const { mutate: updateTrip } = useUpdateTripOverview(tripIdAsNumber);
   const { t } = useTranslation('trip_overview');
 
-  const { Dialog: WishlistPlaceDialog } = useFullScreenDialog({
-    EntryElement: <AddItemButton label={t('sectionCard.whistlistPlace.button')} />,
+  const {
+    Dialog: WishlistPlaceDialog,
+    open: isWishlistPlaceDialogOpened,
+    handleClickOpen: openWishlistPlaceDialog,
+  } = useFullScreenDialog({
+    EntryElement: <AddItemButton label={t('sectionCard.wishlistPlace.button')} />,
     Content: SearchAddWishlistPlace,
     contentProps: { tripId: tripIdAsNumber },
   });
+
+  const { Dialog: WishlistPlaceDetailDialog, openWithProps: openWishlistPlaceDetail } =
+    useFullScreenDialog<{ wishlistItem: WishlistPlace }>({
+      Content: ({ wishlistItem, onCloseAction }) => (
+        <WishlistPlaceDetailContent wishlistItem={wishlistItem} onCloseAction={onCloseAction} />
+      ),
+    });
 
   const handleSave = useCallback(
     (updates: UpsertTrip) => {
@@ -80,8 +96,40 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
           <AddItemButton label={t('sectionCard.reservation.button')} onClick={() => {}} />
         </SectionCard>
 
-        <SectionCard title={t('sectionCard.whistlistPlace.title')} asEmpty>
-          {WishlistPlaceDialog}
+        <SectionCard
+          title={t('sectionCard.wishlistPlace.title')}
+          asEmpty={!tripOverview.wishlistPlaces.length}
+        >
+          {tripOverview.wishlistPlaces.length && !isWishlistPlaceDialogOpened ? (
+            <>
+              <Box>
+                <List>
+                  {tripOverview.wishlistPlaces.map((wp) => {
+                    return (
+                      <ListItem
+                        key={wp.place.ggmpId}
+                        alignItems="center"
+                        sx={{ padding: 0, marginBottom: '1rem' }}
+                      >
+                        <WishlistPlaceCard
+                          tripId={tripIdAsNumber}
+                          data={wp}
+                          onOpenDetailAction={() => openWishlistPlaceDetail({ wishlistItem: wp })}
+                        />
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              </Box>
+              <Button variant="contained" onClick={openWishlistPlaceDialog} startIcon={<Plus />}>
+                {t('sectionCard.wishlistPlace.button')}
+              </Button>
+            </>
+          ) : (
+            WishlistPlaceDialog
+          )}
+
+          {WishlistPlaceDetailDialog}
         </SectionCard>
       </Box>
     </Container>

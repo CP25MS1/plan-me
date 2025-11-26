@@ -58,7 +58,10 @@
   },
 
   "empty": {
-    "no_users_found": "No users found"
+    "no_users_found": "No users found",
+    "no_results": "No results",
+    "no_results_cta_text": "Try a different keyword or check your spelling.",
+    "image": "No image"
   },
 
   "confirm": "Confirm",

@@ -16,10 +16,13 @@ import {
 } from '@mui/material';
 import { Search, MapPin } from 'lucide-react';
 import Image from 'next/image';
+import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 import { BackButton } from '@/components/button';
 import { useSearchForPlaces, useAddWishlistPlace } from '../hooks';
 import { tokens } from '@/providers/theme/design-tokens';
+import { addWishlistPlace } from '@/store/trip-detail-slice';
 
 type SearchAddWishlistPlaceProps = {
   tripId: number;
@@ -27,9 +30,12 @@ type SearchAddWishlistPlaceProps = {
 };
 
 export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishlistPlaceProps) => {
+  const dispatch = useDispatch();
   const [value, setValue] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { t } = useTranslation('trip_overview');
+  const { t: tCommon } = useTranslation('common');
 
   useEffect(() => {
     if (timerRef.current) globalThis.clearTimeout(timerRef.current);
@@ -48,7 +54,10 @@ export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishl
     mutation.mutate(
       { tripId, ggmpId },
       {
-        onSuccess: () => onCloseAction(),
+        onSuccess: (data) => {
+          dispatch(addWishlistPlace(data));
+          onCloseAction();
+        },
       }
     );
   };
@@ -75,10 +84,10 @@ export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishl
         >
           <MapPin size={56} style={{ opacity: 0.12 }} />
           <Typography variant="h6" color="text.primary">
-            No results
+            {tCommon('empty.no_results')}
           </Typography>
           <Typography variant="body2" color="text.secondary" align="center">
-            Try a different keyword or check your spelling.
+            {tCommon('empty.no_results_cta_text')}
           </Typography>
         </Box>
       );
@@ -94,7 +103,7 @@ export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishl
                 handleAdd(p.ggmpId);
               }}
               alignItems="center"
-              sx={{ gap: 2 }}
+              sx={{ gap: 2, '& .MuiListItem-root': { padding: '0' } }}
             >
               <ListItemIcon sx={{ minWidth: '0' }}>
                 <MapPin color={tokens.color.primary} />
@@ -149,7 +158,7 @@ export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishl
             <TextField
               fullWidth
               size="small"
-              placeholder="Search places..."
+              placeholder={t('sectionCard.wishlistPlace.search.placeholder')}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               slotProps={{
