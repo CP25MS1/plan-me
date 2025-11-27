@@ -105,6 +105,7 @@ jobs:
             IMAGE_NAME="cp25ms1/${SERVICE_DIR##*/}"
             IMAGE_VERSION=${VERSION_MAP[$BRANCH]}
             BUILD_ARGS="BASE_PATH=${BASE_PATH_MAP[$BRANCH]}"
+            ENV=${ENV_MAP[$BRANCH]}
 
             echo "🔹 Building and pushing $SERVICE_DIR → $IMAGE_NAME:$IMAGE_VERSION"
             docker build -t $IMAGE_NAME:$IMAGE_VERSION --build-arg $BUILD_ARGS $SERVICE_DIR
