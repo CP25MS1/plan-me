@@ -1,9 +1,16 @@
+# Base image
 FROM nginx:alpine
 
-ARG BASE_PATH
-ENV BASE_PATH_STRIPPED=${BASE_PATH#/}
+# Accept build-time argument
+ARG NGINX_ENV
+# Make it available inside the container as an environment variable
+ENV NGINX_ENV=${NGINX_ENV}
 
-COPY nginx/default.${BASE_PATH_STRIPPED}.conf /etc/nginx/conf.d/default.conf
+# Copy environment-specific config file into place
+COPY nginx/default.${NGINX_ENV}.conf /etc/nginx/conf.d/default.conf
 
+# Expose port 80
 EXPOSE 80
+
+# Run Nginx in the foreground
 CMD ["nginx", "-g", "daemon off;"]
