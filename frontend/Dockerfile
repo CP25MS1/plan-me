@@ -22,8 +22,5 @@ COPY --from=builder /app/package.json /app/package.json
 # app will listen on PORT env or default 3000
 ENV PORT=3000
 
-COPY ./start.sh /start.sh
-RUN chmod +x /start.sh
-
 EXPOSE 3000
 CMD ["node", "/app/standalone/server.js"]
