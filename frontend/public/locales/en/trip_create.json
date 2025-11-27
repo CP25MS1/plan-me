@@ -1,0 +1,23 @@
+{
+  "title": "Create New Trip",
+  "fields": {
+    "name": {
+      "label": "Trip Name",
+      "placeholder": "Name of the trip",
+      "null": "Please enter the trip name",
+      "maxLength": "Trip name length must be less than 50 characters."
+    },
+    "date": {
+      "label": "Date",
+      "placeholder": "Start date - End date",
+      "start": "Start Date",
+      "end": "End Date"
+    },
+    "objectives": {
+      "label": "Trip Objectives",
+      "placeholder": "Relaxation, Change of scenery, Work",
+      "placeholder_modal": "Add trip objective"
+    }
+  },
+  "submit": "Next"
+}
