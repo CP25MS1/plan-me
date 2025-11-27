@@ -1,24 +1,20 @@
-FROM node:20-bullseye-slim AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
-
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends python3 build-essential ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
 COPY tsconfig*.json ./
 COPY next.config.* ./
 
-RUN npm install --omit=optional --no-fund --loglevel=warn
+RUN npm install
 
 COPY . .
 ARG BASE_PATH
 ENV BASE_PATH=${BASE_PATH}
 RUN npm run build
 
-FROM node:20-bullseye-slim AS runner
+FROM node:20-alpine
 WORKDIR /app
-ENV NODE_ENV=production
+
 ENV PORT=3000
 ARG BASE_PATH
 ENV BASE_PATH=${BASE_PATH}
