@@ -26,4 +26,4 @@ const nextConfig = {
 };
 
 // @ts-expect-error: next-pwa types conflict with Next.js types
-export default wit;
+export default withPWA(nextConfig);
