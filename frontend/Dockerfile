@@ -28,7 +28,9 @@ WORKDIR /app
 RUN mkdir -p /run/nginx
 
 # Copy build output & config
-COPY --from=builder /app /app
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Expose ports
