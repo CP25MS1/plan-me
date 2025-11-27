@@ -1,74 +1,125 @@
 name: Build & Deploy
 
 on:
-    pull_request:
-        branches:
-            - main
-            - develop
-            - uat
-        types:
-            - closed
-    workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - uat
+    types:
+      - closed
+  workflow_dispatch:
+    inputs:
+      build_all:
+        description: 'Build all services regardless of changes'
+        required: false
+        default: 'false'
 
 permissions:
-    contents: read
+  contents: read
 
 jobs:
-    build_and_push:
-        if: github.event.pull_request.merged == true
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+  build_and_push:
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
 
-            - name: Detect changed files
-              id: changed
-              run: |
-                  echo "🔎 Detecting changed files..."
-                  CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
-                  echo "$CHANGED_FILES" > changed_files.txt
-                  echo "Changed files:"
-                  cat changed_files.txt
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - name: Detect changed services
-              id: services
-              run: |
-                  SERVICES=""
-                  while read file; do
-                    DIR=$(dirname "$file")
-                    # Walk up to find Dockerfile
-                    while [ "$DIR" != "." ] && [ "$DIR" != "/" ]; do
-                      if [ -f "$DIR/Dockerfile" ]; then
-                        SERVICES="$SERVICES $DIR"
-                        break
-                      fi
-                      DIR=$(dirname "$DIR")
-                    done
-                  done < changed_files.txt
-                  # Remove duplicates
-                  SERVICES=$(echo $SERVICES | tr ' ' '\n' | sort -u)
-                  echo "Changed services: $SERVICES"
-                  echo "services=$SERVICES" >> $GITHUB_OUTPUT
+      - name: Detect changed files
+        id: changed
+        run: |
+          echo "🔎 Detecting changed files..."
+          rm -f changed_files.txt || true
 
-            - name: Build and push changed services
-              if: ${{ steps.services.outputs.services != '' }}
-              run: |
-                  BRANCH="${{ github.base_ref }}"
-                  declare -A VERSION_MAP=( ["main"]="prod" ["uat"]="uat" ["develop"]="dev" )
-                  declare -A BASE_PATH_MAP=( ["main"]="" ["uat"]="/uat" ["develop"]="/dev" )
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.build_all }}" = "true" ]; then
+            echo "⚡ Manual trigger with build_all=true — listing all Dockerfiles"
+            find . -name Dockerfile -exec dirname {} \; | tr '\n' ' ' | xargs > changed_files.txt
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Event: pull_request — using base/head SHAs"
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+            git fetch --no-tags --prune origin "$BASE_SHA" "$HEAD_SHA" || true
+            git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed_files.txt || true
+          else
+            echo "Event: ${{ github.event_name }} — fallback to HEAD~1..HEAD diff"
+            git fetch --no-tags --prune --unshallow || true
+            git diff --name-only HEAD~1 HEAD > changed_files.txt || true
+          fi
 
-                  for SERVICE_DIR in ${{ steps.services.outputs.services }}; do
-                    IMAGE_NAME="cp25ms1/${SERVICE_DIR##*/}"
-                    IMAGE_VERSION=${VERSION_MAP[$BRANCH]}
-                    BUILD_ARGS="BASE_PATH=${BASE_PATH_MAP[$BRANCH]}"
+          echo "Changed files:"
+          cat changed_files.txt || true
+          CHANGED=$(tr '\n' ' ' < changed_files.txt | xargs || true)
+          echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
 
-                    echo "🔹 Building and pushing $SERVICE_DIR → $IMAGE_NAME:$IMAGE_VERSION"
-                    docker login -u cp25ms1 -p ${{ secrets.DOCKERHUB_TOKEN }}
-                    docker build -t $IMAGE_NAME:$IMAGE_VERSION --build-arg $BUILD_ARGS $SERVICE_DIR
-                    docker push $IMAGE_NAME:$IMAGE_VERSION
-                  done
+      - name: Detect changed services
+        id: services
+        run: |
+          echo "🔎 Detecting services..."
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.build_all }}" = "true" ]; then
+            SERVICES=$(find . -name Dockerfile -exec dirname {} \; | sort -u | tr '\n' ' ' | xargs)
+          else
+            SERVICES=""
+            while IFS= read -r file || [ -n "$file" ]; do
+              [ -z "$file" ] && continue
+              DIR=$(dirname "$file")
+              while [ "$DIR" != "." ] && [ "$DIR" != "/" ]; do
+                if [ -f "$DIR/Dockerfile" ]; then
+                  SERVICES="$SERVICES $DIR"
+                  break
+                fi
+                DIR=$(dirname "$DIR")
+              done
+            done < changed_files.txt
+            SERVICES=$(echo $SERVICES | tr ' ' '\n' | sed '/^$/d' | sort -u | tr '\n' ' ' | xargs || true)
+          fi
+          echo "Changed services: $SERVICES"
+          echo "services=$SERVICES" >> $GITHUB_OUTPUT
 
-            - name: No services changed
-              if: ${{ steps.services.outputs.services == '' }}
-              run: |
-                  echo "⚠️ No changed services detected — nothing to build."
+      - name: Login to Docker Hub
+        if: ${{ steps.services.outputs.services != '' }}
+        uses: docker/login-action@v2
+        with:
+          username: cp25ms1
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push services
+        if: ${{ steps.services.outputs.services != '' }}
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.event.pull_request.base.ref }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+          fi
+
+          declare -A VERSION_MAP=( ["main"]="prod" ["uat"]="uat" ["develop"]="dev" )
+          declare -A BASE_PATH_MAP=( ["main"]="" ["uat"]="/uat" ["develop"]="/dev" )
+
+          SERVICES="${{ steps.services.outputs.services }}"
+
+          for SERVICE_DIR in $SERVICES; do
+            IMAGE_NAME="cp25ms1/${SERVICE_DIR##*/}"
+            IMAGE_VERSION="${VERSION_MAP[$BRANCH]:-dev}"
+            BASE_PATH_VAL="${BASE_PATH_MAP[$BRANCH]:-}"
+
+            BUILD_CMD=(docker build -t "$IMAGE_NAME:$IMAGE_VERSION")
+            if [ -n "$BASE_PATH_VAL" ]; then
+              BUILD_CMD+=(--build-arg "BASE_PATH=$BASE_PATH_VAL")
+            fi
+            BUILD_CMD+=("$SERVICE_DIR")
+
+            echo "🔹 Building and pushing $SERVICE_DIR → $IMAGE_NAME:$IMAGE_VERSION (BASE_PATH='${BASE_PATH_VAL}')"
+            "${BUILD_CMD[@]}"
+
+            docker push "$IMAGE_NAME:$IMAGE_VERSION"
+          done
+
+      - name: No services changed
+        if: ${{ steps.services.outputs.services == '' }}
+        run: |
+          echo "⚠️ No changed services detected — nothing to build."
