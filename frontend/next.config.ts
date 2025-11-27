@@ -7,11 +7,14 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === 'development',
 });
 
+const basePath = process.env.BASE_PATH || '';
+
 const nextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
   output: 'standalone',
-  basePath: process.env.BASE_PATH || '',
+  basePath,
+  assetPrefix: basePath,
   images: {
     remotePatterns: [
       {
@@ -23,4 +26,4 @@ const nextConfig = {
 };
 
 // @ts-expect-error: next-pwa types conflict with Next.js types
-export default withPWA(nextConfig);
+export default wit;
