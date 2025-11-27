@@ -1,40 +1,29 @@
-# -----------------------------
-# Stage 1: Build Next.js app
-# -----------------------------
 FROM node:20-alpine AS builder
-
 WORKDIR /app
 COPY package*.json ./
 COPY tsconfig*.json ./
 COPY next.config.* ./
 COPY . .
-
 ARG BASE_PATH
 ENV BASE_PATH=${BASE_PATH}
-
 RUN npm install
 RUN npm run build
 
-# -----------------------------
-# Stage 2: Production runtime (Nginx + Node)
-# -----------------------------
 FROM node:20-alpine
-
-# Install Nginx
-RUN apk add --no-cache nginx
-
-# Create directories
 WORKDIR /app
-RUN mkdir -p /run/nginx
 
-# Copy build output & config
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+# copy build outputs + deps
+COPY --from=builder /app/public /app/public
+COPY --from=builder /app/.next/standalone /app/standalone
+COPY --from=builder /app/.next/static /app/.next/static
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/package.json /app/package.json
 
-# Expose ports
-EXPOSE 80
+# app will listen on PORT env or default 3000
+ENV PORT=3000
 
-# Start both Node (Next.js) and Nginx
-CMD npm run start & nginx -g 'daemon off;'
+COPY ./start.sh /start.sh
+RUN chmod +x /start.sh
+
+EXPOSE 3000
+CMD ["node", "/app/standalone/server.js"]
