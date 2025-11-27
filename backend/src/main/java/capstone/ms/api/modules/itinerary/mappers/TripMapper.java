@@ -70,7 +70,7 @@ public interface TripMapper {
         return WishlistPlaceDto.PlaceInfo.builder()
                 .ggmpId(place.getGgmpId())
                 .rating(place.getRating())
-                .opening_hours(place.getOpeningHours())
+                .openingHours(place.getOpeningHours())
                 .defaultPicUrl(place.getDefaultPicUrl())
                 .TH(WishlistPlaceDto.LocalizedInfo.builder()
                         .name(place.getThName())
