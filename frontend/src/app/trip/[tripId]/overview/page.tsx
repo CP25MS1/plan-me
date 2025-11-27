@@ -1,24 +1,54 @@
 'use client';
 
-import { use, useState, useEffect, useCallback } from 'react';
-import { Container, Box } from '@mui/material';
+import { use, useCallback } from 'react';
+import { Container, Box, List, ListItem, Button } from '@mui/material';
+import { Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
+
 import OverviewHeader from '@/components/trip/overview/overview-header';
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
 import SectionCard from '@/components/trip/overview/section-card';
 import { useFullPageLoading } from '@/components/full-page-loading';
-import useGetTripOverview from '@/app/trip/[tripId]/hooks/use-get-trip-overview';
 import CustomMap from '@/components/trip/map-component';
-import { useUpdateTripOverview } from '@/app/trip/[tripId]/hooks/use-update-trip-overview';
-import { UpsertTrip } from '@/api/trips';
-import { useTranslation } from 'react-i18next';
+import AddItemButton from '@/components/trip/overview/add-item-button';
+import { useFullScreenDialog } from '@/components/common/dialog';
 
-const TripOverviewPage = ({ params }: { params: Promise<{ tripId: number }> }) => {
+import useGetTripOverview from '../hooks/use-get-trip-overview';
+import useUpdateTripOverview from '../hooks/use-update-trip-overview';
+import { UpsertTrip, WishlistPlace } from '@/api/trips';
+import {
+  SearchAddWishlistPlace,
+  WishlistPlaceCard,
+  WishlistPlaceDetailContent,
+} from './components';
+import { setTripOverview } from '@/store/trip-detail-slice';
+
+const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) => {
+  const dispatch = useDispatch();
   const { tripId } = use(params);
-  const { tripOverview: overviewResult, isLoading } = useGetTripOverview(tripId);
-  const [tripOverview, setTripOverview] = useState(overviewResult);
+  const tripIdAsNumber = Number(tripId);
+  const { overview: tripOverview, isLoading } = useGetTripOverview(tripIdAsNumber);
   const { FullPageLoading } = useFullPageLoading();
-  const { mutate: updateTrip } = useUpdateTripOverview(tripId);
+  const { mutate: updateTrip } = useUpdateTripOverview(tripIdAsNumber);
   const { t } = useTranslation('trip_overview');
+
+  const {
+    Dialog: WishlistPlaceDialog,
+    open: isWishlistPlaceDialogOpened,
+    handleClickOpen: openWishlistPlaceDialog,
+  } = useFullScreenDialog({
+    EntryElement: <AddItemButton label={t('sectionCard.wishlistPlace.button')} />,
+    Content: SearchAddWishlistPlace,
+    contentProps: { tripId: tripIdAsNumber },
+  });
+
+  const { Dialog: WishlistPlaceDetailDialog, openWithProps: openWishlistPlaceDetail } =
+    useFullScreenDialog<{ wishlistItem: WishlistPlace }>({
+      Content: ({ wishlistItem, onCloseAction }) => (
+        <WishlistPlaceDetailContent wishlistItem={wishlistItem} onCloseAction={onCloseAction} />
+      ),
+    });
 
   const handleSave = useCallback(
     (updates: UpsertTrip) => {
@@ -28,17 +58,13 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: number }> }) =
         },
         {
           onSuccess: (data) => {
-            setTripOverview(data);
+            dispatch(setTripOverview(data));
           },
         }
       );
     },
-    [updateTrip]
+    [updateTrip, dispatch]
   );
-
-  useEffect(() => {
-    setTripOverview(overviewResult);
-  }, [overviewResult]);
 
   if (isLoading || !tripOverview) return <FullPageLoading />;
 
@@ -46,7 +72,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: number }> }) =
     <Container maxWidth="sm" sx={{ py: 3 }}>
       <OverviewHeader
         tripName={tripOverview.name}
-        members={[tripOverview.owner.profilePicUrl ?? '/avatar1.png']}
+        members={[tripOverview.owner.profilePicUrl ?? '']}
         objectives={tripOverview.objectives}
         startDate={tripOverview.startDate}
         endDate={tripOverview.endDate}
@@ -66,17 +92,45 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: number }> }) =
           </Box>
         </SectionCard>
 
-        <SectionCard
-          title={t('sectionCard.reservation.title')}
-          buttonLabel={t('sectionCard.reservation.button')}
-          onAdd={() => {}}
-        />
+        <SectionCard title={t('sectionCard.reservation.title')} asEmpty>
+          <AddItemButton label={t('sectionCard.reservation.button')} onClick={() => {}} />
+        </SectionCard>
 
         <SectionCard
-          title={t('sectionCard.whistlistPlace.title')}
-          buttonLabel={t('sectionCard.whistlistPlace.button')}
-          onAdd={() => {}}
-        />
+          title={t('sectionCard.wishlistPlace.title')}
+          asEmpty={!tripOverview.wishlistPlaces.length}
+        >
+          {tripOverview.wishlistPlaces.length && !isWishlistPlaceDialogOpened ? (
+            <>
+              <Box>
+                <List>
+                  {tripOverview.wishlistPlaces.map((wp) => {
+                    return (
+                      <ListItem
+                        key={wp.place.ggmpId}
+                        alignItems="center"
+                        sx={{ padding: 0, marginBottom: '1rem' }}
+                      >
+                        <WishlistPlaceCard
+                          tripId={tripIdAsNumber}
+                          data={wp}
+                          onOpenDetailAction={() => openWishlistPlaceDetail({ wishlistItem: wp })}
+                        />
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              </Box>
+              <Button variant="contained" onClick={openWishlistPlaceDialog} startIcon={<Plus />}>
+                {t('sectionCard.wishlistPlace.button')}
+              </Button>
+            </>
+          ) : (
+            WishlistPlaceDialog
+          )}
+
+          {WishlistPlaceDetailDialog}
+        </SectionCard>
       </Box>
     </Container>
   );
