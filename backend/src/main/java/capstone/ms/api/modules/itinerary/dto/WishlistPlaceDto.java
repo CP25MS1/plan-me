@@ -18,7 +18,7 @@ public class WishlistPlaceDto {
         private int rating;
         private LocalizedInfo TH;
         private LocalizedInfo EN;
-        private String opening_hours;
+        private String openingHours;
         private String defaultPicUrl;
     }
 

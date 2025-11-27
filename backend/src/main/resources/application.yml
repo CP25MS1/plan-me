@@ -75,3 +75,7 @@ ocr:
 
 frontend:
   url: http://localhost:3000
+
+logging:
+  level:
+    root: info
