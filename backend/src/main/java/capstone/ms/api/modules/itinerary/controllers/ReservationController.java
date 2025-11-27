@@ -1,18 +1,37 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
+import capstone.ms.api.modules.itinerary.dto.ReservationDto;
 import capstone.ms.api.modules.itinerary.services.ReservationService;
+import capstone.ms.api.modules.user.entities.User;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/reservations")
 @AllArgsConstructor
 public class ReservationController {
     private final ReservationService reservationService;
+
+    @PostMapping
+    public ResponseEntity<ReservationDto> createReservation(@Valid @RequestBody ReservationDto dto,
+                                                            @AuthenticationPrincipal User currentUser
+    ) {
+        ReservationDto created = reservationService.createReservation(dto, currentUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PutMapping("/{reservationId}")
+    public ResponseEntity<ReservationDto> updateReservation(@PathVariable Integer reservationId,
+                                                            @Valid @RequestBody ReservationDto reservationDto,
+                                                            @AuthenticationPrincipal User currentUser
+    ) {
+        ReservationDto updated = reservationService.updateReservation(reservationId, reservationDto, currentUser);
+        return ResponseEntity.ok(updated);
+    }
 
     @PostMapping("/imported-emails")
     public ResponseEntity<Void> addImportedEmails() {

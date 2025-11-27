@@ -1,0 +1,10 @@
+{
+  "follow": "ติดตาม",
+  "followers": "ผู้ติดตาม",
+  "following": "กำลังติดตาม",
+  "follow_back": "ติดตามกลับ",
+  "remove_follower": "ลบผู้ติดตาม",
+  "unfollow": "เลิกติดตาม",
+  "remove_confirm": "คุณต้องการลบ <strong><tooltip>{{username}}</tooltip></strong> ออกจากผู้ติดตามหรือไม่?",
+  "unfollow_confirm": "คุณต้องการเลิกติดตาม <strong><tooltip>{{username}}</tooltip></strong> หรือไม่?"
+}

@@ -8,7 +8,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -28,6 +28,10 @@ spring:
             token-uri: ${GOOGLE_TOKEN_URI}
             user-info-uri: ${GOOGLE_USERINFO_URI}
             user-name-attribute: sub
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_HOST_PORT}
 
 jwt:
   secret: ${JWT_SECRET}
@@ -39,6 +43,10 @@ google:
   base-uri: ${GOOGLE_OAUTH_BASE_URI}
   redirect-uri: ${GOOGLE_REDIRECT_URI}
   certificate-uri: ${GOOGLE_CERTS_URI}
+  places:
+    base-url: ${GOOGLE_PLACES_BASE_URL}
+    api-key: ${GOOGLE_PLACES_API_KEY}
+    field-mask: ${GOOGLE_PLACES_FIELD_MASK}
 
 server:
   port: 8000
@@ -68,10 +76,6 @@ ocr:
 frontend:
   url: http://localhost:3000
 
-#logging:
-#  level:
-#    root: INFO
-#    org.springframework.web: DEBUG
-#    com.example: DEBUG
-#  pattern:
-#    console: "%d{dd-MM-yyyy HH:mm:ss} - %msg%n"
+logging:
+  level:
+    root: info

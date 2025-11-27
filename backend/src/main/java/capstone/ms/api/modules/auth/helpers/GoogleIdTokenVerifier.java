@@ -8,6 +8,8 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.security.interfaces.RSAPublicKey;
@@ -16,17 +18,16 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 
+@Service
+@RequiredArgsConstructor
 public class GoogleIdTokenVerifier {
 
-    private static final String GOOGLE_CERTS_URL = new GoogleOAuthProperties().getCertificateUri();
+    private final GoogleOAuthProperties googleProps;
 
-    private static JWKSet cachedKeys;
-    private static Instant expiryTime = Instant.EPOCH; // default expired
+    private JWKSet cachedKeys;
+    private Instant expiryTime = Instant.EPOCH; // default expired
 
-    private GoogleIdTokenVerifier() {
-    }
-
-    public static Claims verify(final String idToken) throws JsonProcessingException, ParseException, JOSEException {
+    public Claims verify(final String idToken) throws JsonProcessingException, ParseException, JOSEException {
         // 1. Decode header to get 'kid'
         final String[] parts = idToken.split("\\.");
         final String headerJson = new String(Base64.getUrlDecoder().decode(parts[0]));
@@ -46,10 +47,11 @@ public class GoogleIdTokenVerifier {
                 .getBody();
     }
 
-    private static synchronized JWKSet getKeys() throws ParseException {
+    private synchronized JWKSet getKeys() throws ParseException {
         if (cachedKeys == null || Instant.now().isAfter(expiryTime)) {
             final RestTemplate restTemplate = new RestTemplate();
-            final String certsJson = restTemplate.getForObject(GOOGLE_CERTS_URL, String.class);
+            final String url = googleProps.getCertificateUri();
+            final String certsJson = restTemplate.getForObject(url, String.class);
             assert certsJson != null;
             cachedKeys = JWKSet.parse(certsJson);
 

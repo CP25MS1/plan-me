@@ -1,0 +1,93 @@
+# =============================
+# Global / OS / IDE
+# =============================
+.DS_Store
+*.pem
+*.log
+
+# VSCode / IntelliJ / STS
+.vscode/
+.idea
+*.iml
+*.iws
+*.ipr
+
+# env files
+.env
+.env.local
+.env.*.local
+
+# coverage / build info
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# =============================
+# Node / Next.js (applies anywhere)
+# =============================
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+.next/
+out/
+dist/
+build/
+out/
+
+# vercel / next-pwa
+.vercel
+# /public/sw.js
+# /public/workbox-*.js
+
+# =============================
+# Java / Maven (backend)
+# =============================
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+# Allow certain build folders exceptions (if any)
+!**/src/main/**/build/
+!**/src/test/**/build/
+build/
+
+# =============================
+# Python / misc
+# =============================
+__pycache__/
+*.pyc
+
+# DB / infra
+secrets/
+*.dump
+
+# Generated / IDE / tooling
+generated/
+
+# STS / NetBeans extras
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# =============================
+# Local (optional) - use .git/info/exclude instead if you prefer
+# =============================
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*

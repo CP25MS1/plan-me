@@ -1,44 +1,54 @@
-import './globals.css';
+import { ReactNode } from 'react';
+import Script from 'next/script';
+import { Sarabun } from 'next/font/google';
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 
-const geistSans = Geist({
-	variable: '--font-geist-sans',
-	subsets: ['latin'],
-});
+import './globals.css';
+import AppProvider from '../providers';
+import Navbar from '@/components/navbar';
 
-const geistMono = Geist_Mono({
-	variable: '--font-geist-mono',
-	subsets: ['latin'],
+const sarabun = Sarabun({
+  weight: ['300', '400', '700'],
+  variable: '--font-sarabun',
+  subsets: ['latin', 'latin-ext', 'thai'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "CP25MS1 Team - Under Construction",
-  description: "Our website is currently under construction. We are working diligently to bring you an amazing experience. Stay tuned for updates!",
+  title: 'CP25MS1 Team - Under Construction',
+  description:
+    'Our website is currently under construction. We are working diligently to bring you an amazing experience. Stay tuned for updates!',
 };
 
-export default function RootLayout({
-	children,
+const RootLayout = async ({
+  children,
 }: Readonly<{
-	children: React.ReactNode;
-}>) {
-	return (
-		<html lang='en'>
-			<head>
-				<meta
-					name='theme-color'
-					content='#25cf7a'
-				/>
-				<link
-					rel='manifest'
-					href='/manifest.webmanifest'
-				/>
-			</head>
-			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-			>
-				{children}
-			</body>
-		</html>
-	);
-}
+  children: ReactNode;
+}>) => {
+  return (
+    <html lang="th">
+      <head>
+        <meta name="theme-color" content="#25cf7a" />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/all/all.min.css"
+        />
+        <link rel="manifest" href="/manifest.webmanifest" />
+      </head>
+      <body className={`${sarabun.variable} antialiased`}>
+        <AppProvider>
+          <div className="flex flex-col min-h-screen">
+            <div className="grow">{children}</div>
+            <Navbar />
+          </div>
+        </AppProvider>
+        <Script
+          src="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/license.min.js"
+          strategy="afterInteractive"
+        />
+      </body>
+    </html>
+  );
+};
+
+export default RootLayout;

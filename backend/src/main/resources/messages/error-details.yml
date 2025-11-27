@@ -1,0 +1,19 @@
+401:
+  google:
+    token:
+      null: "Failed to retrieve ID token from Google"
+      invalid: "Invalid ID token"
+
+user:
+  400:
+    preference: "User preference must be TH or EN."
+
+trip:
+  400:
+    name:
+      null: "Objective name cannot be null."
+    endDate:
+      conflict: "End date cannot be before start date."
+    badgeColor:
+      null: "Objective badge color cannot be null."
+      format: "Color format is invalid."
