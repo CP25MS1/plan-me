@@ -1,18 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, ReactNode } from 'react';
 import { Box, Typography, IconButton, Collapse } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import AddItemButton from './add-item-button';
 
 interface SectionCardProps {
   title: string;
-  buttonLabel?: string;
-  onAdd?: () => void;
-  children?: React.ReactNode;
+  children?: ReactNode;
+  asEmpty?: boolean;
 }
 
-const SectionCard = ({ title, buttonLabel, onAdd, children }: SectionCardProps) => {
+const SectionCard = ({ title, children, asEmpty = false }: SectionCardProps) => {
   const [open, setOpen] = useState(true);
 
   return (
@@ -44,18 +42,14 @@ const SectionCard = ({ title, buttonLabel, onAdd, children }: SectionCardProps) 
         <Box
           sx={{
             width: '100%',
-            border: children ? 'none' : '2px dashed',
+            border: asEmpty ? '2px dashed' : 'none',
             borderColor: 'primary.main',
             borderRadius: 2,
-            py: children ? 0 : 2.5, // ลด padding สำหรับ map
+            py: asEmpty ? 2.5 : 0,
             textAlign: 'center',
           }}
         >
-          {children ? (
-            children
-          ) : buttonLabel && onAdd ? (
-            <AddItemButton label={buttonLabel} onClick={onAdd} />
-          ) : null}
+          {children}
         </Box>
       </Collapse>
     </Box>
