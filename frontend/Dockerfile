@@ -11,7 +11,7 @@ ARG BASE_PATH
 ENV BASE_PATH=${BASE_PATH}
 
 # install & build
-RUN npm ci --prefer-offline --no-audit --progress=false
+RUN npm install
 RUN npm run build
 
 # -----------------------
