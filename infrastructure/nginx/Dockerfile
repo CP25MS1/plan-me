@@ -2,7 +2,7 @@
 FROM nginx:alpine
 
 # Accept build-time argument
-ARG NGINX_ENV=dev
+ARG NGINX_ENV
 # Make it available inside the container as an environment variable
 ENV NGINX_ENV=${NGINX_ENV}
 
