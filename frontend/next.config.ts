@@ -24,6 +24,15 @@ const nextConfig = {
       },
     ],
   },
+
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL}/:path*`,
+      },
+    ];
+  },
 };
 
 // @ts-expect-error: next-pwa types conflict with Next.js types
