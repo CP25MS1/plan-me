@@ -7,7 +7,7 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === 'development',
 });
 
-const basePath = process.env.BASE_PATH || '';
+const basePath = process.env.BASE_PATH!;
 
 const nextConfig = {
   reactStrictMode: true,
@@ -23,6 +23,16 @@ const nextConfig = {
         hostname: 'lh3.googleusercontent.com',
       },
     ],
+  },
+
+  async rewrites() {
+    const backend = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backend}/:path*`,
+      },
+    ];
   },
 };
 
