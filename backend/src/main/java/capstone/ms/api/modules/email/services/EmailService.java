@@ -3,10 +3,7 @@ package capstone.ms.api.modules.email.services;
 import capstone.ms.api.modules.email.clients.ImapStoreProvider;
 import capstone.ms.api.modules.email.configs.EmailProperties;
 import capstone.ms.api.modules.email.dto.EmailData;
-import jakarta.mail.Flags;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Store;
+import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.search.*;
 import lombok.RequiredArgsConstructor;
@@ -135,5 +132,28 @@ public class EmailService {
                 .collect(Collectors.joining(", "))
                 : "No attachments";
         log.info("Extracted EmailData for message id {}:\n Texts [{}];\n Attachments [{}]", id, textsSummary, attachmentsSummary);
+    }
+
+    public Map<Integer, Message> fetchEmailById(List<Integer> emailIds) {
+        Map<Integer, Message> messages = new HashMap<>();
+        if (emailIds == null || emailIds.isEmpty()) return messages;
+
+        try (Store store = openImapStore().orElseThrow()) {
+            Folder inbox = store.getFolder("INBOX");
+            inbox.open(Folder.READ_ONLY);
+
+            Message[] allMessages = inbox.getMessages();
+
+            Set<Integer> idSet = new HashSet<>(emailIds);
+            for (Message msg : allMessages) {
+                int msgId = msg.getMessageNumber();
+                if (idSet.contains(msgId)) {
+                    messages.put(msgId, msg);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Cannot fetch emails: {}", e.getMessage(), e);
+        }
+        return messages;
     }
 }

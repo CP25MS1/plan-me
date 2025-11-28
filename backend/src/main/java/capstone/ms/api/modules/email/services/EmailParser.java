@@ -2,6 +2,7 @@ package capstone.ms.api.modules.email.services;
 
 import capstone.ms.api.common.files.services.FileService;
 import capstone.ms.api.modules.email.configs.EmailProperties;
+import jakarta.mail.BodyPart;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
@@ -27,18 +28,76 @@ public class EmailParser {
     public Optional<String> extractPrimaryText(Part part) throws MessagingException, IOException {
         if (part == null || isAttachment(part)) return Optional.empty();
 
-        if (part.isMimeType("text/plain")) return extractTextFromPart(part, false);
-        if (part.isMimeType("text/html")) return extractTextFromPart(part, true);
-        if (part.isMimeType("multipart/alternative")) return handleAlternative((Multipart) part.getContent());
-        if (part.isMimeType("multipart/*")) return handleGenericMultipart((Multipart) part.getContent());
+//        if (part.isMimeType("text/plain")) return extractTextFromPart(part, false);
+//        if (part.isMimeType("text/html")) return extractTextFromPart(part, true);
+//        if (part.isMimeType("multipart/alternative")) return handleAlternative((Multipart) part.getContent());
+//        if (part.isMimeType("multipart/*")) return handleGenericMultipart((Multipart) part.getContent());
+//        if (part.isMimeType("message/rfc822")) {
+//            Object nested = part.getContent();
+//            if (nested instanceof Part nestedPart) return extractPrimaryText(nestedPart);
+//        }
+//        return Optional.empty();
+
+        if (part.isMimeType("text/plain")) return Optional.ofNullable(part.getContent().toString());
+        if (part.isMimeType("text/html")) {
+            String html = part.getContent().toString();
+            String text = Jsoup.parse(html).text();
+            return Optional.of(text.trim());
+        }
+
+        // ถ้าเป็น nested message
         if (part.isMimeType("message/rfc822")) {
             Object nested = part.getContent();
             if (nested instanceof Part nestedPart) return extractPrimaryText(nestedPart);
         }
+
+        // ถ้าเป็น multipart ทุกชนิด
+        if (part.isMimeType("multipart/*")) {
+            Multipart mp = (Multipart) part.getContent();
+            for (int i = 0; i < mp.getCount(); i++) {
+                BodyPart bodyPart = mp.getBodyPart(i);
+                Optional<String> result = extractPrimaryText(bodyPart);
+                if (result.isPresent()) return result;
+            }
+        }
+
         return Optional.empty();
+
+//        try {
+//            if (part == null || isAttachment(part)) return Optional.empty();
+//
+//            if (part.isMimeType("text/plain")) return extractTextFromPart(part, false);
+//            if (part.isMimeType("text/html")) return extractTextFromPart(part, true);
+//            if (part.isMimeType("multipart/alternative"))
+//                return handleAlternative((Multipart) part.getContent());
+//            if (part.isMimeType("multipart/*"))
+//                return handleGenericMultipart((Multipart) part.getContent());
+//            if (part.isMimeType("message/rfc822")) {
+//                Object nested = part.getContent();
+//                if (nested instanceof Part nestedPart) return extractPrimaryText(nestedPart);
+//            }
+//
+//            return Optional.empty();
+//
+//        } catch (Exception e) {
+//            return Optional.empty();
+//        }
     }
 
     private Optional<String> handleAlternative(Multipart mp) throws MessagingException, IOException {
+//        if (props.isPreferHtml()) {
+//            for (int i = mp.getCount() - 1; i >= 0; i--) {
+//                Optional<String> c = extractPrimaryText(mp.getBodyPart(i));
+//                if (c.isPresent()) return c;
+//            }
+//        } else {
+//            for (int i = 0; i < mp.getCount(); i++) {
+//                Optional<String> c = extractPrimaryText(mp.getBodyPart(i));
+//                if (c.isPresent()) return c;
+//            }
+//        }
+//        return Optional.empty();
+
         if (props.isPreferHtml()) {
             for (int i = mp.getCount() - 1; i >= 0; i--) {
                 Optional<String> c = extractPrimaryText(mp.getBodyPart(i));
@@ -50,81 +109,91 @@ public class EmailParser {
                 if (c.isPresent()) return c;
             }
         }
-        return Optional.empty();
-    }
 
-    private Optional<String> handleGenericMultipart(Multipart mp) throws MessagingException, IOException {
+        // fallback: หา text ใดก็ได้
         for (int i = 0; i < mp.getCount(); i++) {
             Optional<String> c = extractPrimaryText(mp.getBodyPart(i));
             if (c.isPresent()) return c;
         }
+
         return Optional.empty();
     }
 
-    private Optional<String> extractTextFromPart(Part part, boolean isHtml) throws IOException, MessagingException {
-        Object content = part.getContent();
-        String raw = (content instanceof String string) ? string : null;
-        if (raw == null) return Optional.empty();
-        String text = isHtml ? Jsoup.parse(raw).text() : raw;
-        text = text.trim();
-        return text.isEmpty() ? Optional.empty() : Optional.of(text);
+private Optional<String> handleGenericMultipart(Multipart mp) throws MessagingException, IOException {
+    for (int i = 0; i < mp.getCount(); i++) {
+        Optional<String> c = extractPrimaryText(mp.getBodyPart(i));
+        if (c.isPresent()) return c;
+    }
+    return Optional.empty();
+}
+
+private Optional<String> extractTextFromPart(Part part, boolean isHtml) throws IOException, MessagingException {
+    Object content = part.getContent();
+    String raw = (content instanceof String string) ? string : null;
+    if (raw == null) return Optional.empty();
+    String text = isHtml ? Jsoup.parse(raw).text() : raw;
+    text = text.trim();
+    return text.isEmpty() ? Optional.empty() : Optional.of(text);
+}
+
+private boolean isAttachment(final Part part) throws MessagingException {
+//        if (part == null) return false;
+//        String disposition = part.getDisposition();
+//        String fileName = part.getFileName();
+//        if (Part.ATTACHMENT.equalsIgnoreCase(disposition)) return true;
+//        return fileName != null && !fileName.isBlank();
+    if (part == null) return false;
+    String disposition = part.getDisposition();
+    return Part.ATTACHMENT.equalsIgnoreCase(disposition);
+}
+
+public List<MultipartFile> collectAttachments(Part part) {
+    List<MultipartFile> attachments = new ArrayList<>();
+    try {
+        collectAttachmentsRecursive(part, attachments);
+    } catch (Exception ex) {
+        log.warn("Failed collecting attachments: {}", ex.getMessage());
+    }
+    return attachments;
+}
+
+private void collectAttachmentsRecursive(Part part, List<MultipartFile> attachments) throws MessagingException, IOException {
+    if (part == null) return;
+
+    // Recurse into multipart containers
+    if (part.isMimeType("multipart/*")) {
+        Multipart mp = (Multipart) part.getContent();
+        for (int i = 0; i < mp.getCount(); i++) {
+            collectAttachmentsRecursive(mp.getBodyPart(i), attachments);
+        }
+        return;
     }
 
-    private boolean isAttachment(final Part part) throws MessagingException {
-        if (part == null) return false;
-        String disposition = part.getDisposition();
-        String fileName = part.getFileName();
-        if (Part.ATTACHMENT.equalsIgnoreCase(disposition)) return true;
-        return fileName != null && !fileName.isBlank();
+    // Recurse into nested messages
+    if (part.isMimeType("message/rfc822")) {
+        Object nested = part.getContent();
+        if (nested instanceof Part nestedPart) {
+            collectAttachmentsRecursive(nestedPart, attachments);
+        }
+        return;
     }
 
-    public List<MultipartFile> collectAttachments(Part part) {
-        List<MultipartFile> attachments = new ArrayList<>();
-        try {
-            collectAttachmentsRecursive(part, attachments);
-        } catch (Exception ex) {
-            log.warn("Failed collecting attachments: {}", ex.getMessage());
-        }
-        return attachments;
+    if (!isAttachment(part)) return;
+
+    // Normalize content type and check support
+    final String contentType = part.getContentType() == null ? "application/octet-stream" : part.getContentType();
+    final boolean isSupported = props.getSupportedAttachmentTypes().stream()
+            .anyMatch(supported -> contentType.toLowerCase().startsWith(supported.toLowerCase()));
+    if (!isSupported) return;
+
+    // Stream to disk (no full in-memory buffering)
+    String filename = part.getFileName() == null ? "attachment" : part.getFileName();
+    try (InputStream in = part.getInputStream()) {
+        fileService.storeStream(in, filename, contentType, props.getMaxAttachmentSize())
+                .ifPresent(attachments::add);
+    } catch (IOException e) {
+        log.warn("Failed to stream and store attachment '{}' : {}", filename, e.getMessage());
     }
-
-    private void collectAttachmentsRecursive(Part part, List<MultipartFile> attachments) throws MessagingException, IOException {
-        if (part == null) return;
-
-        // Recurse into multipart containers
-        if (part.isMimeType("multipart/*")) {
-            Multipart mp = (Multipart) part.getContent();
-            for (int i = 0; i < mp.getCount(); i++) {
-                collectAttachmentsRecursive(mp.getBodyPart(i), attachments);
-            }
-            return;
-        }
-
-        // Recurse into nested messages
-        if (part.isMimeType("message/rfc822")) {
-            Object nested = part.getContent();
-            if (nested instanceof Part nestedPart) {
-                collectAttachmentsRecursive(nestedPart, attachments);
-            }
-            return;
-        }
-
-        if (!isAttachment(part)) return;
-
-        // Normalize content type and check support
-        final String contentType = part.getContentType() == null ? "application/octet-stream" : part.getContentType();
-        final boolean isSupported = props.getSupportedAttachmentTypes().stream()
-                .anyMatch(supported -> contentType.toLowerCase().startsWith(supported.toLowerCase()));
-        if (!isSupported) return;
-
-        // Stream to disk (no full in-memory buffering)
-        String filename = part.getFileName() == null ? "attachment" : part.getFileName();
-        try (InputStream in = part.getInputStream()) {
-            fileService.storeStream(in, filename, contentType, props.getMaxAttachmentSize())
-                    .ifPresent(attachments::add);
-        } catch (IOException e) {
-            log.warn("Failed to stream and store attachment '{}' : {}", filename, e.getMessage());
-        }
-    }
+}
 
 }
