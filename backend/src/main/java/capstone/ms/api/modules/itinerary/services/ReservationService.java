@@ -3,6 +3,9 @@ package capstone.ms.api.modules.itinerary.services;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
+import capstone.ms.api.common.exceptions.ServerErrorException;
+import capstone.ms.api.modules.email.dto.EmailData;
+import capstone.ms.api.modules.email.services.EmailParser;
 import capstone.ms.api.modules.email.services.EmailService;
 import capstone.ms.api.modules.itinerary.dto.*;
 import capstone.ms.api.modules.itinerary.entities.*;
@@ -17,7 +20,9 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -28,7 +33,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ReservationService {
     private EmailService emailService;
-
+    private EmailParser emailParser;
+    private ReservationEmailParser reservationEmailParser;
     private final TripRepository tripRepository;
     private final ReservationRepository reservationRepository;
     private final LodgingReservationRepository lodgingRepository;
@@ -38,7 +44,6 @@ public class ReservationService {
     private final BusReservationRepository busRepository;
     private final FerryReservationRepository ferryRepository;
     private final CarRentalReservationRepository carRentalRepository;
-
     private final ReservationMapper reservationMapper;
 
     private Trip loadTripOrThrow(final Integer tripId) {
@@ -317,6 +322,7 @@ public class ReservationService {
             var searchTerm = emailService.buildSearchTerm(criteria).orElseThrow();
 
             final Message[] emails = inbox.search(searchTerm);
+            log.info(Arrays.toString(emails));
             final var emailMap = emailService.mapMessagesById(emails);
 
             final var emailData = emailService.extractEmailData(emailMap);
@@ -339,7 +345,7 @@ public class ReservationService {
         criteria.put("UNREAD", "true");
 
         try (Store store = emailService.openImapStore()
-                .orElseThrow(() -> new IllegalStateException("Cannot open IMAP store"))) {
+                .orElseThrow(() -> new ServerErrorException("email.500.notOpenIMAP"))) {
 
             Folder inbox = store.getFolder("INBOX");
             inbox.open(Folder.READ_ONLY);
@@ -363,7 +369,99 @@ public class ReservationService {
                     .collect(Collectors.toList());
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to fetch emails: " + e.getMessage(), e);
+            throw new ServerErrorException("email.500.fetchEmail");
         }
+    }
+
+    @Transactional
+    public List<ReservationPreviewResult<?>> previewReservation(Integer tripId, List<ReservationPreviewRequest> previewRequests, User currentUser) {
+
+        Trip trip = loadTripOrThrow(tripId);
+        ensureOwnerOrThrow(currentUser, trip);
+
+        List<ReservationPreviewResult<?>> results = new ArrayList<>();
+        List<Integer> emailIds = previewRequests.stream()
+                .map(ReservationPreviewRequest::getEmailId)
+                .collect(Collectors.toList());
+
+        Map<Integer, Message> messages = emailService.fetchEmailById(emailIds);
+        log.info("Fetched emails: {}", messages.keySet());
+
+        for (ReservationPreviewRequest req : previewRequests) {
+            Integer emailId = req.getEmailId();
+            String type = req.getType();
+            Message msg = messages.get(emailId);
+
+            if (msg == null) {
+                results.add(ReservationPreviewResult.builder()
+                        .emailId(emailId)
+                        .type(type)
+                        .valid(false)
+                        .build());
+                continue;
+            }
+
+            Optional<String> emailTextOpt;
+            try {
+                emailTextOpt = emailParser.extractPrimaryText(msg);
+                log.info("Email {} text: {}", emailId, emailTextOpt.orElse("EMPTY"));
+            } catch (MessagingException | IOException e) {
+                results.add(ReservationPreviewResult.builder()
+                        .emailId(emailId)
+                        .type(type)
+                        .valid(false)
+                        .build());
+                continue;
+            }
+
+            if (emailTextOpt.isEmpty()) {
+                results.add(ReservationPreviewResult.builder()
+                        .emailId(emailId)
+                        .type(type)
+                        .valid(false)
+                        .build());
+                continue;
+            }
+
+            EmailData emailData = new EmailData(new String[]{emailTextOpt.get()}, new MultipartFile[0]);
+
+            ReservationDetails parsed = null;
+            boolean valid = false;
+
+            try {
+                switch (type.toUpperCase()) {
+                    case "FLIGHT":
+                        parsed = reservationEmailParser.parseFlight(emailData);
+                        break;
+                    case "RESTAURANT":
+                        parsed = reservationEmailParser.parseRestaurant(emailData);
+                        break;
+                    case "TRAIN":
+                        parsed = reservationEmailParser.parseTrain(emailData);
+                        break;
+                    case "BUS":
+                        parsed = reservationEmailParser.parseBus(emailData);
+                        break;
+                    case "FERRY":
+                        parsed = reservationEmailParser.parseFerry(emailData);
+                        break;
+                    case "CAR_RENTAL":
+                        parsed = reservationEmailParser.parseCarRental(emailData);
+                        break;
+                }
+                valid = parsed != null;
+            } catch (Exception e) {
+                parsed = null;
+                valid = false;
+            }
+
+            results.add(ReservationPreviewResult.builder()
+                    .emailId(emailId)
+                    .type(type)
+                    .parsed(parsed)
+                    .valid(valid)
+                    .build());
+        }
+        return results;
     }
 }

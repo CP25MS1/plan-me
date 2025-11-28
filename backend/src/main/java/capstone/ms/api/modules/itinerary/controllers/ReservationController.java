@@ -1,6 +1,8 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
 import capstone.ms.api.modules.itinerary.dto.ReservationDto;
+import capstone.ms.api.modules.itinerary.dto.ReservationPreviewRequest;
+import capstone.ms.api.modules.itinerary.dto.ReservationPreviewResult;
 import capstone.ms.api.modules.itinerary.services.ReservationService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.validation.Valid;
@@ -38,6 +40,14 @@ public class ReservationController {
                                                   @AuthenticationPrincipal User currentUser) {
         reservationService.deleteReservation(reservationId, currentUser);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/emails/preview")
+    public ResponseEntity<List<ReservationPreviewResult<?>>> previewReservation(@Valid @RequestParam Integer tripId,
+                                                                             @Valid @RequestBody List<ReservationPreviewRequest> previewRequest,
+                                                                             @AuthenticationPrincipal User currentUser) {
+       List<ReservationPreviewResult<?>> previewResults = reservationService.previewReservation(tripId, previewRequest, currentUser);
+       return ResponseEntity.ok(previewResults);
     }
 
     @PostMapping("/imported-emails")
