@@ -1,0 +1,55 @@
+name: Nginx Build & Push
+
+on:
+  push:
+    branches: [ main, uat, develop ]
+  pull_request:
+    branches: [ main, uat, develop ]
+    types: [ closed ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOCKER_NAMESPACE: cp25ms1
+  SERVICE_DIR: infrastructure/nginx
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve branch -> env
+        id: vars
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          case "$BRANCH" in
+            main) ENV=prod; BASE_PATH=""; ;;
+            uat)  ENV=uat;  BASE_PATH="/uat"; ;;
+            develop) ENV=dev; BASE_PATH="/dev";  ;;
+            *) ENV=dev; BASE_PATH="/dev"; ;;
+          esac
+          echo "ENV=$ENV" >> $GITHUB_OUTPUT
+          echo "BASE_PATH=$BASE_PATH" >> $GITHUB_OUTPUT
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push nginx image
+        run: |
+          IMAGE="${{ env.DOCKER_NAMESPACE }}/nginx:${{ steps.vars.outputs.ENV }}"
+
+          docker build \
+            --build-arg BASE_PATH="${{ steps.vars.outputs.BASE_PATH }}" \
+            -t "$IMAGE" ./infrastructure/nginx
+
+          docker push "$IMAGE"
