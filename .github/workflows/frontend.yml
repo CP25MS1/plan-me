@@ -1,11 +1,11 @@
 name: Frontend Build & Push
 
 on:
-  push:
-    branches: [ main, uat, develop ]
   pull_request:
     branches: [ main, uat, develop ]
     types: [ closed ]
+    paths:
+      - 'frontend/**'
   workflow_dispatch:
 
 permissions:
@@ -17,7 +17,10 @@ env:
 
 jobs:
   build:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || github.event_name == 'push'
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) ||
+      (github.event_name == 'push' && github.event.head_commit != null && !startsWith(github.event.head_commit.message, 'Merge pull request'))
     runs-on: ubuntu-latest
 
     steps:
@@ -51,7 +54,7 @@ jobs:
 
           docker build \
             --build-arg BASE_PATH="${{ steps.vars.outputs.BASE_PATH }}" \
-            --build-arg NEXT_PUBLIC_NEXT_PUBLIC_BACKEND_URL="${{ steps.vars.outputs.NEXT_PUBLIC_BACKEND_URL }}" \
+            --build-arg NEXT_PUBLIC_BACKEND_URL="${{ steps.vars.outputs.NEXT_PUBLIC_BACKEND_URL }}" \
             -t "$IMAGE" ./frontend
 
           docker push "$IMAGE"
