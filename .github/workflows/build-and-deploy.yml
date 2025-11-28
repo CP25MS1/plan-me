@@ -60,7 +60,6 @@ jobs:
         run: |
           echo "🔎 Detecting services..."
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.build_all }}" = "true" ]; then
-            # Manual run with build_all=true: include all services
             SERVICES=$(find . -name Dockerfile -exec dirname {} \; | sort -u | tr '\n' ' ' | xargs)
           else
             SERVICES=""
@@ -90,6 +89,8 @@ jobs:
       - name: Build and push services
         if: ${{ steps.services.outputs.services != '' }}
         run: |
+          set -euo pipefail
+
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BRANCH="${{ github.event.pull_request.base.ref }}"
           else
@@ -103,12 +104,19 @@ jobs:
 
           for SERVICE_DIR in $SERVICES; do
             IMAGE_NAME="cp25ms1/${SERVICE_DIR##*/}"
-            IMAGE_VERSION=${VERSION_MAP[$BRANCH]}
-            BUILD_ARGS="BASE_PATH=${BASE_PATH_MAP[$BRANCH]}"
+            IMAGE_VERSION="${VERSION_MAP[$BRANCH]:-dev}"
+            BASE_PATH_VAL="${BASE_PATH_MAP[$BRANCH]:-}"
 
-            echo "🔹 Building and pushing $SERVICE_DIR → $IMAGE_NAME:$IMAGE_VERSION"
-            docker build -t $IMAGE_NAME:$IMAGE_VERSION --build-arg $BUILD_ARGS $SERVICE_DIR
-            docker push $IMAGE_NAME:$IMAGE_VERSION
+            BUILD_CMD=(docker build -t "$IMAGE_NAME:$IMAGE_VERSION")
+            if [ -n "$BASE_PATH_VAL" ]; then
+              BUILD_CMD+=(--build-arg "BASE_PATH=$BASE_PATH_VAL")
+            fi
+            BUILD_CMD+=("$SERVICE_DIR")
+
+            echo "🔹 Building and pushing $SERVICE_DIR → $IMAGE_NAME:$IMAGE_VERSION (BASE_PATH='${BASE_PATH_VAL}')"
+            "${BUILD_CMD[@]}"
+
+            docker push "$IMAGE_NAME:$IMAGE_VERSION"
           done
 
       - name: No services changed
