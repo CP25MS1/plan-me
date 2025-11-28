@@ -1,6 +1,6 @@
 FROM nginx:alpine
 
-ARG BASE_PATH
+ARG BASE_PATH=prod
 ENV BASE_PATH_STRIPPED=${BASE_PATH#/}
 
 COPY nginx/default.${BASE_PATH_STRIPPED}.conf /etc/nginx/conf.d/default.conf
