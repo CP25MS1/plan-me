@@ -26,10 +26,11 @@ const nextConfig = {
   },
 
   async rewrites() {
+    const backend = process.env.NEXT_PUBLIC_BACKEND_URL || '';
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_BACKEND_URL!}/:path*`,
+        destination: `${backend}/:path*`,
       },
     ];
   },
