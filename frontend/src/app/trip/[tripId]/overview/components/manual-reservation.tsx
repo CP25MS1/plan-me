@@ -1,0 +1,353 @@
+'use client';
+
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  IconButton,
+  Select,
+  MenuItem,
+  FormControl,
+  Typography,
+  Button,
+  Box,
+  TextField,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Plane, Building, Utensils, Train, Ship, Bus, Car } from 'lucide-react';
+import LodgingCard from '@/app/trip/[tripId]/overview/components/cards/lodging';
+import RestaurantCard from '@/app/trip/[tripId]/overview/components/cards/restaurant';
+import FlightCard from '@/app/trip/[tripId]/overview/components/cards/flight';
+import TrainCard from '@/app/trip/[tripId]/overview/components/cards/train';
+import BusCard from '@/app/trip/[tripId]/overview/components/cards/bus';
+import FerryCard from '@/app/trip/[tripId]/overview/components/cards/ferry';
+import CarRentalCard from '@/app/trip/[tripId]/overview/components/cards/carrental';
+import { BackButton } from '@/components/button';
+import { fieldsByType } from './fieldsByType';
+
+interface ManualReservationProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+interface Field {
+  label: string;
+  name: string;
+  type?: string;
+  required?: boolean;
+  maxLength?: number;
+}
+
+export default function ManualReservation({ open, onClose }: ManualReservationProps) {
+  const [typeValue, setTypeValue] = useState('');
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [showPreview, setShowPreview] = useState(false);
+  const [passengers, setPassengers] = useState<{ name: string; seatNumber: string }[]>([
+    { name: '', seatNumber: '' },
+  ]);
+  const { t } = useTranslation('trip_overview');
+
+  const fieldsRef = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    if (open) {
+      setTypeValue('');
+      setFormData({});
+      setErrors({});
+      setShowPreview(false);
+      setPassengers([{ name: '', seatNumber: '' }]);
+    }
+  }, [open]);
+
+  const handleChange = (name: string, val: any) => {
+    setFormData((prev) => ({ ...prev, [name]: val }));
+    setErrors((prev) => ({ ...prev, [name]: false }));
+  };
+
+  // Passenger handlers
+  const addPassenger = () => setPassengers((prev) => [...prev, { name: '', seatNumber: '' }]);
+  const removePassenger = (index: number) =>
+    setPassengers((prev) => prev.filter((_, i) => i !== index));
+  const handlePassengerChange = (index: number, key: 'name' | 'seatNumber', value: string) =>
+    setPassengers((prev) => prev.map((p, i) => (i === index ? { ...p, [key]: value } : p)));
+
+  const handlePreview = () => {
+    if (!typeValue) return;
+
+    const typeFields = fieldsByType[typeValue];
+    const newErrors: Record<string, boolean> = {};
+    let firstError: string | null = null;
+
+    typeFields.forEach((field) => {
+      if (field.required && !formData[field.name]) {
+        newErrors[field.name] = true;
+        if (!firstError) firstError = field.name;
+      }
+    });
+
+    // ตรวจสอบผู้โดยสาร
+    if (typeValue === 'Flight') {
+      passengers.forEach((p, idx) => {
+        if (!p.name || !p.seatNumber) {
+          newErrors[`passenger-${idx}`] = true;
+          if (!firstError) firstError = `passenger-${idx}`;
+        }
+      });
+    }
+
+    setErrors(newErrors);
+
+    if (firstError && fieldsRef.current[firstError]) {
+      fieldsRef.current[firstError]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    if (Object.keys(newErrors).length === 0) {
+      if (typeValue === 'Flight') setFormData((prev) => ({ ...prev, passengers }));
+      setShowPreview(true);
+    }
+  };
+
+  const handleConfirm = () => {
+    setShowPreview(false);
+    onClose();
+  };
+
+  const icons = {
+    Lodging: <Building size={18} color="#25CF7A" />,
+    Restaurant: <Utensils size={18} color="#25CF7A" />,
+    Flight: <Plane size={18} color="#25CF7A" />,
+    Train: <Train size={18} color="#25CF7A" />,
+    Bus: <Bus size={18} color="#25CF7A" />,
+    Ferry: <Ship size={18} color="#25CF7A" />,
+    CarRental: <Car size={18} color="#25CF7A" />,
+  };
+
+  return (
+    <>
+      {/* Dialog กรอกข้อมูล */}
+      <Dialog
+        open={open && !showPreview}
+        onClose={onClose}
+        fullWidth
+        PaperProps={{ sx: { width: '420px', borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, pb: 1 }}>
+          {t('ManualReservation.title')}
+          <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 0 }}>
+          <FormControl fullWidth>
+            <Select
+              value={typeValue}
+              onChange={(e) => {
+                const newType = e.target.value;
+                setTypeValue(newType);
+                setFormData({});
+                setErrors({});
+                setPassengers([{ name: '', seatNumber: '' }]);
+              }}
+              displayEmpty
+              sx={{
+                borderRadius: 2,
+                '& .MuiSelect-displayEmpty': {
+                  color: typeValue ? 'inherit' : 'grey.500',
+                },
+              }}
+              renderValue={(selected) => {
+                if (!selected) return t('ManualReservation.placeholder');
+                return (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {icons[selected as keyof typeof icons]}{' '}
+                    {t(`ManualReservation.Type.${selected}`)}
+                  </Box>
+                );
+              }}
+            >
+              <MenuItem value="" disabled>
+                {t('ManualReservation.placeholder')}
+              </MenuItem>
+              {Object.keys(fieldsByType).map((type) => {
+                const IconComp = {
+                  Lodging: Building,
+                  Restaurant: Utensils,
+                  Flight: Plane,
+                  Train: Train,
+                  Bus: Bus,
+                  Ferry: Ship,
+                  CarRental: Car,
+                }[type] as any;
+                return (
+                  <MenuItem key={type} value={type} className="flex items-center gap-3">
+                    <IconComp size={18} color="#25CF7A" />
+                    {t(`ManualReservation.Type.${type}`)}
+                  </MenuItem>
+                );
+              })}
+            </Select>
+          </FormControl>
+
+          {typeValue && fieldsByType[typeValue]?.length ? (
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {fieldsByType[typeValue].map((field) => (
+                <Box
+                  key={field.name}
+                  ref={(el: HTMLDivElement | null) => {
+                    fieldsRef.current[field.name] = el;
+                  }}
+                  sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}
+                >
+                  <Typography
+                    variant="body2"
+                    color={errors[field.name] ? 'error.main' : 'text.secondary'}
+                  >
+                    {field.label}
+                  </Typography>
+                  <TextField
+                    type={field.type || 'text'}
+                    value={formData[field.name] || ''}
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                    error={!!errors[field.name]}
+                    inputProps={{ maxLength: field.maxLength || undefined }}
+                  />
+                </Box>
+              ))}
+
+              {/* Section ผู้โดยสาร Flight */}
+              {typeValue === 'Flight' && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    รายชื่อผู้โดยสาร
+                  </Typography>
+                  {passengers.map((p, idx) => (
+                    <Box key={idx} sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
+                      <TextField
+                        label="ชื่อ"
+                        value={p.name}
+                        onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
+                        fullWidth
+                        size="small"
+                        error={!!errors[`passenger-${idx}`]}
+                      />
+                      <TextField
+                        label="เลขที่นั่ง"
+                        value={p.seatNumber}
+                        onChange={(e) => handlePassengerChange(idx, 'seatNumber', e.target.value)}
+                        fullWidth
+                        size="small"
+                        error={!!errors[`passenger-${idx}`]}
+                      />
+                      <IconButton
+                        color="error"
+                        onClick={() => removePassenger(idx)}
+                        disabled={passengers.length === 1}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                  ))}
+                  <Button variant="outlined" sx={{ mt: 1 }} onClick={addPassenger}>
+                    + เพิ่มผู้โดยสาร
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                textAlign: 'center',
+                height: '260px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column',
+                color: 'grey.600',
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight={500}>
+                {t('ManualReservation.nodata')}
+              </Typography>
+              <Typography variant="body2">{t('ManualReservation.placeholder')}</Typography>
+            </Box>
+          )}
+
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pb: 6, mt: 2 }}>
+            <Button
+              variant="contained"
+              sx={{
+                borderRadius: 5,
+                px: 3,
+                textTransform: 'none',
+                boxShadow: 'none',
+                color: '#fff',
+                bgcolor: typeValue ? '#25CF7A' : '#B0B0B0',
+                pointerEvents: typeValue ? 'auto' : 'none',
+              }}
+              startIcon={<VisibilityIcon />}
+              onClick={handlePreview}
+            >
+              {t('ManualReservation.Button')}
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Preview */}
+      <Dialog
+        open={showPreview}
+        onClose={() => setShowPreview(false)}
+        fullWidth
+        PaperProps={{ sx: { width: '420px', borderRadius: 3, p: 1 } }}
+      >
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, pb: 1, position: 'relative' }}>
+          <Box sx={{ position: 'absolute', left: 8, top: 8 }}>
+            <BackButton onBack={() => setShowPreview(false)} />
+          </Box>
+          ตัวอย่างข้อมูลของ {typeValue && t(`ManualReservation.Type.${typeValue}`)}
+          <IconButton
+            onClick={() => setShowPreview(false)}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 0, maxHeight: '400px', overflowY: 'auto' }}>
+          {typeValue === 'Lodging' && <LodgingCard />}
+          {typeValue === 'Restaurant' && <RestaurantCard />}
+          {typeValue === 'Flight' && <FlightCard />}
+          {typeValue === 'Train' && <TrainCard />}
+          {typeValue === 'Bus' && <BusCard />}
+          {typeValue === 'Ferry' && <FerryCard />}
+          {typeValue === 'CarRental' && <CarRentalCard />}
+
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pb: 2, mt: 2 }}>
+            <Button
+              variant="contained"
+              sx={{
+                borderRadius: 5,
+                px: 3,
+                textTransform: 'none',
+                boxShadow: 'none',
+                color: '#fff',
+                bgcolor: '#25CF7A',
+              }}
+              onClick={handleConfirm}
+            >
+              ยืนยัน
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

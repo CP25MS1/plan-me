@@ -1,10 +1,14 @@
 'use client';
 
-import { use, useCallback } from 'react';
+import { use, useCallback, useState } from 'react';
 import { Container, Box, List, ListItem, Button } from '@mui/material';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
+import { Hand, Mail, Upload } from 'lucide-react';
+import ManualReservation from './components/manual-reservation';
+import UploadReservation from './components/upload-reservation';
+import EmailReservation from './components/email-reservation';
 
 import OverviewHeader from '@/components/trip/overview/overview-header';
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
@@ -23,6 +27,12 @@ import {
   WishlistPlaceDetailContent,
 } from './components';
 import { setTripOverview } from '@/store/trip-detail-slice';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) => {
   const dispatch = useDispatch();
@@ -32,6 +42,24 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
   const { FullPageLoading } = useFullPageLoading();
   const { mutate: updateTrip } = useUpdateTripOverview(tripIdAsNumber);
   const { t } = useTranslation('trip_overview');
+
+  // {Manual}
+  const [isManualReservationDialogOpen, setManualReservationDialogOpen] = useState(false);
+
+  const openManualReservationDialog = () => setManualReservationDialogOpen(true);
+  const closeManualReservationDialog = () => setManualReservationDialogOpen(false);
+
+  // {Upload}
+  const [isUploadReservationDialogOpen, setUploadReservationDialogOpen] = useState(false);
+
+  const openUploadReservationDialog = () => setUploadReservationDialogOpen(true);
+  const closeUploadReservationDialog = () => setUploadReservationDialogOpen(false);
+
+  // {Email}
+  const [isEmailReservationDialogOpen, setEmailReservationDialogOpen] = useState(false);
+
+  const openEmailReservationDialog = () => setEmailReservationDialogOpen(true);
+  const closeEmailReservationDialog = () => setEmailReservationDialogOpen(false);
 
   const {
     Dialog: WishlistPlaceDialog,
@@ -66,6 +94,8 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
     [updateTrip, dispatch]
   );
 
+  <ManualReservation open={isManualReservationDialogOpen} onClose={closeManualReservationDialog} />;
+
   if (isLoading || !tripOverview) return <FullPageLoading />;
 
   return (
@@ -93,7 +123,45 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
         </SectionCard>
 
         <SectionCard title={t('sectionCard.reservation.title')} asEmpty>
-          <AddItemButton label={t('sectionCard.reservation.button')} onClick={() => {}} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div>
+                <AddItemButton label={t('sectionCard.reservation.button')} />
+              </div>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent className="w-35" align="center">
+              <DropdownMenuItem
+                className="flex items-center gap-3"
+                onClick={() => {
+                  openManualReservationDialog();
+                }}
+              >
+                <Hand size={18} />
+                {t('sectionCard.reservation.dropdown.Manual')}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="flex items-center gap-3"
+                onClick={() => {
+                  openEmailReservationDialog();
+                }}
+              >
+                <Mail size={18} />
+                {t('sectionCard.reservation.dropdown.Email')}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="flex items-center gap-3"
+                onClick={() => {
+                  openUploadReservationDialog();
+                }}
+              >
+                <Upload size={18} />
+                {t('sectionCard.reservation.dropdown.Upload')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </SectionCard>
 
         <SectionCard
@@ -132,6 +200,15 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
           {WishlistPlaceDetailDialog}
         </SectionCard>
       </Box>
+      <ManualReservation
+        open={isManualReservationDialogOpen}
+        onClose={closeManualReservationDialog}
+      />
+      <UploadReservation
+        open={isUploadReservationDialogOpen}
+        onClose={closeUploadReservationDialog}
+      />
+      <EmailReservation open={isEmailReservationDialogOpen} onClose={closeEmailReservationDialog} />
     </Container>
   );
 };
