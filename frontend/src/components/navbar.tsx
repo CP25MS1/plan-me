@@ -33,7 +33,7 @@ const activate = (
 };
 
 const Navbar = ({
-  items = activate(NAV_ITEMS, ['/home', '/profile', '/trip/create']),
+  items = activate(NAV_ITEMS, ['/home', '/profile', '/trip/create', '/trip/all']),
   className = '',
   listClassName = 'flex justify-around items-center py-2',
   itemClass = 'flex flex-col items-center text-xs',
