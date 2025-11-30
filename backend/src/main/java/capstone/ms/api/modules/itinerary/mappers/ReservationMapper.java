@@ -25,14 +25,12 @@ public interface ReservationMapper {
     LodgingDetails lodgingEntityToDto(LodgingReservation entity);
     LodgingReservation lodgingDtoToEntity(LodgingDetails dto);
 
+    @Mapping(target = "passengerName", source = "passengerName")
+    @Mapping(target = "seatNo", source = "id.seatNo")
+    FlightPassenger flightPassengerReservationToDto(FlightPassengerReservation reservation);
     FlightDetails flightEntityToDto(FlightReservation entity);
     FlightReservation flightDtoToEntity(FlightDetails dto);
 
-    /**
-     * Map passengers DTO -> entity. Returns a modifiable LinkedHashSet (never an immutable empty set).
-     * Note: this helper does not set the FlightReservation on an existing collection instance;
-     * it's just a factory for new passenger instances when needed.
-     */
     default Set<FlightPassengerReservation> mapPassengers(
             FlightReservation flight, List<FlightPassenger> passengersDto) {
 
