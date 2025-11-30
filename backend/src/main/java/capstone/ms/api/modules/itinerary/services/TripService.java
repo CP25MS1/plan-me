@@ -20,6 +20,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -149,5 +151,15 @@ public class TripService {
                 .orElseThrow(() -> new NotFoundException("place.404"));
 
         wishlistPlaceRepository.delete(wp);
+    }
+
+    public List<TripDto> getTripsByUser(Integer userId) {
+        List<Trip> trips = tripRepository.findByOwnerId(userId);
+        if (trips == null) {
+            return Collections.emptyList();
+        }
+        return trips.stream()
+                .map(tripMapper::tripToTripDto)
+                .collect(Collectors.toList());
     }
 }

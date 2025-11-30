@@ -182,7 +182,7 @@ public class ReservationService {
             case "LODGING": {
                 LodgingDetails details = (LodgingDetails) dto.getDetails();
                 LodgingReservation entity = lodgingRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("lodging.404"));
+                        .orElseThrow(() -> new NotFoundException("reservation.404"));
                 reservationMapper.updateLodgingEntityFromDto(details, entity);
                 lodgingRepository.save(entity);
                 break;
@@ -190,7 +190,7 @@ public class ReservationService {
             case "FLIGHT": {
                 FlightDetails details = (FlightDetails) dto.getDetails();
                 FlightReservation entity = flightRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("flight.404"));
+                        .orElseThrow(() -> new NotFoundException("reservation.404"));
 
                 reservationMapper.updateFlightEntityFromDto(details, entity);
 
@@ -200,7 +200,7 @@ public class ReservationService {
             case "RESTAURANT": {
                 RestaurantDetails details = (RestaurantDetails) dto.getDetails();
                 RestaurantReservation entity = restaurantRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("restaurant.404"));
+                        .orElseThrow(() -> new NotFoundException("reservation.404"));
                 reservationMapper.updateRestaurantEntityFromDto(details, entity);
                 restaurantRepository.save(entity);
                 break;
@@ -208,7 +208,7 @@ public class ReservationService {
             case "TRAIN": {
                 TrainDetails details = (TrainDetails) dto.getDetails();
                 TrainReservation entity = trainRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("train.404"));
+                        .orElseThrow(() -> new NotFoundException("reservation.404"));
                 reservationMapper.updateTrainEntityFromDto(details, entity);
                 trainRepository.save(entity);
                 break;
@@ -216,7 +216,7 @@ public class ReservationService {
             case "BUS": {
                 BusDetails details = (BusDetails) dto.getDetails();
                 BusReservation entity = busRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("bus.404"));
+                        .orElseThrow(() -> new NotFoundException("reservation.404"));
                 reservationMapper.updateBusEntityFromDto(details, entity);
                 busRepository.save(entity);
                 break;
@@ -224,7 +224,7 @@ public class ReservationService {
             case "FERRY": {
                 FerryDetails details = (FerryDetails) dto.getDetails();
                 FerryReservation entity = ferryRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("ferry.404"));
+                        .orElseThrow(() -> new NotFoundException("reservation.404"));
                 reservationMapper.updateFerryEntityFromDto(details, entity);
                 ferryRepository.save(entity);
                 break;
@@ -232,7 +232,7 @@ public class ReservationService {
             case "CAR_RENTAL": {
                 CarRentalDetails details = (CarRentalDetails) dto.getDetails();
                 CarRentalReservation entity = carRentalRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("car_rental.404"));
+                        .orElseThrow(() -> new NotFoundException("reservation.404"));
                 reservationMapper.updateCarRentalEntityFromDto(details, entity);
                 carRentalRepository.save(entity);
                 break;
