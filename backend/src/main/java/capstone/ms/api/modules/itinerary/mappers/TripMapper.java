@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.mappers;
 
+import capstone.ms.api.modules.itinerary.dto.TripDto;
 import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.dto.WishlistPlaceDto;
@@ -84,4 +85,12 @@ public interface TripMapper {
                         .build())
                 .build();
     }
+
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "name", target = "name")
+    @Mapping(source = "startDate", target = "startDate")
+    @Mapping(source = "endDate", target = "endDate")
+    @Mapping(source = "objectives", target = "objectives")
+    TripDto tripToTripDto(Trip trip);
+
 }

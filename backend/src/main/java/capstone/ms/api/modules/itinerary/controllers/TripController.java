@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -31,6 +32,12 @@ public class TripController {
     @GetMapping("/objectives")
     public ResponseEntity<Set<MergedObjective>> getAllDefaultObjectives() {
         return ResponseEntity.ok(tripService.getAllDefaultObjectives());
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<TripDto>> getAllTrips(@AuthenticationPrincipal User currentUser) {
+        List<TripDto> trips = tripService.getTripsByUser(currentUser.getId());
+        return ResponseEntity.ok(trips);
     }
 
     @GetMapping("/{tripId}/overview")
