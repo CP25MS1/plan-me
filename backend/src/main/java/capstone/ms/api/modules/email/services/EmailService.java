@@ -3,10 +3,7 @@ package capstone.ms.api.modules.email.services;
 import capstone.ms.api.modules.email.clients.ImapStoreProvider;
 import capstone.ms.api.modules.email.configs.EmailProperties;
 import capstone.ms.api.modules.email.dto.EmailData;
-import jakarta.mail.Flags;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Store;
+import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.search.*;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +24,7 @@ public class EmailService {
 
 
     public String buildAddressWithAlias(final String alias) {
-        if (alias == null || alias.isBlank()) return props.getUser();
+        if (alias == null) return props.getUser();
         final String[] parts = props.getUser().split("@", 2);
         if (parts.length < 2) return props.getUser();
         return parts[0] + "+" + alias + "@" + parts[1];
@@ -82,38 +79,6 @@ public class EmailService {
     }
 
 
-    public Map<Integer, EmailData> extractEmailData(final Map<Integer, Message> messages) {
-        if (messages == null || messages.isEmpty()) return Collections.emptyMap();
-
-        Map<Integer, EmailData> output = new HashMap<>();
-
-        for (var entry : messages.entrySet()) {
-            int id = entry.getKey();
-            Message msg = entry.getValue();
-
-
-            List<String> texts = new ArrayList<>();
-            List<MultipartFile> attachments = new ArrayList<>();
-
-
-            try {
-                Optional<String> primary = parser.extractPrimaryText(msg);
-                primary.ifPresent(texts::add);
-                attachments.addAll(parser.collectAttachments(msg));
-            } catch (Exception ex) {
-                log.warn("Failed to parse message id {}: {}", id, ex.getMessage());
-            }
-
-
-            EmailData ed = new EmailData(texts.toArray(new String[0]), attachments.toArray(new MultipartFile[0]));
-            output.put(id, ed);
-            logEmailDataSummary(id, ed);
-        }
-
-        return output;
-    }
-
-
     public void markAsRead(Message message) throws MessagingException {
         if (message == null) return;
         message.setFlag(Flags.Flag.SEEN, true);
@@ -124,16 +89,4 @@ public class EmailService {
         return map != null && map.containsKey(key) && map.get(key) != null && !map.get(key).isBlank();
     }
 
-
-    private void logEmailDataSummary(int id, EmailData emailData) {
-        String textsSummary = (emailData.texts() != null && emailData.texts().length > 0)
-                ? String.join(" | ", emailData.texts())
-                : "No texts";
-        String attachmentsSummary = (emailData.attachments() != null && emailData.attachments().length > 0)
-                ? Arrays.stream(emailData.attachments())
-                .map(org.springframework.web.multipart.MultipartFile::getOriginalFilename)
-                .collect(Collectors.joining(", "))
-                : "No attachments";
-        log.info("Extracted EmailData for message id {}:\n Texts [{}];\n Attachments [{}]", id, textsSummary, attachmentsSummary);
-    }
 }
