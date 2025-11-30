@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.mappers;
 
-import capstone.ms.api.modules.itinerary.dto.*;
+import capstone.ms.api.modules.itinerary.dto.external.MappedReservationResponse;
+import capstone.ms.api.modules.itinerary.dto.reservation.*;
 import capstone.ms.api.modules.itinerary.entities.*;
 import org.mapstruct.*;
 
@@ -129,4 +130,12 @@ public interface ReservationMapper {
             });
         }
     }
+
+    @Mapping(target = "type", source = "data.type")
+    @Mapping(target = "bookingRef", source = "data.bookingRef")
+    @Mapping(target = "contactTel", source = "data.contactTel")
+    @Mapping(target = "contactEmail", source = "data.contactEmail")
+    @Mapping(target = "cost", source = "data.cost")
+    @Mapping(target = "details", source = "data.details")
+    ReservationDto toReservationDto(MappedReservationResponse response);
 }

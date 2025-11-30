@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.dto;
+package capstone.ms.api.modules.itinerary.dto.reservation;
 
 import lombok.Builder;
 import lombok.Data;
