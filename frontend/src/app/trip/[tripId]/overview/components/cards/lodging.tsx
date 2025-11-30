@@ -3,36 +3,26 @@
 import { Box, Typography, Divider, Tooltip } from '@mui/material';
 import { Building, Phone, Mail, UserRound } from 'lucide-react';
 
-const formatDate = (datetime: string, withTime = false) => {
-  if (!datetime) return '-';
-  const d = new Date(datetime);
+export default function LodgingCard({ data }: { data: any }) {
+  const lodging = {
+    lodgingName: data.lodgingName || '-',
+    lodgingAddress: data.lodgingAddress || '-',
+    underName: data.underName || '-',
+    checkinDate: data.checkinDate || '',
+    checkoutDate: data.checkoutDate || '',
+    bookingRef: data.bookingRef || '-',
+    contactTel: data.contactTel || '-',
+    contactEmail: data.contactEmail || '-',
+    cost: data.cost ? Number(data.cost) : 0,
+  };
 
-  const date = d.toLocaleDateString('th-TH', {
-    day: '2-digit',
-    month: 'short',
-  });
-
-  if (!withTime) return date;
-
-  const time = d.toLocaleTimeString('th-TH', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
-  return `${date} ${time}`;
-};
-
-export default function LodgingCard() {
-  const mockData = {
-    hotelName: 'อศิรา บูทีคหัวหิน',
-    hotelAddress: '4 Damrongrat Rd, Tambon Hua Hin, Hua Hin District, Prachuap Khiri Khan 77110',
-    guestName: 'Numleab Seatung',
-    checkIn: '2025-07-20T14:00',
-    checkOut: '2025-07-24T12:00',
-    bookingNumber: '123546457853422',
-    phone: '065-8895347',
-    email: 'arsira@gmail.com',
-    price: 1800,
+  const formatDate = (datetime: string, withTime = false) => {
+    if (!datetime) return '-';
+    const d = new Date(datetime);
+    const date = d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
+    if (!withTime) return date;
+    const time = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    return `${date} ${time}`;
   };
 
   return (
@@ -58,62 +48,57 @@ export default function LodgingCard() {
           </Typography>
         </Box>
         <Typography variant="caption" fontWeight={600}>
-          {formatDate(mockData.checkIn)} → {formatDate(mockData.checkOut)}
+          {formatDate(lodging.checkinDate)} → {formatDate(lodging.checkoutDate)}
         </Typography>
       </Box>
 
       {/* Main content */}
       <Box sx={{ display: 'flex', gap: 1.5 }}>
-        {/* Left */}
         <Box sx={{ flex: 1 }}>
-          <Tooltip title={mockData.hotelName}>
+          <Tooltip title={lodging.lodgingName}>
             <Typography
               variant="subtitle2"
               fontWeight={700}
               noWrap
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: 'block',
-                maxWidth: 250,
-              }}
+              sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 250 }}
             >
-              {mockData.hotelName}
+              {lodging.lodgingName}
             </Typography>
           </Tooltip>
-          <Tooltip title={mockData.hotelAddress}>
+          <Tooltip title={lodging.lodgingAddress}>
             <Typography
               variant="caption"
               color="text.secondary"
-              sx={{
-                maxWidth: 250,
-                fontSize: 11,
-                mt: 0.5,
-              }}
+              sx={{ maxWidth: 250, fontSize: 11, mt: 0.5 }}
             >
-              {mockData.hotelAddress}
+              {lodging.lodgingAddress}
             </Typography>
           </Tooltip>
 
           <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Phone size={14} />
-              <Typography variant="caption">{mockData.phone}</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Mail size={14} />
-              <Typography variant="caption">{mockData.email}</Typography>
-            </Box>
+            {lodging.contactTel && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Phone size={14} />
+                <Typography variant="caption">{lodging.contactTel}</Typography>
+              </Box>
+            )}
+            {lodging.contactEmail && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Mail size={14} />
+                <Typography variant="caption">{lodging.contactEmail}</Typography>
+              </Box>
+            )}
           </Box>
 
-          <Typography variant="caption" sx={{ mt: 1 }}>
-            <b>CONFIRM #</b> {mockData.bookingNumber}
-          </Typography>
+          {lodging.bookingRef && (
+            <Typography variant="caption" sx={{ mt: 1 }}>
+              <b>CONFIRM #</b> {lodging.bookingRef}
+            </Typography>
+          )}
         </Box>
 
         <Divider orientation="vertical" flexItem />
 
-        {/* Right */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <UserRound size={14} />
@@ -123,19 +108,19 @@ export default function LodgingCard() {
               noWrap
               sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
             >
-              {mockData.guestName}
+              {lodging.underName}
             </Typography>
           </Box>
 
           <Typography variant="caption" color="text.secondary">
             Check In
           </Typography>
-          <Typography variant="caption">{formatDate(mockData.checkIn, true)}</Typography>
+          <Typography variant="caption">{formatDate(lodging.checkinDate, true)}</Typography>
 
           <Typography variant="caption" color="text.secondary">
             Check Out
           </Typography>
-          <Typography variant="caption">{formatDate(mockData.checkOut, true)}</Typography>
+          <Typography variant="caption">{formatDate(lodging.checkoutDate, true)}</Typography>
 
           <Box sx={{ mt: 0.5, textAlign: 'right' }}>
             <Typography
@@ -149,7 +134,7 @@ export default function LodgingCard() {
                 display: 'inline-block',
               }}
             >
-              THB {mockData.price.toFixed(2)}
+              THB {lodging.cost.toFixed(2)}
             </Typography>
           </Box>
         </Box>

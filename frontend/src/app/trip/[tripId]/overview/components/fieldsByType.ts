@@ -24,7 +24,7 @@ export const fieldsByType: Record<string, Field[]> = {
     { label: 'ที่อยู่ร้านอาหาร', name: 'restaurantAddress', required: true },
     { label: 'ชื่อผู้จอง', name: 'underName', maxLength: 80, required: true },
     { label: 'วันที่จอง', name: 'reservationDate', type: 'date', required: true },
-    { label: 'เวลาที่จอง', name: 'reservationTime', type: 'time'},
+    { label: 'เวลาที่จอง', name: 'reservationTime', type: 'time' },
     { label: 'หมายเลขโต๊ะ', name: 'tableNo' },
     { label: 'หมายเลขคิว', name: 'queueNo' },
     { label: 'จำนวนสมาชิก', name: 'partySize', type: 'number' },

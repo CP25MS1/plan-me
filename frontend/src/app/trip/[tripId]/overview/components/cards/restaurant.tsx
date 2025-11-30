@@ -1,18 +1,7 @@
 'use client';
 
 import { Box, Typography, Divider } from '@mui/material';
-import {
-  Utensils,
-  Phone,
-  Mail,
-  UserRound,
-  Calendar,
-  Clock,
-  MapPin,
-  Table,
-  Ticket,
-  Users,
-} from 'lucide-react';
+import { Utensils, Phone, Mail, UserRound, Clock, Table, Ticket, Users } from 'lucide-react';
 
 const formatDate = (datetime: string) => {
   if (!datetime) return '-';
@@ -20,21 +9,20 @@ const formatDate = (datetime: string) => {
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
 };
 
-export default function RestaurantCard() {
-  const mockData = {
-    restaurantName: 'Yakiniku Beef',
-    restaurantAddress:
-      '4 Damrongrat Rd, Tambon Hua Hin, Hua Hin District, Prachuap Khiri Khan 77110',
-    guestName: 'Numleab Seatung',
-    bookingDate: '2025-07-20',
-    bookingTime: '14:00',
-    tableNumber: '41',
-    queueNumber: '311',
-    memberCount: 4,
-    phone: '028-85645347',
-    email: 'yakikuro@gmail.com',
-    price: 1500,
-    bookingNumber: '459651561162',
+export default function RestaurantCard({ data }: { data: any }) {
+  const restaurant = {
+    restaurantName: data.restaurantName || '-',
+    restaurantAddress: data.restaurantAddress || '-',
+    underName: data.underName || '-',
+    reservationDate: data.reservationDate || '',
+    reservationTime: data.reservationTime || '',
+    tableNo: data.tableNo || '-',
+    queueNo: data.queueNo || '-',
+    partySize: data.partySize ? Number(data.partySize) : 0,
+    bookingRef: data.bookingRef || '-',
+    contactTel: data.contactTel || '-',
+    contactEmail: data.contactEmail || '-',
+    cost: data.cost ? Number(data.cost) : 0,
   };
 
   return (
@@ -60,7 +48,7 @@ export default function RestaurantCard() {
           </Typography>
         </Box>
         <Typography variant="caption" fontWeight={600}>
-          {formatDate(mockData.bookingDate)}
+          {formatDate(restaurant.reservationDate)}
         </Typography>
       </Box>
 
@@ -69,25 +57,25 @@ export default function RestaurantCard() {
         {/* Left */}
         <Box sx={{ flex: 1 }}>
           <Typography variant="subtitle2" fontWeight={700}>
-            {mockData.restaurantName}
+            {restaurant.restaurantName}
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-            {mockData.restaurantAddress}
+            {restaurant.restaurantAddress}
           </Typography>
 
           <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <Phone size={14} />
-              <Typography variant="caption">{mockData.phone}</Typography>
+              <Typography variant="caption">{restaurant.contactTel}</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <Mail size={14} />
-              <Typography variant="caption">{mockData.email}</Typography>
+              <Typography variant="caption">{restaurant.contactEmail}</Typography>
             </Box>
           </Box>
 
           <Typography variant="caption" sx={{ mt: 1 }}>
-            <b>CONFIRMATION #</b> {mockData.bookingNumber}
+            <b>CONFIRMATION #</b> {restaurant.bookingRef}
           </Typography>
         </Box>
 
@@ -97,27 +85,27 @@ export default function RestaurantCard() {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Clock size={14} />
-            <Typography variant="caption">{mockData.bookingTime}</Typography>
+            <Typography variant="caption">{restaurant.reservationTime || '-'}</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <UserRound size={14} />
-            <Typography variant="caption">{mockData.guestName}</Typography>
+            <Typography variant="caption">{restaurant.underName}</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Table size={14} />
-            <Typography variant="caption">หมายเลขโต๊ะ {mockData.tableNumber}</Typography>
+            <Typography variant="caption">หมายเลขโต๊ะ {restaurant.tableNo}</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Ticket size={14} />
-            <Typography variant="caption">หมายเลขคิว {mockData.queueNumber}</Typography>
+            <Typography variant="caption">หมายเลขคิว {restaurant.queueNo}</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Users size={14} />
-            <Typography variant="caption">จำนวนสมาชิก {mockData.memberCount}</Typography>
+            <Typography variant="caption">จำนวนสมาชิก {restaurant.partySize}</Typography>
           </Box>
 
           <Box sx={{ mt: 0.5, textAlign: 'right' }}>
@@ -132,7 +120,7 @@ export default function RestaurantCard() {
                 display: 'inline-block',
               }}
             >
-              THB {mockData.price.toFixed(2)}
+              THB {restaurant.cost.toFixed(2)}
             </Typography>
           </Box>
         </Box>

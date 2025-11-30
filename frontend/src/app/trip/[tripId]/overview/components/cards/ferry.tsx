@@ -1,28 +1,33 @@
 'use client';
 
 import { Box, Typography, Tooltip } from '@mui/material';
-import { Ship, Phone, Mail } from 'lucide-react';
+import { Ship } from 'lucide-react';
 
 const formatTime = (date: string) =>
-  new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  date ? new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-';
 
 const formatDate = (date: string) =>
-  new Date(date).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+  date
+    ? new Date(date).toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+      })
+    : '-';
 
-export default function FerryCard() {
-  const mockData = {
-    companyName: 'SeaExpress',
-    ticketType: 'VIP',
-    confirmation: 'FER123456',
-    originPort: 'Bangkok Pier',
-    passengerName: 'Numleab',
-    phone: '0812345678',
-    destinationPort: 'Pattaya Pier',
-    date: '2025-07-22',
-    email: 'Seat@exa.com',
-    departureTime: '2025-07-22T08:00:00',
-    arrivalTime: '2025-07-22T10:30:00',
-    price: 600,
+export default function FerryCard({ data }: { data: any }) {
+  const ferry = {
+    transportCompany: data.transportCompany || '-',
+    passengerName: data.passengerName || '-',
+    departurePort: data.departurePort || '-',
+    departureTime: data.departureTime || '',
+    arrivalPort: data.arrivalPort || '-',
+    arrivalTime: data.arrivalTime || '',
+    ticketType: data.ticketType || '-',
+    bookingRef: data.bookingRef || '-',
+    contactTel: data.contactTel || '-',
+    contactEmail: data.contactEmail || '-',
+    cost: data.cost ? Number(data.cost) : 0,
   };
 
   const ColItem = ({
@@ -103,11 +108,11 @@ export default function FerryCard() {
             fontSize: '10px',
           }}
         >
-          THB {mockData.price.toFixed(2)}
+          THB {ferry.cost.toFixed(2)}
         </Typography>
       </Box>
 
-      {/* 4 Columns */}
+      {/* Grid */}
       <Box
         sx={{
           display: 'grid',
@@ -116,31 +121,24 @@ export default function FerryCard() {
         }}
       >
         {/* Column 1 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="บริษัท" value={mockData.companyName} />
-          <ColItem label="ประเภทตั๋ว" value={mockData.ticketType} />
-          <ColItem label="CONF #" value={mockData.confirmation} />
-        </Box>
+        <ColItem label="บริษัท" value={ferry.transportCompany} />
+        <ColItem label="ประเภทตั๋ว" value={ferry.ticketType} />
+        <ColItem label="CONF #" value={ferry.bookingRef} />
 
         {/* Column 2 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="ท่าเรือต้นทาง" value={mockData.originPort} />
-          <ColItem label="ผู้จอง" value={mockData.passengerName} />
-          <ColItem label="โทรศัพท์" value={mockData.phone} />
-        </Box>
+        <ColItem label="ท่าเรือต้นทาง" value={ferry.departurePort} />
+        <ColItem label="ผู้โดยสาร" value={ferry.passengerName} />
+        <ColItem label="โทรศัพท์" value={ferry.contactTel} />
 
         {/* Column 3 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="ท่าเรือปลายทาง" value={mockData.destinationPort} />
-          <ColItem label="วันที่" value={formatDate(mockData.date)} />
-          <ColItem label="Email" value={mockData.email} />
-        </Box>
+        <ColItem label="ท่าเรือปลายทาง" value={ferry.arrivalPort} />
+        <ColItem label="วันที่ออกเดินทาง" value={formatDate(ferry.departureTime)} />
+        <ColItem label="Email" value={ferry.contactEmail} />
 
         {/* Column 4 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="เวลาเรือออก" value={formatTime(mockData.departureTime)} />
-          <ColItem label="เวลาถึง" value={formatTime(mockData.arrivalTime)} />
-        </Box>
+        <ColItem label="เวลาออกเรือ" value={formatTime(ferry.departureTime)} />
+        <ColItem label="เวลาถึง" value={formatTime(ferry.arrivalTime)} />
+        <Box />
       </Box>
     </Box>
   );

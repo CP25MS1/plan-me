@@ -1,29 +1,35 @@
 'use client';
 
 import { Box, Typography } from '@mui/material';
-import { Train } from 'lucide-react'; // สมมติใช้ไอคอน Train จาก lucide-react
+import { Train } from 'lucide-react';
 
 const formatTime = (date: string) =>
-  new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  date ? new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-';
 
 const formatDate = (date: string) =>
-  new Date(date).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+  date
+    ? new Date(date).toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+      })
+    : '-';
 
-export default function TrainCard() {
-  const mockData = {
-    trainNumber: 'TD 405',
-    originStation: 'Bangkok',
-    confirmation: 'TR123456789',
-    carriageType: 'Sleeper',
-    departureTime: '2025-07-21T08:30:00',
-    passengerName: 'Numleab Seatung',
-    carriageNumber: 'C5',
-    destinationStation: 'Chiang Mai',
-    date: '2025-07-21',
-    seatNumber: '12B',
-    arrivalTime: '2025-07-21T15:45:00',
-    phone: '0812345678',
-    price: 1200,
+export default function TrainCard({ data }: { data: any }) {
+  const train = {
+    trainNo: data.trainNo || '-',
+    trainClass: data.trainClass || '-',
+    seatClass: data.seatClass || '-',
+    seatNo: data.seatNo || '-',
+    passengerName: data.passengerName || '-',
+    departureStation: data.departureStation || '-',
+    departureTime: data.departureTime || '',
+    arrivalStation: data.arrivalStation || '-',
+    arrivalTime: data.arrivalTime || '',
+    bookingRef: data.bookingRef || '-',
+    contactTel: data.contactTel || '-',
+    contactEmail: data.contactEmail || '-',
+    cost: data.cost ? Number(data.cost) : 0,
   };
 
   const ColItem = ({ label, value }: { label: string; value: string }) => (
@@ -90,7 +96,7 @@ export default function TrainCard() {
             fontSize: '10px',
           }}
         >
-          THB {mockData.price.toFixed(2)}
+          THB {train.cost.toFixed(2)}
         </Typography>
       </Box>
 
@@ -103,32 +109,24 @@ export default function TrainCard() {
         }}
       >
         {/* Column 1 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="หมายเลขขบวน" value={mockData.trainNumber} />
-          <ColItem label="ต้นทาง" value={mockData.originStation} />
-          <ColItem label="CONF #" value={mockData.confirmation} />
-        </Box>
+        <ColItem label="หมายเลขขบวน" value={train.trainNo} />
+        <ColItem label="ต้นทาง" value={train.departureStation} />
+        <ColItem label="CONF #" value={train.bookingRef} />
 
         {/* Column 2 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="ประเภทตู้" value={mockData.carriageType} />
-          <ColItem label="เวลาออก" value={formatTime(mockData.departureTime)} />
-          <ColItem label="ผู้จอง" value={mockData.passengerName} />
-        </Box>
+        <ColItem label="ชั้นโดยสาร" value={train.trainClass} />
+        <ColItem label="ประเภทที่นั่ง" value={train.seatClass} />
+        <ColItem label="เวลาออก" value={formatTime(train.departureTime)} />
 
         {/* Column 3 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="หมายเลขตู้" value={mockData.carriageNumber} />
-          <ColItem label="ปลายทาง" value={mockData.destinationStation} />
-          <ColItem label="วันที่" value={formatDate(mockData.date)} />
-        </Box>
+        <ColItem label="ที่นั่ง" value={train.seatNo} />
+        <ColItem label="ปลายทาง" value={train.arrivalStation} />
+        <ColItem label="ถึง" value={formatTime(train.arrivalTime)} />
 
         {/* Column 4 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="ที่นั่ง" value={mockData.seatNumber} />
-          <ColItem label="ถึง" value={formatTime(mockData.arrivalTime)} />
-          <ColItem label="โทรศัพท์" value={mockData.phone} />
-        </Box>
+        <ColItem label="ผู้โดยสาร" value={train.passengerName} />
+        <ColItem label="วันที่" value={formatDate(train.departureTime)} />
+        <ColItem label="โทรศัพท์" value={train.contactTel} />
       </Box>
     </Box>
   );

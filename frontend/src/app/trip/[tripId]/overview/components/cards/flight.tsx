@@ -4,57 +4,41 @@ import { Box, Typography } from '@mui/material';
 import { Plane } from 'lucide-react';
 
 const formatTime = (date: string) =>
-  new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  date ? new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-';
 
 const formatDate = (date: string) =>
-  new Date(date).toLocaleDateString('en-GB', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-  });
+  date
+    ? new Date(date).toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+      })
+    : '-';
 
-export default function FlightCard() {
-  const mockData = {
-    airlineName: 'Nok Air',
-    classType: 'Economy',
-    gate: 'H22',
-    flightNumber: 'AC 2505',
-    seatNumber: 'A30',
-    confirmation: '95159616',
-    originAirport: 'Donmuang',
-    destinationAirport: 'Hua Hin',
-    passengerName: 'Numleab Seatung',
-    departTime: '2025-07-20T15:00:00',
-    arrivalTime: '2025-07-20T17:00:00',
-    date: '2025-07-20',
-    price: 800,
+export default function FlightCard({ data }: { data: any }) {
+  const flight = {
+    airline: data.airline || '-',
+    flightNo: data.flightNo || '-',
+    boardingTime: data.boardingTime || '',
+    gateNo: data.gateNo || '-',
+    departureAirport: data.departureAirport || '-',
+    departureTime: data.departureTime || '',
+    arrivalAirport: data.arrivalAirport || '-',
+    arrivalTime: data.arrivalTime || '',
+    flightClass: data.flightClass || '-',
+    bookingRef: data.bookingRef || '-',
+    contactTel: data.contactTel || '-',
+    contactEmail: data.contactEmail || '-',
+    cost: data.cost ? Number(data.cost) : 0,
+    passengers: data.passengers || [],
   };
 
   const ColItem = ({ label, value }: { label: string; value: string }) => (
     <Box>
-      <Typography
-        variant="caption"
-        sx={{
-          fontSize: '9px',
-          color: 'text.secondary',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      >
+      <Typography variant="caption" sx={{ fontSize: '9px', color: 'text.secondary' }}>
         {label}
       </Typography>
-
-      <Typography
-        variant="body2"
-        sx={{
-          fontWeight: 600,
-          fontSize: '11px',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      >
+      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '11px' }}>
         {value}
       </Typography>
     </Box>
@@ -69,10 +53,9 @@ export default function FlightCard() {
         bgcolor: '#fff',
         width: '100%',
         maxWidth: 480,
-        boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
         display: 'flex',
         flexDirection: 'column',
-        gap: 0.8,
+        gap: 0.5,
       }}
     >
       {/* Header */}
@@ -83,7 +66,6 @@ export default function FlightCard() {
             เที่ยวบิน
           </Typography>
         </Box>
-
         <Typography
           variant="caption"
           sx={{
@@ -95,40 +77,38 @@ export default function FlightCard() {
             fontSize: '10px',
           }}
         >
-          THB {mockData.price.toFixed(2)}
+          THB {flight.cost.toFixed(2)}
         </Typography>
       </Box>
 
-      {/* 4 Columns */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: 0.8,
-        }}
-      >
+      {/* Flight Info */}
+      {/* 4 Columns Layout */}
+      <Box sx={{ display: 'flex', gap: 1 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="สายการบิน" value={mockData.airlineName} />
-          <ColItem label="คลาส" value={mockData.classType} />
-          <ColItem label="Gate" value={mockData.gate} />
+          <ColItem label="สายการบิน" value={flight.airline} />
+          <ColItem label="คลาส" value={flight.flightClass} />
+          <ColItem label="Gate" value={flight.gateNo} />
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="เที่ยวบิน" value={mockData.flightNumber} />
-          <ColItem label="ที่นั่ง" value={mockData.seatNumber} />
-          <ColItem label="CONFIRMATION #" value={mockData.confirmation} />
+          <ColItem label="เที่ยวบิน" value={flight.flightNo} />
+          <ColItem label="ที่นั่ง" value={flight.passengers[0]?.seatNumber || '-'} />
+          <ColItem label="CONFIRMATION #" value={flight.bookingRef} />
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="ต้นทาง" value={mockData.originAirport} />
-          <ColItem label="ปลายทาง" value={mockData.destinationAirport} />
-          <ColItem label="ผู้จอง" value={mockData.passengerName} />
+          <ColItem label="ต้นทาง" value={flight.departureAirport} />
+          <ColItem label="ปลายทาง" value={flight.arrivalAirport} />
+          <ColItem label="ผู้จอง" value={flight.passengers[0]?.name || '-'} />
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="ขึ้นเครื่อง" value={formatTime(mockData.departTime)} />
-          <ColItem label="ถึง" value={formatTime(mockData.arrivalTime)} />
-          <ColItem label="วันที่" value={formatDate(mockData.date)} />
+          <ColItem
+            label="ขึ้นเครื่อง"
+            value={formatTime(flight.boardingTime || flight.departureTime)}
+          />
+          <ColItem label="ถึง" value={formatTime(flight.arrivalTime)} />
+          <ColItem label="วันที่" value={formatDate(flight.departureTime)} />
         </Box>
       </Box>
     </Box>

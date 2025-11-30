@@ -16,7 +16,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, ElementType } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plane, Building, Utensils, Train, Ship, Bus, Car } from 'lucide-react';
 import LodgingCard from '@/app/trip/[tripId]/overview/components/cards/lodging';
@@ -32,14 +32,6 @@ import { fieldsByType } from './fieldsByType';
 interface ManualReservationProps {
   open: boolean;
   onClose: () => void;
-}
-
-interface Field {
-  label: string;
-  name: string;
-  type?: string;
-  required?: boolean;
-  maxLength?: number;
 }
 
 export default function ManualReservation({ open, onClose }: ManualReservationProps) {
@@ -64,7 +56,7 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
     }
   }, [open]);
 
-  const handleChange = (name: string, val: any) => {
+  const handleChange = (name: string, val: string) => {
     setFormData((prev) => ({ ...prev, [name]: val }));
     setErrors((prev) => ({ ...prev, [name]: false }));
   };
@@ -183,7 +175,7 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
                   Bus: Bus,
                   Ferry: Ship,
                   CarRental: Car,
-                }[type] as any;
+                }[type] as ElementType;
                 return (
                   <MenuItem key={type} value={type} className="flex items-center gap-3">
                     <IconComp size={18} color="#25CF7A" />
@@ -217,7 +209,6 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
                     fullWidth
                     variant="outlined"
                     error={!!errors[field.name]}
-                    inputProps={{ maxLength: field.maxLength || undefined }}
                   />
                 </Box>
               ))}
@@ -255,9 +246,17 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
                       </IconButton>
                     </Box>
                   ))}
-                  <Button variant="outlined" sx={{ mt: 1 }} onClick={addPassenger}>
-                    + เพิ่มผู้โดยสาร
-                  </Button>
+                  <Box
+                    sx={{
+                      textAlign: 'center',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Button variant="outlined" sx={{ mt: 1 }} onClick={addPassenger}>
+                      + เพิ่มผู้โดยสาร
+                    </Button>
+                  </Box>
                 </Box>
               )}
             </Box>
@@ -321,14 +320,26 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 0, maxHeight: '400px', overflowY: 'auto' }}>
-          {typeValue === 'Lodging' && <LodgingCard />}
-          {typeValue === 'Restaurant' && <RestaurantCard />}
-          {typeValue === 'Flight' && <FlightCard />}
-          {typeValue === 'Train' && <TrainCard />}
-          {typeValue === 'Bus' && <BusCard />}
-          {typeValue === 'Ferry' && <FerryCard />}
-          {typeValue === 'CarRental' && <CarRentalCard />}
+        <DialogContent
+          sx={{
+            pt: 0,
+            maxHeight: '400px',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+          }}
+        >
+          {typeValue === 'Lodging' && <LodgingCard data={formData} />}
+          {typeValue === 'Restaurant' && <RestaurantCard data={formData} />}
+          {typeValue === 'Flight' &&
+            formData.passengers?.map((p: any, idx: number) => (
+              <FlightCard key={idx} data={{ ...formData, passengers: [p] }} />
+            ))}
+          {typeValue === 'Train' && <TrainCard data={formData} />}
+          {typeValue === 'Bus' && <BusCard data={formData} />}
+          {typeValue === 'Ferry' && <FerryCard data={formData} />}
+          {typeValue === 'CarRental' && <CarRentalCard data={formData} />}
 
           <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pb: 2, mt: 2 }}>
             <Button

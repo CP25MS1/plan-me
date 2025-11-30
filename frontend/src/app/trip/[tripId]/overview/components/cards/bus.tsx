@@ -1,28 +1,33 @@
 'use client';
 
-import { Box, Typography, IconButton, Tooltip } from '@mui/material';
+import { Box, Typography, Tooltip } from '@mui/material';
 import { Bus, Phone, Mail } from 'lucide-react';
 
 const formatTime = (date: string) =>
-  new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  date ? new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-';
 
 const formatDate = (date: string) =>
-  new Date(date).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+  date
+    ? new Date(date).toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: '2-digit',
+        month: 'short',
+      })
+    : '-';
 
-export default function BusCard() {
-  const mockData = {
-    companyName: 'Sawasdee',
-    busType: 'VIP',
-    confirmation: 'BUS98765',
-    originStation: 'Bangkok',
-    seatNumber: '7A',
-    phone: '0812345678',
-    departureTime: '2025-07-22T06:45:00',
-    passengerName: 'Numleab',
-    email: 'Seat@exa.com',
-    destinationStation: 'Pattaya',
-    date: '2025-07-22',
-    price: 450,
+export default function BusCard({ data }: { data: any }) {
+  const bus = {
+    transportCompany: data.transportCompany || '-',
+    departureStation: data.departureStation || '-',
+    departureTime: data.departureTime || '',
+    arrivalStation: data.arrivalStation || '-',
+    busClass: data.busClass || '-',
+    passengerName: data.passengerName || '-',
+    seatNo: data.seatNo || '-',
+    bookingRef: data.bookingRef || '-',
+    contactTel: data.contactTel || '-',
+    contactEmail: data.contactEmail || '-',
+    cost: data.cost ? Number(data.cost) : 0,
   };
 
   const ColItem = ({
@@ -103,11 +108,11 @@ export default function BusCard() {
             fontSize: '10px',
           }}
         >
-          THB {mockData.price.toFixed(2)}
+          THB {bus.cost.toFixed(2)}
         </Typography>
       </Box>
 
-      {/* 4 Columns */}
+      {/* Grid */}
       <Box
         sx={{
           display: 'grid',
@@ -116,31 +121,24 @@ export default function BusCard() {
         }}
       >
         {/* Column 1 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="บริษัท" value={mockData.companyName} />
-          <ColItem label="ประเภทรถ" value={mockData.busType} />
-          <ColItem label="CONF #" value={mockData.confirmation} />
-        </Box>
+        <ColItem label="บริษัท" value={bus.transportCompany} />
+        <ColItem label="ประเภทรถ" value={bus.busClass} />
+        <ColItem label="CONF #" value={bus.bookingRef} />
 
         {/* Column 2 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="ต้นทาง" value={mockData.originStation} />
-          <ColItem label="ที่นั่ง" value={mockData.seatNumber} />
-          <ColItem label="โทรศัพท์" value={mockData.phone} />
-        </Box>
+        <ColItem label="ต้นทาง" value={bus.departureStation} />
+        <ColItem label="ที่นั่ง" value={bus.seatNo} />
+        <ColItem label="โทรศัพท์" value={bus.contactTel} icon={<Phone size={12} />} />
 
         {/* Column 3 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="เวลาออก" value={formatTime(mockData.departureTime)} />
-          <ColItem label="ผู้จอง" value={mockData.passengerName} />
-          <ColItem label="Email" value={mockData.email} />
-        </Box>
+        <ColItem label="ปลายทาง" value={bus.arrivalStation} />
+        <ColItem label="ผู้โดยสาร" value={bus.passengerName} />
+        <ColItem label="Email" value={bus.contactEmail} icon={<Mail size={12} />} />
 
         {/* Column 4 */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-          <ColItem label="ปลายทาง" value={mockData.destinationStation} />
-          <ColItem label="วันที่" value={formatDate(mockData.date)} />
-        </Box>
+        <ColItem label="เวลาออก" value={formatTime(bus.departureTime)} />
+        <ColItem label="วันที่" value={formatDate(bus.departureTime)} />
+        <Box />
       </Box>
     </Box>
   );

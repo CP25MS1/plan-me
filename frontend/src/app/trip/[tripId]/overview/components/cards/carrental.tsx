@@ -4,25 +4,23 @@ import { Box, Typography, Tooltip } from '@mui/material';
 import { Car, Phone, Mail } from 'lucide-react';
 
 const formatTime = (date: string) =>
-  new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  date ? new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-';
 
-const formatDate = (date: string) =>
-  new Date(date).toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+export default function CarRentalCard({ data }: { data: any }) {
+  const carRental = {
+    rentalCompany: data.rentalCompany || '-',
+    carModel: data.carModel || '-',
+    vrn: data.vrn || '-',
+    renterName: data.renterName || '-',
+    pickupLocation: data.pickupLocation || '-',
+    pickupTime: data.pickupTime || '',
+    dropoffLocation: data.dropoffLocation || '-',
+    dropoffTime: data.dropoffTime || '',
+    bookingRef: data.bookingRef || '-',
+    contactTel: data.contactTel || '-',
+    contactEmail: data.contactEmail || '-',
 
-export default function CarRentalCard() {
-  const mockData = {
-    companyName: 'FastCar Rental',
-    carType: 'SUV',
-    plateNumber: 'กข 1234',
-    pickUpLocation: 'BangkokCity Center',
-    pickUpTime: '2025-07-22T09:00:00',
-    passengerName: 'Numleab',
-    confirmation: 'CAR987654',
-    dropOffLocation: 'DonmuangAirport',
-    dropOffTime: '2025-07-25T18:00:00',
-    phone: '0812345678',
-    email: 'Sea12@exaexa.com',
-    price: 1500,
+    cost: data.cost ? Number(data.cost) : 0,
   };
 
   const ColItem = ({
@@ -47,6 +45,7 @@ export default function CarRentalCard() {
       >
         {label}
       </Typography>
+
       <Box sx={{ display: 'flex', alignItems: 'center', gap: icon ? 0.3 : 0 }}>
         {icon}
         <Tooltip title={value} arrow>
@@ -103,11 +102,11 @@ export default function CarRentalCard() {
             fontSize: '10px',
           }}
         >
-          THB {mockData.price.toFixed(2)}
+          THB {carRental.cost.toFixed(2)}
         </Typography>
       </Box>
 
-      {/* 3 Rows, 3 Columns per row */}
+      {/* Grid */}
       <Box
         sx={{
           display: 'grid',
@@ -116,24 +115,23 @@ export default function CarRentalCard() {
         }}
       >
         {/* Row 1 */}
-        <ColItem label="บริษัท" value={mockData.companyName} />
-        <ColItem label="ประเภทรถ" value={mockData.carType} />
-        <ColItem label="หมายเลขทะเบียน" value={mockData.plateNumber} />
+        <ColItem label="บริษัท" value={carRental.rentalCompany} />
+        <ColItem label="รุ่นรถ" value={carRental.carModel} />
+        <ColItem label="ทะเบียน" value={carRental.vrn} />
 
         {/* Row 2 */}
-        <ColItem label="สถานที่รับรถ" value={mockData.pickUpLocation} />
-        <ColItem label="เวลารับรถ" value={formatTime(mockData.pickUpTime)} />
-        <ColItem label="ผู้จอง" value={mockData.passengerName} />
+        <ColItem label="รับรถที่" value={carRental.pickupLocation} />
+        <ColItem label="เวลารับรถ" value={formatTime(carRental.pickupTime)} />
+        <ColItem label="ผู้เช่า" value={carRental.renterName} />
 
         {/* Row 3 */}
-        <ColItem label="CONF #" value={mockData.confirmation} />
-        <ColItem label="สถานที่คืนรถ" value={mockData.dropOffLocation} />
-        <ColItem label="เวลาคืนรถ" value={formatTime(mockData.dropOffTime)} />
+        <ColItem label="CONF #" value={carRental.bookingRef} />
+        <ColItem label="คืนรถที่" value={carRental.dropoffLocation} />
+        <ColItem label="เวลาคืนรถ" value={formatTime(carRental.dropoffTime)} />
 
         {/* Row 4 */}
-        <ColItem label="โทรศัพท์" value={mockData.phone} />
-        <ColItem label="Email" value={mockData.email} />
-        {/* ช่องว่างสำหรับเรียงเต็ม 3 คอลัมน์ */}
+        <ColItem label="โทรศัพท์" value={carRental.contactTel} icon={<Phone size={12} />} />
+        <ColItem label="Email" value={carRental.contactEmail} icon={<Mail size={12} />} />
         <Box />
       </Box>
     </Box>
