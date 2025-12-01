@@ -145,7 +145,7 @@ const CreateTripPage = () => {
             </Typography>
 
             <TextField
-              placeholder={`${t('fields.name.label')}`}
+              placeholder={`${t('fields.name.placeholder')}`}
               value={tripName}
               onChange={(e) => setTripName(e.target.value)}
               fullWidth

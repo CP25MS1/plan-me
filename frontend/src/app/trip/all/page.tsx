@@ -32,30 +32,33 @@ const AllTripPage = () => {
         {t('title')}
       </Typography>
 
-      {trips?.map((trip) => (
-        <Card
-          key={trip.id}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: 2,
-            borderRadius: 2,
-            boxShadow: 3,
-            cursor: 'pointer',
-            '&:hover': { boxShadow: 6 },
-            width: '100%',
-          }}
-          onClick={() => handleClick(trip.id)}
-        >
-          <Box>
-            <Typography variant="h6">{trip.name}</Typography>
-            <Typography color="text.secondary">
-              {t('date')} {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
-            </Typography>
-          </Box>
-        </Card>
-      ))}
+      {trips
+        ?.slice()
+        .sort((a, b) => b.id - a.id)
+        .map((trip) => (
+          <Card
+            key={trip.id}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: 2,
+              borderRadius: 2,
+              boxShadow: 3,
+              cursor: 'pointer',
+              '&:hover': { boxShadow: 6 },
+              width: '100%',
+            }}
+            onClick={() => handleClick(trip.id)}
+          >
+            <Box>
+              <Typography variant="h6">{trip.name}</Typography>
+              <Typography color="text.secondary">
+                {t('date')} {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
+              </Typography>
+            </Box>
+          </Card>
+        ))}
     </Box>
   );
 };
