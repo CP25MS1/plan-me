@@ -200,9 +200,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="contained" startIcon={<Plus />}>
-                    {t('sectionCard.reservation.button')}
-                  </Button>
+                  <AddItemButton label={t('sectionCard.reservation.button')} />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-35" align="center">
                   <DropdownMenuItem
