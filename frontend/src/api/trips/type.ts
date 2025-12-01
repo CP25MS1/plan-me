@@ -1,4 +1,5 @@
 import { PublicUserInfo } from '@/api/users';
+import { ReservationDto } from '../reservations';
 
 export interface CustomObjective {
   id: number | null;
@@ -33,6 +34,7 @@ export interface TripOverview {
   endDate: string;
   owner: PublicUserInfo;
   objectives: Objective[];
+  reservations: ReservationDto[];
   wishlistPlaces: WishlistPlace[];
 }
 
