@@ -1,19 +1,21 @@
 'use client';
 
+import { LodgingDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography, Divider, Tooltip } from '@mui/material';
 import { Building, Phone, Mail, UserRound } from 'lucide-react';
 
-export default function LodgingCard({ data }: { data: any }) {
+export default function LodgingCard({ data }: { data: ReservationDto | null }) {
+  const lodgingDetails = (data as unknown as LodgingDetails) || null;
   const lodging = {
-    lodgingName: data.lodgingName || '-',
-    lodgingAddress: data.lodgingAddress || '-',
-    underName: data.underName || '-',
-    checkinDate: data.checkinDate || '',
-    checkoutDate: data.checkoutDate || '',
-    bookingRef: data.bookingRef || '-',
-    contactTel: data.contactTel || '-',
-    contactEmail: data.contactEmail || '-',
-    cost: data.cost ? Number(data.cost) : 0,
+    lodgingName: lodgingDetails?.lodgingName || '',
+    lodgingAddress: lodgingDetails?.lodgingAddress || '',
+    underName: lodgingDetails?.underName || '',
+    checkinDate: lodgingDetails?.checkinDate || '',
+    checkoutDate: lodgingDetails?.checkoutDate || '',
+    bookingRef: data?.bookingRef || '',
+    contactTel: data?.contactTel || '',
+    contactEmail: data?.contactEmail || '',
+    cost: Number(data?.cost),
   };
 
   const formatDate = (datetime: string, withTime = false) => {
@@ -134,7 +136,7 @@ export default function LodgingCard({ data }: { data: any }) {
                 display: 'inline-block',
               }}
             >
-              THB {lodging.cost.toFixed(2)}
+              THB {lodging.cost?.toFixed(2) ?? '-'}
             </Typography>
           </Box>
         </Box>

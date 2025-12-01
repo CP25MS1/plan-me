@@ -41,7 +41,6 @@ const CreateTripPage = () => {
   const defaultObjectives = useDefaultObjectives();
   const { mutate, isPending } = useCreateTrip();
   const { isNavigating, setIsNavigating, FullPageLoading } = useFullPageLoading();
-
   const [tripName, setTripName] = useState('');
   const [tripNameError, setTripNameError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>([null, null]);

@@ -6,10 +6,9 @@ export const useCreateReservation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (reservation: Omit<ReservationDto, 'id'>) => createReservation(reservation),
-    onSuccess: (data) => {
+    mutationFn: (reservation: ReservationDto) => createReservation(reservation),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
-      console.log('Reservation created:', data);
     },
     onError: (error) => {
       console.error('Create reservation failed:', error);

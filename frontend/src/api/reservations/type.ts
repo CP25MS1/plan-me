@@ -16,15 +16,17 @@ export interface ReservationDto {
   contactTel?: string | null;
   contactEmail?: string | null;
   cost?: number;
-  details?:
-    | LodgingDetails
-    | RestaurantDetails
-    | FlightDetails
-    | TrainDetails
-    | BusDetails
-    | FerryDetails
-    | CarRentalDetails;
+  details?: ReservationDetails;
 }
+
+export type ReservationDetails =
+  | LodgingDetails
+  | RestaurantDetails
+  | FlightDetails
+  | TrainDetails
+  | BusDetails
+  | FerryDetails
+  | CarRentalDetails;
 
 /** Lodging */
 export interface LodgingDetails {

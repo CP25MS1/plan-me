@@ -1,5 +1,6 @@
 'use client';
 
+import { FlightDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
 import { Plane } from 'lucide-react';
 
@@ -15,22 +16,23 @@ const formatDate = (date: string) =>
       })
     : '-';
 
-export default function FlightCard({ data }: { data: any }) {
+export default function FlightCard({ data }: { data: ReservationDto }) {
+  const flightDetails = (data as unknown as FlightDetails) || null;
   const flight = {
-    airline: data.airline || '-',
-    flightNo: data.flightNo || '-',
-    boardingTime: data.boardingTime || '',
-    gateNo: data.gateNo || '-',
-    departureAirport: data.departureAirport || '-',
-    departureTime: data.departureTime || '',
-    arrivalAirport: data.arrivalAirport || '-',
-    arrivalTime: data.arrivalTime || '',
-    flightClass: data.flightClass || '-',
-    bookingRef: data.bookingRef || '-',
-    contactTel: data.contactTel || '-',
-    contactEmail: data.contactEmail || '-',
-    cost: data.cost ? Number(data.cost) : 0,
-    passengers: data.passengers || [],
+    airline: flightDetails?.airline || '',
+    flightNo: flightDetails?.flightNo || '',
+    boardingTime: flightDetails?.boardingTime || '',
+    gateNo: flightDetails?.gateNo || '',
+    departureAirport: flightDetails?.departureAirport || '',
+    departureTime: flightDetails?.departureTime || '',
+    arrivalAirport: flightDetails?.arrivalAirport || '',
+    arrivalTime: flightDetails?.arrivalTime || '',
+    flightClass: flightDetails?.flightClass || '',
+    bookingRef: data.bookingRef || '',
+    contactTel: data.contactTel || '',
+    contactEmail: data.contactEmail || '',
+    cost: Number(data?.cost),
+    passengers: flightDetails.passengers || [],
   };
 
   const ColItem = ({ label, value }: { label: string; value: string }) => (
@@ -77,7 +79,7 @@ export default function FlightCard({ data }: { data: any }) {
             fontSize: '10px',
           }}
         >
-          THB {flight.cost.toFixed(2)}
+          THB {flight.cost?.toFixed(2) ?? '-'}
         </Typography>
       </Box>
 
@@ -92,14 +94,22 @@ export default function FlightCard({ data }: { data: any }) {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
           <ColItem label="เที่ยวบิน" value={flight.flightNo} />
-          <ColItem label="ที่นั่ง" value={flight.passengers[0]?.seatNumber || '-'} />
+          <ColItem
+            label="ที่นั่ง"
+            value={flight.passengers[0]?.seatNo || '-' || flight.passengers[0]?.seatNo}
+          />
           <ColItem label="CONFIRMATION #" value={flight.bookingRef} />
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
           <ColItem label="ต้นทาง" value={flight.departureAirport} />
           <ColItem label="ปลายทาง" value={flight.arrivalAirport} />
-          <ColItem label="ผู้จอง" value={flight.passengers[0]?.name || '-'} />
+          <ColItem
+            label="ผู้จอง"
+            value={
+              flight.passengers[0]?.passengerName || '-' || flight.passengers[0]?.passengerName
+            }
+          />
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>

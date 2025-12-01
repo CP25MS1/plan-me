@@ -1,5 +1,6 @@
 'use client';
 
+import { ReservationDto, RestaurantDetails } from '@/api/reservations';
 import { Box, Typography, Divider } from '@mui/material';
 import { Utensils, Phone, Mail, UserRound, Clock, Table, Ticket, Users } from 'lucide-react';
 
@@ -9,20 +10,21 @@ const formatDate = (datetime: string) => {
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
 };
 
-export default function RestaurantCard({ data }: { data: any }) {
+export default function RestaurantCard({ data }: { data: ReservationDto | null }) {
+  const restaurantDetails = (data as unknown as RestaurantDetails) || null;
   const restaurant = {
-    restaurantName: data.restaurantName || '-',
-    restaurantAddress: data.restaurantAddress || '-',
-    underName: data.underName || '-',
-    reservationDate: data.reservationDate || '',
-    reservationTime: data.reservationTime || '',
-    tableNo: data.tableNo || '-',
-    queueNo: data.queueNo || '-',
-    partySize: data.partySize ? Number(data.partySize) : 0,
-    bookingRef: data.bookingRef || '-',
-    contactTel: data.contactTel || '-',
-    contactEmail: data.contactEmail || '-',
-    cost: data.cost ? Number(data.cost) : 0,
+    restaurantName: restaurantDetails?.restaurantName || '',
+    restaurantAddress: restaurantDetails?.restaurantAddress || '',
+    underName: restaurantDetails?.underName || '',
+    reservationDate: restaurantDetails?.reservationDate || '',
+    reservationTime: restaurantDetails?.reservationTime || '',
+    tableNo: restaurantDetails?.tableNo || '',
+    queueNo: restaurantDetails?.queueNo || '',
+    partySize: restaurantDetails?.partySize,
+    bookingRef: data?.bookingRef || '',
+    contactTel: data?.contactTel || '',
+    contactEmail: data?.contactEmail || '',
+    cost: Number(data?.cost),
   };
 
   return (
@@ -120,7 +122,7 @@ export default function RestaurantCard({ data }: { data: any }) {
                 display: 'inline-block',
               }}
             >
-              THB {restaurant.cost.toFixed(2)}
+              THB {restaurant.cost?.toFixed(2) ?? '-'}
             </Typography>
           </Box>
         </Box>

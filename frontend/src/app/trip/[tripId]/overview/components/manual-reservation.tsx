@@ -27,17 +27,25 @@ import BusCard from '@/app/trip/[tripId]/overview/components/cards/bus';
 import FerryCard from '@/app/trip/[tripId]/overview/components/cards/ferry';
 import CarRentalCard from '@/app/trip/[tripId]/overview/components/cards/carrental';
 import { BackButton } from '@/components/button';
-import { fieldsByType } from './fieldsByType';
+import { fieldsByType } from './fields-by-type';
+import { ReservationDto, ReservationType, useCreateReservation } from '@/api/reservations';
 
 interface ManualReservationProps {
   open: boolean;
   onClose: () => void;
+  tripId: number;
+  onReservationCreated: (reservation: ReservationDto) => void;
 }
 
-export default function ManualReservation({ open, onClose }: ManualReservationProps) {
+export default function ManualReservation({
+  open,
+  onClose,
+  tripId,
+  onReservationCreated,
+}: ManualReservationProps) {
   const [typeValue, setTypeValue] = useState('');
-  const [formData, setFormData] = useState<Record<string, any>>({});
-  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [formData, setFormData] = useState<ReservationDto | null>(null);
+  const [errors, setErrors] = useState<Record<string, boolean> | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [passengers, setPassengers] = useState<{ name: string; seatNumber: string }[]>([
     { name: '', seatNumber: '' },
@@ -45,28 +53,36 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
   const { t } = useTranslation('trip_overview');
 
   const fieldsRef = useRef<Record<string, HTMLDivElement | null>>({});
+  const createReservation = useCreateReservation();
 
   useEffect(() => {
     if (open) {
       setTypeValue('');
-      setFormData({});
-      setErrors({});
+      setFormData(null);
+      setErrors(null);
       setShowPreview(false);
       setPassengers([{ name: '', seatNumber: '' }]);
     }
   }, [open]);
 
   const handleChange = (name: string, val: string) => {
-    setFormData((prev) => ({ ...prev, [name]: val }));
+    setFormData((prev) => {
+      const newVal = {
+        ...prev,
+        [name]: val,
+      } as ReservationDto;
+      return newVal;
+    });
+
     setErrors((prev) => ({ ...prev, [name]: false }));
   };
 
-  // Passenger handlers
   const addPassenger = () => setPassengers((prev) => [...prev, { name: '', seatNumber: '' }]);
   const removePassenger = (index: number) =>
     setPassengers((prev) => prev.filter((_, i) => i !== index));
-  const handlePassengerChange = (index: number, key: 'name' | 'seatNumber', value: string) =>
+  const handlePassengerChange = (index: number, key: 'name' | 'seatNumber', value: string) => {
     setPassengers((prev) => prev.map((p, i) => (i === index ? { ...p, [key]: value } : p)));
+  };
 
   const handlePreview = () => {
     if (!typeValue) return;
@@ -76,7 +92,7 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
     let firstError: string | null = null;
 
     typeFields.forEach((field) => {
-      if (field.required && !formData[field.name]) {
+      if (field.required && (formData ? !formData[field.name as keyof ReservationDto] : false)) {
         newErrors[field.name] = true;
         if (!firstError) firstError = field.name;
       }
@@ -99,14 +115,143 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
     }
 
     if (Object.keys(newErrors).length === 0) {
-      if (typeValue === 'Flight') setFormData((prev) => ({ ...prev, passengers }));
+      if (typeValue === 'Flight') {
+        setFormData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+          } as ReservationDto;
+        });
+      }
       setShowPreview(true);
     }
   };
 
+  const typeMap: Record<string, ReservationType> = {
+    Lodging: 'LODGING',
+    Restaurant: 'RESTAURANT',
+    Flight: 'FLIGHT',
+    Train: 'TRAIN',
+    Bus: 'BUS',
+    Ferry: 'FERRY',
+    CarRental: 'CAR_RENTAL',
+  };
+
   const handleConfirm = () => {
-    setShowPreview(false);
-    onClose();
+    if (!tripId) {
+      console.error('Missing tripId');
+      return;
+    }
+
+    if (!typeValue) {
+      console.error('Missing reservation type');
+      return;
+    }
+
+    const payload = {
+      tripId: tripId,
+      ggmpId: formData?.ggmpId || null,
+      bookingRef: formData?.bookingRef || '',
+      contactTel: formData?.contactTel || '',
+      contactEmail: formData?.contactEmail || '',
+      cost: Number(formData?.cost) || 0,
+      type: typeMap[typeValue],
+      details: { type: typeMap[typeValue], ...buildDetails() },
+    };
+    createReservation.mutate(payload as unknown as ReservationDto, {
+      onSuccess: (data) => {
+        onClose();
+        setShowPreview(false);
+        onReservationCreated(data);
+      },
+      onError: (err) => {
+        console.error('Create reservation failed', err);
+      },
+    });
+  };
+
+  const buildDetails = (): Record<string, unknown> => {
+    const f = formData as unknown as Record<string, unknown>;
+    const ps = passengers as Array<Record<string, unknown>>;
+    switch (typeValue) {
+      case 'Lodging':
+        return {
+          lodgingName: f?.lodgingName ?? '',
+          lodgingAddress: f?.lodgingAddress ?? '',
+          underName: f?.underName ?? '',
+          checkinDate: f?.checkinDate ?? '',
+          checkoutDate: f?.checkoutDate ?? '',
+        };
+      case 'Flight':
+        return {
+          airline: f?.airline ?? '',
+          flightNo: f?.flightNo ?? '',
+          boardingTime: f?.boardingTime ?? '',
+          gateNo: f?.gateNo ?? '',
+          departureAirport: f?.departureAirport ?? '',
+          departureTime: f?.departureTime ?? '',
+          arrivalAirport: f?.arrivalAirport ?? '',
+          arrivalTime: f?.arrivalTime ?? '',
+          flightClass: f?.flightClass ?? '',
+          passengers: ps.map((p) => ({ passengerName: p.name, seatNo: p.seatNumber })),
+        };
+      case 'Restaurant':
+        return {
+          restaurantName: f?.restaurantName ?? '',
+          restaurantAddress: f?.restaurantAddress ?? '',
+          underName: f?.underName ?? '',
+          reservationDate: f?.reservationDate ?? '',
+          reservationTime: f?.reservationTime ?? '',
+          tableNo: f?.tableNo ?? '',
+          queueNo: f?.queueNo ?? '',
+          partySize: (f?.partySize ?? '') ? Number(f?.partySize ?? '') : undefined,
+        };
+      case 'Train':
+        return {
+          trainNo: f?.trainNo ?? '',
+          trainClass: f?.trainClass ?? '',
+          seatClass: f?.seatClass ?? '',
+          seatNo: f?.seatNo ?? '',
+          passengerName: f?.passengerName ?? '',
+          departureStation: f?.departureStation ?? '',
+          departureTime: f?.departureTime ?? '',
+          arrivalStation: f?.arrivalStation ?? '',
+          arrivalTime: f?.arrivalTime ?? '',
+        };
+      case 'Bus':
+        return {
+          transportCompany: f?.transportCompany ?? '',
+          departureStation: f?.departureStation ?? '',
+          departureTime: f?.departureTime ?? '',
+          arrivalStation: f?.arrivalStation ?? '',
+          busClass: f?.busClass ?? '',
+          passengerName: f?.passengerName ?? '',
+          seatNo: f?.seatNo ?? '',
+        };
+      case 'Ferry':
+        return {
+          transportCompany: f?.transportCompany ?? '',
+          passengerName: f?.passengerName ?? '',
+          departurePort: f?.departurePort ?? '',
+          departureTime: f?.departureTime ?? '',
+          arrivalPort: f?.arrivalPort ?? '',
+          arrivalTime: f?.arrivalTime ?? '',
+          ticketType: f?.ticketType ?? '',
+        };
+      case 'CarRental':
+        return {
+          rentalCompany: f?.rentalCompany ?? '',
+          carModel: f?.carModel ?? '',
+          vrn: f?.vrn ?? '',
+          renterName: f?.renterName ?? '',
+          pickupLocation: f?.pickupLocation ?? '',
+          pickupTime: f?.pickupTime ?? '',
+          dropoffLocation: f?.dropoffLocation ?? '',
+          dropoffTime: f?.dropoffTime ?? '',
+        };
+      default:
+        return {};
+    }
   };
 
   const icons = {
@@ -124,7 +269,6 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
       {/* Dialog กรอกข้อมูล */}
       <Dialog
         open={open && !showPreview}
-        onClose={onClose}
         fullWidth
         PaperProps={{ sx: { width: '420px', borderRadius: 3, p: 1 } }}
       >
@@ -142,7 +286,7 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
               onChange={(e) => {
                 const newType = e.target.value;
                 setTypeValue(newType);
-                setFormData({});
+                setFormData(null);
                 setErrors({});
                 setPassengers([{ name: '', seatNumber: '' }]);
               }}
@@ -198,17 +342,17 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
                 >
                   <Typography
                     variant="body2"
-                    color={errors[field.name] ? 'error.main' : 'text.secondary'}
+                    color={(errors ? errors[field.name] : false) ? 'error.main' : 'text.secondary'}
                   >
                     {field.label}
                   </Typography>
                   <TextField
                     type={field.type || 'text'}
-                    value={formData[field.name] || ''}
+                    value={formData?.[field.name as keyof ReservationDto] ?? ''}
                     onChange={(e) => handleChange(field.name, e.target.value)}
                     fullWidth
                     variant="outlined"
-                    error={!!errors[field.name]}
+                    error={errors ? !!errors[field.name] : false}
                   />
                 </Box>
               ))}
@@ -224,18 +368,28 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
                       <TextField
                         label="ชื่อ"
                         value={p.name}
-                        onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
+                        onChange={(e) => {
+                          const newName = e.target.value;
+                          handlePassengerChange(idx, 'name', newName);
+                          const editedPassenger = {...passengers[idx], name: newName}
+                          handleChange('passengers', passengers.with(idx, editedPassenger) as unknown as string)
+                        }}
                         fullWidth
                         size="small"
-                        error={!!errors[`passenger-${idx}`]}
+                        error={errors ? !!errors[`passenger-${idx}`] : false}
                       />
                       <TextField
                         label="เลขที่นั่ง"
                         value={p.seatNumber}
-                        onChange={(e) => handlePassengerChange(idx, 'seatNumber', e.target.value)}
+                        onChange={(e) => {
+                          const newSeatNumber = e.target.value;
+                          handlePassengerChange(idx, 'seatNumber', newSeatNumber);
+                          const editedPassenger = { ...passengers[idx], seatNumber: newSeatNumber }; 
+                          handleChange('passengers', passengers.with(idx, editedPassenger) as unknown as string);
+                        }}
                         fullWidth
                         size="small"
-                        error={!!errors[`passenger-${idx}`]}
+                        error={errors ? !!errors[`passenger-${idx}`] : false}
                       />
                       <IconButton
                         color="error"
@@ -332,10 +486,8 @@ export default function ManualReservation({ open, onClose }: ManualReservationPr
         >
           {typeValue === 'Lodging' && <LodgingCard data={formData} />}
           {typeValue === 'Restaurant' && <RestaurantCard data={formData} />}
-          {typeValue === 'Flight' &&
-            formData.passengers?.map((p: any, idx: number) => (
-              <FlightCard key={idx} data={{ ...formData, passengers: [p] }} />
-            ))}
+          {typeValue === 'Flight' && formData && <FlightCard data={formData} />}
+
           {typeValue === 'Train' && <TrainCard data={formData} />}
           {typeValue === 'Bus' && <BusCard data={formData} />}
           {typeValue === 'Ferry' && <FerryCard data={formData} />}

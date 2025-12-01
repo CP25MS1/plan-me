@@ -7,8 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { Hand, Mail, Upload } from 'lucide-react';
 import ManualReservation from './components/manual-reservation';
-import UploadReservation from './components/upload-reservation';
-import EmailReservation from './components/email-reservation';
 
 import OverviewHeader from '@/components/trip/overview/overview-header';
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
@@ -26,13 +24,22 @@ import {
   WishlistPlaceCard,
   WishlistPlaceDetailContent,
 } from './components';
-import { setTripOverview } from '@/store/trip-detail-slice';
+import { addReservation, setTripOverview } from '@/store/trip-detail-slice';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { FlightDetails, ReservationDto } from '@/api/reservations/type';
+
+import LodgingCard from './components/cards/lodging';
+import RestaurantCard from './components/cards/restaurant';
+import FlightCard from './components/cards/flight';
+import TrainCard from './components/cards/train';
+import BusCard from './components/cards/bus';
+import FerryCard from './components/cards/ferry';
+import CarRentalCard from './components/cards/carrental';
 
 const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) => {
   const dispatch = useDispatch();
@@ -43,21 +50,15 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
   const { mutate: updateTrip } = useUpdateTripOverview(tripIdAsNumber);
   const { t } = useTranslation('trip_overview');
 
-  // {Manual}
+  // Dialog states
   const [isManualReservationDialogOpen, setManualReservationDialogOpen] = useState(false);
+  const [isUploadReservationDialogOpen, setUploadReservationDialogOpen] = useState(false);
+  const [isEmailReservationDialogOpen, setEmailReservationDialogOpen] = useState(false);
 
   const openManualReservationDialog = () => setManualReservationDialogOpen(true);
   const closeManualReservationDialog = () => setManualReservationDialogOpen(false);
-
-  // {Upload}
-  const [isUploadReservationDialogOpen, setUploadReservationDialogOpen] = useState(false);
-
   const openUploadReservationDialog = () => setUploadReservationDialogOpen(true);
   const closeUploadReservationDialog = () => setUploadReservationDialogOpen(false);
-
-  // {Email}
-  const [isEmailReservationDialogOpen, setEmailReservationDialogOpen] = useState(false);
-
   const openEmailReservationDialog = () => setEmailReservationDialogOpen(true);
   const closeEmailReservationDialog = () => setEmailReservationDialogOpen(false);
 
@@ -81,9 +82,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
   const handleSave = useCallback(
     (updates: UpsertTrip) => {
       updateTrip(
-        {
-          ...updates,
-        },
+        { ...updates },
         {
           onSuccess: (data) => {
             dispatch(setTripOverview(data));
@@ -94,9 +93,14 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
     [updateTrip, dispatch]
   );
 
-  <ManualReservation open={isManualReservationDialogOpen} onClose={closeManualReservationDialog} />;
+  const handleNewReservation = (reservation: ReservationDto) => {
+    if (!tripOverview) return;
+    dispatch(addReservation(reservation));
+  };
 
   if (isLoading || !tripOverview) return <FullPageLoading />;
+
+  const hasReservation = tripOverview.reservations && tripOverview.reservations.length > 0;
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
@@ -116,54 +120,121 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
       <OverviewTabs value={0} onChange={() => {}} />
 
       <Box sx={{ mt: 2 }}>
+        {/* Map Section */}
         <SectionCard title={t('sectionCard.map')}>
           <Box sx={{ width: '100%' }}>
             <CustomMap />
           </Box>
         </SectionCard>
 
-        <SectionCard title={t('sectionCard.reservation.title')} asEmpty>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div>
-                <AddItemButton label={t('sectionCard.reservation.button')} />
-              </div>
-            </DropdownMenuTrigger>
+        {/* Reservation Section */}
+        <SectionCard title={t('sectionCard.reservation.title')} asEmpty={!hasReservation}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* Map reservation cards ถ้ามี */}
+            {hasReservation && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {tripOverview.reservations
+                  .slice()
+                  .sort((a, b) => (a?.id ?? 0) - (b?.id ?? 0))
+                  .flatMap((res) => {
+                    if (res.type === 'FLIGHT') {
+                      return (res.details as FlightDetails)?.passengers?.map((_, idx: number) => (
+                        <FlightCard
+                          key={`${res.id}-${idx}`}
+                          data={{ ...res.details, ...res } as unknown as ReservationDto}
+                        />
+                      ));
+                    }
 
-            <DropdownMenuContent className="w-35" align="center">
-              <DropdownMenuItem
-                className="flex items-center gap-3"
-                onClick={() => {
-                  openManualReservationDialog();
-                }}
-              >
-                <Hand size={18} />
-                {t('sectionCard.reservation.dropdown.Manual')}
-              </DropdownMenuItem>
+                    switch (res.type) {
+                      case 'LODGING':
+                        return (
+                          <LodgingCard
+                            key={res.id}
+                            data={{ ...res.details, ...res } as unknown as ReservationDto}
+                          />
+                        );
+                      case 'RESTAURANT':
+                        return (
+                          <RestaurantCard
+                            key={res.id}
+                            data={{ ...res.details, ...res } as unknown as ReservationDto}
+                          />
+                        );
+                      case 'TRAIN':
+                        return (
+                          <TrainCard
+                            key={res.id}
+                            data={{ ...res.details, ...res } as unknown as ReservationDto}
+                          />
+                        );
+                      case 'BUS':
+                        return (
+                          <BusCard
+                            key={res.id}
+                            data={{ ...res.details, ...res } as unknown as ReservationDto}
+                          />
+                        );
+                      case 'FERRY':
+                        return (
+                          <FerryCard
+                            key={res.id}
+                            data={{ ...res.details, ...res } as unknown as ReservationDto}
+                          />
+                        );
+                      case 'CAR_RENTAL':
+                        return (
+                          <CarRentalCard
+                            key={res.id}
+                            data={{ ...res.details, ...res } as unknown as ReservationDto}
+                          />
+                        );
+                      default:
+                        return null;
+                    }
+                  })}
+              </Box>
+            )}
 
-              <DropdownMenuItem
-                className="flex items-center gap-3"
-                onClick={() => {
-                  openEmailReservationDialog();
-                }}
-              >
-                <Mail size={18} />
-                {t('sectionCard.reservation.dropdown.Email')}
-              </DropdownMenuItem>
+            {/* ปุ่มเพิ่ม reservation เล็ก ๆ อยู่ข้างล่าง */}
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="contained" startIcon={<Plus />}>
+                    {t('sectionCard.reservation.button')}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-35" align="center">
+                  <DropdownMenuItem
+                    className="flex items-center gap-3"
+                    onClick={openManualReservationDialog}
+                  >
+                    <Hand size={18} />
+                    {t('sectionCard.reservation.dropdown.Manual')}
+                  </DropdownMenuItem>
 
-              <DropdownMenuItem
-                className="flex items-center gap-3"
-                onClick={() => {
-                  openUploadReservationDialog();
-                }}
-              >
-                <Upload size={18} />
-                {t('sectionCard.reservation.dropdown.Upload')}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <DropdownMenuItem
+                    className="flex items-center gap-3"
+                    onClick={openEmailReservationDialog}
+                  >
+                    <Mail size={18} />
+                    {t('sectionCard.reservation.dropdown.Email')}
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    className="flex items-center gap-3"
+                    onClick={openUploadReservationDialog}
+                  >
+                    <Upload size={18} />
+                    {t('sectionCard.reservation.dropdown.Upload')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </Box>
+          </Box>
         </SectionCard>
 
+        {/* Wishlist Section */}
         <SectionCard
           title={t('sectionCard.wishlistPlace.title')}
           asEmpty={!tripOverview.wishlistPlaces.length}
@@ -172,21 +243,19 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
             <>
               <Box>
                 <List>
-                  {tripOverview.wishlistPlaces.map((wp) => {
-                    return (
-                      <ListItem
-                        key={wp.place.ggmpId}
-                        alignItems="center"
-                        sx={{ padding: 0, marginBottom: '1rem' }}
-                      >
-                        <WishlistPlaceCard
-                          tripId={tripIdAsNumber}
-                          data={wp}
-                          onOpenDetailAction={() => openWishlistPlaceDetail({ wishlistItem: wp })}
-                        />
-                      </ListItem>
-                    );
-                  })}
+                  {tripOverview.wishlistPlaces.map((wp) => (
+                    <ListItem
+                      key={wp.place.ggmpId}
+                      alignItems="center"
+                      sx={{ padding: 0, marginBottom: '1rem' }}
+                    >
+                      <WishlistPlaceCard
+                        tripId={tripIdAsNumber}
+                        data={wp}
+                        onOpenDetailAction={() => openWishlistPlaceDetail({ wishlistItem: wp })}
+                      />
+                    </ListItem>
+                  ))}
                 </List>
               </Box>
               <Button variant="contained" onClick={openWishlistPlaceDialog} startIcon={<Plus />}>
@@ -200,15 +269,14 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
           {WishlistPlaceDetailDialog}
         </SectionCard>
       </Box>
+
+      {/* Dialogs */}
       <ManualReservation
         open={isManualReservationDialogOpen}
         onClose={closeManualReservationDialog}
+        tripId={tripIdAsNumber}
+        onReservationCreated={handleNewReservation}
       />
-      <UploadReservation
-        open={isUploadReservationDialogOpen}
-        onClose={closeUploadReservationDialog}
-      />
-      <EmailReservation open={isEmailReservationDialogOpen} onClose={closeEmailReservationDialog} />
     </Container>
   );
 };

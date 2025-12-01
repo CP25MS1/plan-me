@@ -1,26 +1,28 @@
 'use client';
 
+import { CarRentalDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography, Tooltip } from '@mui/material';
 import { Car, Phone, Mail } from 'lucide-react';
 
 const formatTime = (date: string) =>
   date ? new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-';
 
-export default function CarRentalCard({ data }: { data: any }) {
+export default function CarRentalCard({ data }: { data: ReservationDto | null }) {
+  const carRentalDetails = (data as unknown as CarRentalDetails) || null;
   const carRental = {
-    rentalCompany: data.rentalCompany || '-',
-    carModel: data.carModel || '-',
-    vrn: data.vrn || '-',
-    renterName: data.renterName || '-',
-    pickupLocation: data.pickupLocation || '-',
-    pickupTime: data.pickupTime || '',
-    dropoffLocation: data.dropoffLocation || '-',
-    dropoffTime: data.dropoffTime || '',
-    bookingRef: data.bookingRef || '-',
-    contactTel: data.contactTel || '-',
-    contactEmail: data.contactEmail || '-',
+    rentalCompany: carRentalDetails?.rentalCompany || '',
+    carModel: carRentalDetails?.carModel || '',
+    vrn: carRentalDetails?.vrn || '',
+    renterName: carRentalDetails?.renterName || '',
+    pickupLocation: carRentalDetails?.pickupLocation || '',
+    pickupTime: carRentalDetails?.pickupTime || '',
+    dropoffLocation: carRentalDetails?.dropoffLocation || '',
+    dropoffTime: carRentalDetails?.dropoffTime || '',
+    bookingRef: data?.bookingRef || '',
+    contactTel: data?.contactTel || '',
+    contactEmail: data?.contactEmail || '',
 
-    cost: data.cost ? Number(data.cost) : 0,
+    cost: Number(data?.cost),
   };
 
   const ColItem = ({
@@ -102,7 +104,7 @@ export default function CarRentalCard({ data }: { data: any }) {
             fontSize: '10px',
           }}
         >
-          THB {carRental.cost.toFixed(2)}
+          THB {carRental.cost?.toFixed(2) ?? '-'}
         </Typography>
       </Box>
 

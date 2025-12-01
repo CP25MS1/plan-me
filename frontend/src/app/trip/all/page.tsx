@@ -1,30 +1,38 @@
 'use client';
 
 import React from 'react';
-import { Box, Card, CardContent, Typography } from '@mui/material';
+import { Box, Card, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
-
-// ตัวอย่างข้อมูลทริป
-const trips = [
-  { id: 1, name: 'ทริปเชียงใหม่', startDate: '2025-12-05', endDate: '2025-12-08' },
-  { id: 2, name: 'ทริปภูเก็ต', startDate: '2025-12-10', endDate: '2025-12-12' },
-  { id: 3, name: 'ทริปกรุงเทพ', startDate: '2025-12-15', endDate: '2025-12-16' },
-];
+import { useGetAllTrips } from './hooks/use-get-all-trips';
+import { useTranslation } from 'react-i18next';
 
 const AllTripPage = () => {
   const router = useRouter();
-
+  const { data: trips, isLoading, isError } = useGetAllTrips();
+  const { t } = useTranslation('trip_all');
   const handleClick = (tripId: number) => {
     router.push(`/trip/${tripId}/overview`);
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('th-TH', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  };
+
+  if (isLoading) return <Typography sx={{ p: 4 }}>{t('loaddata')}</Typography>;
+  if (isError) return <Typography sx={{ p: 4 }}>{t('loadfail')}</Typography>;
+
   return (
     <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Typography variant="h4" gutterBottom>
-        ทริปทั้งหมด
+        {t('title')}
       </Typography>
 
-      {trips.map((trip) => (
+      {trips?.map((trip) => (
         <Card
           key={trip.id}
           sx={{
@@ -43,7 +51,7 @@ const AllTripPage = () => {
           <Box>
             <Typography variant="h6">{trip.name}</Typography>
             <Typography color="text.secondary">
-              วันที่: {trip.startDate} - {trip.endDate}
+              {t('date')} {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
             </Typography>
           </Box>
         </Card>

@@ -15,7 +15,6 @@ export const useUpdateReservation = () => {
     }) => updateReservation(reservationId, reservation),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
-      console.log('Reservation updated:', data);
     },
     onError: (error) => {
       console.error('Update reservation failed:', error);

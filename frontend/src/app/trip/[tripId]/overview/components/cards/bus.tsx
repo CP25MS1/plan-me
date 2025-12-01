@@ -1,5 +1,6 @@
 'use client';
 
+import { BusDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography, Tooltip } from '@mui/material';
 import { Bus, Phone, Mail } from 'lucide-react';
 
@@ -15,19 +16,20 @@ const formatDate = (date: string) =>
       })
     : '-';
 
-export default function BusCard({ data }: { data: any }) {
+export default function BusCard({ data }: { data: ReservationDto | null }) {
+  const busDetails = (data as unknown as BusDetails) || null;
   const bus = {
-    transportCompany: data.transportCompany || '-',
-    departureStation: data.departureStation || '-',
-    departureTime: data.departureTime || '',
-    arrivalStation: data.arrivalStation || '-',
-    busClass: data.busClass || '-',
-    passengerName: data.passengerName || '-',
-    seatNo: data.seatNo || '-',
-    bookingRef: data.bookingRef || '-',
-    contactTel: data.contactTel || '-',
-    contactEmail: data.contactEmail || '-',
-    cost: data.cost ? Number(data.cost) : 0,
+    transportCompany: busDetails?.transportCompany || '',
+    departureStation: busDetails?.departureStation || '',
+    departureTime: busDetails?.departureTime || '',
+    arrivalStation: busDetails?.arrivalStation || '',
+    busClass: busDetails?.busClass || '',
+    passengerName: busDetails?.passengerName || '',
+    seatNo: busDetails?.seatNo || '',
+    bookingRef: data?.bookingRef || '',
+    contactTel: data?.contactTel || '',
+    contactEmail: data?.contactEmail || '',
+    cost: Number(data?.cost),
   };
 
   const ColItem = ({
@@ -108,7 +110,7 @@ export default function BusCard({ data }: { data: any }) {
             fontSize: '10px',
           }}
         >
-          THB {bus.cost.toFixed(2)}
+          THB {bus.cost?.toFixed(2) ?? '-'}
         </Typography>
       </Box>
 

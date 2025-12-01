@@ -1,5 +1,6 @@
 'use client';
 
+import { FerryDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography, Tooltip } from '@mui/material';
 import { Ship } from 'lucide-react';
 
@@ -15,19 +16,20 @@ const formatDate = (date: string) =>
       })
     : '-';
 
-export default function FerryCard({ data }: { data: any }) {
+export default function FerryCard({ data }: { data: ReservationDto | null }) {
+  const ferryDetails = (data as unknown as FerryDetails) || null;
   const ferry = {
-    transportCompany: data.transportCompany || '-',
-    passengerName: data.passengerName || '-',
-    departurePort: data.departurePort || '-',
-    departureTime: data.departureTime || '',
-    arrivalPort: data.arrivalPort || '-',
-    arrivalTime: data.arrivalTime || '',
-    ticketType: data.ticketType || '-',
-    bookingRef: data.bookingRef || '-',
-    contactTel: data.contactTel || '-',
-    contactEmail: data.contactEmail || '-',
-    cost: data.cost ? Number(data.cost) : 0,
+    transportCompany: ferryDetails?.transportCompany || '',
+    passengerName: ferryDetails?.passengerName || '',
+    departurePort: ferryDetails?.departurePort || '',
+    departureTime: ferryDetails?.departureTime || '',
+    arrivalPort: ferryDetails?.arrivalPort || '',
+    arrivalTime: ferryDetails?.arrivalTime || '',
+    ticketType: ferryDetails?.ticketType || '',
+    bookingRef: data?.bookingRef || '',
+    contactTel: data?.contactTel || '',
+    contactEmail: data?.contactEmail || '',
+    cost: Number(data?.cost),
   };
 
   const ColItem = ({
@@ -108,7 +110,7 @@ export default function FerryCard({ data }: { data: any }) {
             fontSize: '10px',
           }}
         >
-          THB {ferry.cost.toFixed(2)}
+          THB {ferry.cost?.toFixed(2) ?? '-'}
         </Typography>
       </Box>
 

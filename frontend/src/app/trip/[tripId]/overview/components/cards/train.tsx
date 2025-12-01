@@ -1,5 +1,6 @@
 'use client';
 
+import { ReservationDto, TrainDetails } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
 import { Train } from 'lucide-react';
 
@@ -15,21 +16,22 @@ const formatDate = (date: string) =>
       })
     : '-';
 
-export default function TrainCard({ data }: { data: any }) {
+export default function TrainCard({ data }: { data: ReservationDto | null }) {
+  const trainDetails = (data as unknown as TrainDetails) || null;
   const train = {
-    trainNo: data.trainNo || '-',
-    trainClass: data.trainClass || '-',
-    seatClass: data.seatClass || '-',
-    seatNo: data.seatNo || '-',
-    passengerName: data.passengerName || '-',
-    departureStation: data.departureStation || '-',
-    departureTime: data.departureTime || '',
-    arrivalStation: data.arrivalStation || '-',
-    arrivalTime: data.arrivalTime || '',
-    bookingRef: data.bookingRef || '-',
-    contactTel: data.contactTel || '-',
-    contactEmail: data.contactEmail || '-',
-    cost: data.cost ? Number(data.cost) : 0,
+    trainNo: trainDetails?.trainNo || '',
+    trainClass: trainDetails?.trainClass || '',
+    seatClass: trainDetails?.seatClass || '',
+    seatNo: trainDetails?.seatNo || '',
+    passengerName: trainDetails?.passengerName || '',
+    departureStation: trainDetails?.departureStation || '',
+    departureTime: trainDetails?.departureTime || '',
+    arrivalStation: trainDetails?.arrivalStation || '',
+    arrivalTime: trainDetails?.arrivalTime || '',
+    bookingRef: data?.bookingRef || '',
+    contactTel: data?.contactTel || '',
+    contactEmail: data?.contactEmail || '',
+    cost: Number(data?.cost),
   };
 
   const ColItem = ({ label, value }: { label: string; value: string }) => (
@@ -96,7 +98,7 @@ export default function TrainCard({ data }: { data: any }) {
             fontSize: '10px',
           }}
         >
-          THB {train.cost.toFixed(2)}
+          THB {train.cost?.toFixed(2) ?? '-'}
         </Typography>
       </Box>
 
