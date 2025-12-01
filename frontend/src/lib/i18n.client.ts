@@ -12,7 +12,7 @@ if (!isInitialized) {
       fallbackLng: 'th',
       supportedLngs: ['en', 'th'],
       defaultNS: 'common',
-      ns: ['common', 'trip_create', 'profile', 'trip_overview'],
+      ns: ['common', 'trip_create', 'profile', 'trip_overview', 'trip_all'],
       backend: {
         loadPath: '/locales/{{lng}}/{{ns}}.json',
       },

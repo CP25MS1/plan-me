@@ -4,7 +4,7 @@ export default {
     locales: ['en', 'th'],
     localeDetection: false,
   },
-  ns: ['common', 'trip_create', 'profile', 'trip_overview'],
+  ns: ['common', 'trip_create', 'profile', 'trip_overview', 'trip_all'],
   defaultNS: 'common',
   localePath: './public/locales',
 };
