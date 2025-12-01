@@ -41,7 +41,6 @@ const CreateTripPage = () => {
   const defaultObjectives = useDefaultObjectives();
   const { mutate, isPending } = useCreateTrip();
   const { isNavigating, setIsNavigating, FullPageLoading } = useFullPageLoading();
-
   const [tripName, setTripName] = useState('');
   const [tripNameError, setTripNameError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>([null, null]);
@@ -146,7 +145,7 @@ const CreateTripPage = () => {
             </Typography>
 
             <TextField
-              placeholder={`${t('fields.name.label')}`}
+              placeholder={`${t('fields.name.placeholder')}`}
               value={tripName}
               onChange={(e) => setTripName(e.target.value)}
               fullWidth

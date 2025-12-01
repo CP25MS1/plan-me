@@ -37,6 +37,16 @@ const FollowListClient: React.FC<Props> = ({ defaultTab = 'followers' }) => {
     const v = value as 'followers' | 'following';
     setTab(v);
   };
+  const sortedFollowersWithCta = [...followersWithCta].sort((a, b) =>
+    a.username.toLowerCase().localeCompare(b.username.toLowerCase())
+  );
+
+  const sortedFollowing = [...following]
+    .sort((a, b) => a.username.toLowerCase().localeCompare(b.username.toLowerCase()))
+    .map((u) => ({
+      ...u,
+      cta: <ConfirmUnfollow key={`unf-${u.id}`} id={u.id} username={u.username} />,
+    }));
 
   return (
     <div className="flex flex-col w-full h-screen">
@@ -78,7 +88,7 @@ const FollowListClient: React.FC<Props> = ({ defaultTab = 'followers' }) => {
         <div className="flex-1 min-h-0 overflow-y-auto">
           <TabsContent value="followers" className="h-full">
             <UserListCta
-              users={followersWithCta}
+              users={sortedFollowersWithCta}
               empty={
                 <EmptyState
                   title={t('profile.followers_empty_title')}
@@ -91,10 +101,7 @@ const FollowListClient: React.FC<Props> = ({ defaultTab = 'followers' }) => {
           {/* Following */}
           <TabsContent value="following" className="h-full">
             <UserListCta
-              users={following.map((u) => ({
-                ...u,
-                cta: <ConfirmUnfollow key={`unf-${u.id}`} id={u.id} username={u.username} />,
-              }))}
+              users={sortedFollowing}
               empty={
                 <EmptyState
                   title={t('profile.following_empty_title')}

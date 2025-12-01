@@ -86,6 +86,7 @@ const SearchPage = () => {
           placeholder={t('placeholder.search')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          autoFocus
           slotProps={{
             input: {
               startAdornment: (

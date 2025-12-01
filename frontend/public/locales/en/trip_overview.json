@@ -10,7 +10,12 @@
     "map": "Map",
     "reservation": {
       "title": "Reservation",
-      "button": "Add Reservation"
+      "button": "Add Reservation",
+      "dropdown": {
+        "Manual": "Add manually",
+        "Email": "Add by email",
+        "Upload": "Upload files"
+      }
     },
     "wishlistPlace": {
       "title": "Wishlist Place",
@@ -36,5 +41,21 @@
     "placeholderName": "Enter a trip name",
     "placeholderTime": "Start date - End date",
     "placeholderObjective": "Trip's objectives"
+  },
+  "ManualoReservation": {
+    "title": "Add booking information",
+    "placeholder": "Please select the type of booking information",
+    "nodata": "No data available",
+    "Type": {
+      "Lodging": "Lodging",
+      "Restaurant": "Restaurant",
+      "Flight": "Flight",
+      "Train": "Train",
+      "Bus": "Bus",
+      "Ferry": "Ferry",
+      "CarRental": "CarRental"
+    },
+    "Button": "preview"
+    
   }
 }

@@ -4,13 +4,18 @@
     "overView": "ภาพรวม",
     "daily": "รายวัน",
     "budget": "งบประมาณ",
-    "checkList": "เช็คลิสต์"
+    "checkList": "เช็กลิสต์"
   },
   "sectionCard": {
     "map": "แผนที่",
     "reservation": {
       "title": "ข้อมูลการจอง",
-      "button": "เพิ่มข้อมูลการจอง"
+      "button": "เพิ่มข้อมูลการจอง",
+      "dropdown": {
+        "Manual": "เพิ่มด้วยตนเอง",
+        "Email": "เพิ่มด้วยอีเมล",
+        "Upload": "เพิ่มด้วยไฟล์"
+      }
     },
     "wishlistPlace": {
       "title": "สถานที่ที่อยากไป",
@@ -36,5 +41,20 @@
     "placeholderName": "ใส่ชื่อทริป",
     "placeholderTime": "วันที่เริ่มต้น - วันที่สิ้นสุด",
     "placeholderObjective": "จุดประสงค์ของทริป"
+  },
+  "ManualReservation": {
+    "title": "เพิ่มข้อมูลการจอง",
+    "placeholder": "โปรดเลือกประเภทของข้อมูลการจอง",
+    "nodata": "ยังไม่มีข้อมูล",
+    "Type": {
+      "Lodging": "ที่พัก",
+      "Restaurant": "ร้านอาหาร",
+      "Flight": "เที่ยวบิน",
+      "Train": "รถไฟ",
+      "Bus": "รถทัวร์",
+      "Ferry": "เรือข้ามฟาก",
+      "CarRental": "รถเช่า"
+    },
+    "Button": "แสดงตัวอย่าง"
   }
 }

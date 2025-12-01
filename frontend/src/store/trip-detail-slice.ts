@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TripOverview, WishlistPlace } from '@/api/trips/type';
+import { ReservationDto } from '@/api/reservations';
 
 interface TripDetailState {
   overview: TripOverview | null;
@@ -15,6 +16,29 @@ const tripDetailSlice = createSlice({
   reducers: {
     setTripOverview: (state, action: PayloadAction<TripOverview>) => {
       state.overview = action.payload;
+    },
+    addReservation: (state, action: PayloadAction<ReservationDto>) => {
+      if (!state.overview) return;
+      state.overview.reservations.push(action.payload);
+    },
+    removeReservation: (state, action: PayloadAction<{ reservationId: number }>) => {
+      if (!state.overview) return;
+      const removeIndex = state.overview.reservations.findIndex(
+        (rs) => rs.id === action.payload.reservationId
+      );
+      if (removeIndex === -1) return;
+      state.overview.reservations.splice(removeIndex, 1);
+    },
+    updateReservation: (state, action: PayloadAction<ReservationDto>) => {
+      if (!state.overview) return;
+      const rs = action.payload;
+      const updateIndex = state.overview.reservations.findIndex((ors) => ors.id === rs.id);
+      const oldReservation = state.overview.reservations[updateIndex];
+      state.overview.reservations.splice(updateIndex, 1, {
+        ...rs,
+        id: oldReservation.id,
+        tripId: oldReservation.tripId,
+      });
     },
     addWishlistPlace: (state, action: PayloadAction<WishlistPlace>) => {
       if (!state.overview) return;
@@ -42,7 +66,14 @@ const tripDetailSlice = createSlice({
   },
 });
 
-export const { setTripOverview, addWishlistPlace, removeWishlistPlace, updateWishlistPlace } =
-  tripDetailSlice.actions;
+export const {
+  setTripOverview,
+  addReservation,
+  removeReservation,
+  updateReservation,
+  addWishlistPlace,
+  removeWishlistPlace,
+  updateWishlistPlace,
+} = tripDetailSlice.actions;
 
 export default tripDetailSlice.reducer;
