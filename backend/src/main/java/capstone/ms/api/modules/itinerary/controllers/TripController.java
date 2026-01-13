@@ -51,7 +51,7 @@ public class TripController {
     public ResponseEntity<TripOverviewDto> updateTripOverview(
             @AuthenticationPrincipal final User currentUser,
             @PathVariable final Integer tripId,
-            @RequestBody final UpsertTripDto tripInfo
+            @Valid @RequestBody final UpsertTripDto tripInfo
     ) {
         return ResponseEntity.ok(tripService.updateTripOverview(currentUser, tripId, tripInfo));
     }
