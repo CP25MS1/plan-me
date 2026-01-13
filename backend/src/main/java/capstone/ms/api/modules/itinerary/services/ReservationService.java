@@ -4,13 +4,16 @@ import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.common.exceptions.ServerErrorException;
-import capstone.ms.api.modules.email.dto.EmailData;
 import capstone.ms.api.modules.email.services.EmailParser;
 import capstone.ms.api.modules.email.services.EmailService;
-import capstone.ms.api.modules.itinerary.dto.*;
+import capstone.ms.api.modules.email.services.ImapEmailFetcher;
+import capstone.ms.api.modules.itinerary.dto.reservation.*;
 import capstone.ms.api.modules.itinerary.entities.*;
 import capstone.ms.api.modules.itinerary.mappers.ReservationMapper;
 import capstone.ms.api.modules.itinerary.repositories.*;
+import capstone.ms.api.modules.typhoon.dto.ChatMessage;
+import capstone.ms.api.modules.typhoon.dto.ChatRequest;
+import capstone.ms.api.modules.typhoon.services.TyphoonService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.mail.Folder;
 import jakarta.mail.Message;
@@ -20,21 +23,13 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class ReservationService {
-    private EmailService emailService;
-    private EmailParser emailParser;
-    private ReservationEmailParser reservationEmailParser;
     private final TripRepository tripRepository;
     private final ReservationRepository reservationRepository;
     private final LodgingReservationRepository lodgingRepository;
@@ -45,6 +40,10 @@ public class ReservationService {
     private final FerryReservationRepository ferryRepository;
     private final CarRentalReservationRepository carRentalRepository;
     private final ReservationMapper reservationMapper;
+    private final ImapEmailFetcher emailFetcher;
+    private EmailService emailService;
+    private EmailParser emailParser;
+    private TyphoonService typhoonService;
 
     private Trip loadTripOrThrow(final Integer tripId) {
         return tripRepository.findById(tripId)
@@ -189,7 +188,7 @@ public class ReservationService {
             case "LODGING": {
                 LodgingDetails details = (LodgingDetails) dto.getDetails();
                 LodgingReservation entity = lodgingRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("lodging.404"));
                 reservationMapper.updateLodgingEntityFromDto(details, entity);
                 lodgingRepository.save(entity);
                 break;
@@ -197,7 +196,7 @@ public class ReservationService {
             case "FLIGHT": {
                 FlightDetails details = (FlightDetails) dto.getDetails();
                 FlightReservation entity = flightRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("flight.404"));
 
                 reservationMapper.updateFlightEntityFromDto(details, entity);
 
@@ -207,7 +206,7 @@ public class ReservationService {
             case "RESTAURANT": {
                 RestaurantDetails details = (RestaurantDetails) dto.getDetails();
                 RestaurantReservation entity = restaurantRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("restaurant.404"));
                 reservationMapper.updateRestaurantEntityFromDto(details, entity);
                 restaurantRepository.save(entity);
                 break;
@@ -215,7 +214,7 @@ public class ReservationService {
             case "TRAIN": {
                 TrainDetails details = (TrainDetails) dto.getDetails();
                 TrainReservation entity = trainRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("train.404"));
                 reservationMapper.updateTrainEntityFromDto(details, entity);
                 trainRepository.save(entity);
                 break;
@@ -223,7 +222,7 @@ public class ReservationService {
             case "BUS": {
                 BusDetails details = (BusDetails) dto.getDetails();
                 BusReservation entity = busRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("bus.404"));
                 reservationMapper.updateBusEntityFromDto(details, entity);
                 busRepository.save(entity);
                 break;
@@ -231,7 +230,7 @@ public class ReservationService {
             case "FERRY": {
                 FerryDetails details = (FerryDetails) dto.getDetails();
                 FerryReservation entity = ferryRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("ferry.404"));
                 reservationMapper.updateFerryEntityFromDto(details, entity);
                 ferryRepository.save(entity);
                 break;
@@ -239,7 +238,7 @@ public class ReservationService {
             case "CAR_RENTAL": {
                 CarRentalDetails details = (CarRentalDetails) dto.getDetails();
                 CarRentalReservation entity = carRentalRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("car_rental.404"));
                 reservationMapper.updateCarRentalEntityFromDto(details, entity);
                 carRentalRepository.save(entity);
                 break;
@@ -263,77 +262,7 @@ public class ReservationService {
         throw new BadRequestException("reservation.400");
     }
 
-    @Transactional
-    public void deleteReservation(Integer reservationId, User currentUser) {
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new NotFoundException("reservation.404"));
-
-        ensureOwnerOrThrow(currentUser, reservation.getTrip());
-        ReservationType type;
-        try {
-            type = ReservationType.valueOf(String.valueOf(reservation.getType()));
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("reservation.400");
-        }
-
-        switch (type) {
-            case LODGING:
-                lodgingRepository.findById(reservationId)
-                        .ifPresent(lodgingRepository::delete);
-                break;
-            case FLIGHT:
-                flightRepository.findById(reservationId)
-                        .ifPresent(flightRepository::delete);
-                break;
-            case RESTAURANT:
-                restaurantRepository.findById(reservationId)
-                        .ifPresent(restaurantRepository::delete);
-                break;
-            case TRAIN:
-                trainRepository.findById(reservationId)
-                        .ifPresent(trainRepository::delete);
-                break;
-            case BUS:
-                busRepository.findById(reservationId)
-                        .ifPresent(busRepository::delete);
-                break;
-            case FERRY:
-                ferryRepository.findById(reservationId)
-                        .ifPresent(ferryRepository::delete);
-                break;
-            case CAR_RENTAL:
-                carRentalRepository.findById(reservationId)
-                        .ifPresent(carRentalRepository::delete);
-                break;
-            default:
-                throw new BadRequestException("reservation.400");
-        }
-
-        reservationRepository.delete(reservation);
-    }
-
-    public void addImportedEmails(final String itineraryId) {
-        try (var store = emailService.openImapStore().orElseThrow()) {
-            final Folder inbox = store.getFolder("INBOX");
-            inbox.open(Folder.READ_WRITE);
-
-            final String to = emailService.buildAddressWithAlias(itineraryId);
-            final var criteria = Map.of("TO", to, "UNREAD", "TRUE");
-            var searchTerm = emailService.buildSearchTerm(criteria).orElseThrow();
-
-            final Message[] emails = inbox.search(searchTerm);
-            log.info(Arrays.toString(emails));
-            final var emailMap = emailService.mapMessagesById(emails);
-
-            final var emailData = emailService.extractEmailData(emailMap);
-        } catch (MessagingException e) {
-            log.info("Error accessing inbox: {}", e.getMessage());
-        }
-    }
-
     public List<EmailInfoDto> checkEmailInfo(Integer tripId, User currentUser) {
-        if (tripId == null) return Collections.emptyList();
-
         Trip trip = loadTripOrThrow(tripId);
         ensureOwnerOrThrow(currentUser, trip);
 
@@ -358,7 +287,7 @@ public class ReservationService {
                             if (msg.getSentDate() == null) return null;
                             return EmailInfoDto.builder()
                                     .emailId(msg.getMessageNumber())
-                                    .sentAt(ZonedDateTime.ofInstant(msg.getSentDate().toInstant(), ZoneId.of("Asia/Bangkok")))
+                                    .sentAt(msg.getSentDate().toString())
                                     .subject(msg.getSubject())
                                     .build();
                         } catch (MessagingException e) {
@@ -366,102 +295,115 @@ public class ReservationService {
                         }
                     })
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .toList();
 
         } catch (Exception e) {
             throw new ServerErrorException("email.500.fetchEmail");
         }
     }
 
-    @Transactional
-    public List<ReservationPreviewResult<?>> previewReservation(Integer tripId, List<ReservationPreviewRequest> previewRequests, User currentUser) {
-
+    public List<String> previewReservation(Integer tripId, List<ReservationPreviewRequest> previewRequests, User currentUser) {
         Trip trip = loadTripOrThrow(tripId);
         ensureOwnerOrThrow(currentUser, trip);
 
-        List<ReservationPreviewResult<?>> results = new ArrayList<>();
-        List<Integer> emailIds = previewRequests.stream()
+        List<Integer> messageNumbers = previewRequests.stream()
                 .map(ReservationPreviewRequest::getEmailId)
-                .collect(Collectors.toList());
+                .toList();
 
-        Map<Integer, Message> messages = emailService.fetchEmailById(emailIds);
-        log.info("Fetched emails: {}", messages.keySet());
+        Map<Integer, Message> messages = emailFetcher.fetchDetachedMessagesByNumbers(messageNumbers);
 
-        for (ReservationPreviewRequest req : previewRequests) {
-            Integer emailId = req.getEmailId();
-            String type = req.getType();
-            Message msg = messages.get(emailId);
+        return previewRequests.stream()
+                .map(req -> {
+                    Integer emailId = req.getEmailId();
+                    String type = req.getType().toUpperCase();
+                    Message msg = messages.get(emailId);
 
-            if (msg == null) {
-                results.add(ReservationPreviewResult.builder()
-                        .emailId(emailId)
-                        .type(type)
-                        .valid(false)
-                        .build());
-                continue;
-            }
+                    String emailText = emailParser.getTextFromMessage(msg);
 
-            Optional<String> emailTextOpt;
-            try {
-                emailTextOpt = emailParser.extractPrimaryText(msg);
-                log.info("Email {} text: {}", emailId, emailTextOpt.orElse("EMPTY"));
-            } catch (MessagingException | IOException e) {
-                results.add(ReservationPreviewResult.builder()
-                        .emailId(emailId)
-                        .type(type)
-                        .valid(false)
-                        .build());
-                continue;
-            }
+                    var mapperRequest = createReservationMapperRequest(emailText, type);
+                    var res = typhoonService.streamChat(mapperRequest)
+                            .collectList()
+                            .map(list -> String.join("", list))
+                            .block();
 
-            if (emailTextOpt.isEmpty()) {
-                results.add(ReservationPreviewResult.builder()
-                        .emailId(emailId)
-                        .type(type)
-                        .valid(false)
-                        .build());
-                continue;
-            }
-
-            EmailData emailData = new EmailData(new String[]{emailTextOpt.get()}, new MultipartFile[0]);
-
-            ReservationDetails parsed = null;
-            boolean valid = false;
-
-            try {
-                switch (type.toUpperCase()) {
-                    case "FLIGHT":
-                        parsed = reservationEmailParser.parseFlight(emailData);
-                        break;
-                    case "RESTAURANT":
-                        parsed = reservationEmailParser.parseRestaurant(emailData);
-                        break;
-                    case "TRAIN":
-                        parsed = reservationEmailParser.parseTrain(emailData);
-                        break;
-                    case "BUS":
-                        parsed = reservationEmailParser.parseBus(emailData);
-                        break;
-                    case "FERRY":
-                        parsed = reservationEmailParser.parseFerry(emailData);
-                        break;
-                    case "CAR_RENTAL":
-                        parsed = reservationEmailParser.parseCarRental(emailData);
-                        break;
-                }
-                valid = parsed != null;
-            } catch (Exception e) {
-                parsed = null;
-                valid = false;
-            }
-
-            results.add(ReservationPreviewResult.builder()
-                    .emailId(emailId)
-                    .type(type)
-                    .parsed(parsed)
-                    .valid(valid)
-                    .build());
-        }
-        return results;
+                    if (res != null && res.contains("\"valid\":false")) {
+                        var attachments = emailFetcher.fetchAttachmentsAsMultipartFiles(messageNumbers);
+                    }
+                    return res;
+                })
+                .toList();
     }
+
+    private ChatRequest createReservationMapperRequest(final String input, final String type) {
+        ChatMessage systemInstruction = ChatMessage.builder()
+                .role("system")
+                .content("""
+                        You are a compact, strict JSON extractor. \s
+                        Input: a raw email text and a reservation type (one of: LODGING, RESTAURANT, FLIGHT, TRAIN, BUS, FERRY, CAR_RENTAL).
+                        
+                        Task: extract reservation fields according to the schemas below, include top-level fields, include details for the given type, validate required fields, and output ONLY ONE JSON object. No prose, no extra characters.
+                        
+                        Exact output (one of):
+                        { "data": { "type": "...", "bookingRef": null|string, "contactTel": null|string, "contactEmail": null|string, "cost": number|null, "details": { ... } }, "valid": true }
+                        or
+                        { "data": { ... }, "valid": false, "missing": ["path","path" , ...] }
+                        
+                        Rules:
+                        - Always return top-level keys inside "data": "type", "bookingRef", "contactTel", "contactEmail", "cost", "details".
+                        - `cost` is required across types. If found parse as number (≥0). If parse fails or not found set to null and list "cost" in "missing".
+                        - Map only fields relevant to provided `type` into `data.details`.
+                        - For required fields missing after extraction, add JSON paths to "missing". Use paths like "details.restaurantName" or top-level "cost".
+                        - If any required field missing → set "valid": false and include "missing". If none missing → "valid": true and omit "missing".
+                        - Dates normalization:
+                          - date-time → ISO 8601 (YYYY-MM-DDTHH:MM:SSZ or with offset).
+                          - date → YYYY-MM-DD.
+                          - time → HH:MM:SS.
+                        - Strings: trim whitespace. If over max length, truncate to the max.
+                        - `contactTel`: extract digits only. If more than 10 digits, keep the last 10. If none → null.
+                        - `contactEmail`: lowercase, basic email pattern check; truncate to 80 chars. If invalid → null.
+                        - `bookingRef`: string or null.
+                        - Arrays (e.g., passengers): return array of parsed objects or omit if none.
+                        - Optional fields: **include** them in `details` if explicitly present in raw text (even embedded in sentences). Try common synonyms and patterns (e.g., "table 5", "tbl#5", "queue Q18", "party of 4", currency like "THB 2,800", "total 2800").
+                        - Extraction confidence: include optional field when text explicitly mentions it; do not invent values. For inferred times/dates (e.g., "7:30 PM") convert to HH:MM:SS.
+                        - For fields that fail parsing (e.g., date parse error), set value to null and include in "missing" if required.
+                        - Keep output minimal. The only allowed diagnostic key is "missing" when valid is false.
+                        
+                        Type-specific required fields (put under data.details):
+                        - LODGING: lodgingName, lodgingAddress, underName, checkinDate, checkoutDate
+                        - RESTAURANT: restaurantName, restaurantAddress, underName, reservationDate
+                          - optional but include if present: reservationTime, tableNo, queueNo, partySize
+                        - FLIGHT: airline, flightNo, departureAirport, departureTime, arrivalAirport, arrivalTime
+                          - optional: boardingTime, gateNo, flightClass, passengers (array of {passengerName, seatNo})
+                        - TRAIN: trainNo, trainClass, seatClass, seatNo, passengerName, departureStation, departureTime, arrivalStation, arrivalTime
+                        - BUS: transportCompany, departureStation, departureTime, arrivalStation, passengerName, seatNo
+                          - optional: busClass
+                        - FERRY: transportCompany, passengerName, departurePort, departureTime, arrivalPort, arrivalTime, ticketType
+                        - CAR_RENTAL: rentalCompany, carModel, vrn, renterName, pickupLocation, pickupTime, dropoffLocation, dropoffTime
+                        
+                        Strict: produce ONLY the JSON object described. No explanations, no surrounding code fences.
+                        """)
+                .build();
+
+        ChatMessage inputInstruction = ChatMessage.builder()
+                .role("user")
+                .content(String.format("""
+                        Parse the reservation from this email.
+                        ```
+                        RAW_TEXT: %s
+                        type: %s                # one of: LODGING, RESTAURANT, FLIGHT, TRAIN, BUS, FERRY, CAR_RENTAL
+                        ```
+                        Return exactly one JSON object as specified by the system rules.
+                        """, input, type))
+                .build();
+
+        return ChatRequest.builder()
+                .model("typhoon-v2.5-30b-a3b-instruct")
+                .messages(List.of(systemInstruction, inputInstruction))
+                .temperature(0.1)
+                .maxTokens(1024)
+                .topP(0.8)
+                .frequencyPenalty(0.0)
+                .build();
+    }
+
 }

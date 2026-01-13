@@ -1,8 +1,9 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
-import capstone.ms.api.modules.itinerary.dto.ReservationDto;
-import capstone.ms.api.modules.itinerary.dto.ReservationPreviewRequest;
-import capstone.ms.api.modules.itinerary.dto.ReservationPreviewResult;
+import capstone.ms.api.common.exceptions.BadRequestException;
+import capstone.ms.api.modules.itinerary.dto.reservation.EmailInfoDto;
+import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
+import capstone.ms.api.modules.itinerary.dto.reservation.ReservationPreviewRequest;
 import capstone.ms.api.modules.itinerary.services.ReservationService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.validation.Valid;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/reservations")
@@ -35,30 +38,19 @@ public class ReservationController {
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/{reservationId}")
-    public ResponseEntity<Void> deleteReservation(@PathVariable Integer reservationId,
-                                                  @AuthenticationPrincipal User currentUser) {
-        reservationService.deleteReservation(reservationId, currentUser);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/emails/check-info")
+    public ResponseEntity<List<EmailInfoDto>> getAllReservations(@RequestParam(required = false) Integer tripId,
+                                                                 @AuthenticationPrincipal User currentUser) {
+        if (tripId == null) throw new BadRequestException("400");
+        List<EmailInfoDto> emails = reservationService.checkEmailInfo(tripId, currentUser);
+        return ResponseEntity.ok(emails);
     }
 
     @PostMapping("/emails/preview")
-    public ResponseEntity<List<ReservationPreviewResult<?>>> previewReservation(@Valid @RequestParam Integer tripId,
-                                                                             @Valid @RequestBody List<ReservationPreviewRequest> previewRequest,
-                                                                             @AuthenticationPrincipal User currentUser) {
-       List<ReservationPreviewResult<?>> previewResults = reservationService.previewReservation(tripId, previewRequest, currentUser);
-       return ResponseEntity.ok(previewResults);
-    }
-
-    @PostMapping("/imported-emails")
-    public ResponseEntity<Void> addImportedEmails() {
-        reservationService.addImportedEmails(null);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/imported-emails/{itineraryId}")
-    public ResponseEntity<Void> addImportedEmails(@PathVariable final String itineraryId) {
-        reservationService.addImportedEmails(itineraryId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<List<String>> previewReservation(@Valid @RequestParam Integer tripId,
+                                                           @Valid @RequestBody List<ReservationPreviewRequest> previewRequest,
+                                                           @AuthenticationPrincipal User currentUser) {
+        var previewResults = reservationService.previewReservation(tripId, previewRequest, currentUser);
+        return ResponseEntity.ok(previewResults);
     }
 }
