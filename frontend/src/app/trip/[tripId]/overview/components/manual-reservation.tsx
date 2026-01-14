@@ -371,8 +371,11 @@ export default function ManualReservation({
                         onChange={(e) => {
                           const newName = e.target.value;
                           handlePassengerChange(idx, 'name', newName);
-                          const editedPassenger = {...passengers[idx], name: newName}
-                          handleChange('passengers', passengers.with(idx, editedPassenger) as unknown as string)
+                          const editedPassenger = { ...passengers[idx], name: newName };
+                          handleChange(
+                            'passengers',
+                            passengers.with(idx, editedPassenger) as unknown as string
+                          );
                         }}
                         fullWidth
                         size="small"
@@ -384,8 +387,11 @@ export default function ManualReservation({
                         onChange={(e) => {
                           const newSeatNumber = e.target.value;
                           handlePassengerChange(idx, 'seatNumber', newSeatNumber);
-                          const editedPassenger = { ...passengers[idx], seatNumber: newSeatNumber }; 
-                          handleChange('passengers', passengers.with(idx, editedPassenger) as unknown as string);
+                          const editedPassenger = { ...passengers[idx], seatNumber: newSeatNumber };
+                          handleChange(
+                            'passengers',
+                            passengers.with(idx, editedPassenger) as unknown as string
+                          );
                         }}
                         fullWidth
                         size="small"
