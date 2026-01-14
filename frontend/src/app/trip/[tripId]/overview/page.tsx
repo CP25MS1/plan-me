@@ -2,11 +2,13 @@
 
 import { use, useCallback, useState } from 'react';
 import { Container, Box, List, ListItem, Button } from '@mui/material';
-import { Plus } from 'lucide-react';
+import { Plus, Hand, Mail, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { Hand, Mail, Upload } from 'lucide-react';
+
 import ManualReservation from './components/manual-reservation';
+import UploadReservation from './components/upload-reservation';
+import EmailReservation from './components/email-reservation';
 
 import OverviewHeader from '@/components/trip/overview/overview-header';
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
@@ -18,20 +20,27 @@ import { useFullScreenDialog } from '@/components/common/dialog';
 
 import useGetTripOverview from '../hooks/use-get-trip-overview';
 import useUpdateTripOverview from '../hooks/use-update-trip-overview';
+
 import { UpsertTrip, WishlistPlace } from '@/api/trips';
 import {
   SearchAddWishlistPlace,
   WishlistPlaceCard,
   WishlistPlaceDetailContent,
 } from './components';
+
 import { addReservation, setTripOverview } from '@/store/trip-detail-slice';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FlightDetails, ReservationDto } from '@/api/reservations/type';
+
+import {
+  FlightDetails,
+  ReservationDto,
+} from '@/api/reservations/type';
 
 import LodgingCard from './components/cards/lodging';
 import RestaurantCard from './components/cards/restaurant';
@@ -45,23 +54,31 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
   const dispatch = useDispatch();
   const { tripId } = use(params);
   const tripIdAsNumber = Number(tripId);
+
   const { overview: tripOverview, isLoading } = useGetTripOverview(tripIdAsNumber);
   const { FullPageLoading } = useFullPageLoading();
   const { mutate: updateTrip } = useUpdateTripOverview(tripIdAsNumber);
   const { t } = useTranslation('trip_overview');
 
-  // Dialog states
+  // ===== Dialog states =====
   const [isManualReservationDialogOpen, setManualReservationDialogOpen] = useState(false);
   const [isUploadReservationDialogOpen, setUploadReservationDialogOpen] = useState(false);
   const [isEmailReservationDialogOpen, setEmailReservationDialogOpen] = useState(false);
 
+  // ⭐ state สำหรับ Edit reservation
+  const [editingReservation, setEditingReservation] =
+    useState<ReservationDto | undefined>(undefined);
+
   const openManualReservationDialog = () => setManualReservationDialogOpen(true);
   const closeManualReservationDialog = () => setManualReservationDialogOpen(false);
+
   const openUploadReservationDialog = () => setUploadReservationDialogOpen(true);
   const closeUploadReservationDialog = () => setUploadReservationDialogOpen(false);
+
   const openEmailReservationDialog = () => setEmailReservationDialogOpen(true);
   const closeEmailReservationDialog = () => setEmailReservationDialogOpen(false);
 
+  // ===== Wishlist dialogs =====
   const {
     Dialog: WishlistPlaceDialog,
     open: isWishlistPlaceDialogOpened,
@@ -75,20 +92,19 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
   const { Dialog: WishlistPlaceDetailDialog, openWithProps: openWishlistPlaceDetail } =
     useFullScreenDialog<{ wishlistItem: WishlistPlace }>({
       Content: ({ wishlistItem, onCloseAction }) => (
-        <WishlistPlaceDetailContent wishlistItem={wishlistItem} onCloseAction={onCloseAction} />
+        <WishlistPlaceDetailContent
+          wishlistItem={wishlistItem}
+          onCloseAction={onCloseAction}
+        />
       ),
     });
 
+  // ===== Trip update =====
   const handleSave = useCallback(
     (updates: UpsertTrip) => {
-      updateTrip(
-        { ...updates },
-        {
-          onSuccess: (data) => {
-            dispatch(setTripOverview(data));
-          },
-        }
-      );
+      updateTrip(updates, {
+        onSuccess: (data) => dispatch(setTripOverview(data)),
+      });
     },
     [updateTrip, dispatch]
   );
@@ -100,7 +116,8 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
 
   if (isLoading || !tripOverview) return <FullPageLoading />;
 
-  const hasReservation = tripOverview.reservations && tripOverview.reservations.length > 0;
+  const hasReservation =
+    tripOverview.reservations && tripOverview.reservations.length > 0;
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
@@ -114,23 +131,22 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
         onUpdateDates={(start, end) =>
           handleSave({ ...tripOverview, startDate: start, endDate: end })
         }
-        onUpdateObjectives={(objectives) => handleSave({ ...tripOverview, objectives })}
+        onUpdateObjectives={(objectives) =>
+          handleSave({ ...tripOverview, objectives })
+        }
       />
 
       <OverviewTabs value={0} onChange={() => {}} />
 
       <Box sx={{ mt: 2 }}>
-        {/* Map Section */}
+        {/* Map */}
         <SectionCard title={t('sectionCard.map')}>
-          <Box sx={{ width: '100%' }}>
-            <CustomMap />
-          </Box>
+          <CustomMap />
         </SectionCard>
 
-        {/* Reservation Section */}
+        {/* Reservation */}
         <SectionCard title={t('sectionCard.reservation.title')} asEmpty={!hasReservation}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* Map reservation cards ถ้ามี */}
             {hasReservation && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {tripOverview.reservations
@@ -138,57 +154,40 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
                   .sort((a, b) => (a?.id ?? 0) - (b?.id ?? 0))
                   .flatMap((res) => {
                     if (res.type === 'FLIGHT') {
-                      return (res.details as FlightDetails)?.passengers?.map((_, idx: number) => (
+                      return (res.details as FlightDetails)?.passengers?.map((_, idx) => (
                         <FlightCard
                           key={`${res.id}-${idx}`}
-                          data={{ ...res.details, ...res } as unknown as ReservationDto}
+                          data={{ ...res.details, ...res }}
+                          onClick={() => {
+                            setEditingReservation({ ...res });
+                            openManualReservationDialog();
+                          }}
                         />
                       ));
                     }
 
+                    const commonProps = {
+                      key: res.id,
+                      data: { ...res.details, ...res },
+                      onClick: () => {
+                        setEditingReservation({ ...res });
+                        openManualReservationDialog();
+                      },
+                    };
+
                     switch (res.type) {
                       case 'LODGING':
-                        return (
-                          <LodgingCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
+                        return <LodgingCard {...commonProps} />;
                       case 'RESTAURANT':
-                        return (
-                          <RestaurantCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
+                        return <RestaurantCard {...commonProps} />;
                       case 'TRAIN':
-                        return (
-                          <TrainCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
+                        return <TrainCard {...commonProps} />;
                       case 'BUS':
-                        return (
-                          <BusCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
+                        return <BusCard {...commonProps} />;
                       case 'FERRY':
-                        return (
-                          <FerryCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
+                        return <FerryCard {...commonProps} />;
                       case 'CAR_RENTAL':
-                        return (
-                          <CarRentalCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
+                        return <CarRentalCard {...commonProps} />;
                       default:
                         return null;
                     }
@@ -196,33 +195,22 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
               </Box>
             )}
 
-            {/* ปุ่มเพิ่ม reservation เล็ก ๆ อยู่ข้างล่าง */}
+            {/* Add reservation */}
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <AddItemButton label={t('sectionCard.reservation.button')} />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-35" align="center">
-                  <DropdownMenuItem
-                    className="flex items-center gap-3"
-                    onClick={openManualReservationDialog}
-                  >
+                <DropdownMenuContent align="center">
+                  <DropdownMenuItem onClick={openManualReservationDialog}>
                     <Hand size={18} />
                     {t('sectionCard.reservation.dropdown.Manual')}
                   </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    className="flex items-center gap-3"
-                    onClick={openEmailReservationDialog}
-                  >
+                  <DropdownMenuItem onClick={openEmailReservationDialog}>
                     <Mail size={18} />
                     {t('sectionCard.reservation.dropdown.Email')}
                   </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    className="flex items-center gap-3"
-                    onClick={openUploadReservationDialog}
-                  >
+                  <DropdownMenuItem onClick={openUploadReservationDialog}>
                     <Upload size={18} />
                     {t('sectionCard.reservation.dropdown.Upload')}
                   </DropdownMenuItem>
@@ -232,30 +220,26 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
           </Box>
         </SectionCard>
 
-        {/* Wishlist Section */}
+        {/* Wishlist */}
         <SectionCard
           title={t('sectionCard.wishlistPlace.title')}
           asEmpty={!tripOverview.wishlistPlaces.length}
         >
           {tripOverview.wishlistPlaces.length && !isWishlistPlaceDialogOpened ? (
             <>
-              <Box>
-                <List>
-                  {tripOverview.wishlistPlaces.map((wp) => (
-                    <ListItem
-                      key={wp.place.ggmpId}
-                      alignItems="center"
-                      sx={{ padding: 0, marginBottom: '1rem' }}
-                    >
-                      <WishlistPlaceCard
-                        tripId={tripIdAsNumber}
-                        data={wp}
-                        onOpenDetailAction={() => openWishlistPlaceDetail({ wishlistItem: wp })}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
+              <List>
+                {tripOverview.wishlistPlaces.map((wp) => (
+                  <ListItem key={wp.place.ggmpId} sx={{ p: 0, mb: 2 }}>
+                    <WishlistPlaceCard
+                      tripId={tripIdAsNumber}
+                      data={wp}
+                      onOpenDetailAction={() =>
+                        openWishlistPlaceDetail({ wishlistItem: wp })
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
               <Button variant="contained" onClick={openWishlistPlaceDialog} startIcon={<Plus />}>
                 {t('sectionCard.wishlistPlace.button')}
               </Button>
@@ -263,7 +247,6 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
           ) : (
             WishlistPlaceDialog
           )}
-
           {WishlistPlaceDetailDialog}
         </SectionCard>
       </Box>
@@ -271,9 +254,23 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
       {/* Dialogs */}
       <ManualReservation
         open={isManualReservationDialogOpen}
-        onClose={closeManualReservationDialog}
+        onClose={() => {
+          closeManualReservationDialog();
+          setEditingReservation(undefined);
+        }}
         tripId={tripIdAsNumber}
         onReservationCreated={handleNewReservation}
+        initialReservation={editingReservation}
+      />
+
+      <UploadReservation
+        open={isUploadReservationDialogOpen}
+        onClose={closeUploadReservationDialog}
+      />
+
+      <EmailReservation
+        open={isEmailReservationDialogOpen}
+        onClose={closeEmailReservationDialog}
       />
     </Container>
   );
