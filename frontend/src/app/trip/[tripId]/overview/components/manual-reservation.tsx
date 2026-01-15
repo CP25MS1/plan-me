@@ -29,12 +29,14 @@ import CarRentalCard from '@/app/trip/[tripId]/overview/components/cards/carrent
 import { BackButton } from '@/components/button';
 import { fieldsByType } from './fields-by-type';
 import { ReservationDto, ReservationType, useCreateReservation } from '@/api/reservations';
+import { useUpdateReservation } from '@/app/trip/[tripId]/overview/hooks/reservations/use-update-reservation';
 
 interface ManualReservationProps {
   open: boolean;
   onClose: () => void;
   tripId: number;
   onReservationCreated: (reservation: ReservationDto) => void;
+  initialReservation?: ReservationDto;
 }
 
 export default function ManualReservation({
@@ -42,6 +44,7 @@ export default function ManualReservation({
   onClose,
   tripId,
   onReservationCreated,
+  initialReservation,
 }: ManualReservationProps) {
   const [typeValue, setTypeValue] = useState('');
   const [formData, setFormData] = useState<ReservationDto | null>(null);
@@ -54,16 +57,59 @@ export default function ManualReservation({
 
   const fieldsRef = useRef<Record<string, HTMLDivElement | null>>({});
   const createReservation = useCreateReservation();
+  const updateReservation = useUpdateReservation();
+  const originalRef = useRef<string>('');
+  const isEdit = !!initialReservation?.id;
 
   useEffect(() => {
-    if (open) {
-      setTypeValue('');
-      setFormData(null);
-      setErrors(null);
-      setShowPreview(false);
-      setPassengers([{ name: '', seatNumber: '' }]);
+    if (open && initialReservation) {
+      const uiType: Record<ReservationType, string> = {
+        LODGING: 'Lodging',
+        RESTAURANT: 'Restaurant',
+        FLIGHT: 'Flight',
+        TRAIN: 'Train',
+        BUS: 'Bus',
+        FERRY: 'Ferry',
+        CAR_RENTAL: 'CarRental',
+      };
+
+      const mappedType = uiType[initialReservation.type];
+
+      setTypeValue(mappedType);
+      setFormData({
+        ...initialReservation,
+        ...initialReservation.details,
+      });
+
+      if (initialReservation.type === 'FLIGHT') {
+        setPassengers(
+          initialReservation.details.passengers.map((p) => ({
+            name: p.passengerName,
+            seatNumber: p.seatNo,
+          }))
+        );
+      }
+
+      // 🔴 snapshot ไว้เทียบทีหลัง
+      originalRef.current = JSON.stringify({
+        typeValue: mappedType,
+        formData: {
+          ...initialReservation,
+          ...initialReservation.details,
+        },
+        passengers:
+          initialReservation.type === 'FLIGHT' ? initialReservation.details.passengers : [],
+      });
     }
-  }, [open]);
+  }, [open, initialReservation]);
+
+  const hasChanges =
+    originalRef.current !==
+    JSON.stringify({
+      typeValue,
+      formData,
+      passengers,
+    });
 
   const handleChange = (name: string, val: string) => {
     setFormData((prev) => {
@@ -138,34 +184,40 @@ export default function ManualReservation({
   };
 
   const handleConfirm = () => {
-    if (!tripId) {
-      console.error('Missing tripId');
-      return;
-    }
+    if (!typeValue) return;
 
-    if (!typeValue) {
-      console.error('Missing reservation type');
-      return;
-    }
-
-    const payload = {
-      tripId: tripId,
-      ggmpId: formData?.ggmpId || null,
-      bookingRef: formData?.bookingRef || '',
-      contactTel: formData?.contactTel || '',
-      contactEmail: formData?.contactEmail || '',
+    const payload: ReservationDto = {
+      id: initialReservation?.id,
+      tripId,
+      ggmpId: formData?.ggmpId ?? null,
+      bookingRef: formData?.bookingRef ?? '',
+      contactTel: formData?.contactTel ?? '',
+      contactEmail: formData?.contactEmail ?? '',
       cost: Number(formData?.cost) || 0,
       type: typeMap[typeValue],
-      details: { type: typeMap[typeValue], ...buildDetails() },
+      details: {
+        type: typeMap[typeValue],
+        ...buildDetails(),
+      },
     };
-    createReservation.mutate(payload as unknown as ReservationDto, {
+
+    if (isEdit) {
+      if (!hasChanges) return;
+
+      updateReservation.mutate(payload, {
+        onSuccess: () => {
+          onClose();
+          setShowPreview(false);
+        },
+      });
+      return;
+    }
+
+    createReservation.mutate(payload, {
       onSuccess: (data) => {
         onClose();
         setShowPreview(false);
         onReservationCreated(data);
-      },
-      onError: (err) => {
-        console.error('Create reservation failed', err);
       },
     });
   };
@@ -502,13 +554,14 @@ export default function ManualReservation({
           <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pb: 2, mt: 2 }}>
             <Button
               variant="contained"
+              disabled={isEdit && !hasChanges}
               sx={{
                 borderRadius: 5,
                 px: 3,
                 textTransform: 'none',
                 boxShadow: 'none',
                 color: '#fff',
-                bgcolor: '#25CF7A',
+                bgcolor: isEdit && !hasChanges ? '#B0B0B0' : '#25CF7A',
               }}
               onClick={handleConfirm}
             >
