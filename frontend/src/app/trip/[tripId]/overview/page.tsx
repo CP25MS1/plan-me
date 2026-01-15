@@ -37,10 +37,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-import {
-  FlightDetails,
-  ReservationDto,
-} from '@/api/reservations/type';
+import { FlightDetails, ReservationDto } from '@/api/reservations/type';
 
 import LodgingCard from './components/cards/lodging';
 import RestaurantCard from './components/cards/restaurant';
@@ -65,11 +62,15 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
   const [isUploadReservationDialogOpen, setUploadReservationDialogOpen] = useState(false);
   const [isEmailReservationDialogOpen, setEmailReservationDialogOpen] = useState(false);
 
-  // ⭐ state สำหรับ Edit reservation
-  const [editingReservation, setEditingReservation] =
-    useState<ReservationDto | undefined>(undefined);
+  // state สำหรับ Edit reservation
+  const [editingReservation, setEditingReservation] = useState<ReservationDto | undefined>(
+    undefined
+  );
 
-  const openManualReservationDialog = () => setManualReservationDialogOpen(true);
+  const openManualReservationDialog = () => {
+    setEditingReservation(undefined);
+    setManualReservationDialogOpen(true);
+  };
   const closeManualReservationDialog = () => setManualReservationDialogOpen(false);
 
   const openUploadReservationDialog = () => setUploadReservationDialogOpen(true);
@@ -92,10 +93,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
   const { Dialog: WishlistPlaceDetailDialog, openWithProps: openWishlistPlaceDetail } =
     useFullScreenDialog<{ wishlistItem: WishlistPlace }>({
       Content: ({ wishlistItem, onCloseAction }) => (
-        <WishlistPlaceDetailContent
-          wishlistItem={wishlistItem}
-          onCloseAction={onCloseAction}
-        />
+        <WishlistPlaceDetailContent wishlistItem={wishlistItem} onCloseAction={onCloseAction} />
       ),
     });
 
@@ -116,8 +114,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
 
   if (isLoading || !tripOverview) return <FullPageLoading />;
 
-  const hasReservation =
-    tripOverview.reservations && tripOverview.reservations.length > 0;
+  const hasReservation = tripOverview.reservations && tripOverview.reservations.length > 0;
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
@@ -131,9 +128,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
         onUpdateDates={(start, end) =>
           handleSave({ ...tripOverview, startDate: start, endDate: end })
         }
-        onUpdateObjectives={(objectives) =>
-          handleSave({ ...tripOverview, objectives })
-        }
+        onUpdateObjectives={(objectives) => handleSave({ ...tripOverview, objectives })}
       />
 
       <OverviewTabs value={0} onChange={() => {}} />
@@ -154,17 +149,44 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
                   .sort((a, b) => (a?.id ?? 0) - (b?.id ?? 0))
                   .flatMap((res) => {
                     if (res.type === 'FLIGHT') {
-                      return (res.details as FlightDetails)?.passengers?.map((_, idx) => (
-                        <FlightCard
+                      const flightDetails = res.details as FlightDetails | undefined;
+                      return flightDetails?.passengers?.map((_, idx) => (
+                        <Box
                           key={`${res.id}-${idx}`}
-                          data={{ ...res.details, ...res }}
                           onClick={() => {
                             setEditingReservation({ ...res });
                             openManualReservationDialog();
                           }}
-                        />
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <FlightCard data={{ ...flightDetails, ...res }} />
+                        </Box>
                       ));
                     }
+
+                    return (
+                      <Box
+                        key={res.id}
+                        onClick={() => {
+                          setEditingReservation({ ...res });
+                          openManualReservationDialog();
+                        }}
+                        sx={{ cursor: 'pointer' }}
+                      >
+                        {res.type === 'LODGING' && (
+                          <LodgingCard data={{ ...res.details, ...res }} />
+                        )}
+                        {res.type === 'RESTAURANT' && (
+                          <RestaurantCard data={{ ...res.details, ...res }} />
+                        )}
+                        {res.type === 'TRAIN' && <TrainCard data={{ ...res.details, ...res }} />}
+                        {res.type === 'BUS' && <BusCard data={{ ...res.details, ...res }} />}
+                        {res.type === 'FERRY' && <FerryCard data={{ ...res.details, ...res }} />}
+                        {res.type === 'CAR_RENTAL' && (
+                          <CarRentalCard data={{ ...res.details, ...res }} />
+                        )}
+                      </Box>
+                    );
 
                     const commonProps = {
                       key: res.id,
@@ -233,9 +255,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
                     <WishlistPlaceCard
                       tripId={tripIdAsNumber}
                       data={wp}
-                      onOpenDetailAction={() =>
-                        openWishlistPlaceDetail({ wishlistItem: wp })
-                      }
+                      onOpenDetailAction={() => openWishlistPlaceDetail({ wishlistItem: wp })}
                     />
                   </ListItem>
                 ))}
@@ -268,10 +288,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
         onClose={closeUploadReservationDialog}
       />
 
-      <EmailReservation
-        open={isEmailReservationDialogOpen}
-        onClose={closeEmailReservationDialog}
-      />
+      <EmailReservation open={isEmailReservationDialogOpen} onClose={closeEmailReservationDialog} />
     </Container>
   );
 };
