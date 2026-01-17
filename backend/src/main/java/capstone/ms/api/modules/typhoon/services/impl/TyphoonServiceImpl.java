@@ -1,10 +1,10 @@
 package capstone.ms.api.modules.typhoon.services.impl;
 
+import capstone.ms.api.common.exceptions.ServerErrorException;
 import capstone.ms.api.modules.typhoon.configs.TyphoonProps;
 import capstone.ms.api.modules.typhoon.dto.ChatMessage;
 import capstone.ms.api.modules.typhoon.dto.ChatRequest;
 import capstone.ms.api.modules.typhoon.services.TyphoonService;
-import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import com.openai.client.OpenAIClient;
 import com.openai.models.ChatModel;
@@ -31,7 +31,6 @@ public class TyphoonServiceImpl implements TyphoonService {
     private final OpenAIClient typhoonBaseClient;
     private final TyphoonProps typhoonProps;
     private final OkHttpClient ocrClient = new OkHttpClient();
-    private final Gson gson = new Gson();
 
     @Override
     public Flux<String> streamChat(ChatRequest req) {
@@ -48,7 +47,10 @@ public class TyphoonServiceImpl implements TyphoonService {
     }
 
     private List<ChatCompletionMessageParam> toSdkMessages(ChatRequest req) {
-        if (req == null || req.messages() == null) return List.of();
+        if (req == null || req.messages() == null || req.messages().isEmpty()) {
+            throw new ServerErrorException("reservation.email.500");
+        }
+
         return req.messages().stream()
                 .map(this::toSdkMessage)
                 .toList();
@@ -65,6 +67,31 @@ public class TyphoonServiceImpl implements TyphoonService {
                 .topP(req == null || req.topP() == null ? 0.9 : req.topP())
                 .frequencyPenalty(req == null || req.frequencyPenalty() == null ? 0.0 : req.frequencyPenalty())
                 .build();
+    }
+
+    private ChatCompletionMessageParam toSdkMessage(ChatMessage m) {
+        String role = (m == null || m.role() == null) ? "user" : m.role().toLowerCase();
+        String content = (m == null || m.content() == null) ? "" : m.content();
+
+        if ("system".equals(role)) {
+            return ChatCompletionMessageParam.ofSystem(
+                    com.openai.models.chat.completions.ChatCompletionSystemMessageParam.builder()
+                            .content(content)
+                            .build()
+            );
+        } else if ("assistant".equals(role)) {
+            return ChatCompletionMessageParam.ofAssistant(
+                    com.openai.models.chat.completions.ChatCompletionAssistantMessageParam.builder()
+                            .content(content)
+                            .build()
+            );
+        } else {
+            return ChatCompletionMessageParam.ofUser(
+                    com.openai.models.chat.completions.ChatCompletionUserMessageParam.builder()
+                            .content(content)
+                            .build()
+            );
+        }
     }
 
     private String extractContentFromResponse(Object resp) {
@@ -123,31 +150,6 @@ public class TyphoonServiceImpl implements TyphoonService {
         return null;
     }
 
-    private ChatCompletionMessageParam toSdkMessage(ChatMessage m) {
-        String role = (m == null || m.role() == null) ? "user" : m.role().toLowerCase();
-        String content = (m == null || m.content() == null) ? "" : m.content();
-
-        if ("system".equals(role)) {
-            return ChatCompletionMessageParam.ofSystem(
-                    com.openai.models.chat.completions.ChatCompletionSystemMessageParam.builder()
-                            .content(content)
-                            .build()
-            );
-        } else if ("assistant".equals(role)) {
-            return ChatCompletionMessageParam.ofAssistant(
-                    com.openai.models.chat.completions.ChatCompletionAssistantMessageParam.builder()
-                            .content(content)
-                            .build()
-            );
-        } else {
-            return ChatCompletionMessageParam.ofUser(
-                    com.openai.models.chat.completions.ChatCompletionUserMessageParam.builder()
-                            .content(content)
-                            .build()
-            );
-        }
-    }
-
     @Override
     public String ocr(MultipartFile file) {
         try {
@@ -160,12 +162,12 @@ public class TyphoonServiceImpl implements TyphoonService {
             RequestBody requestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart("file", Objects.requireNonNullElse(file.getOriginalFilename(), "file"), fileBody)
-                    .addFormDataPart("model", "typhoon-ocr")
+                    .addFormDataPart("model", "typhoon-ocr-preview")
                     .addFormDataPart("task_type", "default")
-                    .addFormDataPart("max_tokens", "16000")
-                    .addFormDataPart("temperature", "0.0")
-                    .addFormDataPart("top_p", "1.0")
-                    .addFormDataPart("repetition_penalty", "1.0")
+                    .addFormDataPart("max_tokens", "16384")
+                    .addFormDataPart("temperature", "0.1")
+                    .addFormDataPart("top_p", "0.6")
+                    .addFormDataPart("repetition_penalty", "1.2")
                     .build();
 
             Request request = new Request.Builder()
@@ -178,10 +180,13 @@ public class TyphoonServiceImpl implements TyphoonService {
                 String bodyString = response.body().string();
                 if (response.isSuccessful()) {
                     var json = JsonParser.parseString(bodyString);
-                    if (json.isJsonObject() && json.getAsJsonObject().has("text")) {
-                        return json.getAsJsonObject().get("text").getAsString();
-                    }
-                    return bodyString;
+                    var contentObj = json.getAsJsonObject().get("results").getAsJsonArray().get(0)
+                            .getAsJsonObject().get("message")
+                            .getAsJsonObject()
+                            .get("choices").getAsJsonArray().get(0)
+                            .getAsJsonObject().get("message")
+                            .getAsJsonObject().get("content");
+                    return contentObj.getAsString();
                 }
             }
         } catch (IOException e) {
