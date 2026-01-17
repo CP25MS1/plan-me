@@ -69,6 +69,10 @@ reservation:
   404:
     th: "ไม่พบข้อมูลการจองนี้ในระบบ"
     en: "This reservation is not found in the system."
+  email:
+    500:
+      th: "เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก"
+      en: "An error occurred, or the email content does not match the selected booking type."
 
 email:
   500:

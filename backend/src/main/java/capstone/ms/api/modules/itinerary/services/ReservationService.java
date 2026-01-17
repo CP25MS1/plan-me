@@ -3,28 +3,19 @@ package capstone.ms.api.modules.itinerary.services;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.common.exceptions.ServerErrorException;
-import capstone.ms.api.modules.email.services.EmailParser;
-import capstone.ms.api.modules.email.services.EmailService;
-import capstone.ms.api.modules.email.services.ImapEmailFetcher;
+import capstone.ms.api.modules.email.dto.EmailInfoDto;
+import capstone.ms.api.modules.email.services.EmailInboxService;
 import capstone.ms.api.modules.itinerary.dto.reservation.*;
 import capstone.ms.api.modules.itinerary.entities.*;
 import capstone.ms.api.modules.itinerary.mappers.ReservationMapper;
 import capstone.ms.api.modules.itinerary.repositories.*;
-import capstone.ms.api.modules.typhoon.dto.ChatMessage;
-import capstone.ms.api.modules.typhoon.dto.ChatRequest;
-import capstone.ms.api.modules.typhoon.services.TyphoonService;
 import capstone.ms.api.modules.user.entities.User;
-import jakarta.mail.Folder;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Store;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -40,10 +31,7 @@ public class ReservationService {
     private final FerryReservationRepository ferryRepository;
     private final CarRentalReservationRepository carRentalRepository;
     private final ReservationMapper reservationMapper;
-    private final ImapEmailFetcher emailFetcher;
-    private EmailService emailService;
-    private EmailParser emailParser;
-    private TyphoonService typhoonService;
+    private final EmailInboxService emailInboxService;
 
     private Trip loadTripOrThrow(final Integer tripId) {
         return tripRepository.findById(tripId)
@@ -263,147 +251,12 @@ public class ReservationService {
     }
 
     public List<EmailInfoDto> checkEmailInfo(Integer tripId, User currentUser) {
-        Trip trip = loadTripOrThrow(tripId);
-        ensureOwnerOrThrow(currentUser, trip);
-
-        String alias = String.valueOf(tripId);
-        String toAddress = emailService.buildAddressWithAlias(alias);
-
-        Map<String, String> criteria = new HashMap<>();
-        criteria.put("TO", toAddress);
-        criteria.put("UNREAD", "true");
-
-        try (Store store = emailService.openImapStore()
-                .orElseThrow(() -> new ServerErrorException("email.500.notOpenIMAP"))) {
-
-            Folder inbox = store.getFolder("INBOX");
-            inbox.open(Folder.READ_ONLY);
-
-            Message[] messages = inbox.search(emailService.buildSearchTerm(criteria).orElse(null));
-
-            return Arrays.stream(messages)
-                    .map(msg -> {
-                        try {
-                            if (msg.getSentDate() == null) return null;
-                            return EmailInfoDto.builder()
-                                    .emailId(msg.getMessageNumber())
-                                    .sentAt(msg.getSentDate().toString())
-                                    .subject(msg.getSubject())
-                                    .build();
-                        } catch (MessagingException e) {
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .toList();
-
-        } catch (Exception e) {
-            throw new ServerErrorException("email.500.fetchEmail");
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+        if (!trip.getOwner().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("trip.403");
         }
+
+        return emailInboxService.listUnreadEmailInfo(tripId);
     }
-
-    public List<String> previewReservation(Integer tripId, List<ReservationPreviewRequest> previewRequests, User currentUser) {
-        Trip trip = loadTripOrThrow(tripId);
-        ensureOwnerOrThrow(currentUser, trip);
-
-        List<Integer> messageNumbers = previewRequests.stream()
-                .map(ReservationPreviewRequest::getEmailId)
-                .toList();
-
-        Map<Integer, Message> messages = emailFetcher.fetchDetachedMessagesByNumbers(messageNumbers);
-
-        return previewRequests.stream()
-                .map(req -> {
-                    Integer emailId = req.getEmailId();
-                    String type = req.getType().toUpperCase();
-                    Message msg = messages.get(emailId);
-
-                    String emailText = emailParser.getTextFromMessage(msg);
-
-                    var mapperRequest = createReservationMapperRequest(emailText, type);
-                    var res = typhoonService.streamChat(mapperRequest)
-                            .collectList()
-                            .map(list -> String.join("", list))
-                            .block();
-
-                    if (res != null && res.contains("\"valid\":false")) {
-                        var attachments = emailFetcher.fetchAttachmentsAsMultipartFiles(messageNumbers);
-                    }
-                    return res;
-                })
-                .toList();
-    }
-
-    private ChatRequest createReservationMapperRequest(final String input, final String type) {
-        ChatMessage systemInstruction = ChatMessage.builder()
-                .role("system")
-                .content("""
-                        You are a compact, strict JSON extractor. \s
-                        Input: a raw email text and a reservation type (one of: LODGING, RESTAURANT, FLIGHT, TRAIN, BUS, FERRY, CAR_RENTAL).
-                        
-                        Task: extract reservation fields according to the schemas below, include top-level fields, include details for the given type, validate required fields, and output ONLY ONE JSON object. No prose, no extra characters.
-                        
-                        Exact output (one of):
-                        { "data": { "type": "...", "bookingRef": null|string, "contactTel": null|string, "contactEmail": null|string, "cost": number|null, "details": { ... } }, "valid": true }
-                        or
-                        { "data": { ... }, "valid": false, "missing": ["path","path" , ...] }
-                        
-                        Rules:
-                        - Always return top-level keys inside "data": "type", "bookingRef", "contactTel", "contactEmail", "cost", "details".
-                        - `cost` is required across types. If found parse as number (≥0). If parse fails or not found set to null and list "cost" in "missing".
-                        - Map only fields relevant to provided `type` into `data.details`.
-                        - For required fields missing after extraction, add JSON paths to "missing". Use paths like "details.restaurantName" or top-level "cost".
-                        - If any required field missing → set "valid": false and include "missing". If none missing → "valid": true and omit "missing".
-                        - Dates normalization:
-                          - date-time → ISO 8601 (YYYY-MM-DDTHH:MM:SSZ or with offset).
-                          - date → YYYY-MM-DD.
-                          - time → HH:MM:SS.
-                        - Strings: trim whitespace. If over max length, truncate to the max.
-                        - `contactTel`: extract digits only. If more than 10 digits, keep the last 10. If none → null.
-                        - `contactEmail`: lowercase, basic email pattern check; truncate to 80 chars. If invalid → null.
-                        - `bookingRef`: string or null.
-                        - Arrays (e.g., passengers): return array of parsed objects or omit if none.
-                        - Optional fields: **include** them in `details` if explicitly present in raw text (even embedded in sentences). Try common synonyms and patterns (e.g., "table 5", "tbl#5", "queue Q18", "party of 4", currency like "THB 2,800", "total 2800").
-                        - Extraction confidence: include optional field when text explicitly mentions it; do not invent values. For inferred times/dates (e.g., "7:30 PM") convert to HH:MM:SS.
-                        - For fields that fail parsing (e.g., date parse error), set value to null and include in "missing" if required.
-                        - Keep output minimal. The only allowed diagnostic key is "missing" when valid is false.
-                        
-                        Type-specific required fields (put under data.details):
-                        - LODGING: lodgingName, lodgingAddress, underName, checkinDate, checkoutDate
-                        - RESTAURANT: restaurantName, restaurantAddress, underName, reservationDate
-                          - optional but include if present: reservationTime, tableNo, queueNo, partySize
-                        - FLIGHT: airline, flightNo, departureAirport, departureTime, arrivalAirport, arrivalTime
-                          - optional: boardingTime, gateNo, flightClass, passengers (array of {passengerName, seatNo})
-                        - TRAIN: trainNo, trainClass, seatClass, seatNo, passengerName, departureStation, departureTime, arrivalStation, arrivalTime
-                        - BUS: transportCompany, departureStation, departureTime, arrivalStation, passengerName, seatNo
-                          - optional: busClass
-                        - FERRY: transportCompany, passengerName, departurePort, departureTime, arrivalPort, arrivalTime, ticketType
-                        - CAR_RENTAL: rentalCompany, carModel, vrn, renterName, pickupLocation, pickupTime, dropoffLocation, dropoffTime
-                        
-                        Strict: produce ONLY the JSON object described. No explanations, no surrounding code fences.
-                        """)
-                .build();
-
-        ChatMessage inputInstruction = ChatMessage.builder()
-                .role("user")
-                .content(String.format("""
-                        Parse the reservation from this email.
-                        ```
-                        RAW_TEXT: %s
-                        type: %s                # one of: LODGING, RESTAURANT, FLIGHT, TRAIN, BUS, FERRY, CAR_RENTAL
-                        ```
-                        Return exactly one JSON object as specified by the system rules.
-                        """, input, type))
-                .build();
-
-        return ChatRequest.builder()
-                .model("typhoon-v2.5-30b-a3b-instruct")
-                .messages(List.of(systemInstruction, inputInstruction))
-                .temperature(0.1)
-                .maxTokens(1024)
-                .topP(0.8)
-                .frequencyPenalty(0.0)
-                .build();
-    }
-
 }

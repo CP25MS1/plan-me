@@ -2,14 +2,15 @@ package capstone.ms.api.modules.email.services;
 
 import capstone.ms.api.modules.email.clients.ImapStoreProvider;
 import capstone.ms.api.modules.email.configs.EmailProperties;
-import capstone.ms.api.modules.email.dto.EmailData;
-import jakarta.mail.*;
+import jakarta.mail.Flags;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Store;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.search.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,8 +21,6 @@ import java.util.stream.Collectors;
 public class EmailService {
     private final EmailProperties props;
     private final ImapStoreProvider storeProvider;
-    private final EmailParser parser;
-
 
     public String buildAddressWithAlias(final String alias) {
         if (alias == null) return props.getUser();

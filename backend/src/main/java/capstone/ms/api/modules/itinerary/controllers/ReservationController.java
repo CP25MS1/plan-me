@@ -1,9 +1,10 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
 import capstone.ms.api.common.exceptions.BadRequestException;
-import capstone.ms.api.modules.itinerary.dto.reservation.EmailInfoDto;
+import capstone.ms.api.modules.email.dto.EmailInfoDto;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationPreviewRequest;
+import capstone.ms.api.modules.itinerary.services.ReservationExtractionService;
 import capstone.ms.api.modules.itinerary.services.ReservationService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ReservationController {
     private final ReservationService reservationService;
+    private final ReservationExtractionService reservationExtractionService;
 
     @PostMapping
     public ResponseEntity<ReservationDto> createReservation(@Valid @RequestBody ReservationDto dto,
@@ -27,6 +29,16 @@ public class ReservationController {
     ) {
         ReservationDto created = reservationService.createReservation(dto, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @PostMapping("/bulk")
+    public ResponseEntity<List<ReservationDto>> createReservations(@Valid @RequestBody List<ReservationDto> dtoList,
+                                                                   @AuthenticationPrincipal User currentUser
+    ) {
+        List<ReservationDto> created = dtoList.stream()
+                .map(dto -> reservationService.createReservation(dto, currentUser))
+                .toList();
+        return ResponseEntity.status((HttpStatus.CREATED)).body(created);
     }
 
     @PutMapping("/{reservationId}")
@@ -47,10 +59,10 @@ public class ReservationController {
     }
 
     @PostMapping("/emails/preview")
-    public ResponseEntity<List<String>> previewReservation(@Valid @RequestParam Integer tripId,
-                                                           @Valid @RequestBody List<ReservationPreviewRequest> previewRequest,
-                                                           @AuthenticationPrincipal User currentUser) {
-        var previewResults = reservationService.previewReservation(tripId, previewRequest, currentUser);
+    public ResponseEntity<List<ReservationDto>> previewReservation(@Valid @RequestParam Integer tripId,
+                                                                   @Valid @RequestBody List<ReservationPreviewRequest> previewRequest,
+                                                                   @AuthenticationPrincipal User currentUser) {
+        var previewResults = reservationExtractionService.previewReservations(tripId, previewRequest, currentUser);
         return ResponseEntity.ok(previewResults);
     }
 }
