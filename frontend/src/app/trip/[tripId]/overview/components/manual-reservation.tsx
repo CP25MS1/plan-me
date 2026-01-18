@@ -90,7 +90,6 @@ export default function ManualReservation({
         );
       }
 
-      // 🔴 snapshot ไว้เทียบทีหลัง
       originalRef.current = JSON.stringify({
         typeValue: mappedType,
         formData: {

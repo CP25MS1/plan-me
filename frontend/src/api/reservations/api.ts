@@ -18,6 +18,11 @@ export const updateReservation = async (
   return data;
 };
 
+/** Delete an existing reservation */
+export const deleteReservation = async (reservationId: number): Promise<void> => {
+  await apiClient.delete(`/reservations/${reservationId}`);
+};
+
 /** GET /reservations/emails/check-info */
 export const getReservationEmailInfo = async (tripId: number): Promise<ReservationEmailInfo[]> => {
   const { data } = await apiClient.get('/reservations/emails/check-info', {
