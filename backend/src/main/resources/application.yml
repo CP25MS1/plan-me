@@ -69,6 +69,11 @@ mail:
     prefer-html: true # prefer HTML parts when alternative exists
     max-attachment-size: 10485760 # 10MB
 
+typhoon:
+  base-url: "https://api.opentyphoon.ai/v1"
+  ocr-url: "https://api.opentyphoon.ai/v1/ocr"
+  api-key: "${TYPHOON_API_KEY:}"
+
 ocr:
   service:
     url: http://localhost:8000/ocr

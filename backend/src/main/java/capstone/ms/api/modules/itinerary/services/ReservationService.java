@@ -3,30 +3,24 @@ package capstone.ms.api.modules.itinerary.services;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.email.services.EmailService;
-import capstone.ms.api.modules.itinerary.dto.*;
+import capstone.ms.api.modules.email.dto.EmailInfoDto;
+import capstone.ms.api.modules.email.services.EmailInboxService;
+import capstone.ms.api.modules.itinerary.dto.reservation.*;
 import capstone.ms.api.modules.itinerary.entities.*;
 import capstone.ms.api.modules.itinerary.mappers.ReservationMapper;
 import capstone.ms.api.modules.itinerary.repositories.*;
 import capstone.ms.api.modules.user.entities.User;
-import jakarta.mail.Folder;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class ReservationService {
-    private EmailService emailService;
-
     private final TripRepository tripRepository;
     private final ReservationRepository reservationRepository;
     private final LodgingReservationRepository lodgingRepository;
@@ -36,8 +30,8 @@ public class ReservationService {
     private final BusReservationRepository busRepository;
     private final FerryReservationRepository ferryRepository;
     private final CarRentalReservationRepository carRentalRepository;
-
     private final ReservationMapper reservationMapper;
+    private final EmailInboxService emailInboxService;
 
     private Trip loadTripOrThrow(final Integer tripId) {
         return tripRepository.findById(tripId)
@@ -182,7 +176,7 @@ public class ReservationService {
             case "LODGING": {
                 LodgingDetails details = (LodgingDetails) dto.getDetails();
                 LodgingReservation entity = lodgingRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("lodging.404"));
                 reservationMapper.updateLodgingEntityFromDto(details, entity);
                 lodgingRepository.save(entity);
                 break;
@@ -190,7 +184,7 @@ public class ReservationService {
             case "FLIGHT": {
                 FlightDetails details = (FlightDetails) dto.getDetails();
                 FlightReservation entity = flightRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("flight.404"));
 
                 reservationMapper.updateFlightEntityFromDto(details, entity);
 
@@ -200,7 +194,7 @@ public class ReservationService {
             case "RESTAURANT": {
                 RestaurantDetails details = (RestaurantDetails) dto.getDetails();
                 RestaurantReservation entity = restaurantRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("restaurant.404"));
                 reservationMapper.updateRestaurantEntityFromDto(details, entity);
                 restaurantRepository.save(entity);
                 break;
@@ -208,7 +202,7 @@ public class ReservationService {
             case "TRAIN": {
                 TrainDetails details = (TrainDetails) dto.getDetails();
                 TrainReservation entity = trainRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("train.404"));
                 reservationMapper.updateTrainEntityFromDto(details, entity);
                 trainRepository.save(entity);
                 break;
@@ -216,7 +210,7 @@ public class ReservationService {
             case "BUS": {
                 BusDetails details = (BusDetails) dto.getDetails();
                 BusReservation entity = busRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("bus.404"));
                 reservationMapper.updateBusEntityFromDto(details, entity);
                 busRepository.save(entity);
                 break;
@@ -224,7 +218,7 @@ public class ReservationService {
             case "FERRY": {
                 FerryDetails details = (FerryDetails) dto.getDetails();
                 FerryReservation entity = ferryRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("ferry.404"));
                 reservationMapper.updateFerryEntityFromDto(details, entity);
                 ferryRepository.save(entity);
                 break;
@@ -232,7 +226,7 @@ public class ReservationService {
             case "CAR_RENTAL": {
                 CarRentalDetails details = (CarRentalDetails) dto.getDetails();
                 CarRentalReservation entity = carRentalRepository.findById(reservationId)
-                        .orElseThrow(() -> new NotFoundException("reservation.404"));
+                        .orElseThrow(() -> new NotFoundException("car_rental.404"));
                 reservationMapper.updateCarRentalEntityFromDto(details, entity);
                 carRentalRepository.save(entity);
                 break;
@@ -256,70 +250,13 @@ public class ReservationService {
         throw new BadRequestException("reservation.400");
     }
 
-    @Transactional
-    public void deleteReservation(Integer reservationId, User currentUser) {
-        Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new NotFoundException("reservation.404"));
-
-        ensureOwnerOrThrow(currentUser, reservation.getTrip());
-        ReservationType type;
-        try {
-            type = ReservationType.valueOf(String.valueOf(reservation.getType()));
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("reservation.400");
+    public List<EmailInfoDto> checkEmailInfo(Integer tripId, User currentUser) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+        if (!trip.getOwner().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("trip.403");
         }
 
-        switch (type) {
-            case LODGING:
-                lodgingRepository.findById(reservationId)
-                        .ifPresent(lodgingRepository::delete);
-                break;
-            case FLIGHT:
-                flightRepository.findById(reservationId)
-                        .ifPresent(flightRepository::delete);
-                break;
-            case RESTAURANT:
-                restaurantRepository.findById(reservationId)
-                        .ifPresent(restaurantRepository::delete);
-                break;
-            case TRAIN:
-                trainRepository.findById(reservationId)
-                        .ifPresent(trainRepository::delete);
-                break;
-            case BUS:
-                busRepository.findById(reservationId)
-                        .ifPresent(busRepository::delete);
-                break;
-            case FERRY:
-                ferryRepository.findById(reservationId)
-                        .ifPresent(ferryRepository::delete);
-                break;
-            case CAR_RENTAL:
-                carRentalRepository.findById(reservationId)
-                        .ifPresent(carRentalRepository::delete);
-                break;
-            default:
-                throw new BadRequestException("reservation.400");
-        }
-
-        reservationRepository.delete(reservation);
-    }
-
-    public void addImportedEmails(final String itineraryId) {
-        try (var store = emailService.openImapStore().orElseThrow()) {
-            final Folder inbox = store.getFolder("INBOX");
-            inbox.open(Folder.READ_WRITE);
-
-            final String to = emailService.buildAddressWithAlias(itineraryId);
-            final var criteria = Map.of("TO", to, "UNREAD", "TRUE");
-            var searchTerm = emailService.buildSearchTerm(criteria).orElseThrow();
-
-            final Message[] emails = inbox.search(searchTerm);
-            final var emailMap = emailService.mapMessagesById(emails);
-
-            final var emailData = emailService.extractEmailData(emailMap);
-        } catch (MessagingException e) {
-            log.info("Error accessing inbox: {}", e.getMessage());
-        }
+        return emailInboxService.listUnreadEmailInfo(tripId);
     }
 }
