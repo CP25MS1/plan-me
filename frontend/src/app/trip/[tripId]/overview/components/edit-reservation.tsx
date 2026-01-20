@@ -14,6 +14,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
+import { updateReservation as updateReservationAction } from '@/store/trip-detail-slice';
 
 import { ReservationDto, ReservationType } from '@/api/reservations/type';
 import { useUpdateReservation } from '@/app/trip/[tripId]/overview/hooks/reservations/use-update-reservation';
@@ -52,7 +54,7 @@ export default function EditReservation({
   const [passengers, setPassengers] = useState<{ name: string; seatNumber: string }[]>([]);
 
   const originalRef = useRef<string>('');
-
+  const dispatch = useDispatch();
   useEffect(() => {
     if (!open) return;
 
@@ -125,7 +127,10 @@ export default function EditReservation({
     };
 
     updateReservation.mutate(payload, {
-      onSuccess: onClose,
+      onSuccess: (updatedReservation) => {
+        dispatch(updateReservationAction(updatedReservation));
+        onClose();
+      },
     });
   };
 
