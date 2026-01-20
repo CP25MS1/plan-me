@@ -95,7 +95,7 @@ export default function BusCard({ data }: { data: ReservationDto | null }) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Bus size={18} color="#25CF7A" />
           <Typography variant="subtitle2" sx={{ fontSize: '13px', fontWeight: 700 }}>
-            รถบัส
+            รถทัวร์
           </Typography>
         </Box>
 

@@ -2,12 +2,15 @@
 
 import { use, useCallback, useState } from 'react';
 import { Container, Box, List, ListItem, Button } from '@mui/material';
-import { Plus } from 'lucide-react';
+import { Plus, Hand, Mail, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { Hand, Mail, Upload } from 'lucide-react';
-import ManualReservation from './components/manual-reservation';
 
+import ManualReservation from './components/manual-reservation';
+import EditReservation from './components/edit-reservation';
+import UploadReservation from './components/upload-reservation';
+import EmailReservation from './components/email-reservation';
+import { removeReservation } from '@/store/trip-detail-slice';
 import OverviewHeader from '@/components/trip/overview/overview-header';
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
 import SectionCard from '@/components/trip/overview/section-card';
@@ -18,19 +21,23 @@ import { useFullScreenDialog } from '@/components/common/dialog';
 
 import useGetTripOverview from '../hooks/use-get-trip-overview';
 import useUpdateTripOverview from '../hooks/use-update-trip-overview';
+
 import { UpsertTrip, WishlistPlace } from '@/api/trips';
 import {
   SearchAddWishlistPlace,
   WishlistPlaceCard,
   WishlistPlaceDetailContent,
 } from './components';
+
 import { addReservation, setTripOverview } from '@/store/trip-detail-slice';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
 import { FlightDetails, ReservationDto } from '@/api/reservations/type';
 
 import LodgingCard from './components/cards/lodging';
@@ -40,28 +47,72 @@ import TrainCard from './components/cards/train';
 import BusCard from './components/cards/bus';
 import FerryCard from './components/cards/ferry';
 import CarRentalCard from './components/cards/carrental';
+import { Typography, IconButton } from '@mui/material';
+import { Trash2 } from 'lucide-react';
+import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
+import { SwipeReveal } from '@/components/common/card';
+import { useDeleteReservation } from '@/app/trip/[tripId]/overview/hooks/reservations/use-delete-reservation';
 
 const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) => {
   const dispatch = useDispatch();
   const { tripId } = use(params);
   const tripIdAsNumber = Number(tripId);
+  const { mutate: deleteReservation, isPending } = useDeleteReservation();
+
   const { overview: tripOverview, isLoading } = useGetTripOverview(tripIdAsNumber);
   const { FullPageLoading } = useFullPageLoading();
   const { mutate: updateTrip } = useUpdateTripOverview(tripIdAsNumber);
   const { t } = useTranslation('trip_overview');
 
-  // Dialog states
+  // ===== Dialog states =====
   const [isManualReservationDialogOpen, setManualReservationDialogOpen] = useState(false);
   const [isUploadReservationDialogOpen, setUploadReservationDialogOpen] = useState(false);
   const [isEmailReservationDialogOpen, setEmailReservationDialogOpen] = useState(false);
 
-  const openManualReservationDialog = () => setManualReservationDialogOpen(true);
+  // state สำหรับ Edit reservation
+  const [editingReservation, setEditingReservation] = useState<ReservationDto | null>(null);
+
+  const openManualReservationDialog = () => {
+    setEditingReservation(null);
+    setManualReservationDialogOpen(true);
+  };
   const closeManualReservationDialog = () => setManualReservationDialogOpen(false);
+
   const openUploadReservationDialog = () => setUploadReservationDialogOpen(true);
   const closeUploadReservationDialog = () => setUploadReservationDialogOpen(false);
+
   const openEmailReservationDialog = () => setEmailReservationDialogOpen(true);
   const closeEmailReservationDialog = () => setEmailReservationDialogOpen(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
+  const renderDeleteAction = (reservationId: number) => (
+    <IconButton
+      aria-label="delete reservation"
+      onClick={(e) => {
+        e.stopPropagation();
+        setPendingDeleteId(reservationId);
+        setConfirmOpen(true);
+      }}
+      sx={{ color: 'common.white' }}
+    >
+      <Trash2 size={20} />
+    </IconButton>
+  );
+
+  const handleConfirmDelete = () => {
+    if (!pendingDeleteId) return;
+
+    deleteReservation(pendingDeleteId, {
+      onSuccess: () => {
+        dispatch(removeReservation({ reservationId: pendingDeleteId }));
+        setConfirmOpen(false);
+        setPendingDeleteId(null);
+      },
+    });
+  };
+
+  // ===== Wishlist dialogs =====
   const {
     Dialog: WishlistPlaceDialog,
     open: isWishlistPlaceDialogOpened,
@@ -79,16 +130,12 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
       ),
     });
 
+  // ===== Trip update =====
   const handleSave = useCallback(
     (updates: UpsertTrip) => {
-      updateTrip(
-        { ...updates },
-        {
-          onSuccess: (data) => {
-            dispatch(setTripOverview(data));
-          },
-        }
-      );
+      updateTrip(updates, {
+        onSuccess: (data) => dispatch(setTripOverview(data)),
+      });
     },
     [updateTrip, dispatch]
   );
@@ -120,17 +167,14 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
       <OverviewTabs value={0} onChange={() => {}} />
 
       <Box sx={{ mt: 2 }}>
-        {/* Map Section */}
+        {/* Map */}
         <SectionCard title={t('sectionCard.map')}>
-          <Box sx={{ width: '100%' }}>
-            <CustomMap />
-          </Box>
+          <CustomMap />
         </SectionCard>
 
-        {/* Reservation Section */}
+        {/* Reservation */}
         <SectionCard title={t('sectionCard.reservation.title')} asEmpty={!hasReservation}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {/* Map reservation cards ถ้ามี */}
             {hasReservation && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {tripOverview.reservations
@@ -138,91 +182,77 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
                   .sort((a, b) => (a?.id ?? 0) - (b?.id ?? 0))
                   .flatMap((res) => {
                     if (res.type === 'FLIGHT') {
-                      return (res.details as FlightDetails)?.passengers?.map((_, idx: number) => (
-                        <FlightCard
+                      const flightDetails = res.details as FlightDetails | undefined;
+
+                      return flightDetails?.passengers?.map((_, idx) => (
+                        <SwipeReveal
                           key={`${res.id}-${idx}`}
-                          data={{ ...res.details, ...res } as unknown as ReservationDto}
-                        />
+                          actionNode={renderDeleteAction(res.id)}
+                          actionWidth={80}
+                          actionSide="right"
+                          actionSx={{ bgcolor: 'error.main' }}
+                        >
+                          <Box
+                            onClick={() => {
+                              setEditingReservation(res);
+                            }}
+                            sx={{ cursor: 'pointer' }}
+                          >
+                            <FlightCard data={{ ...flightDetails, ...res }} passengerIndex={idx} />
+                          </Box>
+                        </SwipeReveal>
                       ));
                     }
 
-                    switch (res.type) {
-                      case 'LODGING':
-                        return (
-                          <LodgingCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
-                      case 'RESTAURANT':
-                        return (
-                          <RestaurantCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
-                      case 'TRAIN':
-                        return (
-                          <TrainCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
-                      case 'BUS':
-                        return (
-                          <BusCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
-                      case 'FERRY':
-                        return (
-                          <FerryCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
-                      case 'CAR_RENTAL':
-                        return (
-                          <CarRentalCard
-                            key={res.id}
-                            data={{ ...res.details, ...res } as unknown as ReservationDto}
-                          />
-                        );
-                      default:
-                        return null;
-                    }
+                    return (
+                      <SwipeReveal
+                        key={res.id}
+                        actionNode={renderDeleteAction(res.id)}
+                        actionWidth={80}
+                        actionSide="right"
+                        actionSx={{ bgcolor: 'error.main' }}
+                      >
+                        <Box
+                          onClick={() => {
+                            setEditingReservation(res);
+                          }}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          {res.type === 'LODGING' && (
+                            <LodgingCard data={{ ...res.details, ...res }} />
+                          )}
+                          {res.type === 'RESTAURANT' && (
+                            <RestaurantCard data={{ ...res.details, ...res }} />
+                          )}
+                          {res.type === 'TRAIN' && <TrainCard data={{ ...res.details, ...res }} />}
+                          {res.type === 'BUS' && <BusCard data={{ ...res.details, ...res }} />}
+                          {res.type === 'FERRY' && <FerryCard data={{ ...res.details, ...res }} />}
+                          {res.type === 'CAR_RENTAL' && (
+                            <CarRentalCard data={{ ...res.details, ...res }} />
+                          )}
+                        </Box>
+                      </SwipeReveal>
+                    );
                   })}
               </Box>
             )}
 
-            {/* ปุ่มเพิ่ม reservation เล็ก ๆ อยู่ข้างล่าง */}
+            {/* Add reservation */}
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <AddItemButton label={t('sectionCard.reservation.button')} />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-35" align="center">
-                  <DropdownMenuItem
-                    className="flex items-center gap-3"
-                    onClick={openManualReservationDialog}
-                  >
+                <DropdownMenuContent align="center">
+                  <DropdownMenuItem onClick={openManualReservationDialog}>
                     <Hand size={18} />
                     {t('sectionCard.reservation.dropdown.Manual')}
                   </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    className="flex items-center gap-3"
-                    onClick={openEmailReservationDialog}
-                  >
+                  <DropdownMenuItem onClick={openEmailReservationDialog}>
                     <Mail size={18} />
                     {t('sectionCard.reservation.dropdown.Email')}
                   </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    className="flex items-center gap-3"
-                    onClick={openUploadReservationDialog}
-                  >
+                  <DropdownMenuItem onClick={openUploadReservationDialog}>
                     <Upload size={18} />
                     {t('sectionCard.reservation.dropdown.Upload')}
                   </DropdownMenuItem>
@@ -232,30 +262,24 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
           </Box>
         </SectionCard>
 
-        {/* Wishlist Section */}
+        {/* Wishlist */}
         <SectionCard
           title={t('sectionCard.wishlistPlace.title')}
           asEmpty={!tripOverview.wishlistPlaces.length}
         >
           {tripOverview.wishlistPlaces.length && !isWishlistPlaceDialogOpened ? (
             <>
-              <Box>
-                <List>
-                  {tripOverview.wishlistPlaces.map((wp) => (
-                    <ListItem
-                      key={wp.place.ggmpId}
-                      alignItems="center"
-                      sx={{ padding: 0, marginBottom: '1rem' }}
-                    >
-                      <WishlistPlaceCard
-                        tripId={tripIdAsNumber}
-                        data={wp}
-                        onOpenDetailAction={() => openWishlistPlaceDetail({ wishlistItem: wp })}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
+              <List>
+                {tripOverview.wishlistPlaces.map((wp) => (
+                  <ListItem key={wp.place.ggmpId} sx={{ p: 0, mb: 2 }}>
+                    <WishlistPlaceCard
+                      tripId={tripIdAsNumber}
+                      data={wp}
+                      onOpenDetailAction={() => openWishlistPlaceDetail({ wishlistItem: wp })}
+                    />
+                  </ListItem>
+                ))}
+              </List>
               <Button variant="contained" onClick={openWishlistPlaceDialog} startIcon={<Plus />}>
                 {t('sectionCard.wishlistPlace.button')}
               </Button>
@@ -263,7 +287,6 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
           ) : (
             WishlistPlaceDialog
           )}
-
           {WishlistPlaceDetailDialog}
         </SectionCard>
       </Box>
@@ -271,9 +294,36 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
       {/* Dialogs */}
       <ManualReservation
         open={isManualReservationDialogOpen}
-        onClose={closeManualReservationDialog}
+        onClose={() => setManualReservationDialogOpen(false)}
         tripId={tripIdAsNumber}
         onReservationCreated={handleNewReservation}
+      />
+
+      {editingReservation && (
+        <EditReservation
+          open={true}
+          onClose={() => setEditingReservation(null)}
+          tripId={tripIdAsNumber}
+          reservation={editingReservation}
+        />
+      )}
+
+      <UploadReservation
+        open={isUploadReservationDialogOpen}
+        onClose={closeUploadReservationDialog}
+      />
+
+      <EmailReservation open={isEmailReservationDialogOpen} onClose={closeEmailReservationDialog} />
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => {
+          setConfirmOpen(false);
+          setPendingDeleteId(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        confirmLoading={isPending}
+        color="error"
+        content={<Typography>ต้องการลบข้อมูลการจองนี้ใช่หรือไม่?</Typography>}
       />
     </Container>
   );
