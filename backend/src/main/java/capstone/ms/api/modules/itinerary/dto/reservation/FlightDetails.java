@@ -1,13 +1,11 @@
-package capstone.ms.api.modules.itinerary.dto;
+package capstone.ms.api.modules.itinerary.dto.reservation;
 
 import capstone.ms.api.common.annotations.ErrorMessage;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -22,7 +20,7 @@ public class FlightDetails implements ReservationDetails {
     @Size(max = 6)
     private String flightNo;
 
-    private LocalDateTime boardingTime;
+    private String boardingTime;
 
     @Size(max = 4)
     private String gateNo;
@@ -30,14 +28,12 @@ public class FlightDetails implements ReservationDetails {
     @NotBlank
     private String departureAirport;
 
-    @NotNull
-    private LocalDateTime departureTime;
+    private String departureTime;
 
     @NotBlank
     private String arrivalAirport;
 
-    @NotNull
-    private LocalDateTime arrivalTime;
+    private String arrivalTime;
 
     @Size(max = 10)
     private String flightClass;

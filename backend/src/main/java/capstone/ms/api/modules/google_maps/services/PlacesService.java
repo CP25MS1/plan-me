@@ -76,6 +76,16 @@ public class PlacesService {
         return List.of();
     }
 
+    public String searchAndGetGgmpId(final String query) {
+        MergeResult mergeResult = fetchFromGoogle(query);
+
+        if (!mergeResult.merged.isEmpty()) {
+            upsertPlacesBatch(mergeResult.enMap, mergeResult.thMap, mergeResult.merged);
+        }
+
+        return mergeResult.merged.getFirst().getId();
+    }
+
     private String normalizeQuery(String q) {
         if (q == null) return "";
         return q.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");

@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.dto;
 
+import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
 import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
