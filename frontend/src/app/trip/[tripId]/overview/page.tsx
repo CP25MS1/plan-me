@@ -10,7 +10,7 @@ import ManualReservation from './components/manual-reservation';
 import EditReservation from './components/edit-reservation';
 import UploadReservation from './components/upload-reservation';
 import EmailReservation from './components/email-reservation';
-
+import { removeReservation } from '@/store/trip-detail-slice';
 import OverviewHeader from '@/components/trip/overview/overview-header';
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
 import SectionCard from '@/components/trip/overview/section-card';
@@ -105,6 +105,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
 
     deleteReservation(pendingDeleteId, {
       onSuccess: () => {
+        dispatch(removeReservation({ reservationId: pendingDeleteId }));
         setConfirmOpen(false);
         setPendingDeleteId(null);
       },
