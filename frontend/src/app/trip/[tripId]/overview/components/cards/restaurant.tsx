@@ -12,6 +12,7 @@ const formatDate = (datetime: string) => {
 
 export default function RestaurantCard({ data }: { data: ReservationDto | null }) {
   const restaurantDetails = (data as unknown as RestaurantDetails) || null;
+
   const restaurant = {
     restaurantName: restaurantDetails?.restaurantName || '',
     restaurantAddress: restaurantDetails?.restaurantAddress || '',
@@ -30,6 +31,7 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
   return (
     <Box
       sx={{
+        width: '100%', // ✅ สำคัญ
         border: '1px solid #E5E5E5',
         borderRadius: 2,
         p: 1.5,
@@ -38,7 +40,6 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
         flexDirection: 'column',
         gap: 1.5,
         boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-        maxWidth: 400,
       }}
     >
       {/* Header */}
@@ -54,29 +55,35 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
         </Typography>
       </Box>
 
-      {/* Main content */}
-      <Box sx={{ display: 'flex', gap: 1.5 }}>
+      {/* Main */}
+      <Box sx={{ display: 'flex', gap: 1.5, minWidth: 0 }}>
         {/* Left */}
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="subtitle2" fontWeight={700}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="subtitle2" fontWeight={700} noWrap>
             {restaurant.restaurantName}
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }} noWrap>
             {restaurant.restaurantAddress}
           </Typography>
 
           <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
               <Phone size={14} />
-              <Typography variant="caption">{restaurant.contactTel}</Typography>
+              <Typography variant="caption" noWrap>
+                {restaurant.contactTel}
+              </Typography>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
               <Mail size={14} />
-              <Typography variant="caption">{restaurant.contactEmail}</Typography>
+              <Typography variant="caption" noWrap>
+                {restaurant.contactEmail}
+              </Typography>
             </Box>
           </Box>
 
-          <Typography variant="caption" sx={{ mt: 1 }}>
+          <Typography variant="caption" sx={{ mt: 1 }} noWrap>
             <b>CONFIRMATION #</b> {restaurant.bookingRef}
           </Typography>
         </Box>
@@ -84,31 +91,12 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
         <Divider orientation="vertical" flexItem />
 
         {/* Right */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Clock size={14} />
-            <Typography variant="caption">{restaurant.reservationTime || '-'}</Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <UserRound size={14} />
-            <Typography variant="caption">{restaurant.underName}</Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Table size={14} />
-            <Typography variant="caption">หมายเลขโต๊ะ {restaurant.tableNo}</Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Ticket size={14} />
-            <Typography variant="caption">หมายเลขคิว {restaurant.queueNo}</Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Users size={14} />
-            <Typography variant="caption">จำนวนสมาชิก {restaurant.partySize}</Typography>
-          </Box>
+        <Box sx={{ width: 150, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          <Info icon={<Clock size={14} />} text={restaurant.reservationTime || '-'} />
+          <Info icon={<UserRound size={14} />} text={restaurant.underName} />
+          <Info icon={<Table size={14} />} text={`หมายเลขโต๊ะ ${restaurant.tableNo}`} />
+          <Info icon={<Ticket size={14} />} text={`หมายเลขคิว ${restaurant.queueNo}`} />
+          <Info icon={<Users size={14} />} text={`จำนวนสมาชิก ${restaurant.partySize}`} />
 
           <Box sx={{ mt: 0.5, textAlign: 'right' }}>
             <Typography
@@ -127,6 +115,18 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
           </Box>
         </Box>
       </Box>
+    </Box>
+  );
+}
+
+/* helper */
+function Info({ icon, text }: { icon: React.ReactNode; text?: string }) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+      {icon}
+      <Typography variant="caption" noWrap>
+        {text || '-'}
+      </Typography>
     </Box>
   );
 }

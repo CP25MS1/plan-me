@@ -18,6 +18,7 @@ const formatDate = (date: string) =>
 
 export default function FlightCard({ data }: { data: ReservationDto }) {
   const flightDetails = (data as unknown as FlightDetails) || null;
+
   const flight = {
     airline: flightDetails?.airline || '',
     flightNo: flightDetails?.flightNo || '',
@@ -29,19 +30,17 @@ export default function FlightCard({ data }: { data: ReservationDto }) {
     arrivalTime: flightDetails?.arrivalTime || '',
     flightClass: flightDetails?.flightClass || '',
     bookingRef: data.bookingRef || '',
-    contactTel: data.contactTel || '',
-    contactEmail: data.contactEmail || '',
     cost: Number(data?.cost),
-    passengers: flightDetails.passengers || [],
+    passengers: flightDetails?.passengers || [],
   };
 
-  const ColItem = ({ label, value }: { label: string; value: string }) => (
-    <Box>
-      <Typography variant="caption" sx={{ fontSize: '9px', color: 'text.secondary' }}>
+  const ColItem = ({ label, value }: { label: string; value?: string }) => (
+    <Box sx={{ minWidth: 0 }}>
+      <Typography variant="caption" sx={{ fontSize: '9px', color: 'text.secondary' }} noWrap>
         {label}
       </Typography>
-      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '11px' }}>
-        {value}
+      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '11px' }} noWrap>
+        {value || '-'}
       </Typography>
     </Box>
   );
@@ -49,25 +48,25 @@ export default function FlightCard({ data }: { data: ReservationDto }) {
   return (
     <Box
       sx={{
+        width: '100%',
         border: '1px solid #E5E5E5',
         borderRadius: 2,
         p: 1,
         bgcolor: '#fff',
-        width: '100%',
-        maxWidth: 480,
         display: 'flex',
         flexDirection: 'column',
         gap: 0.5,
       }}
     >
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Plane size={16} color="#25CF7A" />
           <Typography variant="subtitle2" sx={{ fontSize: '13px', fontWeight: 700 }}>
             เที่ยวบิน
           </Typography>
         </Box>
+
         <Typography
           variant="caption"
           sx={{
@@ -83,44 +82,44 @@ export default function FlightCard({ data }: { data: ReservationDto }) {
         </Typography>
       </Box>
 
-      {/* Flight Info */}
-      {/* 4 Columns Layout */}
-      <Box sx={{ display: 'flex', gap: 1 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
+      {/* 4 Columns */}
+      <Box sx={{ display: 'flex', gap: 1, minWidth: 0 }}>
+        <Col>
           <ColItem label="สายการบิน" value={flight.airline} />
           <ColItem label="คลาส" value={flight.flightClass} />
           <ColItem label="Gate" value={flight.gateNo} />
-        </Box>
+        </Col>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
+        <Col>
           <ColItem label="เที่ยวบิน" value={flight.flightNo} />
-          <ColItem
-            label="ที่นั่ง"
-            value={flight.passengers[0]?.seatNo || '-' || flight.passengers[0]?.seatNo}
-          />
+          <ColItem label="ที่นั่ง" value={flight.passengers[0]?.seatNo} />
           <ColItem label="CONFIRMATION #" value={flight.bookingRef} />
-        </Box>
+        </Col>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
+        <Col>
           <ColItem label="ต้นทาง" value={flight.departureAirport} />
           <ColItem label="ปลายทาง" value={flight.arrivalAirport} />
-          <ColItem
-            label="ผู้จอง"
-            value={
-              flight.passengers[0]?.passengerName || '-' || flight.passengers[0]?.passengerName
-            }
-          />
-        </Box>
+          <ColItem label="ผู้จอง" value={flight.passengers[0]?.passengerName} />
+        </Col>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
+        <Col>
           <ColItem
             label="ขึ้นเครื่อง"
             value={formatTime(flight.boardingTime || flight.departureTime)}
           />
           <ColItem label="ถึง" value={formatTime(flight.arrivalTime)} />
           <ColItem label="วันที่" value={formatDate(flight.departureTime)} />
-        </Box>
+        </Col>
       </Box>
+    </Box>
+  );
+}
+
+/* column helper */
+function Col({ children }: { children: React.ReactNode }) {
+  return (
+    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.4 }}>
+      {children}
     </Box>
   );
 }

@@ -196,7 +196,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
                             onClick={() => {
                               setEditingReservation(res);
                             }}
-                            sx={{ cursor: 'pointer' }}
+                            sx={{ cursor: 'pointer', width: '100%' }}
                           >
                             <FlightCard data={{ ...flightDetails, ...res }} />
                           </Box>
@@ -216,7 +216,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
                           onClick={() => {
                             setEditingReservation(res);
                           }}
-                          sx={{ cursor: 'pointer' }}
+                          sx={{ cursor: 'pointer', width: '100%' }}
                         >
                           {res.type === 'LODGING' && (
                             <LodgingCard data={{ ...res.details, ...res }} />
