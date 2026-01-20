@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.dto;
+package capstone.ms.api.modules.itinerary.dto.reservation;
 
 import capstone.ms.api.common.annotations.ErrorMessage;
 import jakarta.validation.Valid;
