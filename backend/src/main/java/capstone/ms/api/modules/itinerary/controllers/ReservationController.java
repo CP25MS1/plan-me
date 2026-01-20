@@ -50,6 +50,13 @@ public class ReservationController {
         return ResponseEntity.ok(updated);
     }
 
+    @DeleteMapping("/{reservationId}")
+    public ResponseEntity<Void> deleteReservation(@PathVariable Integer reservationId,
+                                                  @AuthenticationPrincipal User currentUser) {
+        reservationService.deleteReservation(reservationId, currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/emails/check-info")
     public ResponseEntity<List<EmailInfoDto>> getAllReservations(@RequestParam(required = false) Integer tripId,
                                                                  @AuthenticationPrincipal User currentUser) {
