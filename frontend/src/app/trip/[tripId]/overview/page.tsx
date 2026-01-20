@@ -198,7 +198,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
                             }}
                             sx={{ cursor: 'pointer' }}
                           >
-                            <FlightCard data={{ ...flightDetails, ...res }} />
+                            <FlightCard data={{ ...flightDetails, ...res }} passengerIndex={idx} />
                           </Box>
                         </SwipeReveal>
                       ));

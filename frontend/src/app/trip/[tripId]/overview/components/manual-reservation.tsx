@@ -1,24 +1,24 @@
 'use client';
 
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
-  Select,
-  MenuItem,
-  FormControl,
-  Typography,
-  Button,
   Box,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  IconButton,
+  MenuItem,
+  Select,
   TextField,
+  Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useState, useEffect, useRef, ElementType } from 'react';
+import { ElementType, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plane, Building, Utensils, Train, Ship, Bus, Car } from 'lucide-react';
+import { Building, Bus, Car, Plane, Ship, Train, Utensils } from 'lucide-react';
 import LodgingCard from '@/app/trip/[tripId]/overview/components/cards/lodging';
 import RestaurantCard from '@/app/trip/[tripId]/overview/components/cards/restaurant';
 import FlightCard from '@/app/trip/[tripId]/overview/components/cards/flight';
@@ -28,7 +28,12 @@ import FerryCard from '@/app/trip/[tripId]/overview/components/cards/ferry';
 import CarRentalCard from '@/app/trip/[tripId]/overview/components/cards/carrental';
 import { BackButton } from '@/components/button';
 import { fieldsByType } from './fields-by-type';
-import { ReservationDto, ReservationType, useCreateReservation } from '@/api/reservations';
+import {
+  FlightDetails,
+  ReservationDto,
+  ReservationType,
+  useCreateReservation,
+} from '@/api/reservations';
 import { useUpdateReservation } from '@/app/trip/[tripId]/overview/hooks/reservations/use-update-reservation';
 
 interface ManualReservationProps {
@@ -50,8 +55,8 @@ export default function ManualReservation({
   const [formData, setFormData] = useState<ReservationDto | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean> | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [passengers, setPassengers] = useState<{ name: string; seatNumber: string }[]>([
-    { name: '', seatNumber: '' },
+  const [passengers, setPassengers] = useState<{ passengerName: string; seatNo: string }[]>([
+    { passengerName: '', seatNo: '' },
   ]);
   const { t } = useTranslation('trip_overview');
 
@@ -84,8 +89,8 @@ export default function ManualReservation({
       if (initialReservation.type === 'FLIGHT') {
         setPassengers(
           initialReservation.details.passengers.map((p) => ({
-            name: p.passengerName,
-            seatNumber: p.seatNo,
+            passengerName: p.passengerName,
+            seatNo: p.seatNo,
           }))
         );
       }
@@ -122,10 +127,10 @@ export default function ManualReservation({
     setErrors((prev) => ({ ...prev, [name]: false }));
   };
 
-  const addPassenger = () => setPassengers((prev) => [...prev, { name: '', seatNumber: '' }]);
+  const addPassenger = () => setPassengers((prev) => [...prev, { passengerName: '', seatNo: '' }]);
   const removePassenger = (index: number) =>
     setPassengers((prev) => prev.filter((_, i) => i !== index));
-  const handlePassengerChange = (index: number, key: 'name' | 'seatNumber', value: string) => {
+  const handlePassengerChange = (index: number, key: 'passengerName' | 'seatNo', value: string) => {
     setPassengers((prev) => prev.map((p, i) => (i === index ? { ...p, [key]: value } : p)));
   };
 
@@ -146,7 +151,7 @@ export default function ManualReservation({
     // ตรวจสอบผู้โดยสาร
     if (typeValue === 'Flight') {
       passengers.forEach((p, idx) => {
-        if (!p.name || !p.seatNumber) {
+        if (!p.passengerName || !p.seatNo) {
           newErrors[`passenger-${idx}`] = true;
           if (!firstError) firstError = `passenger-${idx}`;
         }
@@ -244,7 +249,7 @@ export default function ManualReservation({
           arrivalAirport: f?.arrivalAirport ?? '',
           arrivalTime: f?.arrivalTime ?? '',
           flightClass: f?.flightClass ?? '',
-          passengers: ps.map((p) => ({ passengerName: p.name, seatNo: p.seatNumber })),
+          passengers: ps.map((p) => ({ passengerName: p.passengerName, seatNo: p.seatNo })),
         };
       case 'Restaurant':
         return {
@@ -339,7 +344,7 @@ export default function ManualReservation({
                 setTypeValue(newType);
                 setFormData(null);
                 setErrors({});
-                setPassengers([{ name: '', seatNumber: '' }]);
+                setPassengers([{ passengerName: '', seatNo: '' }]);
               }}
               displayEmpty
               sx={{
@@ -418,11 +423,11 @@ export default function ManualReservation({
                     <Box key={idx} sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
                       <TextField
                         label="ชื่อ"
-                        value={p.name}
+                        value={p.passengerName}
                         onChange={(e) => {
                           const newName = e.target.value;
-                          handlePassengerChange(idx, 'name', newName);
-                          const editedPassenger = { ...passengers[idx], name: newName };
+                          handlePassengerChange(idx, 'passengerName', newName);
+                          const editedPassenger = { ...passengers[idx], passengerName: newName };
                           handleChange(
                             'passengers',
                             passengers.with(idx, editedPassenger) as unknown as string
@@ -434,11 +439,11 @@ export default function ManualReservation({
                       />
                       <TextField
                         label="เลขที่นั่ง"
-                        value={p.seatNumber}
+                        value={p.seatNo}
                         onChange={(e) => {
                           const newSeatNumber = e.target.value;
-                          handlePassengerChange(idx, 'seatNumber', newSeatNumber);
-                          const editedPassenger = { ...passengers[idx], seatNumber: newSeatNumber };
+                          handlePassengerChange(idx, 'seatNo', newSeatNumber);
+                          const editedPassenger = { ...passengers[idx], seatNo: newSeatNumber };
                           handleChange(
                             'passengers',
                             passengers.with(idx, editedPassenger) as unknown as string
@@ -543,7 +548,20 @@ export default function ManualReservation({
         >
           {typeValue === 'Lodging' && <LodgingCard data={formData} />}
           {typeValue === 'Restaurant' && <RestaurantCard data={formData} />}
-          {typeValue === 'Flight' && formData && <FlightCard data={formData} />}
+          {typeValue === 'Flight' && (
+            <>
+              {(formData as unknown as FlightDetails)?.passengers?.map((p, i) => {
+                const flightDetails = (formData as unknown as FlightDetails) || null;
+                return (
+                  <FlightCard
+                    key={`${flightDetails?.passengers?.[i]?.seatNo}`}
+                    data={flightDetails as unknown as ReservationDto}
+                    passengerIndex={i}
+                  />
+                );
+              })}
+            </>
+          )}
 
           {typeValue === 'Train' && <TrainCard data={formData} />}
           {typeValue === 'Bus' && <BusCard data={formData} />}
