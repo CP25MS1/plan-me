@@ -2,18 +2,17 @@ package capstone.ms.api.modules.email.services;
 
 import capstone.ms.api.modules.email.clients.ImapStoreProvider;
 import capstone.ms.api.modules.email.configs.EmailProperties;
-import jakarta.mail.Flags;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Store;
+import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.search.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -29,11 +28,9 @@ public class EmailService {
         return parts[0] + "+" + alias + "@" + parts[1];
     }
 
-
     public Optional<Store> openImapStore() {
         return storeProvider.openStore();
     }
-
 
     public Optional<SearchTerm> buildSearchTerm(final Map<String, String> criteria) {
         if (criteria == null || criteria.isEmpty()) return Optional.empty();
@@ -69,23 +66,29 @@ public class EmailService {
         return Optional.of(new AndTerm(terms.toArray(new SearchTerm[0])));
     }
 
+    public Optional<String> extractAliasFromTo(Message message) throws MessagingException {
+        if (message == null) return Optional.empty();
 
-    public Map<Integer, Message> mapMessagesById(final Message[] messages) {
-        if (messages == null || messages.length == 0) return Collections.emptyMap();
-        return Arrays.stream(messages)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(Message::getMessageNumber, m -> m));
+        Address[] recipients = message.getRecipients(Message.RecipientType.TO);
+        if (recipients == null) return Optional.empty();
+
+        for (Address addr : recipients) {
+            if (addr instanceof InternetAddress internetAddress) {
+                String email = internetAddress.getAddress(); // user+alias@domain
+                if (email == null) continue;
+
+                int plusIdx = email.indexOf('+');
+                int atIdx = email.indexOf('@');
+
+                if (plusIdx > 0 && atIdx > plusIdx) {
+                    return Optional.of(email.substring(plusIdx + 1, atIdx));
+                }
+            }
+        }
+        return Optional.empty();
     }
-
-
-    public void markAsRead(Message message) throws MessagingException {
-        if (message == null) return;
-        message.setFlag(Flags.Flag.SEEN, true);
-    }
-
 
     private boolean hasText(Map<String, String> map, String key) {
         return map != null && map.containsKey(key) && map.get(key) != null && !map.get(key).isBlank();
     }
-
 }
