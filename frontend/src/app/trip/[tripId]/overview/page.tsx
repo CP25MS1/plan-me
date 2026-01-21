@@ -76,7 +76,6 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
     setEditingReservation(null);
     setManualReservationDialogOpen(true);
   };
-  const closeManualReservationDialog = () => setManualReservationDialogOpen(false);
 
   const openUploadReservationDialog = () => setUploadReservationDialogOpen(true);
   const closeUploadReservationDialog = () => setUploadReservationDialogOpen(false);
@@ -184,7 +183,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
                     if (res.type === 'FLIGHT') {
                       const flightDetails = res.details as FlightDetails | undefined;
 
-                      return flightDetails?.passengers?.map((_, idx) => (
+                      return flightDetails?.passengers?.map((_, idx) => res.id && (
                         <SwipeReveal
                           key={`${res.id}-${idx}`}
                           actionNode={renderDeleteAction(res.id)}
@@ -204,7 +203,7 @@ const TripOverviewPage = ({ params }: { params: Promise<{ tripId: string }> }) =
                       ));
                     }
 
-                    return (
+                    return res.id && (
                       <SwipeReveal
                         key={res.id}
                         actionNode={renderDeleteAction(res.id)}

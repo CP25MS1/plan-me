@@ -17,7 +17,12 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { updateReservation as updateReservationAction } from '@/store/trip-detail-slice';
 
-import { ReservationDto, ReservationType } from '@/api/reservations/type';
+import {
+  FlightDetails,
+  FlightPassenger,
+  ReservationDto,
+  ReservationType,
+} from '@/api/reservations/type';
 import { useUpdateReservation } from '@/app/trip/[tripId]/overview/hooks/reservations/use-update-reservation';
 import { fieldsByType } from './fields-by-type';
 
@@ -51,7 +56,7 @@ export default function EditReservation({
 
   const [formData, setFormData] = useState<ReservationDto | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const [passengers, setPassengers] = useState<{ name: string; seatNumber: string }[]>([]);
+  const [passengers, setPassengers] = useState<{ passengerName: string; seatNo: string }[]>([]);
 
   const originalRef = useRef<string>('');
   const dispatch = useDispatch();
@@ -65,18 +70,17 @@ export default function EditReservation({
 
     setFormData(merged);
 
+    let flightPassengers = [] as FlightPassenger[];
     if (reservation.type === 'FLIGHT') {
-      setPassengers(
-        reservation.details.passengers.map((p) => ({
-          name: p.passengerName,
-          seatNumber: p.seatNo,
-        }))
-      );
+      flightPassengers =
+        (reservation.details as unknown as FlightDetails)?.passengers ?? [];
+
+      setPassengers(flightPassengers);
     }
 
     originalRef.current = JSON.stringify({
       formData: merged,
-      passengers: reservation.type === 'FLIGHT' ? reservation.details.passengers : [],
+      passengers: reservation.type === 'FLIGHT' ? flightPassengers : [],
     });
   }, [open, reservation]);
 
@@ -97,11 +101,11 @@ export default function EditReservation({
     setErrors((e) => ({ ...e, [name]: false }));
   };
 
-  const addPassenger = () => setPassengers((p) => [...p, { name: '', seatNumber: '' }]);
+  const addPassenger = () => setPassengers((p) => [...p, { passengerName: '', seatNo: '' }]);
 
   const removePassenger = (idx: number) => setPassengers((p) => p.filter((_, i) => i !== idx));
 
-  const handlePassengerChange = (idx: number, key: 'name' | 'seatNumber', val: string) => {
+  const handlePassengerChange = (idx: number, key: 'passengerName' | 'seatNo', val: string) => {
     setPassengers((p) => p.map((row, i) => (i === idx ? { ...row, [key]: val } : row)));
   };
 
@@ -135,10 +139,9 @@ export default function EditReservation({
   };
 
   const buildDetails = () => {
-    const f = formData as any;
-
     switch (typeValue) {
       case 'Flight':
+        const f = formData as unknown as FlightDetails;
         return {
           airline: f.airline ?? '',
           flightNo: f.flightNo ?? '',
@@ -149,15 +152,14 @@ export default function EditReservation({
           arrivalAirport: f.arrivalAirport ?? '',
           arrivalTime: f.arrivalTime ?? '',
           flightClass: f.flightClass ?? '',
-          passengers: passengers.map((p) => ({
-            passengerName: p.name,
-            seatNo: p.seatNumber,
-          })),
+          passengers,
         };
       default:
         return fieldsByType[typeValue].reduce(
           (acc, field) => {
-            acc[field.name] = f[field.name] ?? '';
+            acc[field.name] = formData
+              ? (formData as unknown as Record<string, unknown>)[field.name]
+              : null;
             return acc;
           },
           {} as Record<string, unknown>
@@ -186,7 +188,7 @@ export default function EditReservation({
               fullWidth
               value={formData[field.name as keyof ReservationDto] ?? ''}
               onChange={(e) => handleChange(field.name, e.target.value)}
-              error={!!errors[field.name]}
+              error={errors[field.name]}
             />
           </Box>
         ))}
@@ -198,14 +200,14 @@ export default function EditReservation({
               <Box key={idx} sx={{ display: 'flex', gap: 1, mt: 1 }}>
                 <TextField
                   label="ชื่อ"
-                  value={p.name}
-                  onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
+                  value={p.passengerName}
+                  onChange={(e) => handlePassengerChange(idx, 'passengerName', e.target.value)}
                   fullWidth
                 />
                 <TextField
                   label="เลขที่นั่ง"
-                  value={p.seatNumber}
-                  onChange={(e) => handlePassengerChange(idx, 'seatNumber', e.target.value)}
+                  value={p.seatNo}
+                  onChange={(e) => handlePassengerChange(idx, 'seatNo', e.target.value)}
                   fullWidth
                 />
                 <IconButton
