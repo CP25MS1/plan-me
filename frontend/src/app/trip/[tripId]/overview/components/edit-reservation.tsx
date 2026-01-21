@@ -9,7 +9,11 @@ import {
   Button,
   Box,
   TextField,
+  FormControl,
+  Select,
+  MenuItem,
 } from '@mui/material';
+import { Plane, Building, Utensils, Train, Ship, Bus, Car } from 'lucide-react';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useEffect, useRef, useState } from 'react';
@@ -17,7 +21,12 @@ import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { updateReservation as updateReservationAction } from '@/store/trip-detail-slice';
 
-import { ReservationDto, ReservationType } from '@/api/reservations/type';
+import {
+  FlightDetails,
+  FlightPassenger,
+  ReservationDto,
+  ReservationType,
+} from '@/api/reservations/type';
 import { useUpdateReservation } from '@/app/trip/[tripId]/overview/hooks/reservations/use-update-reservation';
 import { fieldsByType } from './fields-by-type';
 
@@ -44,14 +53,24 @@ export default function EditReservation({
   tripId,
   reservation,
 }: EditReservationProps) {
+  const icons = {
+    Lodging: <Building size={18} color="#25CF7A" />,
+    Restaurant: <Utensils size={18} color="#25CF7A" />,
+    Flight: <Plane size={18} color="#25CF7A" />,
+    Train: <Train size={18} color="#25CF7A" />,
+    Bus: <Bus size={18} color="#25CF7A" />,
+    Ferry: <Ship size={18} color="#25CF7A" />,
+    CarRental: <Car size={18} color="#25CF7A" />,
+  };
+
   const { t } = useTranslation('trip_overview');
   const updateReservation = useUpdateReservation();
-
+  const fieldsRef = useRef<Record<string, HTMLDivElement | null>>({});
   const typeValue = typeUiMap[reservation.type];
 
   const [formData, setFormData] = useState<ReservationDto | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const [passengers, setPassengers] = useState<{ name: string; seatNumber: string }[]>([]);
+  const [passengers, setPassengers] = useState<{ passengerName: string; seatNo: string }[]>([]);
 
   const originalRef = useRef<string>('');
   const dispatch = useDispatch();
@@ -65,18 +84,16 @@ export default function EditReservation({
 
     setFormData(merged);
 
+    let flightPassengers = [] as FlightPassenger[];
     if (reservation.type === 'FLIGHT') {
-      setPassengers(
-        reservation.details.passengers.map((p) => ({
-          name: p.passengerName,
-          seatNumber: p.seatNo,
-        }))
-      );
+      flightPassengers = (reservation.details as unknown as FlightDetails)?.passengers ?? [];
+
+      setPassengers(flightPassengers);
     }
 
     originalRef.current = JSON.stringify({
       formData: merged,
-      passengers: reservation.type === 'FLIGHT' ? reservation.details.passengers : [],
+      passengers: reservation.type === 'FLIGHT' ? flightPassengers : [],
     });
   }, [open, reservation]);
 
@@ -97,17 +114,54 @@ export default function EditReservation({
     setErrors((e) => ({ ...e, [name]: false }));
   };
 
-  const addPassenger = () => setPassengers((p) => [...p, { name: '', seatNumber: '' }]);
+  const addPassenger = () => setPassengers((p) => [...p, { passengerName: '', seatNo: '' }]);
 
   const removePassenger = (idx: number) => setPassengers((p) => p.filter((_, i) => i !== idx));
 
-  const handlePassengerChange = (idx: number, key: 'name' | 'seatNumber', val: string) => {
+  const handlePassengerChange = (idx: number, key: 'passengerName' | 'seatNo', val: string) => {
     setPassengers((p) => p.map((row, i) => (i === idx ? { ...row, [key]: val } : row)));
+  };
+
+  const validate = () => {
+    const newErrors: Record<string, boolean> = {};
+    let firstError: string | null = null;
+
+    fieldsByType[typeValue].forEach((field) => {
+      const value = formData?.[field.name as keyof ReservationDto];
+
+      if (field.required && (!value || value === '')) {
+        newErrors[field.name] = true;
+        if (!firstError) firstError = field.name;
+      }
+    });
+
+    if (typeValue === 'Flight') {
+      passengers.forEach((p, idx) => {
+        if (!p.passengerName || !p.seatNo) {
+          const key = `passenger-${idx}`;
+          newErrors[key] = true;
+          if (!firstError) firstError = key;
+        }
+      });
+    }
+
+    setErrors(newErrors);
+
+    if (firstError && fieldsRef.current[firstError]) {
+      fieldsRef.current[firstError]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+
+    return Object.keys(newErrors).length === 0;
   };
 
   /** ---------- submit ---------- */
   const handleConfirm = () => {
     if (!formData || !hasChanges) return;
+
+    if (!validate()) return;
 
     const payload = {
       reservationId: reservation.id,
@@ -135,10 +189,9 @@ export default function EditReservation({
   };
 
   const buildDetails = () => {
-    const f = formData as any;
-
     switch (typeValue) {
       case 'Flight':
+        const f = formData as unknown as FlightDetails;
         return {
           airline: f.airline ?? '',
           flightNo: f.flightNo ?? '',
@@ -149,15 +202,14 @@ export default function EditReservation({
           arrivalAirport: f.arrivalAirport ?? '',
           arrivalTime: f.arrivalTime ?? '',
           flightClass: f.flightClass ?? '',
-          passengers: passengers.map((p) => ({
-            passengerName: p.name,
-            seatNo: p.seatNumber,
-          })),
+          passengers,
         };
       default:
         return fieldsByType[typeValue].reduce(
           (acc, field) => {
-            acc[field.name] = f[field.name] ?? '';
+            acc[field.name] = formData
+              ? (formData as unknown as Record<string, unknown>)[field.name]
+              : null;
             return acc;
           },
           {} as Record<string, unknown>
@@ -177,16 +229,51 @@ export default function EditReservation({
       </DialogTitle>
 
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <FormControl fullWidth>
+          <Select
+            value={typeValue}
+            disabled
+            displayEmpty
+            sx={{
+              borderRadius: 2,
+              '& .MuiSelect-icon': { display: 'none' },
+            }}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {icons[selected as keyof typeof icons]}
+                {t(`ManualReservation.Type.${selected}`)}
+              </Box>
+            )}
+          >
+            <MenuItem value={typeValue}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {icons[typeValue as keyof typeof icons]}
+                {t(`ManualReservation.Type.${typeValue}`)}
+              </Box>
+            </MenuItem>
+          </Select>
+        </FormControl>
         {fieldsByType[typeValue].map((field) => (
-          <Box key={field.name}>
-            <Typography variant="body2" color="text.secondary">
+          <Box
+            key={field.name}
+            ref={(el: HTMLDivElement | null) => {
+              fieldsRef.current[field.name] = el;
+            }}
+          >
+            <Typography
+              variant="body2"
+              color={errors[field.name] ? 'error.main' : 'text.secondary'}
+            >
               {field.label}
             </Typography>
+
             <TextField
               fullWidth
+              type={field.type || 'text'}
               value={formData[field.name as keyof ReservationDto] ?? ''}
               onChange={(e) => handleChange(field.name, e.target.value)}
-              error={!!errors[field.name]}
+              error={errors[field.name]}
+              placeholder={field.placeholder}
             />
           </Box>
         ))}
@@ -198,14 +285,14 @@ export default function EditReservation({
               <Box key={idx} sx={{ display: 'flex', gap: 1, mt: 1 }}>
                 <TextField
                   label="ชื่อ"
-                  value={p.name}
-                  onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
+                  value={p.passengerName}
+                  onChange={(e) => handlePassengerChange(idx, 'passengerName', e.target.value)}
                   fullWidth
                 />
                 <TextField
                   label="เลขที่นั่ง"
-                  value={p.seatNumber}
-                  onChange={(e) => handlePassengerChange(idx, 'seatNumber', e.target.value)}
+                  value={p.seatNo}
+                  onChange={(e) => handlePassengerChange(idx, 'seatNo', e.target.value)}
                   fullWidth
                 />
                 <IconButton

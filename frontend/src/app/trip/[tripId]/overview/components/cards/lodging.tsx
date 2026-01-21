@@ -1,11 +1,36 @@
 'use client';
 
 import { LodgingDetails, ReservationDto } from '@/api/reservations';
-import { Box, Typography, Divider, Tooltip } from '@mui/material';
-import { Building, Phone, Mail, UserRound } from 'lucide-react';
+import { Box, Typography, Divider } from '@mui/material';
+import { Building, Phone, Mail, UserRound, Clock } from 'lucide-react';
+
+const formatDate = (datetime: string) => {
+  if (!datetime) return '-';
+  const d = new Date(datetime);
+  return d.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+  });
+};
+
+const formatDateTime = (datetime: string) => {
+  if (!datetime) return '-';
+  const d = new Date(datetime);
+  const date = d.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+  });
+  const time = d.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return `${date} ${time}`;
+};
 
 export default function LodgingCard({ data }: { data: ReservationDto | null }) {
   const lodgingDetails = (data as unknown as LodgingDetails) || null;
+
   const lodging = {
     lodgingName: lodgingDetails?.lodgingName || '',
     lodgingAddress: lodgingDetails?.lodgingAddress || '',
@@ -18,18 +43,10 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
     cost: Number(data?.cost),
   };
 
-  const formatDate = (datetime: string, withTime = false) => {
-    if (!datetime) return '-';
-    const d = new Date(datetime);
-    const date = d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
-    if (!withTime) return date;
-    const time = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-    return `${date} ${time}`;
-  };
-
   return (
     <Box
       sx={{
+        width: '100%',
         border: '1px solid #E5E5E5',
         borderRadius: 2,
         p: 1.5,
@@ -38,7 +55,6 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
         flexDirection: 'column',
         gap: 1.5,
         boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-        maxWidth: 400,
       }}
     >
       {/* Header */}
@@ -49,80 +65,58 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
             ที่พัก
           </Typography>
         </Box>
+
         <Typography variant="caption" fontWeight={600}>
           {formatDate(lodging.checkinDate)} → {formatDate(lodging.checkoutDate)}
         </Typography>
       </Box>
 
-      {/* Main content */}
-      <Box sx={{ display: 'flex', gap: 1.5 }}>
-        <Box sx={{ flex: 1 }}>
-          <Tooltip title={lodging.lodgingName}>
-            <Typography
-              variant="subtitle2"
-              fontWeight={700}
-              noWrap
-              sx={{ overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 250 }}
-            >
-              {lodging.lodgingName}
-            </Typography>
-          </Tooltip>
-          <Tooltip title={lodging.lodgingAddress}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ maxWidth: 250, fontSize: 11, mt: 0.5 }}
-            >
-              {lodging.lodgingAddress}
-            </Typography>
-          </Tooltip>
+      {/* Main */}
+      <Box sx={{ display: 'flex', gap: 1.5, minWidth: 0 }}>
+        {/* Left */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="subtitle2" fontWeight={700} noWrap>
+            {lodging.lodgingName}
+          </Typography>
+
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }} noWrap>
+            {lodging.lodgingAddress}
+          </Typography>
 
           <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            {lodging.contactTel && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Phone size={14} />
-                <Typography variant="caption">{lodging.contactTel}</Typography>
-              </Box>
-            )}
-            {lodging.contactEmail && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Mail size={14} />
-                <Typography variant="caption">{lodging.contactEmail}</Typography>
-              </Box>
-            )}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Phone size={14} />
+              <Typography variant="caption" noWrap>
+                {lodging.contactTel || '-'}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Mail size={14} />
+              <Typography variant="caption" noWrap>
+                {lodging.contactEmail || '-'}
+              </Typography>
+            </Box>
           </Box>
 
-          {lodging.bookingRef && (
-            <Typography variant="caption" sx={{ mt: 1 }}>
-              <b>CONFIRM #</b> {lodging.bookingRef}
-            </Typography>
-          )}
+          <Typography variant="caption" sx={{ mt: 1 }} noWrap>
+            <b>CONFIRMATION #</b> {lodging.bookingRef || '-'}
+          </Typography>
         </Box>
 
         <Divider orientation="vertical" flexItem />
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <UserRound size={14} />
-            <Typography
-              variant="subtitle2"
-              fontWeight={700}
-              noWrap
-              sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
-            >
-              {lodging.underName}
-            </Typography>
-          </Box>
-
-          <Typography variant="caption" color="text.secondary">
-            Check In
-          </Typography>
-          <Typography variant="caption">{formatDate(lodging.checkinDate, true)}</Typography>
-
-          <Typography variant="caption" color="text.secondary">
-            Check Out
-          </Typography>
-          <Typography variant="caption">{formatDate(lodging.checkoutDate, true)}</Typography>
+        {/* Right (เหมือนร้านอาหาร) */}
+        <Box sx={{ width: 150, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          <Info icon={<UserRound size={14} />} text={lodging.underName} />
+          <Info
+            icon={<Clock size={14} />}
+            text={`Check-in ${formatDateTime(lodging.checkinDate)}`}
+          />
+          <Info
+            icon={<Clock size={14} />}
+            text={`Check-out ${formatDateTime(lodging.checkoutDate)}`}
+          />
 
           <Box sx={{ mt: 0.5, textAlign: 'right' }}>
             <Typography
@@ -141,6 +135,17 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
           </Box>
         </Box>
       </Box>
+    </Box>
+  );
+}
+
+function Info({ icon, text }: { icon: React.ReactNode; text?: string }) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+      {icon}
+      <Typography variant="caption" noWrap>
+        {text || '-'}
+      </Typography>
     </Box>
   );
 }
