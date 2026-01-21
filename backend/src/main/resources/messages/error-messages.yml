@@ -16,6 +16,10 @@
   th: "ไม่พบข้อมูลที่คุณต้องการ"
   en: "The requested resource was not found."
 
+500:
+  th: "เกิดข้อผิดพลาดบางอย่างในระบบ กรุณาลองใหม่อีกครั้งในภายหลัง"
+  en: "Something went wrong on our side. Please try again later."
+
 user:
   400:
     create:
