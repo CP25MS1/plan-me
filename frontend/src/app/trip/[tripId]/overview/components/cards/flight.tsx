@@ -23,7 +23,6 @@ export default function FlightCard({
   data: ReservationDto | null;
   passengerIndex: number;
 }) {
-  console.log('FLIGHT: ', data);
   const flightDetails = (data as unknown as FlightDetails) || null;
 
   const flight = {
@@ -110,7 +109,6 @@ export default function FlightCard({
           <ColItem label="ปลายทาง" value={flight.arrivalAirport} />
           <ColItem label="ผู้จอง" value={flight.passengers[passengerIndex]?.passengerName || '-'} />
         </Col>
-        </Box>
 
         <Col>
           <ColItem

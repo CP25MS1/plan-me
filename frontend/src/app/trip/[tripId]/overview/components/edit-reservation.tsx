@@ -86,8 +86,7 @@ export default function EditReservation({
 
     let flightPassengers = [] as FlightPassenger[];
     if (reservation.type === 'FLIGHT') {
-      flightPassengers =
-        (reservation.details as unknown as FlightDetails)?.passengers ?? [];
+      flightPassengers = (reservation.details as unknown as FlightDetails)?.passengers ?? [];
 
       setPassengers(flightPassengers);
     }
@@ -138,7 +137,7 @@ export default function EditReservation({
 
     if (typeValue === 'Flight') {
       passengers.forEach((p, idx) => {
-        if (!p.name || !p.seatNumber) {
+        if (!p.passengerName || !p.seatNo) {
           const key = `passenger-${idx}`;
           newErrors[key] = true;
           if (!firstError) firstError = key;
