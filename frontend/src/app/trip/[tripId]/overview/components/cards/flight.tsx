@@ -16,7 +16,14 @@ const formatDate = (date: string) =>
       })
     : '-';
 
-export default function FlightCard({ data }: { data: ReservationDto }) {
+export default function FlightCard({
+  data,
+  passengerIndex,
+}: {
+  data: ReservationDto | null;
+  passengerIndex: number;
+}) {
+  console.log('FLIGHT: ', data);
   const flightDetails = (data as unknown as FlightDetails) || null;
 
   const flight = {
@@ -29,7 +36,9 @@ export default function FlightCard({ data }: { data: ReservationDto }) {
     arrivalAirport: flightDetails?.arrivalAirport || '',
     arrivalTime: flightDetails?.arrivalTime || '',
     flightClass: flightDetails?.flightClass || '',
-    bookingRef: data.bookingRef || '',
+    bookingRef: data?.bookingRef || '',
+    contactTel: data?.contactTel || '',
+    contactEmail: data?.contactEmail || '',
     cost: Number(data?.cost),
     passengers: flightDetails?.passengers || [],
   };
@@ -92,15 +101,16 @@ export default function FlightCard({ data }: { data: ReservationDto }) {
 
         <Col>
           <ColItem label="เที่ยวบิน" value={flight.flightNo} />
-          <ColItem label="ที่นั่ง" value={flight.passengers[0]?.seatNo} />
+          <ColItem label="ที่นั่ง" value={flight.passengers[passengerIndex]?.seatNo || '-'} />
           <ColItem label="CONFIRMATION #" value={flight.bookingRef} />
         </Col>
 
         <Col>
           <ColItem label="ต้นทาง" value={flight.departureAirport} />
           <ColItem label="ปลายทาง" value={flight.arrivalAirport} />
-          <ColItem label="ผู้จอง" value={flight.passengers[0]?.passengerName} />
+          <ColItem label="ผู้จอง" value={flight.passengers[passengerIndex]?.passengerName || '-'} />
         </Col>
+        </Box>
 
         <Col>
           <ColItem

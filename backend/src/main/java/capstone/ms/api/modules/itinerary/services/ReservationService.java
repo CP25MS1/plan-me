@@ -239,6 +239,55 @@ public class ReservationService {
         return dto;
     }
 
+    @Transactional
+    public void deleteReservation(Integer reservationId, User currentUser) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new NotFoundException("reservation.404"));
+
+        ensureOwnerOrThrow(currentUser, reservation.getTrip());
+        ReservationType type;
+        try {
+            type = ReservationType.valueOf(String.valueOf(reservation.getType()));
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("reservation.400");
+        }
+
+        switch (type) {
+            case LODGING:
+                lodgingRepository.findById(reservationId)
+                        .ifPresent(lodgingRepository::delete);
+                break;
+            case FLIGHT:
+                flightRepository.findById(reservationId)
+                        .ifPresent(flightRepository::delete);
+                break;
+            case RESTAURANT:
+                restaurantRepository.findById(reservationId)
+                        .ifPresent(restaurantRepository::delete);
+                break;
+            case TRAIN:
+                trainRepository.findById(reservationId)
+                        .ifPresent(trainRepository::delete);
+                break;
+            case BUS:
+                busRepository.findById(reservationId)
+                        .ifPresent(busRepository::delete);
+                break;
+            case FERRY:
+                ferryRepository.findById(reservationId)
+                        .ifPresent(ferryRepository::delete);
+                break;
+            case CAR_RENTAL:
+                carRentalRepository.findById(reservationId)
+                        .ifPresent(carRentalRepository::delete);
+                break;
+            default:
+                throw new BadRequestException("reservation.400");
+        }
+
+        reservationRepository.delete(reservation);
+    }
+
     private String getDetailsType(ReservationDetails details) {
         if (details instanceof LodgingDetails) return "LODGING";
         if (details instanceof FlightDetails) return "FLIGHT";
