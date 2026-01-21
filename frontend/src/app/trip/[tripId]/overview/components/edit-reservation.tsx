@@ -9,7 +9,11 @@ import {
   Button,
   Box,
   TextField,
+  FormControl,
+  Select,
+  MenuItem,
 } from '@mui/material';
+import { Plane, Building, Utensils, Train, Ship, Bus, Car } from 'lucide-react';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useEffect, useRef, useState } from 'react';
@@ -49,6 +53,16 @@ export default function EditReservation({
   tripId,
   reservation,
 }: EditReservationProps) {
+  const icons = {
+    Lodging: <Building size={18} color="#25CF7A" />,
+    Restaurant: <Utensils size={18} color="#25CF7A" />,
+    Flight: <Plane size={18} color="#25CF7A" />,
+    Train: <Train size={18} color="#25CF7A" />,
+    Bus: <Bus size={18} color="#25CF7A" />,
+    Ferry: <Ship size={18} color="#25CF7A" />,
+    CarRental: <Car size={18} color="#25CF7A" />,
+  };
+
   const { t } = useTranslation('trip_overview');
   const updateReservation = useUpdateReservation();
   const fieldsRef = useRef<Record<string, HTMLDivElement | null>>({});
@@ -216,6 +230,30 @@ export default function EditReservation({
       </DialogTitle>
 
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <FormControl fullWidth>
+          <Select
+            value={typeValue}
+            disabled
+            displayEmpty
+            sx={{
+              borderRadius: 2,
+              '& .MuiSelect-icon': { display: 'none' },
+            }}
+            renderValue={(selected) => (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {icons[selected as keyof typeof icons]}
+                {t(`ManualReservation.Type.${selected}`)}
+              </Box>
+            )}
+          >
+            <MenuItem value={typeValue}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {icons[typeValue as keyof typeof icons]}
+                {t(`ManualReservation.Type.${typeValue}`)}
+              </Box>
+            </MenuItem>
+          </Select>
+        </FormControl>
         {fieldsByType[typeValue].map((field) => (
           <Box
             key={field.name}
