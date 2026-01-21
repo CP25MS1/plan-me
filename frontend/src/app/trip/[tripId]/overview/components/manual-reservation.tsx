@@ -161,7 +161,10 @@ export default function ManualReservation({
     setErrors(newErrors);
 
     if (firstError && fieldsRef.current[firstError]) {
-      fieldsRef.current[firstError]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      fieldsRef.current[firstError]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
     }
 
     if (Object.keys(newErrors).length === 0) {
@@ -409,6 +412,15 @@ export default function ManualReservation({
                     fullWidth
                     variant="outlined"
                     error={errors ? !!errors[field.name] : false}
+                    placeholder={field.placeholder}
+                    InputProps={{
+                      sx: {
+                        '& input::placeholder': {
+                          color: '#AFB1B6',
+                          opacity: 1,
+                        },
+                      },
+                    }}
                   />
                 </Box>
               ))}

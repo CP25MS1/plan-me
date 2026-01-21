@@ -51,7 +51,7 @@ export default function EditReservation({
 }: EditReservationProps) {
   const { t } = useTranslation('trip_overview');
   const updateReservation = useUpdateReservation();
-
+  const fieldsRef = useRef<Record<string, HTMLDivElement | null>>({});
   const typeValue = typeUiMap[reservation.type];
 
   const [formData, setFormData] = useState<ReservationDto | null>(null);
@@ -109,9 +109,46 @@ export default function EditReservation({
     setPassengers((p) => p.map((row, i) => (i === idx ? { ...row, [key]: val } : row)));
   };
 
+  const validate = () => {
+    const newErrors: Record<string, boolean> = {};
+    let firstError: string | null = null;
+
+    fieldsByType[typeValue].forEach((field) => {
+      const value = formData?.[field.name as keyof ReservationDto];
+
+      if (field.required && (!value || value === '')) {
+        newErrors[field.name] = true;
+        if (!firstError) firstError = field.name;
+      }
+    });
+
+    if (typeValue === 'Flight') {
+      passengers.forEach((p, idx) => {
+        if (!p.name || !p.seatNumber) {
+          const key = `passenger-${idx}`;
+          newErrors[key] = true;
+          if (!firstError) firstError = key;
+        }
+      });
+    }
+
+    setErrors(newErrors);
+
+    if (firstError && fieldsRef.current[firstError]) {
+      fieldsRef.current[firstError]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+
+    return Object.keys(newErrors).length === 0;
+  };
+
   /** ---------- submit ---------- */
   const handleConfirm = () => {
     if (!formData || !hasChanges) return;
+
+    if (!validate()) return;
 
     const payload = {
       reservationId: reservation.id,
@@ -180,15 +217,26 @@ export default function EditReservation({
 
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {fieldsByType[typeValue].map((field) => (
-          <Box key={field.name}>
-            <Typography variant="body2" color="text.secondary">
+          <Box
+            key={field.name}
+            ref={(el: HTMLDivElement | null) => {
+              fieldsRef.current[field.name] = el;
+            }}
+          >
+            <Typography
+              variant="body2"
+              color={errors[field.name] ? 'error.main' : 'text.secondary'}
+            >
               {field.label}
             </Typography>
+
             <TextField
               fullWidth
+              type={field.type || 'text'}
               value={formData[field.name as keyof ReservationDto] ?? ''}
               onChange={(e) => handleChange(field.name, e.target.value)}
               error={errors[field.name]}
+              placeholder={field.placeholder}
             />
           </Box>
         ))}
