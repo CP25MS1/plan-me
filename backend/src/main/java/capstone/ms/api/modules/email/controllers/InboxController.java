@@ -25,8 +25,14 @@ public class InboxController {
         var alias = emailInboxService.getAliasesByMessageNumbers(request.getEmailIds());
         boolean canWriteEmail = alias.values()
                 .stream()
-                .mapToInt(Integer::valueOf)
-                .mapToObj(tripId -> tripAccessService.hasAccess(currentUser, tripId))
+                .map(aliasValue -> {
+                    try {
+                        int tripId = Integer.parseInt(aliasValue);
+                        return tripAccessService.hasAccess(currentUser, tripId);
+                    } catch (NumberFormatException e) {
+                        return false;
+                    }
+                })
                 .allMatch(hasAccess -> hasAccess);
         if (!canWriteEmail) throw new ForbiddenException("trip.403");
         emailInboxService.markAsRead(request.getEmailIds());
