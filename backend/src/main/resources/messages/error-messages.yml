@@ -65,15 +65,16 @@ place:
 
 reservation:
   400:
-    th: "ไม่สามารถเพิ่มข้อมูลการจองได้ โปรดตรวจสอบข้อมูลอีกครั้ง"
-    en: "Unable to add information reservation. Please check your input and try again."
-  404:
-    th: "ไม่พบข้อมูลการจองนี้ในระบบ"
-    en: "This reservation is not found in the system."
+.    th: "โปรดตรวจสอบข้อมูลอีกครั้ง"
+    en: "Please check your input and try again."
   email:
     500:
       th: "เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก"
       en: "An error occurred, or the email content does not match the selected booking type."
+  file:
+    500:
+      th: "เกิดข้อผิดพลาด หรือเนื้อหาในไฟล์ไม่สอดคล้องกับประเภทการจองที่เลือก"
+      en: "An error occurred, or the file content does not match the selected booking type."
 
 dailyPlan:
   scheduledPlace:
