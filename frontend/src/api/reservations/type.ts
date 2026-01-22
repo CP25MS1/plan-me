@@ -123,5 +123,5 @@ export interface ReservationEmailInfo {
 
 export interface PreviewReservationRequest {
   emailId: number;
-  type: string;
+  type: ReservationType;
 }
