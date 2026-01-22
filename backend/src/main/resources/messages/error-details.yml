@@ -17,3 +17,8 @@ trip:
     badgeColor:
       null: "Objective badge color cannot be null."
       format: "Color format is invalid."
+
+reservation:
+  400:
+    file:
+      maxSize: "Total file size exceeds 20 MB."
