@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -103,6 +104,13 @@ public class GlobalExceptionHandler {
         return handleMainException(HttpStatus.INTERNAL_SERVER_ERROR, exception, request);
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeException(MaxUploadSizeExceededException exception, WebRequest request) {
+        var mainException = new MainException("reservation.400");
+        return handleMainException(HttpStatus.BAD_REQUEST, mainException, request);
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ErrorResponse> handleOtherExceptions(Exception ex, WebRequest request) {
@@ -126,10 +134,10 @@ public class GlobalExceptionHandler {
         String path = ((ServletWebRequest) request).getRequest().getRequestURI();
 
         String msgKey = exception.getMessageKey();
-        String detailsKey = exception.getDetailsKey() != null ? exception.getDetailsKey() : msgKey;
+        String detailsKey = exception.getDetailsKey() != null ? exception.getDetailsKey() : "";
 
         LocalizedText message = yamlMessageService.getMessage(msgKey);
-        Map<String, String> details = detailsKey == null ? null : yamlMessageService.getDetails(detailsKey);
+        Map<String, String> details = yamlMessageService.getDetails(detailsKey);
 
         if (message == null) {
             message = LocalizedText.builder()
