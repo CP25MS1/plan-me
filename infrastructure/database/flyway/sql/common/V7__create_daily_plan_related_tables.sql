@@ -15,13 +15,10 @@ CREATE TABLE scheduled_place (
     plan_id    INT      NOT NULL,
     ggmp_id    TEXT,
     notes      TEXT,
-    start_time TIME,
-    end_time   TIME,
     "order"    SMALLINT NOT NULL,
 
     CONSTRAINT fk_scheduled_place_plan FOREIGN KEY (plan_id) REFERENCES daily_plan (plan_id) ON DELETE CASCADE,
-    CONSTRAINT fk_scheduled_place_ggmp FOREIGN KEY (ggmp_id) REFERENCES google_map_place (ggmp_id) ON DELETE SET NULL,
-    CONSTRAINT ck_scheduled_place_time CHECK (start_time IS NULL OR end_time IS NULL OR start_time < end_time)
+    CONSTRAINT fk_scheduled_place_ggmp FOREIGN KEY (ggmp_id) REFERENCES google_map_place (ggmp_id) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_scheduled_place_plan_id ON scheduled_place (plan_id);
