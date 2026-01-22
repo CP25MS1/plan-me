@@ -41,3 +41,11 @@ export const getPreviewsReservation = async (
   });
   return data;
 };
+
+/** POST /reservations/bulk */
+export const createReservationsBulk = async (
+  reservations: Omit<ReservationDto, 'id'>[]
+): Promise<ReservationDto[]> => {
+  const { data } = await apiClient.post('/reservations/bulk', reservations);
+  return data;
+};
