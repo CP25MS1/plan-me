@@ -20,6 +20,12 @@ import EmailIcon from '@mui/icons-material/Email';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useState, useRef, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { Building, Bus, Car, Plane, Ship, Train, Utensils } from 'lucide-react';
+import { ElementType } from 'react';
+
 import { BackButton } from '@/components/button';
 import LodgingCard from '@/app/trip/[tripId]/overview/components/cards/lodging';
 import RestaurantCard from '@/app/trip/[tripId]/overview/components/cards/restaurant';
@@ -28,6 +34,10 @@ import TrainCard from '@/app/trip/[tripId]/overview/components/cards/train';
 import BusCard from '@/app/trip/[tripId]/overview/components/cards/bus';
 import FerryCard from '@/app/trip/[tripId]/overview/components/cards/ferry';
 import CarRentalCard from '@/app/trip/[tripId]/overview/components/cards/carrental';
+import { useGetReservationEmailInfo } from '@/app/trip/[tripId]/overview/hooks/reservations/use-get-reservation-email-info';
+import { useCreateReservationBulk } from '@/app/trip/[tripId]/overview/hooks/reservations/use-create-reservation-bulk';
+
+dayjs.extend(relativeTime);
 
 interface EmailReservationProps {
   open: boolean;
@@ -35,6 +45,7 @@ interface EmailReservationProps {
 }
 
 interface EmailItem {
+  emailId: number;
   subject: string;
   receivedAt: string;
   type: string;
@@ -42,14 +53,21 @@ interface EmailItem {
 }
 
 const types = ['Lodging', 'Restaurant', 'Flight', 'Train', 'Bus', 'Ferry', 'CarRental'];
+const icons = {
+  Lodging: <Building size={18} color="#25CF7A" />,
+  Restaurant: <Utensils size={18} color="#25CF7A" />,
+  Flight: <Plane size={18} color="#25CF7A" />,
+  Train: <Train size={18} color="#25CF7A" />,
+  Bus: <Bus size={18} color="#25CF7A" />,
+  Ferry: <Ship size={18} color="#25CF7A" />,
+  CarRental: <Car size={18} color="#25CF7A" />,
+};
 
 export default function EmailReservation({ open, onClose }: EmailReservationProps) {
+  const { tripId } = useParams<{ tripId: string }>();
+
   const [emails, setEmails] = useState<EmailItem[]>([]);
-  const [mockEmails, setMockEmails] = useState<EmailItem[]>([
-    { subject: 'lodging huahin reservation', receivedAt: '5 นาทีที่ผ่านมา', type: '' },
-    { subject: 'flight bangkok booking', receivedAt: '10 นาทีที่ผ่านมา', type: '' },
-    { subject: 'restaurant hua-hin confirm', receivedAt: '15 นาทีที่ผ่านมา', type: '' },
-  ]);
+  const { data: emailInfos } = useGetReservationEmailInfo(Number(tripId));
 
   const [showPreview, setShowPreview] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<Record<number, string>>({});
@@ -72,17 +90,27 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
 
   /* FETCH EMAILS */
   const checkEmails = () => {
-    setEmails(mockEmails);
+    if (!emailInfos) return;
+
+    setEmails(
+      emailInfos.map((e) => ({
+        emailId: e.emailId,
+        subject: e.subject,
+        receivedAt: dayjs(e.sentAt).fromNow(),
+        type: '',
+      }))
+    );
   };
 
   /* DELETE */
   const removeEmail = (index: number) => {
     setEmails((prev) => prev.filter((_, i) => i !== index));
-    setMockEmails((prev) => prev.filter((_, i) => i !== index));
 
-    const updated = { ...selectedTypes };
-    delete updated[index];
-    setSelectedTypes(updated);
+    setSelectedTypes((prev) => {
+      const updated = { ...prev };
+      delete updated[index];
+      return updated;
+    });
   };
 
   const handleTypeChange = (index: number, value: string) => {
@@ -115,7 +143,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     setShowPreview(true);
   };
 
-  const renderCard = (type: string) => {
+  const renderCard = (type?: string) => {
     switch (type) {
       case 'Lodging':
         return <LodgingCard />;
@@ -136,7 +164,6 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     }
   };
 
-  /* COUNT EMAILS SELECTED */
   const selectedCount = emails.filter((e) => e.type && !e.error).length;
 
   return (
@@ -156,7 +183,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         </DialogTitle>
 
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* EMAIL BOX + COPY */}
+          {/* EMAIL BOX */}
           <Box
             sx={{
               display: 'flex',
@@ -174,18 +201,17 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               sx={{
                 flexGrow: 1,
                 color: 'grey.700',
-                userSelect: 'none',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
               }}
             >
-              cp25ms1+U001T001@gmail.com
+              cp25ms1+{tripId}@gmail.com
             </Typography>
 
             <Tooltip title="Copy">
               <IconButton
-                onClick={() => copyToClipboard('cp25ms1+U001T001@gmail.com')}
+                onClick={() => copyToClipboard(`cp25ms1+${tripId}@gmail.com`)}
                 size="small"
               >
                 <ContentCopyIcon fontSize="small" />
@@ -193,29 +219,21 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
             </Tooltip>
           </Box>
 
-          {/* CHECK EMAIL BUTTON */}
           <Button
             variant="contained"
             startIcon={<EmailIcon />}
-            sx={{
-              mb: 2,
-              bgcolor: '#25CF7A',
-              color: 'white',
-              '&:hover': { bgcolor: '#20b86c' },
-            }}
+            sx={{ mb: 2, bgcolor: '#25CF7A', '&:hover': { bgcolor: '#20b86c' } }}
             onClick={checkEmails}
           >
             เช็คอีเมลที่เข้ามา
           </Button>
 
-          {/* EMAIL COUNT */}
           {emails.length > 0 && (
             <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              อีเมล ({selectedCount}/{mockEmails.length})
+              อีเมล ({selectedCount}/{emails.length})
             </Typography>
           )}
 
-          {/* EMAIL LIST */}
           <Box
             ref={containerRef}
             sx={{
@@ -228,7 +246,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           >
             {emails.map((item, index) => (
               <Box
-                key={index}
+                key={item.emailId}
                 sx={{
                   border: item.error ? '2px solid red' : '1px solid grey',
                   borderRadius: 2,
@@ -253,26 +271,43 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                     displayEmpty
                     onChange={(e) => handleTypeChange(index, e.target.value)}
                     error={!!item.error}
-                    sx={{
-                      borderRadius: 2,
-                      color: item.type === '' ? 'grey.500' : 'text.primary',
+                    renderValue={(selected) => {
+                      if (!selected) return 'เลือกประเภทข้อมูลการจอง';
+                      return (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {icons[selected as keyof typeof icons]}
+                          {selected}
+                        </Box>
+                      );
                     }}
                   >
                     <MenuItem value="" disabled>
                       เลือกประเภทข้อมูลการจอง
                     </MenuItem>
-                    {types.map((t) => (
-                      <MenuItem key={t} value={t}>
-                        {t}
-                      </MenuItem>
-                    ))}
+                    {types.map((t) => {
+                      const IconComp = {
+                        Lodging: Building,
+                        Restaurant: Utensils,
+                        Flight: Plane,
+                        Train: Train,
+                        Bus: Bus,
+                        Ferry: Ship,
+                        CarRental: Car,
+                      }[t] as ElementType;
+
+                      return (
+                        <MenuItem key={t} value={t} className="flex items-center gap-3">
+                          <IconComp size={18} color="#25CF7A" />
+                          {t}
+                        </MenuItem>
+                      );
+                    })}
                   </Select>
                 </FormControl>
               </Box>
             ))}
           </Box>
 
-          {/* PREVIEW BUTTON */}
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
             <Button
               variant="contained"
@@ -323,7 +358,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               gap: 2,
             }}
           >
-            {emails.map((item, index) => (
+            {emails.map((_, index) => (
               <Box key={index}>{renderCard(selectedTypes[index])}</Box>
             ))}
           </Box>
@@ -336,7 +371,6 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         </DialogContent>
       </Dialog>
 
-      {/* COPY SNACKBAR */}
       <Snackbar
         open={copiedAlert}
         autoHideDuration={1500}
