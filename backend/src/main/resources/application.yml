@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 22MB
   application:
     name: CP25MS1-backend
   datasource:
