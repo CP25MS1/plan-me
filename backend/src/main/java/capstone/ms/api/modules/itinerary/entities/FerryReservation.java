@@ -2,7 +2,6 @@ package capstone.ms.api.modules.itinerary.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,8 +18,7 @@ public class FerryReservation {
     @Column(name = "transport_company", nullable = false)
     private String transportCompany;
 
-    @Size(max = 80)
-    @Column(name = "passenger_name", nullable = false, length = 80)
+    @Column(name = "passenger_name", nullable = false)
     private String passengerName;
 
     @Column(name = "departure_port", nullable = false)
