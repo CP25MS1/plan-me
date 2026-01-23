@@ -13,7 +13,8 @@ const formatTime = (date: string) =>
     : '-';
 
 export default function CarRentalCard({ data }: { data: ReservationDto | null }) {
-  const carRentalDetails = (data as unknown as CarRentalDetails) || null;
+  const carRentalDetails =
+    (data?.details as CarRentalDetails | undefined) ?? (data as unknown as CarRentalDetails);
 
   const car = {
     rentalCompany: carRentalDetails?.rentalCompany || '-',

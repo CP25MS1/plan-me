@@ -17,7 +17,8 @@ const formatDate = (date: string) =>
     : '-';
 
 export default function FerryCard({ data }: { data: ReservationDto | null }) {
-  const ferryDetails = (data as unknown as FerryDetails) || null;
+  const ferryDetails =
+    (data?.details as FerryDetails | undefined) ?? (data as unknown as FerryDetails);
 
   const ferry = {
     transportCompany: ferryDetails?.transportCompany || '',
