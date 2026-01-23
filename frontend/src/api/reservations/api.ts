@@ -1,5 +1,11 @@
 import { apiClient } from '@/api/client';
-import { ReservationDto, ReservationEmailInfo, PreviewReservationRequest } from './type';
+import {
+  ReservationDto,
+  ReservationEmailInfo,
+  PreviewReservationRequest,
+  ReadEmailInboxRequest,
+  ReadEmailInboxResponse,
+} from './type';
 
 /** Create a reservation */
 export const createReservation = async (
@@ -47,5 +53,13 @@ export const createReservationsBulk = async (
   reservations: Omit<ReservationDto, 'id'>[]
 ): Promise<ReservationDto[]> => {
   const { data } = await apiClient.post('/reservations/bulk', reservations);
+  return data;
+};
+
+/** POST /email-inbox/read */
+export const readEmailInbox = async (
+  payload: ReadEmailInboxRequest
+): Promise<ReadEmailInboxResponse> => {
+  const { data } = await apiClient.post('/email-inbox/read', payload);
   return data;
 };

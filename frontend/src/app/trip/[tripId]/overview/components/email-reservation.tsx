@@ -67,12 +67,20 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   const { tripId } = useParams<{ tripId: string }>();
 
   const [emails, setEmails] = useState<EmailItem[]>([]);
-  const { data: emailInfos } = useGetReservationEmailInfo(Number(tripId));
+  const { data: emailInfos, refetch: refetchEmailInfos } = useGetReservationEmailInfo(
+    Number(tripId)
+  );
+  const resetEmailSelection = () => {
+    setEmails([]);
+    setSelectedTypes({});
+    setShowPreview(false);
+  };
 
   const [showPreview, setShowPreview] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<Record<number, string>>({});
   const [copiedAlert, setCopiedAlert] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isAllTypeSelected = emails.length > 0 && emails.every((_, index) => !!selectedTypes[index]);
 
   useEffect(() => {
     if (open) {
@@ -89,11 +97,13 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   };
 
   /* FETCH EMAILS */
-  const checkEmails = () => {
-    if (!emailInfos) return;
+  const checkEmails = async () => {
+    resetEmailSelection();
+    const { data } = await refetchEmailInfos();
+    if (!data) return;
 
     setEmails(
-      emailInfos.map((e) => ({
+      data.map((e) => ({
         emailId: e.emailId,
         subject: e.subject,
         receivedAt: dayjs(e.sentAt).fromNow(),
@@ -171,7 +181,10 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
       {/* Email Reservation Dialog */}
       <Dialog
         open={open && !showPreview}
-        onClose={onClose}
+        onClose={(_, reason) => {
+          if (reason === 'backdropClick') return;
+          onClose();
+        }}
         fullWidth
         PaperProps={{ sx: { width: 500, height: 600, borderRadius: 3, p: 2 } }}
       >
@@ -314,8 +327,8 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               startIcon={<VisibilityIcon />}
               onClick={handlePreview}
               sx={{
-                bgcolor: emails.length > 0 ? '#25CF7A' : 'grey.400',
-                pointerEvents: emails.length > 0 ? 'auto' : 'none',
+                bgcolor: isAllTypeSelected ? '#25CF7A' : 'grey.400',
+                pointerEvents: isAllTypeSelected ? 'auto' : 'none',
               }}
             >
               แสดงตัวอย่าง
@@ -327,7 +340,10 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
       {/* Preview Dialog */}
       <Dialog
         open={showPreview}
-        onClose={() => setShowPreview(false)}
+        onClose={(_, reason) => {
+          if (reason === 'backdropClick') return;
+          setShowPreview(false);
+        }}
         fullWidth
         PaperProps={{ sx: { width: 500, height: 600, borderRadius: 3, p: 2 } }}
       >
@@ -337,7 +353,10 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           </Box>
           ตัวอย่างข้อมูลอีเมล
           <IconButton
-            onClick={() => setShowPreview(false)}
+            onClick={() => {
+              setShowPreview(false);
+              onClose();
+            }}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
             <CloseIcon />
