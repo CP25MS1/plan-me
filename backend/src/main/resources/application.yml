@@ -80,10 +80,6 @@ typhoon:
   ocr-url: "https://api.opentyphoon.ai/v1/ocr"
   api-key: "${TYPHOON_API_KEY:}"
 
-ocr:
-  service:
-    url: http://localhost:8000/ocr
-
 frontend:
   url: http://localhost:3000
 

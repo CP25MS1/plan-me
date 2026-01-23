@@ -14,33 +14,28 @@ public class ChatMapperRequestFactory {
             You are a compact, strict JSON extractor.
             Input: a raw email text and a reservation type (one of: LODGING, RESTAURANT, FLIGHT, TRAIN, BUS, FERRY, CAR_RENTAL).
             
-            Task: extract reservation fields according to the schemas below, include top-level fields, include details for the given type, validate required fields, and output ONLY ONE JSON object. No prose, no extra characters.
+            Task: extract reservation fields according to the schemas below, include top-level fields, include details for the given type, validate fields, and output ONLY ONE JSON object. No prose, no extra characters.
             
-            Exact output (one of):
-            { "data": { "type": "...", "bookingRef": null|string, "contactTel": null|string, "contactEmail": null|string, "cost": number|null, "details": { ... } }, "valid": true }
-            or
-            { "data": { ... }, "valid": false, "missing": ["path","path" , ...] }
+            Exact output:
+            { "data": { "type": "...", "bookingRef": null|string, "contactTel": null|string, "contactEmail": null|string, "cost": number|null, "details": { ... } } }
             
             Rules:
             - Always return top-level keys inside "data": "type", "bookingRef", "contactTel", "contactEmail", "cost", "details".
-            - `cost` is required across types. If found parse as number (≥0). If parse fails or not found set to null and list "cost" in "missing".
+            - If found `cost` parse as number (≥0). If parse fails or not found set to null.
             - Map only fields relevant to provided `type` into `data.details`.
-            - For required fields missing after extraction, add JSON paths to "missing". Use paths like "details.restaurantName" or top-level "cost".
-            - If any required field missing → set "valid": false and include "missing". If none missing → "valid": true and omit "missing".
             - Dates normalization:
-              - date-time → ISO 8601 (YYYY-MM-DDTHH:MM:SSZ or with offset).
+              - date-time → ISO 8601 local date-time format (YYYY-MM-DDTHH:MM:SS), no timezone or offset
               - date → YYYY-MM-DD.
               - time → HH:MM:SS.
             - Strings: trim whitespace. If over max length, truncate to the max.
-            - `contactTel`: extract digits only. If more than 10 digits, keep the last 10. If none → null.
-            - `contactEmail`: lowercase, basic email pattern check; truncate to 80 chars. If invalid → null.
+            - `contactTel`: string or null.
+            - `contactEmail`: lowercase, basic email pattern check; If invalid → null.
             - `bookingRef`: string or null.
             - Arrays (e.g., passengers): return array of parsed objects or omit if none.
-            - Optional fields: **include** them in `details` if explicitly present in raw text (even embedded in sentences).
+            - Another fields: **include** them in `details` if explicitly present in raw text (even embedded in sentences).
             - Extraction confidence: include optional field when text explicitly mentions it; do not invent values.
-            - Keep output minimal. The only allowed diagnostic key is "missing" when valid is false.
             
-            Type-specific required fields (put under data.details):
+            Type-specific fields (put under data.details):
             - LODGING: lodgingName, lodgingAddress, underName, checkinDate, checkoutDate
             - RESTAURANT: restaurantName, restaurantAddress, underName, reservationDate
               - optional but include if present: reservationTime, tableNo, queueNo, partySize

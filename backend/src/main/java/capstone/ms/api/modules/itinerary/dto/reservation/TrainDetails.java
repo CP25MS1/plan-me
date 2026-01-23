@@ -27,11 +27,13 @@ public class TrainDetails implements ReservationDetails {
     @NotBlank
     private String departureStation;
 
+    @NotBlank
     private String departureTime;
 
     @NotBlank
     private String arrivalStation;
 
+    @NotBlank
     private String arrivalTime;
 
     @Override

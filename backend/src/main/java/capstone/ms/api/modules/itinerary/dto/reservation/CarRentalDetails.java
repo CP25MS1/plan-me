@@ -24,11 +24,13 @@ public class CarRentalDetails implements ReservationDetails {
     @NotBlank
     private String pickupLocation;
 
+    @NotBlank
     private String pickupTime;
 
     @NotBlank
     private String dropoffLocation;
 
+    @NotBlank
     private String dropoffTime;
 
     @Override

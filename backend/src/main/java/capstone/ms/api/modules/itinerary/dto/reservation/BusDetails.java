@@ -15,6 +15,7 @@ public class BusDetails implements ReservationDetails {
     @NotBlank
     private String departureStation;
 
+    @NotBlank
     private String departureTime;
 
     @NotBlank
