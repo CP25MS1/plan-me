@@ -1,7 +1,7 @@
 'use client';
 
 import { LodgingDetails, ReservationDto } from '@/api/reservations';
-import { Box, Typography, Divider } from '@mui/material';
+import { Box, Typography, Divider, Tooltip } from '@mui/material';
 import { Building, Phone, Mail, UserRound, Clock } from 'lucide-react';
 
 const formatDate = (datetime: string) => {
@@ -29,7 +29,8 @@ const formatDateTime = (datetime: string) => {
 };
 
 export default function LodgingCard({ data }: { data: ReservationDto | null }) {
-  const lodgingDetails = (data as unknown as LodgingDetails) || null;
+  const lodgingDetails =
+    (data?.details as LodgingDetails | undefined) ?? (data as unknown as LodgingDetails);
 
   const lodging = {
     lodgingName: lodgingDetails?.lodgingName || '',
@@ -75,49 +76,100 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
       <Box sx={{ display: 'flex', gap: 1.5, minWidth: 0 }}>
         {/* Left */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="subtitle2" fontWeight={700} noWrap>
-            {lodging.lodgingName}
-          </Typography>
+          <Tooltip title={lodging.lodgingName} arrow disableInteractive>
+            <Typography
+              variant="subtitle2"
+              fontWeight={700}
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                cursor: 'default',
+              }}
+            >
+              {lodging.lodgingName}
+            </Typography>
+          </Tooltip>
 
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }} noWrap>
-            {lodging.lodgingAddress}
-          </Typography>
+          <Tooltip title={lodging.lodgingAddress} arrow disableInteractive>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{
+                mt: 0.5,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                cursor: 'default',
+              }}
+            >
+              {lodging.lodgingAddress}
+            </Typography>
+          </Tooltip>
 
           <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <Phone size={14} />
-              <Typography variant="caption" noWrap>
-                {lodging.contactTel || '-'}
-              </Typography>
+              <Tooltip title={lodging.contactTel} arrow disableInteractive>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {lodging.contactTel || '-'}
+                </Typography>
+              </Tooltip>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <Mail size={14} />
-              <Typography variant="caption" noWrap>
-                {lodging.contactEmail || '-'}
-              </Typography>
+              <Tooltip title={lodging.contactEmail} arrow disableInteractive>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {lodging.contactEmail || '-'}
+                </Typography>
+              </Tooltip>
             </Box>
           </Box>
 
-          <Typography variant="caption" sx={{ mt: 1 }} noWrap>
-            <b>CONFIRMATION #</b> {lodging.bookingRef || '-'}
-          </Typography>
+          <Box sx={{ mt: 1 }}>
+            <Typography variant="caption" fontWeight={600}>
+              CONFIRMATION #
+            </Typography>
+
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {lodging.bookingRef || '-'}
+            </Typography>
+          </Box>
         </Box>
 
         <Divider orientation="vertical" flexItem />
 
         {/* Right (เหมือนร้านอาหาร) */}
         <Box sx={{ width: 150, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          <Info icon={<UserRound size={14} />} text={lodging.underName} />
+          <Info icon={<UserRound size={14} />} label="Under name" value={lodging.underName} />
           <Info
             icon={<Clock size={14} />}
-            text={`Check-in ${formatDateTime(lodging.checkinDate)}`}
-          />
-          <Info
-            icon={<Clock size={14} />}
-            text={`Check-out ${formatDateTime(lodging.checkoutDate)}`}
+            label="Check-in"
+            value={formatDateTime(lodging.checkinDate)}
           />
 
+          <Info
+            icon={<Clock size={14} />}
+            label="Check-out"
+            value={formatDateTime(lodging.checkoutDate)}
+          />
           <Box sx={{ mt: 0.5, textAlign: 'right' }}>
             <Typography
               variant="caption"
@@ -139,13 +191,20 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
   );
 }
 
-function Info({ icon, text }: { icon: React.ReactNode; text?: string }) {
+function Info({ icon, label, value }: { icon: React.ReactNode; label: string; value?: string }) {
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+    <Box sx={{ display: 'flex', gap: 0.75, minWidth: 0 }}>
       {icon}
-      <Typography variant="caption" noWrap>
-        {text || '-'}
-      </Typography>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <Typography variant="caption" fontWeight={600}>
+          {label}
+        </Typography>
+
+        <Typography variant="caption" color="text.secondary" noWrap>
+          {value || '-'}
+        </Typography>
+      </Box>
     </Box>
   );
 }

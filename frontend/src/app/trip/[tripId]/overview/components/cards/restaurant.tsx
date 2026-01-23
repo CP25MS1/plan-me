@@ -1,7 +1,7 @@
 'use client';
 
 import { ReservationDto, RestaurantDetails } from '@/api/reservations';
-import { Box, Typography, Divider } from '@mui/material';
+import { Box, Typography, Divider, Tooltip } from '@mui/material';
 import { Utensils, Phone, Mail, UserRound, Clock, Table, Ticket, Users } from 'lucide-react';
 
 const formatDate = (datetime: string) => {
@@ -10,8 +10,14 @@ const formatDate = (datetime: string) => {
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
 };
 
+const formatTime = (time?: string) => {
+  if (!time) return '-';
+  return time.slice(0, 5);
+};
+
 export default function RestaurantCard({ data }: { data: ReservationDto | null }) {
-  const restaurantDetails = (data as unknown as RestaurantDetails) || null;
+  const restaurantDetails =
+    (data?.details as RestaurantDetails | undefined) ?? (data as unknown as RestaurantDetails);
 
   const restaurant = {
     restaurantName: restaurantDetails?.restaurantName || '',
@@ -31,7 +37,7 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
   return (
     <Box
       sx={{
-        width: '100%', // ✅ สำคัญ
+        width: '100%',
         border: '1px solid #E5E5E5',
         borderRadius: 2,
         p: 1.5,
@@ -59,40 +65,91 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
       <Box sx={{ display: 'flex', gap: 1.5, minWidth: 0 }}>
         {/* Left */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="subtitle2" fontWeight={700} noWrap>
-            {restaurant.restaurantName}
-          </Typography>
+          <Tooltip title={restaurant.restaurantName} arrow disableInteractive>
+            <Typography
+              variant="subtitle2"
+              fontWeight={700}
+              noWrap
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                cursor: 'default',
+              }}
+            >
+              {restaurant.restaurantName}
+            </Typography>
+          </Tooltip>
 
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }} noWrap>
-            {restaurant.restaurantAddress}
-          </Typography>
+          <Tooltip title={restaurant.restaurantAddress} arrow disableInteractive>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{
+                mt: 0.5,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                cursor: 'default',
+              }}
+            >
+              {restaurant.restaurantAddress}
+            </Typography>
+          </Tooltip>
 
           <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
               <Phone size={14} />
-              <Typography variant="caption" noWrap>
-                {restaurant.contactTel}
-              </Typography>
+              <Tooltip title={restaurant.contactTel} arrow disableInteractive>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    cursor: 'default',
+                  }}
+                >
+                  {restaurant.contactTel || '-'}
+                </Typography>
+              </Tooltip>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
               <Mail size={14} />
-              <Typography variant="caption" noWrap>
-                {restaurant.contactEmail}
-              </Typography>
+              <Tooltip title={restaurant.contactEmail} arrow disableInteractive>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    cursor: 'default',
+                  }}
+                >
+                  {restaurant.contactEmail || '-'}
+                </Typography>
+              </Tooltip>
             </Box>
           </Box>
 
-          <Typography variant="caption" sx={{ mt: 1 }} noWrap>
-            <b>CONFIRMATION #</b> {restaurant.bookingRef}
-          </Typography>
+          <Box sx={{ mt: 1 }}>
+            <Typography variant="caption" fontWeight={600}>
+              CONFIRMATION #
+            </Typography>
+
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {restaurant.bookingRef || '-'}
+            </Typography>
+          </Box>
         </Box>
 
         <Divider orientation="vertical" flexItem />
 
         {/* Right */}
         <Box sx={{ width: 150, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          <Info icon={<Clock size={14} />} text={restaurant.reservationTime || '-'} />
+          <Info icon={<Clock size={14} />} text={formatTime(restaurant.reservationTime)} />
           <Info icon={<UserRound size={14} />} text={restaurant.underName} />
           <Info icon={<Table size={14} />} text={`หมายเลขโต๊ะ ${restaurant.tableNo}`} />
           <Info icon={<Ticket size={14} />} text={`หมายเลขคิว ${restaurant.queueNo}`} />

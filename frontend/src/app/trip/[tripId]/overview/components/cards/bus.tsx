@@ -17,7 +17,7 @@ const formatDate = (date: string) =>
     : '-';
 
 export default function BusCard({ data }: { data: ReservationDto | null }) {
-  const busDetails = (data as unknown as BusDetails) || null;
+  const busDetails = (data?.details as BusDetails | undefined) ?? (data as unknown as BusDetails);
 
   const bus = {
     transportCompany: busDetails?.transportCompany || '',

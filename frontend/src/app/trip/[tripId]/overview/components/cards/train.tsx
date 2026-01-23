@@ -70,7 +70,8 @@ const Row = ({ children }: { children: React.ReactNode }) => (
 );
 
 export default function TrainCard({ data }: { data: ReservationDto | null }) {
-  const trainDetails = (data as unknown as TrainDetails) || null;
+  const trainDetails =
+    (data?.details as TrainDetails | undefined) ?? (data as unknown as TrainDetails);
 
   const train = {
     trainNo: trainDetails?.trainNo || '-',
