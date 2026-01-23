@@ -125,3 +125,11 @@ export interface PreviewReservationRequest {
   emailId: number;
   type: ReservationType;
 }
+
+export interface ReadEmailInboxRequest {
+  emailIds: number[];
+}
+
+export interface ReadEmailInboxResponse {
+  success: boolean;
+}
