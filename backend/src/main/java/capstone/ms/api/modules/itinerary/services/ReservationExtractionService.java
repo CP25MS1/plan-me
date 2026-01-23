@@ -4,13 +4,9 @@ import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.ServerErrorException;
 import capstone.ms.api.modules.email.services.EmailParser;
 import capstone.ms.api.modules.email.services.ImapEmailFetcher;
-import capstone.ms.api.modules.google_maps.services.PlacesService;
 import capstone.ms.api.modules.itinerary.dto.external.MappedReservationResponse;
-import capstone.ms.api.modules.itinerary.dto.reservation.LodgingDetails;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationPreviewRequest;
-import capstone.ms.api.modules.itinerary.dto.reservation.RestaurantDetails;
-import capstone.ms.api.modules.itinerary.entities.ReservationType;
 import capstone.ms.api.modules.itinerary.mappers.ReservationMapper;
 import capstone.ms.api.modules.typhoon.dto.ChatRequest;
 import capstone.ms.api.modules.typhoon.services.impl.TyphoonServiceImpl;
@@ -38,7 +34,6 @@ public class ReservationExtractionService {
 
     private final TripAccessService tripAccessService;
     private final TyphoonServiceImpl typhoonService;
-    private final PlacesService placesService;
     private final ChatMapperRequestFactory chatMapperRequestFactory;
     private final ReservationValidationService validationService;
 
@@ -97,7 +92,6 @@ public class ReservationExtractionService {
             );
         }
 
-        enrichGgmpIdIfApplicable(reservation);
         return reservation;
     }
 
@@ -182,34 +176,6 @@ public class ReservationExtractionService {
         } catch (JsonProcessingException e) {
             throw new ServerErrorException("reservation.email.500");
         }
-    }
-
-    private void enrichGgmpIdIfApplicable(ReservationDto dto) {
-        try {
-            ReservationType type = ReservationType.valueOf(dto.getType());
-
-            switch (type) {
-                case LODGING -> enrichLodgingGgmp(dto);
-                case RESTAURANT -> enrichRestaurantGgmp(dto);
-                default -> {
-                    // do nothing
-                }
-            }
-        } catch (Exception e) {
-            log.warn("GGMP enrichment failed for reservation type {}", dto.getType(), e);
-        }
-    }
-
-    private void enrichLodgingGgmp(ReservationDto dto) {
-        LodgingDetails details = (LodgingDetails) dto.getDetails();
-        String query = details.getLodgingName() + ": " + details.getLodgingAddress();
-        dto.setGgmpId(placesService.searchAndGetGgmpId(query));
-    }
-
-    private void enrichRestaurantGgmp(ReservationDto dto) {
-        RestaurantDetails details = (RestaurantDetails) dto.getDetails();
-        String query = details.getRestaurantName() + ": " + details.getRestaurantAddress();
-        dto.setGgmpId(placesService.searchAndGetGgmpId(query));
     }
 
     private Map<Integer, Message> fetchMessages(List<ReservationPreviewRequest> requests) {

@@ -5,6 +5,7 @@ import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.email.dto.EmailInfoDto;
 import capstone.ms.api.modules.email.services.EmailInboxService;
+import capstone.ms.api.modules.google_maps.services.PlacesService;
 import capstone.ms.api.modules.itinerary.dto.reservation.*;
 import capstone.ms.api.modules.itinerary.entities.*;
 import capstone.ms.api.modules.itinerary.mappers.ReservationMapper;
@@ -32,27 +33,7 @@ public class ReservationService {
     private final CarRentalReservationRepository carRentalRepository;
     private final ReservationMapper reservationMapper;
     private final EmailInboxService emailInboxService;
-
-    private Trip loadTripOrThrow(final Integer tripId) {
-        return tripRepository.findById(tripId)
-                .orElseThrow(() -> new NotFoundException("trip.404"));
-    }
-
-    private void ensureOwnerOrThrow(final User user, final Trip trip) {
-        if (trip == null) {
-            throw new NotFoundException("trip.404");
-        }
-        if (!trip.getOwner().getId().equals(user.getId())) {
-            throw new ForbiddenException("trip.403");
-        }
-    }
-
-    private <T> T validateAndMap(T entity) {
-        if (entity == null) {
-            throw new BadRequestException("reservation.400");
-        }
-        return entity;
-    }
+    private final PlacesService placesService;
 
     @Transactional
     public ReservationDto createReservation(ReservationDto dto, User currentUser) {
@@ -74,6 +55,7 @@ public class ReservationService {
 
         Reservation reservation = reservationMapper.dtoToReservation(dto);
         reservation.setTrip(trip);
+        enrichGgmpIdIfApplicable(dto);
         reservationRepository.save(reservation);
 
         switch (dto.getType()) {
@@ -164,11 +146,11 @@ public class ReservationService {
 
         reservation.setTrip(tripRepository.findById(dto.getTripId())
                 .orElseThrow(() -> new NotFoundException("trip.404")));
-        reservation.setGgmpId(dto.getGgmpId());
         reservation.setBookingRef(dto.getBookingRef());
         reservation.setContactTel(dto.getContactTel());
         reservation.setContactEmail(dto.getContactEmail());
         reservation.setCost(dto.getCost());
+        enrichGgmpIdIfApplicable(dto);
 
         reservationRepository.save(reservation);
 
@@ -236,6 +218,8 @@ public class ReservationService {
         }
 
         dto.setId(reservation.getId());
+
+        enrichGgmpIdIfApplicable(dto);
         return dto;
     }
 
@@ -288,6 +272,37 @@ public class ReservationService {
         reservationRepository.delete(reservation);
     }
 
+    public List<EmailInfoDto> checkEmailInfo(Integer tripId, User currentUser) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+        if (!trip.getOwner().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("trip.403");
+        }
+
+        return emailInboxService.listUnreadEmailInfo(tripId);
+    }
+
+    private Trip loadTripOrThrow(final Integer tripId) {
+        return tripRepository.findById(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+    }
+
+    private void ensureOwnerOrThrow(final User user, final Trip trip) {
+        if (trip == null) {
+            throw new NotFoundException("trip.404");
+        }
+        if (!trip.getOwner().getId().equals(user.getId())) {
+            throw new ForbiddenException("trip.403");
+        }
+    }
+
+    private <T> T validateAndMap(T entity) {
+        if (entity == null) {
+            throw new BadRequestException("reservation.400");
+        }
+        return entity;
+    }
+
     private String getDetailsType(ReservationDetails details) {
         if (details instanceof LodgingDetails) return "LODGING";
         if (details instanceof FlightDetails) return "FLIGHT";
@@ -299,13 +314,31 @@ public class ReservationService {
         throw new BadRequestException("reservation.400");
     }
 
-    public List<EmailInfoDto> checkEmailInfo(Integer tripId, User currentUser) {
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new NotFoundException("trip.404"));
-        if (!trip.getOwner().getId().equals(currentUser.getId())) {
-            throw new ForbiddenException("trip.403");
-        }
+    private void enrichGgmpIdIfApplicable(ReservationDto dto) {
+        try {
+            ReservationType type = ReservationType.valueOf(dto.getType());
 
-        return emailInboxService.listUnreadEmailInfo(tripId);
+            switch (type) {
+                case LODGING -> enrichLodgingGgmp(dto);
+                case RESTAURANT -> enrichRestaurantGgmp(dto);
+                default -> {
+                    // do nothing
+                }
+            }
+        } catch (Exception e) {
+            log.warn("GGMP enrichment failed for reservation type {}", dto.getType(), e);
+        }
+    }
+
+    private void enrichLodgingGgmp(ReservationDto dto) {
+        LodgingDetails details = (LodgingDetails) dto.getDetails();
+        String query = details.getLodgingName() + ": " + details.getLodgingAddress();
+        dto.setGgmpId(placesService.searchAndGetGgmpId(query));
+    }
+
+    private void enrichRestaurantGgmp(ReservationDto dto) {
+        RestaurantDetails details = (RestaurantDetails) dto.getDetails();
+        String query = details.getRestaurantName() + ": " + details.getRestaurantAddress();
+        dto.setGgmpId(placesService.searchAndGetGgmpId(query));
     }
 }
