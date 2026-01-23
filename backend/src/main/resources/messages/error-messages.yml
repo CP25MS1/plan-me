@@ -65,7 +65,7 @@ place:
 
 reservation:
   400:
-.    th: "โปรดตรวจสอบข้อมูลอีกครั้ง"
+    th: "โปรดตรวจสอบข้อมูลอีกครั้ง"
     en: "Please check your input and try again."
   email:
     500:

@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.services;
 
+import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.user.entities.User;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,7 @@ public class TripAccessService {
     private final TripRepository tripRepository;
 
     public boolean hasAccess(User user, Integer tripId) {
-        var trip = tripRepository.findById(tripId).orElse(null);
+        var trip = tripRepository.findById(tripId).orElseThrow(() -> new NotFoundException("trip.404"));
         if (trip == null) return false;
 
         // validate owner

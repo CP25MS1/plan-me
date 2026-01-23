@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 @Data
 public class MappedReservationResponse {
     private Result data;
-    private Boolean valid;
 
     @Data
     public static class Result {

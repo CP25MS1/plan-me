@@ -18,8 +18,10 @@ public class LodgingDetails implements ReservationDetails {
     @NotBlank
     private String underName;
 
+    @NotBlank
     private String checkinDate;
 
+    @NotBlank
     private String checkoutDate;
 
     @Override

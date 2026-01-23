@@ -24,11 +24,13 @@ public class FlightDetails implements ReservationDetails {
     @NotBlank
     private String departureAirport;
 
+    @NotBlank
     private String departureTime;
 
     @NotBlank
     private String arrivalAirport;
 
+    @NotBlank
     private String arrivalTime;
 
     private String flightClass;
