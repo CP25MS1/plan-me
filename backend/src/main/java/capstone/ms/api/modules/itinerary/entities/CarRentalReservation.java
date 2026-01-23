@@ -2,7 +2,6 @@ package capstone.ms.api.modules.itinerary.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,12 +21,10 @@ public class CarRentalReservation {
     @Column(name = "car_model", nullable = false)
     private String carModel;
 
-    @Size(max = 10)
-    @Column(name = "vrn", nullable = false, length = 10)
+    @Column(name = "vrn", nullable = false)
     private String vrn;
 
-    @Size(max = 80)
-    @Column(name = "renter_name", nullable = false, length = 80)
+    @Column(name = "renter_name", nullable = false)
     private String renterName;
 
     @Column(name = "pickup_location", nullable = false)

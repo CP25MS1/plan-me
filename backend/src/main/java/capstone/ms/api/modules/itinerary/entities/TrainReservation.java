@@ -1,10 +1,7 @@
 package capstone.ms.api.modules.itinerary.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Entity;
 import jakarta.persistence.*;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,8 +27,7 @@ public class TrainReservation {
     @Column(name = "seat_no", nullable = false)
     private String seatNo;
 
-    @Size(max = 80)
-    @Column(name = "passenger_name", nullable = false, length = 80)
+    @Column(name = "passenger_name", nullable = false)
     private String passengerName;
 
     @Column(name = "departure_station", nullable = false)

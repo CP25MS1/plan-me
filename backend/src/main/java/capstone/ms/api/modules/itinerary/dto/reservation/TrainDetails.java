@@ -2,7 +2,6 @@ package capstone.ms.api.modules.itinerary.dto.reservation;
 
 import capstone.ms.api.common.annotations.ErrorMessage;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
@@ -23,7 +22,6 @@ public class TrainDetails implements ReservationDetails {
     private String seatNo;
 
     @NotBlank
-    @Size(max = 80)
     private String passengerName;
 
     @NotBlank
