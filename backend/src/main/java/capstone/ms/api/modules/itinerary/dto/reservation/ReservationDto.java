@@ -25,11 +25,9 @@ public class ReservationDto {
 
     private String bookingRef;
 
-    @Size(max = 10)
     private String contactTel;
 
     @Email
-    @Size(max = 80)
     private String contactEmail;
 
     @DecimalMin("0.0")

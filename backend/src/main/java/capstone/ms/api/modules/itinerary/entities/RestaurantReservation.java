@@ -1,10 +1,7 @@
 package capstone.ms.api.modules.itinerary.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Entity;
 import jakarta.persistence.*;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,15 +16,13 @@ public class RestaurantReservation {
     @Id
     private Integer reservationId;
 
-    @Size(max = 80)
-    @Column(name = "restaurant_name", nullable = false, length = 80)
+    @Column(name = "restaurant_name", nullable = false)
     private String restaurantName;
 
     @Column(name = "restaurant_address", nullable = false)
     private String restaurantAddress;
 
-    @Size(max = 80)
-    @Column(name = "under_name", nullable = false, length = 80)
+    @Column(name = "under_name", nullable = false)
     private String underName;
 
     @Column(name = "reservation_date", nullable = false)
