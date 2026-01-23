@@ -35,6 +35,12 @@ import BusCard from '@/app/trip/[tripId]/overview/components/cards/bus';
 import FerryCard from '@/app/trip/[tripId]/overview/components/cards/ferry';
 import CarRentalCard from '@/app/trip/[tripId]/overview/components/cards/carrental';
 import { useGetReservationEmailInfo } from '@/app/trip/[tripId]/overview/hooks/reservations/use-get-reservation-email-info';
+import { useGetPreviewsReservation } from '@/app/trip/[tripId]/overview/hooks/reservations/use-get-previews-reservation';
+import {
+  ReservationType,
+  PreviewReservationRequest,
+  ReservationDto,
+} from '@/api/reservations/type';
 import { useCreateReservationBulk } from '@/app/trip/[tripId]/overview/hooks/reservations/use-create-reservation-bulk';
 
 dayjs.extend(relativeTime);
@@ -48,11 +54,11 @@ interface EmailItem {
   emailId: number;
   subject: string;
   receivedAt: string;
-  type: string;
+  type: ReservationType | '';
   error?: boolean;
 }
 
-const types = ['Lodging', 'Restaurant', 'Flight', 'Train', 'Bus', 'Ferry', 'CarRental'];
+const types = ['LODGING', 'RESTAURANT', 'FLIGHT', 'TRAIN', 'BUS', 'FERRY', 'CAR_RENTAL'];
 const icons = {
   Lodging: <Building size={18} color="#25CF7A" />,
   Restaurant: <Utensils size={18} color="#25CF7A" />,
@@ -77,7 +83,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   };
 
   const [showPreview, setShowPreview] = useState(false);
-  const [selectedTypes, setSelectedTypes] = useState<Record<number, string>>({});
+  const [selectedTypes, setSelectedTypes] = useState<Record<number, ReservationType>>({});
   const [copiedAlert, setCopiedAlert] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isAllTypeSelected = emails.length > 0 && emails.every((_, index) => !!selectedTypes[index]);
@@ -123,14 +129,19 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     });
   };
 
-  const handleTypeChange = (index: number, value: string) => {
+  const handleTypeChange = (index: number, value: ReservationType) => {
     setSelectedTypes((prev) => ({ ...prev, [index]: value }));
+
     setEmails((prev) =>
       prev.map((item, i) => (i === index ? { ...item, error: false, type: value } : item))
     );
   };
 
-  const handlePreview = () => {
+  // Preview Email
+  const { mutateAsync: getPreviews, isPending } = useGetPreviewsReservation();
+  const [previewReservations, setPreviewReservations] = useState<ReservationDto[]>([]);
+
+  const handlePreview = async () => {
     let hasError = false;
 
     const updated = emails.map((item, i) => {
@@ -150,25 +161,54 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
       return;
     }
 
-    setShowPreview(true);
+    // ===== ยิง API =====
+    try {
+      const payload = emails.map((e, i) => ({
+        emailId: e.emailId,
+        type: selectedTypes[i],
+      }));
+
+      const result = await getPreviews({
+        tripId: Number(tripId),
+        emails: payload,
+      });
+
+      setPreviewReservations(result);
+      setShowPreview(true);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const renderCard = (type?: string) => {
-    switch (type) {
-      case 'Lodging':
-        return <LodgingCard />;
-      case 'Restaurant':
-        return <RestaurantCard />;
-      case 'Flight':
-        return <FlightCard />;
-      case 'Train':
-        return <TrainCard />;
-      case 'Bus':
-        return <BusCard />;
-      case 'Ferry':
-        return <FerryCard />;
-      case 'CarRental':
-        return <CarRentalCard />;
+  // Confirm
+  const { mutateAsync: createBulk, isPending: isCreating } = useCreateReservationBulk();
+  const handleConfirm = async () => {
+    try {
+      await createBulk(previewReservations);
+      await refetchEmailInfos();
+      setShowPreview(false);
+      onClose();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const renderCard = (reservation: ReservationDto, index: number) => {
+    switch (reservation.type) {
+      case 'LODGING':
+        return <LodgingCard data={reservation} />;
+      case 'RESTAURANT':
+        return <RestaurantCard data={reservation} />;
+      case 'FLIGHT':
+        return <FlightCard data={reservation} passengerIndex={index} />;
+      case 'TRAIN':
+        return <TrainCard data={reservation} />;
+      case 'BUS':
+        return <BusCard data={reservation} />;
+      case 'FERRY':
+        return <FerryCard data={reservation} />;
+      case 'CAR_RENTAL':
+        return <CarRentalCard data={reservation} />;
       default:
         return null;
     }
@@ -186,7 +226,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           onClose();
         }}
         fullWidth
-        PaperProps={{ sx: { width: 500, height: 600, borderRadius: 3, p: 2 } }}
+        PaperProps={{ sx: { width: 720, height: 600, borderRadius: 3, p: 2 } }}
       >
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, position: 'relative' }}>
           ส่งต่อข้อมูลการจองผ่านอีเมล
@@ -282,7 +322,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                   <Select
                     value={selectedTypes[index] || ''}
                     displayEmpty
-                    onChange={(e) => handleTypeChange(index, e.target.value)}
+                    onChange={(e) => handleTypeChange(index, e.target.value as ReservationType)}
                     error={!!item.error}
                     renderValue={(selected) => {
                       if (!selected) return 'เลือกประเภทข้อมูลการจอง';
@@ -299,13 +339,13 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                     </MenuItem>
                     {types.map((t) => {
                       const IconComp = {
-                        Lodging: Building,
-                        Restaurant: Utensils,
-                        Flight: Plane,
-                        Train: Train,
-                        Bus: Bus,
-                        Ferry: Ship,
-                        CarRental: Car,
+                        LODGING: Building,
+                        RESTAURANT: Utensils,
+                        FLIGHT: Plane,
+                        TRAIN: Train,
+                        BUS: Bus,
+                        FERRY: Ship,
+                        CAR_RENTAL: Car,
                       }[t] as ElementType;
 
                       return (
@@ -326,12 +366,12 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               variant="contained"
               startIcon={<VisibilityIcon />}
               onClick={handlePreview}
+              disabled={!isAllTypeSelected || isPending}
               sx={{
                 bgcolor: isAllTypeSelected ? '#25CF7A' : 'grey.400',
-                pointerEvents: isAllTypeSelected ? 'auto' : 'none',
               }}
             >
-              แสดงตัวอย่าง
+              {isPending ? 'กำลังโหลด...' : 'แสดงตัวอย่าง'}
             </Button>
           </Box>
         </DialogContent>
@@ -377,14 +417,19 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               gap: 2,
             }}
           >
-            {emails.map((_, index) => (
-              <Box key={index}>{renderCard(selectedTypes[index])}</Box>
+            {previewReservations.map((item, index) => (
+              <Box key={index}>{renderCard(item, index)}</Box>
             ))}
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Button variant="contained" sx={{ bgcolor: '#25CF7A' }} onClick={onClose}>
-              ยืนยัน
+            <Button
+              variant="contained"
+              sx={{ bgcolor: '#25CF7A' }}
+              onClick={handleConfirm}
+              disabled={isCreating}
+            >
+              {isCreating ? 'กำลังบันทึก...' : 'ยืนยัน'}
             </Button>
           </Box>
         </DialogContent>

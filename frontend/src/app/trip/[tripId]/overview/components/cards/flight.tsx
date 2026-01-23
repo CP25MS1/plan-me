@@ -23,7 +23,8 @@ export default function FlightCard({
   data: ReservationDto | null;
   passengerIndex: number;
 }) {
-  const flightDetails = (data as unknown as FlightDetails) || null;
+  const flightDetails =
+    (data?.details as FlightDetails | undefined) ?? (data as unknown as FlightDetails);
 
   const flight = {
     airline: flightDetails?.airline || '',

@@ -50,7 +50,7 @@ export const getPreviewsReservation = async (
 
 /** POST /reservations/bulk */
 export const createReservationsBulk = async (
-  reservations: Omit<ReservationDto, 'id'>[]
+  reservations: ReservationDto[]
 ): Promise<ReservationDto[]> => {
   const { data } = await apiClient.post('/reservations/bulk', reservations);
   return data;

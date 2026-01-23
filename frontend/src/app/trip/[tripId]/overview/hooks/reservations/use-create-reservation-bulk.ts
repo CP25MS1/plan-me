@@ -8,7 +8,7 @@ export const useCreateReservationBulk = () => {
   const dispatch = useDispatch();
 
   return useMutation({
-    mutationFn: (reservations: Omit<ReservationDto, 'id'>[]) =>
+    mutationFn: (reservations: ReservationDto[]) =>
       createReservationsBulk(reservations),
     onSuccess: (data) => {
       data.forEach((rs) => dispatch(addReservation(rs)));
