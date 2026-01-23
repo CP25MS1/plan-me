@@ -21,13 +21,12 @@ public class RestaurantDetails implements ReservationDetails {
     @NotBlank
     private String underName;
 
+    @NotBlank
     private String reservationDate;
 
     private LocalTime reservationTime;
-
     private String tableNo;
     private String queueNo;
-
     @Min(1)
     private Integer partySize;
 

@@ -1,7 +1,6 @@
 package capstone.ms.api.modules.itinerary.services;
 
 import capstone.ms.api.common.exceptions.ForbiddenException;
-import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.common.exceptions.ServerErrorException;
 import capstone.ms.api.modules.email.services.EmailParser;
 import capstone.ms.api.modules.email.services.ImapEmailFetcher;
@@ -12,9 +11,7 @@ import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationPreviewRequest;
 import capstone.ms.api.modules.itinerary.dto.reservation.RestaurantDetails;
 import capstone.ms.api.modules.itinerary.entities.ReservationType;
-import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.mappers.ReservationMapper;
-import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.typhoon.dto.ChatRequest;
 import capstone.ms.api.modules.typhoon.services.impl.TyphoonServiceImpl;
 import capstone.ms.api.modules.user.entities.User;
@@ -34,120 +31,201 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ReservationExtractionService {
-    private final TripRepository tripRepository;
+
+    private final ObjectMapper objectMapper;
     private final ImapEmailFetcher emailFetcher;
     private final EmailParser emailParser;
+
+    private final TripAccessService tripAccessService;
     private final TyphoonServiceImpl typhoonService;
-    private final ReservationMapper reservationMapper;
     private final PlacesService placesService;
-    private final ObjectMapper objectMapper;
     private final ChatMapperRequestFactory chatMapperRequestFactory;
+    private final ReservationValidationService validationService;
 
-    public List<ReservationDto> previewReservations(Integer tripId,
-                                                    List<ReservationPreviewRequest> previewRequests,
-                                                    User currentUser) {
-        // permission check re-used
-        Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new NotFoundException("trip.404"));
-        if (!trip.getOwner().getId().equals(currentUser.getId())) {
-            throw new ForbiddenException("trip.403");
-        }
+    private final ReservationMapper reservationMapper;
 
-        List<Integer> messageNumbers = previewRequests.stream()
-                .map(ReservationPreviewRequest::getEmailId)
-                .toList();
+    public List<ReservationDto> previewReservations(
+            Integer tripId,
+            List<ReservationPreviewRequest> requests,
+            User currentUser
+    ) {
+        if (!tripAccessService.hasAccess(currentUser, tripId)) throw new ForbiddenException("trip.403");
 
-        Map<Integer, Message> messages = emailFetcher.fetchDetachedMessagesByNumbers(messageNumbers);
+        log.info(
+                "Start previewReservations: tripId={}, userId={}, requestCount={}",
+                tripId,
+                currentUser.getId(),
+                requests.size()
+        );
 
-        return previewRequests.stream()
-                .map(req -> handleSinglePreview(req, tripId, messages))
+        Map<Integer, Message> messages = fetchMessages(requests);
+
+        return requests.stream()
+                .map(req -> extractSingleReservation(req, tripId, messages))
                 .toList();
     }
 
-    private ReservationDto handleSinglePreview(ReservationPreviewRequest req, Integer tripId, Map<Integer, Message> messages) {
-        Integer emailId = req.getEmailId();
-        String reservationType = req.getType().toUpperCase();
-        Message inboxMessage = messages.get(emailId);
+    private ReservationDto extractSingleReservation(
+            ReservationPreviewRequest request,
+            Integer tripId,
+            Map<Integer, Message> messages
+    ) {
+        log.info(
+                "Extract reservation: emailId={}, type={}",
+                request.getEmailId(),
+                request.getType()
+        );
 
-        if (inboxMessage == null) {
-            log.error("Missing message for id {}", emailId);
-            throw new ServerErrorException("reservation.email.500");
+        Integer emailId = request.getEmailId();
+        String reservationType = request.getType().toUpperCase();
+
+        Message message = requireMessage(emailId, messages);
+        String emailBody = emailParser.getTextFromMessage(message);
+
+        ReservationDto reservation = parseFromEmailBody(
+                emailBody,
+                reservationType,
+                tripId
+        );
+
+        if (!validationService.isReservationValid(reservation)) {
+            reservation = parseFromAttachmentsFallback(
+                    emailId,
+                    reservation,
+                    reservationType,
+                    tripId
+            );
         }
 
-        String emailText = emailParser.getTextFromMessage(inboxMessage);
-
-        // first attempt: use email body
-        String chatRes = callTyphoonAndAggregate(emailText, reservationType);
-
-        // if invalid, try attachments -> OCR -> merged
-        if (chatRes != null && chatRes.contains("\"valid\": false")) {
-            Map<Integer, List<MultipartFile>> attachments = emailFetcher.fetchAttachmentsAsMultipartFiles(List.of(emailId));
-            String ocrRes = attachments.getOrDefault(emailId, List.of()).stream()
-                    .map(typhoonService::ocr)
-                    .collect(Collectors.joining("\n"));
-
-            String mergedInput = "Email text content:\n" + chatRes + "\nEmail attachment content:\n" + ocrRes;
-            String chatResFromMerged = callTyphoonAndAggregate(mergedInput, reservationType);
-
-            if (chatResFromMerged == null || chatResFromMerged.contains("\"valid\": false")) {
-                log.error("Typhoon extraction invalid for emailId={} after OCR fallback", emailId);
-                throw new ServerErrorException("reservation.email.500");
-            }
-            chatRes = chatResFromMerged;
-        }
-
-        if (chatRes == null) {
-            log.error("Typhoon returned null for emailId={}", emailId);
-            throw new ServerErrorException("reservation.email.500");
-        }
-
-        MappedReservationResponse mapped;
-        try {
-            mapped = objectMapper.readValue(chatRes, MappedReservationResponse.class);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to parse typhoon json for emailId={}", emailId, e);
-            throw new ServerErrorException("reservation.email.500");
-        }
-
-        ReservationDto reservationDto = reservationMapper.toReservationDto(mapped);
-        reservationDto.setTripId(tripId);
-
-        // enrich GGMP if lodging/restaurant
-        enrichGgmpId(reservationDto);
-
-        return reservationDto;
+        enrichGgmpIdIfApplicable(reservation);
+        return reservation;
     }
 
-    private String callTyphoonAndAggregate(String input, String reservationType) {
-        ChatRequest req = chatMapperRequestFactory.create(input, reservationType);
-        // streamChat returns Flux<String> in original — collect to single string
-        return typhoonService.streamChat(req)
+    private ReservationDto parseFromEmailBody(
+            String emailText,
+            String reservationType,
+            Integer tripId
+    ) {
+        String llmResult = callTyphoon(emailText, reservationType);
+        log.info("Typhoon raw response: {}", llmResult);
+        return mapToReservationOrThrow(llmResult, tripId);
+    }
+
+    private ReservationDto parseFromAttachmentsFallback(
+            Integer emailId,
+            ReservationDto bodyResult,
+            String reservationType,
+            Integer tripId
+    ) {
+        String attachmentText = fetchAndOcrAttachments(emailId);
+
+        String mergedInput = """
+                Email text content:
+                %s
+                Email attachment content:
+                %s
+                """.formatted(bodyResult, attachmentText);
+
+        ReservationDto mergedResult = parseFromEmailBody(
+                mergedInput,
+                reservationType,
+                tripId
+        );
+
+        if (!validationService.isReservationValid(mergedResult)) {
+            throw new ServerErrorException("reservation.email.500");
+        }
+
+        return mergedResult;
+    }
+
+    private String callTyphoon(String input, String reservationType) {
+        log.info(
+                "Calling Typhoon: reservationType={}, inputLength={}",
+                reservationType,
+                input.length()
+        );
+
+        ChatRequest request = chatMapperRequestFactory.create(input, reservationType);
+
+        return typhoonService.streamChat(request)
                 .collectList()
-                .map(list -> String.join("", list))
-                .block(); // blocking here is unchanged from original; consider async if needed
+                .map(chunks -> String.join("", chunks))
+                .block(); // intentionally blocking (unchanged behavior)
     }
 
-    private void enrichGgmpId(ReservationDto dto) {
+    private String fetchAndOcrAttachments(Integer emailId) {
+        Map<Integer, List<MultipartFile>> attachments =
+                emailFetcher.fetchAttachmentsAsMultipartFiles(List.of(emailId));
+
+        return attachments.getOrDefault(emailId, List.of()).stream()
+                .map(typhoonService::ocr)
+                .collect(Collectors.joining("\n"));
+    }
+
+    private ReservationDto mapToReservationOrThrow(String source, Integer tripId) {
         try {
-            ReservationType t = ReservationType.valueOf(dto.getType());
-            switch (t) {
-                case LODGING -> {
-                    var d = (LodgingDetails) dto.getDetails();
-                    String address = d.getLodgingName() + ": " + d.getLodgingAddress();
-                    dto.setGgmpId(placesService.searchAndGetGgmpId(address));
-                }
-                case RESTAURANT -> {
-                    var d = (RestaurantDetails) dto.getDetails();
-                    String address = d.getRestaurantName() + ": " + d.getRestaurantAddress();
-                    dto.setGgmpId(placesService.searchAndGetGgmpId(address));
-                }
+            MappedReservationResponse mapped =
+                    objectMapper.readValue(source, MappedReservationResponse.class);
+
+            ReservationDto dto = reservationMapper.toReservationDto(mapped);
+            dto.setTripId(tripId);
+
+            log.info(
+                    "Mapped reservation: type={}, tripId={}",
+                    dto.getType(),
+                    tripId
+            );
+
+            return dto;
+
+        } catch (JsonProcessingException e) {
+            throw new ServerErrorException("reservation.email.500");
+        }
+    }
+
+    private void enrichGgmpIdIfApplicable(ReservationDto dto) {
+        try {
+            ReservationType type = ReservationType.valueOf(dto.getType());
+
+            switch (type) {
+                case LODGING -> enrichLodgingGgmp(dto);
+                case RESTAURANT -> enrichRestaurantGgmp(dto);
                 default -> {
+                    // do nothing
                 }
             }
         } catch (Exception e) {
             log.warn("GGMP enrichment failed for reservation type {}", dto.getType(), e);
-            // do not fail entire preview; keep ggmpId null
         }
     }
-}
 
+    private void enrichLodgingGgmp(ReservationDto dto) {
+        LodgingDetails details = (LodgingDetails) dto.getDetails();
+        String query = details.getLodgingName() + ": " + details.getLodgingAddress();
+        dto.setGgmpId(placesService.searchAndGetGgmpId(query));
+    }
+
+    private void enrichRestaurantGgmp(ReservationDto dto) {
+        RestaurantDetails details = (RestaurantDetails) dto.getDetails();
+        String query = details.getRestaurantName() + ": " + details.getRestaurantAddress();
+        dto.setGgmpId(placesService.searchAndGetGgmpId(query));
+    }
+
+    private Map<Integer, Message> fetchMessages(List<ReservationPreviewRequest> requests) {
+        List<Integer> emailIds = requests.stream()
+                .map(ReservationPreviewRequest::getEmailId)
+                .toList();
+
+        return emailFetcher.fetchDetachedMessagesByNumbers(emailIds);
+    }
+
+    private Message requireMessage(Integer emailId, Map<Integer, Message> messages) {
+        Message message = messages.get(emailId);
+        if (message == null) {
+            log.error("Missing message for id {}", emailId);
+            throw new ServerErrorException("reservation.email.500");
+        }
+        return message;
+    }
+}

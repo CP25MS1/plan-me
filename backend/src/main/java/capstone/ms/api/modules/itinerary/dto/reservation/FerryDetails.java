@@ -18,11 +18,13 @@ public class FerryDetails implements ReservationDetails {
     @NotBlank
     private String departurePort;
 
+    @NotBlank
     private String departureTime;
 
     @NotBlank
     private String arrivalPort;
 
+    @NotBlank
     private String arrivalTime;
 
     @NotBlank
