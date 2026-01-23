@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.dto;
 
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
+import capstone.ms.api.modules.itinerary.entities.DailyPlan;
 import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -22,4 +23,5 @@ public class TripOverviewDto {
     private final Set<PublicUserInfo> tripmates;
     private final Set<ReservationDto> reservations;
     private final Set<WishlistPlaceDto> wishlistPlaces;
+    private final Set<DailyPlan> dailyPlans;
 }

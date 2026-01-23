@@ -20,6 +20,7 @@ public interface TripMapper {
     @Mapping(target = "tripmates", ignore = true)
     @Mapping(source = "reservations", target = "reservations")
     @Mapping(source = "wishlistPlaces", target = "wishlistPlaces")
+    @Mapping(source = "dailyPlans", target = "dailyPlans")
     TripOverviewDto tripToTripOverviewDto(Trip trip);
 
     @Mapping(target = "objectives", ignore = true)
