@@ -91,7 +91,6 @@ const NoMemoUserListCta: React.FC<Props> = ({ users, className = '', empty = nul
   return (
     <ul
       className={`w-full bg-white divide-y divide-transparent overflow-hidden ${className}`}
-      role="list"
     >
       {list.map((u) => (
         <UserRow key={u.id} user={u} />

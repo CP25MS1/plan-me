@@ -1,9 +1,6 @@
 package capstone.ms.api.modules.google_maps.mappers;
 
-import capstone.ms.api.modules.google_maps.dto.LocalizedText;
-import capstone.ms.api.modules.google_maps.dto.OpeningHours;
-import capstone.ms.api.modules.google_maps.dto.Photo;
-import capstone.ms.api.modules.google_maps.dto.Place;
+import capstone.ms.api.modules.google_maps.dto.*;
 import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mapstruct.Mapper;
@@ -53,4 +50,6 @@ public interface PlaceMapper {
             return null;
         }
     }
+
+    GoogleMapPlaceDto toGoogleMapPlaceDto(GoogleMapPlace place);
 }

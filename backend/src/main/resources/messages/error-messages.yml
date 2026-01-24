@@ -16,6 +16,10 @@
   th: "ไม่พบข้อมูลที่คุณต้องการ"
   en: "The requested resource was not found."
 
+500:
+  th: "เกิดข้อผิดพลาดบางอย่างในระบบ กรุณาลองใหม่อีกครั้งในภายหลัง"
+  en: "Something went wrong on our side. Please try again later."
+
 user:
   400:
     create:
@@ -66,4 +70,19 @@ reservation:
   404:
     th: "ไม่พบข้อมูลการจองนี้ในระบบ"
     en: "This reservation is not found in the system."
+  email:
+    500:
+      th: "เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก"
+      en: "An error occurred, or the email content does not match the selected booking type."
 
+dailyPlan:
+  scheduledPlace:
+    nonRelatedTrip:
+      th: "ไม่สามารถย้ายสถานที่นี้ไปทริปอื่นได้"
+      en: "This scheduled place cannot be moved to another trip."
+    invalidOrder:
+      th: "ลำดับของสถานที่ไม่ถูกต้อง กรุณาระบุลำดับที่มากกว่าหรือเท่ากับ 1"
+      en: "The specified place order is invalid. Please provide an order greater than or equal to 1."
+    outOfRangeOrder:
+      th: "ลำดับของสถานที่อยู่นอกช่วงที่อนุญาตสำหรับแผนนี้"
+      en: "The specified place order is out of the allowed range for this plan."

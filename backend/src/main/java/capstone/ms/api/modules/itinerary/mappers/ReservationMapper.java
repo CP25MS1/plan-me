@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.mappers;
 
-import capstone.ms.api.modules.itinerary.dto.*;
+import capstone.ms.api.modules.itinerary.dto.external.MappedReservationResponse;
+import capstone.ms.api.modules.itinerary.dto.reservation.*;
 import capstone.ms.api.modules.itinerary.entities.*;
 import org.mapstruct.*;
 
@@ -25,14 +26,12 @@ public interface ReservationMapper {
     LodgingDetails lodgingEntityToDto(LodgingReservation entity);
     LodgingReservation lodgingDtoToEntity(LodgingDetails dto);
 
+    @Mapping(target = "passengerName", source = "passengerName")
+    @Mapping(target = "seatNo", source = "id.seatNo")
+    FlightPassenger flightPassengerReservationToDto(FlightPassengerReservation reservation);
     FlightDetails flightEntityToDto(FlightReservation entity);
     FlightReservation flightDtoToEntity(FlightDetails dto);
 
-    /**
-     * Map passengers DTO -> entity. Returns a modifiable LinkedHashSet (never an immutable empty set).
-     * Note: this helper does not set the FlightReservation on an existing collection instance;
-     * it's just a factory for new passenger instances when needed.
-     */
     default Set<FlightPassengerReservation> mapPassengers(
             FlightReservation flight, List<FlightPassenger> passengersDto) {
 
@@ -132,4 +131,12 @@ public interface ReservationMapper {
             });
         }
     }
+
+    @Mapping(target = "type", source = "data.type")
+    @Mapping(target = "bookingRef", source = "data.bookingRef")
+    @Mapping(target = "contactTel", source = "data.contactTel")
+    @Mapping(target = "contactEmail", source = "data.contactEmail")
+    @Mapping(target = "cost", source = "data.cost")
+    @Mapping(target = "details", source = "data.details")
+    ReservationDto toReservationDto(MappedReservationResponse response);
 }

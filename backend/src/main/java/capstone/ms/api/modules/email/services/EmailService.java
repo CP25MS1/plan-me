@@ -2,20 +2,17 @@ package capstone.ms.api.modules.email.services;
 
 import capstone.ms.api.modules.email.clients.ImapStoreProvider;
 import capstone.ms.api.modules.email.configs.EmailProperties;
-import capstone.ms.api.modules.email.dto.EmailData;
-import jakarta.mail.Flags;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Store;
+import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.search.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -23,21 +20,17 @@ import java.util.stream.Collectors;
 public class EmailService {
     private final EmailProperties props;
     private final ImapStoreProvider storeProvider;
-    private final EmailParser parser;
-
 
     public String buildAddressWithAlias(final String alias) {
-        if (alias == null || alias.isBlank()) return props.getUser();
+        if (alias == null) return props.getUser();
         final String[] parts = props.getUser().split("@", 2);
         if (parts.length < 2) return props.getUser();
         return parts[0] + "+" + alias + "@" + parts[1];
     }
 
-
     public Optional<Store> openImapStore() {
         return storeProvider.openStore();
     }
-
 
     public Optional<SearchTerm> buildSearchTerm(final Map<String, String> criteria) {
         if (criteria == null || criteria.isEmpty()) return Optional.empty();
@@ -73,67 +66,29 @@ public class EmailService {
         return Optional.of(new AndTerm(terms.toArray(new SearchTerm[0])));
     }
 
+    public Optional<String> extractAliasFromTo(Message message) throws MessagingException {
+        if (message == null) return Optional.empty();
 
-    public Map<Integer, Message> mapMessagesById(final Message[] messages) {
-        if (messages == null || messages.length == 0) return Collections.emptyMap();
-        return Arrays.stream(messages)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(Message::getMessageNumber, m -> m));
-    }
+        Address[] recipients = message.getRecipients(Message.RecipientType.TO);
+        if (recipients == null) return Optional.empty();
 
+        for (Address addr : recipients) {
+            if (addr instanceof InternetAddress internetAddress) {
+                String email = internetAddress.getAddress(); // user+alias@domain
+                if (email == null) continue;
 
-    public Map<Integer, EmailData> extractEmailData(final Map<Integer, Message> messages) {
-        if (messages == null || messages.isEmpty()) return Collections.emptyMap();
+                int plusIdx = email.indexOf('+');
+                int atIdx = email.indexOf('@');
 
-        Map<Integer, EmailData> output = new HashMap<>();
-
-        for (var entry : messages.entrySet()) {
-            int id = entry.getKey();
-            Message msg = entry.getValue();
-
-
-            List<String> texts = new ArrayList<>();
-            List<MultipartFile> attachments = new ArrayList<>();
-
-
-            try {
-                Optional<String> primary = parser.extractPrimaryText(msg);
-                primary.ifPresent(texts::add);
-                attachments.addAll(parser.collectAttachments(msg));
-            } catch (Exception ex) {
-                log.warn("Failed to parse message id {}: {}", id, ex.getMessage());
+                if (plusIdx > 0 && atIdx > plusIdx) {
+                    return Optional.of(email.substring(plusIdx + 1, atIdx));
+                }
             }
-
-
-            EmailData ed = new EmailData(texts.toArray(new String[0]), attachments.toArray(new MultipartFile[0]));
-            output.put(id, ed);
-            logEmailDataSummary(id, ed);
         }
-
-        return output;
+        return Optional.empty();
     }
-
-
-    public void markAsRead(Message message) throws MessagingException {
-        if (message == null) return;
-        message.setFlag(Flags.Flag.SEEN, true);
-    }
-
 
     private boolean hasText(Map<String, String> map, String key) {
         return map != null && map.containsKey(key) && map.get(key) != null && !map.get(key).isBlank();
-    }
-
-
-    private void logEmailDataSummary(int id, EmailData emailData) {
-        String textsSummary = (emailData.texts() != null && emailData.texts().length > 0)
-                ? String.join(" | ", emailData.texts())
-                : "No texts";
-        String attachmentsSummary = (emailData.attachments() != null && emailData.attachments().length > 0)
-                ? Arrays.stream(emailData.attachments())
-                .map(org.springframework.web.multipart.MultipartFile::getOriginalFilename)
-                .collect(Collectors.joining(", "))
-                : "No attachments";
-        log.info("Extracted EmailData for message id {}:\n Texts [{}];\n Attachments [{}]", id, textsSummary, attachmentsSummary);
     }
 }

@@ -4,28 +4,33 @@ import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.itinerary.dto.*;
 import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
+import capstone.ms.api.modules.google_maps.repositories.GoogleMapPlaceRepository;
+import capstone.ms.api.modules.itinerary.dto.*;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.WishlistPlace;
 import capstone.ms.api.modules.itinerary.mappers.ObjectiveMapper;
 import capstone.ms.api.modules.itinerary.mappers.TripMapper;
 import capstone.ms.api.modules.itinerary.repositories.BasicObjectiveRepository;
-import capstone.ms.api.modules.google_maps.repositories.GoogleMapPlaceRepository;
+import capstone.ms.api.modules.itinerary.repositories.DailyPlanRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.WishlistPlaceRepository;
+import capstone.ms.api.modules.itinerary.services.daily_plan.DailyPlanService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 public class TripService {
+    private final DailyPlanService dailyPlanService;
 
     private final TripRepository tripRepository;
     private final BasicObjectiveRepository basicObjectiveRepository;
@@ -33,6 +38,7 @@ public class TripService {
     private final ObjectiveMapper objectiveMapper;
     private final WishlistPlaceRepository wishlistPlaceRepository;
     private final GoogleMapPlaceRepository googleMapPlaceRepository;
+    private final DailyPlanRepository dailyPlanRepository;
 
     @Transactional
     public TripOverviewDto createTrip(UpsertTripDto tripInfo, User tripOwner) {
@@ -40,6 +46,9 @@ public class TripService {
 
         final Trip tripEntity = tripMapper.tripDtoToEntity(tripInfo, tripOwner, objectiveMapper, basicObjectiveRepository);
         final Trip saved = tripRepository.save(tripEntity);
+
+        syncDailyPlans(saved);
+
         return tripMapper.tripToTripOverviewDto(saved);
     }
 
@@ -84,7 +93,16 @@ public class TripService {
         existing.setEndDate(tripInfo.getEndDate());
 
         final Trip saved = tripRepository.save(existing);
+        syncDailyPlans(saved);
+
         return tripMapper.tripToTripOverviewDto(saved);
+    }
+
+    private void syncDailyPlans(Trip saved) {
+        dailyPlanService.syncDailyPlansByTripDateRange(saved.getId(), saved.getStartDate(), saved.getEndDate());
+        var dailyPlans = dailyPlanRepository.findAllByTripId(saved.getId());
+        saved.getDailyPlans().clear();
+        saved.getDailyPlans().addAll(dailyPlans);
     }
 
     private Trip loadTripOrThrow(final Integer tripId) {
@@ -149,5 +167,15 @@ public class TripService {
                 .orElseThrow(() -> new NotFoundException("place.404"));
 
         wishlistPlaceRepository.delete(wp);
+    }
+
+    public List<TripDto> getTripsByUser(Integer userId) {
+        List<Trip> trips = tripRepository.findByOwnerId(userId);
+        if (trips == null) {
+            return Collections.emptyList();
+        }
+        return trips.stream()
+                .map(tripMapper::tripToTripDto)
+                .collect(Collectors.toList());
     }
 }

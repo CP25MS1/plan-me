@@ -3,9 +3,9 @@
   "fields": {
     "name": {
       "label": "Trip Name",
-      "placeholder": "Name of the trip",
+      "placeholder": "e.g. Chiang Mai #2 😍",
       "null": "Please enter the trip name",
-      "maxLength": "Trip name length must be less than 50 characters."
+      "maxLength": "The trip name must not exceed 50 characters."
     },
     "date": {
       "label": "Date",

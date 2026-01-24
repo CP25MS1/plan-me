@@ -3,30 +3,24 @@ package capstone.ms.api.modules.itinerary.services;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.email.services.EmailService;
-import capstone.ms.api.modules.itinerary.dto.*;
+import capstone.ms.api.modules.email.dto.EmailInfoDto;
+import capstone.ms.api.modules.email.services.EmailInboxService;
+import capstone.ms.api.modules.itinerary.dto.reservation.*;
 import capstone.ms.api.modules.itinerary.entities.*;
 import capstone.ms.api.modules.itinerary.mappers.ReservationMapper;
 import capstone.ms.api.modules.itinerary.repositories.*;
 import capstone.ms.api.modules.user.entities.User;
-import jakarta.mail.Folder;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class ReservationService {
-    private EmailService emailService;
-
     private final TripRepository tripRepository;
     private final ReservationRepository reservationRepository;
     private final LodgingReservationRepository lodgingRepository;
@@ -36,8 +30,8 @@ public class ReservationService {
     private final BusReservationRepository busRepository;
     private final FerryReservationRepository ferryRepository;
     private final CarRentalReservationRepository carRentalRepository;
-
     private final ReservationMapper reservationMapper;
+    private final EmailInboxService emailInboxService;
 
     private Trip loadTripOrThrow(final Integer tripId) {
         return tripRepository.findById(tripId)
@@ -245,6 +239,55 @@ public class ReservationService {
         return dto;
     }
 
+    @Transactional
+    public void deleteReservation(Integer reservationId, User currentUser) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new NotFoundException("reservation.404"));
+
+        ensureOwnerOrThrow(currentUser, reservation.getTrip());
+        ReservationType type;
+        try {
+            type = ReservationType.valueOf(String.valueOf(reservation.getType()));
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("reservation.400");
+        }
+
+        switch (type) {
+            case LODGING:
+                lodgingRepository.findById(reservationId)
+                        .ifPresent(lodgingRepository::delete);
+                break;
+            case FLIGHT:
+                flightRepository.findById(reservationId)
+                        .ifPresent(flightRepository::delete);
+                break;
+            case RESTAURANT:
+                restaurantRepository.findById(reservationId)
+                        .ifPresent(restaurantRepository::delete);
+                break;
+            case TRAIN:
+                trainRepository.findById(reservationId)
+                        .ifPresent(trainRepository::delete);
+                break;
+            case BUS:
+                busRepository.findById(reservationId)
+                        .ifPresent(busRepository::delete);
+                break;
+            case FERRY:
+                ferryRepository.findById(reservationId)
+                        .ifPresent(ferryRepository::delete);
+                break;
+            case CAR_RENTAL:
+                carRentalRepository.findById(reservationId)
+                        .ifPresent(carRentalRepository::delete);
+                break;
+            default:
+                throw new BadRequestException("reservation.400");
+        }
+
+        reservationRepository.delete(reservation);
+    }
+
     private String getDetailsType(ReservationDetails details) {
         if (details instanceof LodgingDetails) return "LODGING";
         if (details instanceof FlightDetails) return "FLIGHT";
@@ -256,21 +299,13 @@ public class ReservationService {
         throw new BadRequestException("reservation.400");
     }
 
-    public void addImportedEmails(final String itineraryId) {
-        try (var store = emailService.openImapStore().orElseThrow()) {
-            final Folder inbox = store.getFolder("INBOX");
-            inbox.open(Folder.READ_WRITE);
-
-            final String to = emailService.buildAddressWithAlias(itineraryId);
-            final var criteria = Map.of("TO", to, "UNREAD", "TRUE");
-            var searchTerm = emailService.buildSearchTerm(criteria).orElseThrow();
-
-            final Message[] emails = inbox.search(searchTerm);
-            final var emailMap = emailService.mapMessagesById(emails);
-
-            final var emailData = emailService.extractEmailData(emailMap);
-        } catch (MessagingException e) {
-            log.info("Error accessing inbox: {}", e.getMessage());
+    public List<EmailInfoDto> checkEmailInfo(Integer tripId, User currentUser) {
+        Trip trip = tripRepository.findById(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+        if (!trip.getOwner().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("trip.403");
         }
+
+        return emailInboxService.listUnreadEmailInfo(tripId);
     }
 }

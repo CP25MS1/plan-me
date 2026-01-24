@@ -1,0 +1,80 @@
+name: Build and Push (Production)
+
+on:
+  push:
+    branches: [ main ]
+
+  workflow_dispatch:
+    inputs:
+      build_all:
+        description: "Build all services (production)?"
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Docker Hub login
+        uses: docker/login-action@v2
+        with:
+          username: cp25ms1
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ใช้เฉพาะตอน push (auto mode)
+      - name: Detect changed directories
+        id: changes
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          CHANGED_DIRS=$(git diff --name-only HEAD~1 HEAD | awk -F/ '{print $1}' | sort -u)
+          echo "dirs=$CHANGED_DIRS" >> $GITHUB_OUTPUT
+
+      - name: Compute targets
+        id: targets
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.build_all }}" = "true" ]; then
+            TARGET_DIRS="backend frontend infrastructure/nginx"
+            echo "Running MANUAL prod build for all services: $TARGET_DIRS"
+          else
+            TARGET_DIRS="${{ steps.changes.outputs.dirs }}"
+            echo "Running AUTO prod build for changed services: $TARGET_DIRS"
+          fi
+          echo "dirs=$TARGET_DIRS" >> $GITHUB_OUTPUT
+
+      - name: Build & Push Docker Images (prod)
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+
+          for dir in ${{ steps.targets.outputs.dirs }}; do
+            if [ -f "$dir/Dockerfile" ]; then
+              SERVICE_NAME=$(basename $dir)
+
+              # ─── NGINX (single image, no env) ───
+              if [ "$SERVICE_NAME" = "nginx" ]; then
+                IMAGE_NAME="cp25ms1/nginx:latest"
+                echo "Building NGINX → $IMAGE_NAME"
+                docker build -t $IMAGE_NAME ./$dir
+                docker push $IMAGE_NAME
+                continue
+              fi
+
+              # ─── BACKEND / FRONTEND (production) ───
+              IMAGE_SHA_TAG="cp25ms1/$SERVICE_NAME:prod-$SHORT_SHA"
+              IMAGE_LATEST_TAG="cp25ms1/$SERVICE_NAME:prod-latest"
+
+              echo "Building $IMAGE_SHA_TAG"
+              docker build -t $IMAGE_SHA_TAG ./$dir
+
+              echo "Tagging prod-latest → $IMAGE_LATEST_TAG"
+              docker tag $IMAGE_SHA_TAG $IMAGE_LATEST_TAG
+
+              echo "Pushing images"
+              docker push $IMAGE_SHA_TAG
+              docker push $IMAGE_LATEST_TAG
+            fi
+          done
