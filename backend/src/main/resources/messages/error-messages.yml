@@ -81,9 +81,6 @@ dailyPlan:
     nonRelatedTrip:
       th: "ไม่สามารถย้ายสถานที่นี้ไปทริปอื่นได้"
       en: "This scheduled place cannot be moved to another trip."
-    invalidOrder:
-      th: "ลำดับของสถานที่ไม่ถูกต้อง กรุณาระบุลำดับที่มากกว่าหรือเท่ากับ 1"
-      en: "The specified place order is invalid. Please provide an order greater than or equal to 1."
     outOfRangeOrder:
       th: "ลำดับของสถานที่อยู่นอกช่วงที่อนุญาตสำหรับแผนนี้"
       en: "The specified place order is out of the allowed range for this plan."
