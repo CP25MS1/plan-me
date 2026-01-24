@@ -1,0 +1,99 @@
+networks:
+  app-network:
+  database-network:
+
+volumes:
+  pgdata-prod:
+    external: true
+  redisdata-prod:
+
+services:
+  database:
+    image: postgres:17
+    container_name: database-prod
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${PG_HOST_PORT}:5432"
+    volumes:
+      - pgdata-prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: always
+    networks:
+      - database-network
+
+  migration:
+    image: flyway/flyway:11.11
+    container_name: migration-prod
+    env_file:
+      - .env
+    environment:
+      FLYWAY_URL: jdbc:postgresql://database:5432/${POSTGRES_DB}
+      FLYWAY_USER: ${POSTGRES_USER}
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      database:
+        condition: service_healthy
+    volumes:
+      - ./database/flyway/sql:/flyway/sql:ro
+      - ./database/flyway/conf:/flyway/conf:ro
+    command: >
+      -configFiles=./database/flyway/conf/flyway.conf
+      migrate
+    restart: "no"
+    networks:
+      - database-network
+
+  caching:
+    image: redis:7
+    container_name: caching-prod
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata-prod:/data
+    restart: always
+    networks:
+      - database-network
+
+  backend:
+    image: cp25ms1/backend:prod-latest
+    container_name: backend-prod
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+      caching:
+        condition: service_started
+    restart: always
+    networks:
+      - database-network
+      - app-network
+
+  frontend:
+    image: cp25ms1/frontend:prod-latest
+    container_name: frontend-prod
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+  reverse-proxy:
+    image: cp25ms1/nginx:latest
+    container_name: reverse-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "433:433"
+    volumes:
+      - ./logs:/var/log/nginx
+      - ./certificates:/etc/nginx/certificates:ro
+    networks:
+      - app-network
