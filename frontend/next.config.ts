@@ -8,6 +8,7 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig = {
+  basePath: '/capstone25/cp25ms1',
   reactStrictMode: true,
   typedRoutes: true,
   output: 'standalone',
