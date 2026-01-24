@@ -18,7 +18,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "${PG_HOST_PORT}:5432"
+      - "5432:5432"
     volumes:
       - pgdata-prod:/var/lib/postgresql/data
     healthcheck:
@@ -46,7 +46,7 @@ services:
       - ./database/flyway/sql:/flyway/sql:ro
       - ./database/flyway/conf:/flyway/conf:ro
     command: >
-      -configFiles=./database/flyway/conf/flyway.conf
+      -configFiles=/flyway/conf/flyway.conf
       migrate
     restart: "no"
     networks:
