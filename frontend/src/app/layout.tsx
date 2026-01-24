@@ -33,7 +33,7 @@ const RootLayout = async ({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/all/all.min.css"
         />
-        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="manifest" href="/capstone25/cp25ms1/manifest.webmanifest" />
       </head>
       <body className={`${sarabun.variable} antialiased`}>
         <AppProvider>
