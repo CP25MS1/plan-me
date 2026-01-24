@@ -49,31 +49,35 @@ jobs:
       - name: Build & Push Docker Images (prod)
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
-
+          
           for dir in ${{ steps.targets.outputs.dirs }}; do
             if [ -f "$dir/Dockerfile" ]; then
               SERVICE_NAME=$(basename $dir)
-
-              # ─── NGINX (single image, no env) ───
+          
               if [ "$SERVICE_NAME" = "nginx" ]; then
                 IMAGE_NAME="cp25ms1/nginx:latest"
-                echo "Building NGINX → $IMAGE_NAME"
                 docker build -t $IMAGE_NAME ./$dir
                 docker push $IMAGE_NAME
                 continue
               fi
-
-              # ─── BACKEND / FRONTEND (production) ───
+          
               IMAGE_SHA_TAG="cp25ms1/$SERVICE_NAME:prod-$SHORT_SHA"
               IMAGE_LATEST_TAG="cp25ms1/$SERVICE_NAME:prod-latest"
-
-              echo "Building $IMAGE_SHA_TAG"
-              docker build -t $IMAGE_SHA_TAG ./$dir
-
-              echo "Tagging prod-latest → $IMAGE_LATEST_TAG"
+          
+              if [ "$SERVICE_NAME" = "frontend" ]; then
+                docker build \
+                  --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }} \
+                  --build-arg NEXT_PUBLIC_GOOGLE_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_GOOGLE_REDIRECT_URI }} \
+                  --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }} \
+                  --build-arg NEXT_PUBLIC_GEOCODING_URL=${{ secrets.NEXT_PUBLIC_GEOCODING_URL }} \
+                  --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} \
+                  --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
+                  -t $IMAGE_SHA_TAG ./$dir
+              else
+                docker build -t $IMAGE_SHA_TAG ./$dir
+              fi
+          
               docker tag $IMAGE_SHA_TAG $IMAGE_LATEST_TAG
-
-              echo "Pushing images"
               docker push $IMAGE_SHA_TAG
               docker push $IMAGE_LATEST_TAG
             fi
