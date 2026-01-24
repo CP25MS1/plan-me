@@ -11,13 +11,6 @@ export const middleware = async (request: NextRequest) => {
     return NextResponse.redirect(homeUrl);
   }
 
-  if (
-    pathname.startsWith('/_next') ||
-    new RegExp(/\.(.*)$/).exec(pathname) // static asset
-  ) {
-    return NextResponse.next();
-  }
-
   if (pathname === '/login') {
     const token = cookies.get('jwt')?.value;
 
@@ -46,5 +39,5 @@ export const middleware = async (request: NextRequest) => {
 };
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|auth/google/callback).*)'],
+  matcher: [],
 };
