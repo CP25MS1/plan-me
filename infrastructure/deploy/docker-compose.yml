@@ -12,7 +12,7 @@ services:
     image: postgres:17
     container_name: database-prod
     env_file:
-      - .env.prod
+      - .env
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -34,7 +34,7 @@ services:
     image: flyway/flyway:11.11
     container_name: migration-prod
     env_file:
-      - .env.prod
+      - .env
     environment:
       FLYWAY_URL: jdbc:postgresql://database:5432/${POSTGRES_DB}
       FLYWAY_USER: ${POSTGRES_USER}
@@ -46,7 +46,7 @@ services:
       - ./database/flyway/sql:/flyway/sql:ro
       - ./database/flyway/conf:/flyway/conf:ro
     command: >
-      -configFiles=./database/flyway/conf/flyway-common.conf,./database/flyway/conf/flyway-prod.conf
+      -configFiles=./database/flyway/conf/flyway.conf
       migrate
     restart: "no"
     networks:
@@ -63,10 +63,10 @@ services:
       - database-network
 
   backend:
-    image: cp25ms1/backend:main-latest
+    image: cp25ms1/backend:prod-latest
     container_name: backend-prod
     env_file:
-      - .env.prod
+      - .env
     depends_on:
       database:
         condition: service_healthy
@@ -78,9 +78,22 @@ services:
       - app-network
 
   frontend:
-    image: cp25ms1/frontend:main-latest
+    image: cp25ms1/frontend:prod-latest
     container_name: frontend-prod
     env_file:
-      - .env.prod
+      - .env
+    networks:
+      - app-network
+
+  reverse-proxy:
+    image: cp25ms1/nginx:latest
+    container_name: reverse-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "433:433"
+    volumes:
+      - ./logs:/var/log/nginx
+      - ./certificates:/etc/nginx/certificates:ro
     networks:
       - app-network
