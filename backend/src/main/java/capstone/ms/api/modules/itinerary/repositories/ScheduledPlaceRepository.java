@@ -17,17 +17,17 @@ public interface ScheduledPlaceRepository extends JpaRepository<ScheduledPlace, 
 
     @Modifying
     @Query("update ScheduledPlace sp set sp.order = sp.order - 1 where sp.plan.id = :planId and sp.order > :fromOrder")
-    int decrementOrdersGreaterThan(@Param("planId") Integer planId, @Param("fromOrder") Short fromOrder);
+    void decrementOrdersGreaterThan(@Param("planId") Integer planId, @Param("fromOrder") Short fromOrder);
 
     @Modifying
     @Query("update ScheduledPlace sp set sp.order = sp.order + 1 where sp.plan.id = :planId and sp.order >= :fromOrder")
-    int incrementOrdersGreaterOrEqual(@Param("planId") Integer planId, @Param("fromOrder") Short fromOrder);
+    void incrementOrdersGreaterOrEqual(@Param("planId") Integer planId, @Param("fromOrder") Short fromOrder);
 
     @Modifying
     @Query("update ScheduledPlace sp set sp.order = sp.order + 1 where sp.plan.id = :planId and sp.order between :startOrder and :endOrder")
-    int incrementOrdersBetween(@Param("planId") Integer planId, @Param("startOrder") Short startOrder, @Param("endOrder") Short endOrder);
+    void incrementOrdersBetween(@Param("planId") Integer planId, @Param("startOrder") Short startOrder, @Param("endOrder") Short endOrder);
 
     @Modifying
     @Query("update ScheduledPlace sp set sp.order = sp.order - 1 where sp.plan.id = :planId and sp.order between :startOrder and :endOrder")
-    int decrementOrdersBetween(@Param("planId") Integer planId, @Param("startOrder") Short startOrder, @Param("endOrder") Short endOrder);
+    void decrementOrdersBetween(@Param("planId") Integer planId, @Param("startOrder") Short startOrder, @Param("endOrder") Short endOrder);
 }
