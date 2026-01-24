@@ -55,7 +55,13 @@ const LoginContent = () => {
       <h1 className="text-2xl font-bold mb-4 text-primary">PLAN ME</h1>
 
       <Button variant="outline" onClick={handleLogin}>
-        <Image src="/images/google-icon.png" width={25} height={25} alt="Google" className="mr-2" />
+        <Image
+          src="/capstone25/cp25ms1/images/google-icon.png"
+          width={25}
+          height={25}
+          alt="Google"
+          className="mr-2"
+        />
         เข้าสู่ระบบด้วย Google
       </Button>
 
