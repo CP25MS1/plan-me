@@ -35,7 +35,7 @@ services:
       FLYWAY_USER: ${POSTGRES_USER}
       FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
     command: >
-      -configFiles=/flyway/conf/flyway-common.conf,/flyway/conf/flyway-${ENVIRONMENT}.conf
+      -configFiles=/flyway/conf/flyway.conf
       migrate
     restart: 'no'
 
