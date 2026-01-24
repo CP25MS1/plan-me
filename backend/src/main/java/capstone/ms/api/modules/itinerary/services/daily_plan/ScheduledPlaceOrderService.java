@@ -18,7 +18,7 @@ public class ScheduledPlaceOrderService {
     @Transactional
     public ScheduledPlace moveAndReorder(ScheduledPlace sp, DailyPlan targetPlan, short requestedOrder) {
         if (sp == null || targetPlan == null)
-            throw new NotFoundException("400");
+            throw new NotFoundException("404");
 
         Integer sourceTripId = sp.getPlan().getTrip().getId();
         Integer targetTripId = targetPlan.getTrip().getId();
@@ -83,7 +83,7 @@ public class ScheduledPlaceOrderService {
             short targetMax
     ) {
         if (requestedOrder < 1)
-            throw new BadRequestException("dailyPlan.scheduledPlace.invalidOrder");
+            throw new BadRequestException("400");
 
         if (samePlan && requestedOrder > targetMax) {
             throw new ConflictException("dailyPlan.scheduledPlace.outOfRangeOrder");
