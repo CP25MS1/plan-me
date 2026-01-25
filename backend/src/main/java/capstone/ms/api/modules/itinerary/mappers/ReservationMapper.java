@@ -24,12 +24,15 @@ public interface ReservationMapper {
     Reservation dtoToReservation(ReservationDto dto);
 
     LodgingDetails lodgingEntityToDto(LodgingReservation entity);
+
     LodgingReservation lodgingDtoToEntity(LodgingDetails dto);
 
     @Mapping(target = "passengerName", source = "passengerName")
     @Mapping(target = "seatNo", source = "id.seatNo")
     FlightPassenger flightPassengerReservationToDto(FlightPassengerReservation reservation);
+
     FlightDetails flightEntityToDto(FlightReservation entity);
+
     FlightReservation flightDtoToEntity(FlightDetails dto);
 
     default Set<FlightPassengerReservation> mapPassengers(
@@ -50,18 +53,23 @@ public interface ReservationMapper {
     }
 
     RestaurantDetails restaurantEntityToDto(RestaurantReservation entity);
+
     RestaurantReservation restaurantDtoToEntity(RestaurantDetails dto);
 
     TrainDetails trainEntityToDto(TrainReservation entity);
+
     TrainReservation trainDtoToEntity(TrainDetails dto);
 
     BusDetails busEntityToDto(BusReservation entity);
+
     BusReservation busDtoToEntity(BusDetails dto);
 
     FerryDetails ferryEntityToDto(FerryReservation entity);
+
     FerryReservation ferryDtoToEntity(FerryDetails dto);
 
     CarRentalDetails carRentalEntityToDto(CarRentalReservation entity);
+
     CarRentalReservation carRentalDtoToEntity(CarRentalDetails dto);
 
     @AfterMapping
@@ -83,7 +91,8 @@ public interface ReservationMapper {
         }
     }
 
-    @Mapping(target = "reservation", ignore = true) // จะ set ใน service
+    @Mapping(target = "reservation", ignore = true)
+        // จะ set ใน service
     void updateLodgingEntityFromDto(LodgingDetails dto, @MappingTarget LodgingReservation entity);
 
     @Mapping(target = "reservation", ignore = true)
@@ -107,8 +116,8 @@ public interface ReservationMapper {
     /**
      * This AfterMapping updates the passengers collection **without replacing** the collection reference.
      * It ensures:
-     *  - If entity.getPassengers() is null (new entity), a new LinkedHashSet is created and set.
-     *  - If not null (managed entity), the existing collection is cleared and reused.
+     * - If entity.getPassengers() is null (new entity), a new LinkedHashSet is created and set.
+     * - If not null (managed entity), the existing collection is cleared and reused.
      * This avoids Hibernate orphanRemoval / collection reference issues.
      */
     @AfterMapping
@@ -139,4 +148,17 @@ public interface ReservationMapper {
     @Mapping(target = "cost", source = "data.cost")
     @Mapping(target = "details", source = "data.details")
     ReservationDto toReservationDto(MappedReservationResponse response);
+
+    default boolean isMatchedType(MappedReservationResponse response, ReservationType expectedType) {
+        if (response == null || response.getData() == null) {
+            return false;
+        }
+
+        String detectedType = response.getData().getType();
+        if (detectedType == null) {
+            return false;
+        }
+
+        return expectedType.name().equalsIgnoreCase(detectedType);
+    }
 }
