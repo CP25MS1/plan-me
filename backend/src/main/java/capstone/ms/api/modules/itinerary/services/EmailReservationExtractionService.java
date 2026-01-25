@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ReservationExtractionService {
+public class EmailReservationExtractionService {
 
     private final ObjectMapper objectMapper;
     private final ImapEmailFetcher emailFetcher;
@@ -39,7 +39,7 @@ public class ReservationExtractionService {
 
     private final ReservationMapper reservationMapper;
 
-    public List<ReservationDto> previewReservations(
+    public List<ReservationDto> previewReservationsEmails(
             Integer tripId,
             List<ReservationPreviewRequest> requests,
             User currentUser
@@ -56,11 +56,11 @@ public class ReservationExtractionService {
         Map<Integer, Message> messages = fetchMessages(requests);
 
         return requests.stream()
-                .map(req -> extractSingleReservation(req, tripId, messages))
+                .map(req -> extractSingleReservationEmail(req, tripId, messages))
                 .toList();
     }
 
-    private ReservationDto extractSingleReservation(
+    private ReservationDto extractSingleReservationEmail(
             ReservationPreviewRequest request,
             Integer tripId,
             Map<Integer, Message> messages
