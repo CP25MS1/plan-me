@@ -107,7 +107,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ErrorResponse> handleMaxUploadSizeException(MaxUploadSizeExceededException exception, WebRequest request) {
-        var mainException = new MainException("reservation.400");
+        var mainException = new MainException("reservation.400", "reservation.400.file.maxSize");
         return handleMainException(HttpStatus.BAD_REQUEST, mainException, request);
     }
 
