@@ -4,15 +4,18 @@ import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.modules.email.dto.EmailInfoDto;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationPreviewRequest;
-import capstone.ms.api.modules.itinerary.services.ReservationExtractionService;
+import capstone.ms.api.modules.itinerary.services.EmailReservationExtractionService;
+import capstone.ms.api.modules.itinerary.services.FileReservationExtractorService;
 import capstone.ms.api.modules.itinerary.services.ReservationService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,7 +24,8 @@ import java.util.List;
 @AllArgsConstructor
 public class ReservationController {
     private final ReservationService reservationService;
-    private final ReservationExtractionService reservationExtractionService;
+    private final EmailReservationExtractionService emailReservationExtractionService;
+    private final FileReservationExtractorService fileReservationExtractorService;
 
     @PostMapping
     public ResponseEntity<ReservationDto> createReservation(@Valid @RequestBody ReservationDto dto,
@@ -66,10 +70,19 @@ public class ReservationController {
     }
 
     @PostMapping("/emails/preview")
-    public ResponseEntity<List<ReservationDto>> previewReservation(@Valid @RequestParam Integer tripId,
-                                                                   @Valid @RequestBody List<ReservationPreviewRequest> previewRequest,
-                                                                   @AuthenticationPrincipal User currentUser) {
-        var previewResults = reservationExtractionService.previewReservations(tripId, previewRequest, currentUser);
+    public ResponseEntity<List<ReservationDto>> previewReservationEmails(@Valid @RequestParam Integer tripId,
+                                                                         @Valid @RequestBody List<ReservationPreviewRequest> previewRequest,
+                                                                         @AuthenticationPrincipal User currentUser) {
+        var previewResults = emailReservationExtractionService.previewReservationsEmails(tripId, previewRequest, currentUser);
+        return ResponseEntity.ok(previewResults);
+    }
+
+    @PostMapping(value = "/files/preview", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<ReservationDto>> previewReservationFiles(@RequestParam Integer tripId,
+                                                                        @RequestParam("files") List<MultipartFile> files,
+                                                                        @RequestParam("types") List<String> types,
+                                                                        @AuthenticationPrincipal User currentUser) {
+        List<ReservationDto> previewResults = fileReservationExtractorService.previewReservationsFiles(tripId, files, types, currentUser);
         return ResponseEntity.ok(previewResults);
     }
 }
