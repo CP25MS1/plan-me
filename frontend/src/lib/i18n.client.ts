@@ -1,3 +1,4 @@
+//! PRODUCTION CRITICAL FILE
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import HttpBackend from 'i18next-http-backend';
@@ -14,7 +15,8 @@ if (!isInitialized) {
       defaultNS: 'common',
       ns: ['common', 'trip_create', 'profile', 'trip_overview', 'trip_all'],
       backend: {
-        loadPath: '/locales/{{lng}}/{{ns}}.json',
+        // loadPath: '/locales/{{lng}}/{{ns}}.json',
+        loadPath: '/capstone25/cp25ms1/locales/{{lng}}/{{ns}}.json',
       },
       react: { useSuspense: false },
       interpolation: { escapeValue: false },

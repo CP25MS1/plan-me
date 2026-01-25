@@ -1,3 +1,4 @@
+//! PRODUCTION CRITICAL FILE
 import withPWAInit from 'next-pwa';
 
 const withPWA = withPWAInit({

@@ -1,3 +1,4 @@
+//! PRODUCTION CRITICAL FILE
 import { ReactNode } from 'react';
 import Script from 'next/script';
 import { Sarabun } from 'next/font/google';
@@ -20,6 +21,9 @@ export const metadata: Metadata = {
     'Our website is currently under construction. We are working diligently to bring you an amazing experience. Stay tuned for updates!',
 };
 
+const manifestPath = '/capstone25/cp25ms1/manifest.webmanifest';
+// const manifestPath = '/manifest.webmanifest';
+
 const RootLayout = async ({
   children,
 }: Readonly<{
@@ -33,7 +37,7 @@ const RootLayout = async ({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/all/all.min.css"
         />
-        <link rel="manifest" href="/capstone25/cp25ms1/manifest.webmanifest" />
+        <link rel="manifest" href={manifestPath} />
       </head>
       <body className={`${sarabun.variable} antialiased`}>
         <AppProvider>
