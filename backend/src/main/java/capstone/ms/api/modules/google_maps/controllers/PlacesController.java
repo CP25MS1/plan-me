@@ -4,7 +4,6 @@ import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import capstone.ms.api.modules.google_maps.services.PlacesService;
 import lombok.AllArgsConstructor;
-import org.mapstruct.ap.internal.util.Strings;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +20,7 @@ public class PlacesController {
 
     @GetMapping("/search")
     public ResponseEntity<List<GoogleMapPlace>> search(@RequestParam(required = false) final String q) {
-        if (Strings.isEmpty(q)) {
+        if (q == null || q.isEmpty()) {
             throw new BadRequestException("400");
         }
         final List<GoogleMapPlace> places = placesService.searchText(q);
