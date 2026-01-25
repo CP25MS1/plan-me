@@ -2,39 +2,17 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 
-const detectBasePath = (pathname: string) => {
-  const BASE = '/capstone25/cp25ms1';
-
-  if (pathname.startsWith(BASE)) {
-    return {
-      basePath: BASE,
-      pathname: pathname.slice(BASE.length) || '/',
-    };
-  }
-
-  return {
-    basePath: '',
-    pathname,
-  };
-};
+const BASE_PATH = '/capstone25/cp25ms1';
 
 export const middleware = async (request: NextRequest) => {
   const { nextUrl, cookies } = request;
+  const pathname = nextUrl.pathname;
 
-  const { basePath, pathname } = detectBasePath(nextUrl.pathname);
+  const homeUrl = new URL(`${BASE_PATH}/home`, nextUrl.origin);
+  const loginUrl = new URL(`${BASE_PATH}/login`, nextUrl.origin);
 
-  const homeUrl = new URL(`${basePath}/home`, nextUrl.origin);
-  const loginUrl = new URL(`${basePath}/login`, nextUrl.origin);
-
-  // /
-  if (pathname === '/') {
-    return NextResponse.redirect(homeUrl);
-  }
-
-  if (
-    pathname.startsWith('/_next') ||
-    new RegExp(/\.(.*)$/).exec(pathname) // static asset
-  ) {
+  // static assets
+  if (pathname.startsWith('/_next') || /\.(.*)$/.test(pathname)) {
     return NextResponse.next();
   }
 
@@ -49,7 +27,12 @@ export const middleware = async (request: NextRequest) => {
     return NextResponse.next();
   }
 
-  // protected
+  // /
+  if (pathname === '/') {
+    return NextResponse.redirect(homeUrl);
+  }
+
+  // protected routes
   const token = cookies.get('jwt')?.value;
 
   if (!token) {
