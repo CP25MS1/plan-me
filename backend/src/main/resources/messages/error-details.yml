@@ -22,3 +22,14 @@ reservation:
   400:
     file:
       maxSize: "Total file size exceeds 20 MB."
+      type: "Invalid file type. Supported file type are: .pdf, .jpg, .jpeg, .png."
+    type:
+      notEqual: "Each uploaded file must have a corresponding reservation type."
+      invalid: "An unsupported reservation type was provided."
+      notMatched: "Selected reservation type does not match file content."
+
+  500:
+    file:
+      ocrFailed: "The system could not read the content of the uploaded file."
+      invalid: "The uploaded file does not contain valid reservation information for the selected type."
+      mapFailed: "An error occurred while converting file content into reservation data."
