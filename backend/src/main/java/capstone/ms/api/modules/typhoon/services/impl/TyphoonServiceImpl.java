@@ -194,4 +194,73 @@ public class TyphoonServiceImpl implements TyphoonService {
         }
         return "";
     }
+
+    @Override
+    public String ocr(byte[] fileBytes, String filename) {
+        try {
+            // 🔹 detect content-type จากนามสกุลไฟล์
+            String ext = "";
+            if (filename != null && filename.contains(".")) {
+                ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+            }
+
+            String contentType = switch (ext) {
+                case "pdf" -> "application/pdf";
+                case "jpg", "jpeg" -> "image/jpeg";
+                case "png" -> "image/png";
+                default -> "application/octet-stream";
+            };
+
+            RequestBody fileBody = RequestBody.create(
+                    fileBytes,
+                    MediaType.parse(contentType)
+            );
+
+            RequestBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart(
+                            "file",
+                            filename != null ? filename : "file",
+                            fileBody
+                    )
+                    .addFormDataPart("model", "typhoon-ocr-preview")
+                    .addFormDataPart("task_type", "default")
+                    .addFormDataPart("max_tokens", "16384")
+                    .addFormDataPart("temperature", "0.1")
+                    .addFormDataPart("top_p", "0.6")
+                    .addFormDataPart("repetition_penalty", "1.2")
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(typhoonProps.getOcrApiUrl())
+                    .addHeader("Authorization", "Bearer " + typhoonProps.getApiKey())
+                    .post(requestBody)
+                    .build();
+
+            try (Response response = ocrClient.newCall(request).execute()) {
+                if (!response.isSuccessful() || response.body() == null) {
+                    return "";
+                }
+
+                String bodyString = response.body().string();
+                var json = JsonParser.parseString(bodyString);
+
+                return json.getAsJsonObject()
+                        .get("results").getAsJsonArray().get(0)
+                        .getAsJsonObject()
+                        .get("message")
+                        .getAsJsonObject()
+                        .get("choices").getAsJsonArray().get(0)
+                        .getAsJsonObject()
+                        .get("message")
+                        .getAsJsonObject()
+                        .get("content")
+                        .getAsString();
+            }
+
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
 }
