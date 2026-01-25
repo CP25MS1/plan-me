@@ -2,7 +2,8 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/auth';
 
-const BASE_PATH = '/capstone25/cp25ms1';
+// const BASE_PATH = '/capstone25/cp25ms1';
+const BASE_PATH = '';
 
 export const middleware = async (request: NextRequest) => {
   const { nextUrl, cookies } = request;
