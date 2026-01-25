@@ -21,7 +21,7 @@ public class JwtHelper {
 
     public JwtHelper(@Value("${jwt.secret}") String secret, @Value("${jwt.expiration:3600000}") long jwtExpirationMs) {
         this.jwtKey = Keys.hmacShaKeyFor(secret.getBytes());
-        this.jwtExpirationMs = jwtExpirationMs;
+        this.jwtExpirationMs = jwtExpirationMs * 24L;
     }
 
     public String generateJwtToken(Integer userId) {

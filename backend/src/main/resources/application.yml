@@ -49,6 +49,8 @@ google:
     field-mask: ${GOOGLE_PLACES_FIELD_MASK}
 
 server:
+  servlet:
+    context-path: /api
   port: 8000
   reactive:
     session:
@@ -58,7 +60,7 @@ server:
         secure: false # set to true in production with HTTPS
         same-site: lax
         path: /
-        max-age: 3600 # 1 hour
+        max-age: 86400 # 1 hour
 
 mail:
   imap:
