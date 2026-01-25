@@ -1,3 +1,4 @@
+//! PRODUCTION CRITICAL FILE
 import { NextResponse, type NextRequest } from 'next/server';
 
 import { verifyJwt } from '@/lib/auth';
@@ -39,5 +40,5 @@ export const middleware = async (request: NextRequest) => {
 };
 
 export const config = {
-  matcher: [],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

@@ -1,3 +1,4 @@
+//! PRODUCTION CRITICAL FILE
 'use client';
 
 import Image from 'next/image';
@@ -50,13 +51,16 @@ const LoginContent = () => {
     return <FullPageLoading />;
   }
 
+  const googleIconImagePath = '/capstone25/cp25ms1/images/google-icon.png';
+  // const googleIconImagePath = '/images/google-icon.png';
+
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <h1 className="text-2xl font-bold mb-4 text-primary">PLAN ME</h1>
 
       <Button variant="outline" onClick={handleLogin}>
         <Image
-          src="/capstone25/cp25ms1/images/google-icon.png"
+          src={googleIconImagePath}
           width={25}
           height={25}
           alt="Google"

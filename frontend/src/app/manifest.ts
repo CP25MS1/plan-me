@@ -1,3 +1,4 @@
+//! PRODUCTION CRITICAL FILE
 import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
@@ -6,6 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: 'Plan ME',
     description: 'A trip planning app that helps you organize your travels.',
     start_url: '/capstone25/cp25ms1/home',
+    // start_url: '/',
+    // scope: '/',
     display: 'standalone',
     orientation: 'portrait',
     background_color: '#ffffff',

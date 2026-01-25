@@ -50,7 +50,7 @@ google:
 
 server:
   servlet:
-    context-path: /api
+    context-path: ${API_CONTEXT_PATH}
   port: 8000
   reactive:
     session:
@@ -60,7 +60,7 @@ server:
         secure: false # set to true in production with HTTPS
         same-site: lax
         path: /
-        max-age: 86400 # 1 hour
+        max-age: 86400 # 24 hour
 
 mail:
   imap:
