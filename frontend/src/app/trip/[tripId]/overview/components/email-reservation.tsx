@@ -42,6 +42,7 @@ import {
   ReservationDto,
 } from '@/api/reservations/type';
 import { useCreateReservationBulk } from '@/app/trip/[tripId]/overview/hooks/reservations/use-create-reservation-bulk';
+import { useReadEmailInbox } from '@/app/trip/[tripId]/overview/hooks/reservations/use-read-email-inbox';
 
 dayjs.extend(relativeTime);
 
@@ -73,9 +74,12 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   const { tripId } = useParams<{ tripId: string }>();
 
   const [emails, setEmails] = useState<EmailItem[]>([]);
-  const { data: emailInfos, refetch: refetchEmailInfos } = useGetReservationEmailInfo(
-    Number(tripId)
-  );
+  const {
+    data: emailInfos,
+    refetch: refetchEmailInfos,
+    isFetching,
+  } = useGetReservationEmailInfo(Number(tripId));
+
   const resetEmailSelection = () => {
     setEmails([]);
     setSelectedTypes({});
@@ -182,10 +186,23 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
 
   // Confirm
   const { mutateAsync: createBulk, isPending: isCreating } = useCreateReservationBulk();
+  const { mutateAsync: readEmailInbox } = useReadEmailInbox();
+  const selectedEmailIds = emails.map((e) => e.emailId);
+
   const handleConfirm = async () => {
     try {
+      // 1. create reservation
       await createBulk(previewReservations);
+
+      // 2. mark email as read
+      await readEmailInbox({
+        emailIds: emails.map((e) => e.emailId),
+      });
+
+      // 3. refresh inbox
       await refetchEmailInfos();
+
+      // 4. reset & close
       setShowPreview(false);
       onClose();
     } catch (err) {
@@ -275,10 +292,11 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           <Button
             variant="contained"
             startIcon={<EmailIcon />}
-            sx={{ mb: 2, bgcolor: '#25CF7A', '&:hover': { bgcolor: '#20b86c' } }}
+            sx={{ mb: 2, bgcolor: '#25CF7A', '&:hover': { bgcolor: 'grey.400' } }}
             onClick={checkEmails}
+            disabled={isFetching}
           >
-            เช็คอีเมลที่เข้ามา
+            {isFetching ? 'กำลังโหลด...' : 'เช็คอีเมลที่เข้ามา'}
           </Button>
 
           {emails.length > 0 && (
