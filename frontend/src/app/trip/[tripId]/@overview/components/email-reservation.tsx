@@ -27,22 +27,22 @@ import { Building, Bus, Car, Plane, Ship, Train, Utensils } from 'lucide-react';
 import { ElementType } from 'react';
 
 import { BackButton } from '@/components/button';
-import LodgingCard from '@/app/trip/[tripId]/overview/components/cards/lodging';
-import RestaurantCard from '@/app/trip/[tripId]/overview/components/cards/restaurant';
-import FlightCard from '@/app/trip/[tripId]/overview/components/cards/flight';
-import TrainCard from '@/app/trip/[tripId]/overview/components/cards/train';
-import BusCard from '@/app/trip/[tripId]/overview/components/cards/bus';
-import FerryCard from '@/app/trip/[tripId]/overview/components/cards/ferry';
-import CarRentalCard from '@/app/trip/[tripId]/overview/components/cards/carrental';
-import { useGetReservationEmailInfo } from '@/app/trip/[tripId]/overview/hooks/reservations/use-get-reservation-email-info';
-import { useGetPreviewsReservation } from '@/app/trip/[tripId]/overview/hooks/reservations/use-get-previews-reservation';
+import LodgingCard from '@/app/trip/[tripId]/@overview/components/cards/lodging';
+import RestaurantCard from '@/app/trip/[tripId]/@overview/components/cards/restaurant';
+import FlightCard from '@/app/trip/[tripId]/@overview/components/cards/flight';
+import TrainCard from '@/app/trip/[tripId]/@overview/components/cards/train';
+import BusCard from '@/app/trip/[tripId]/@overview/components/cards/bus';
+import FerryCard from '@/app/trip/[tripId]/@overview/components/cards/ferry';
+import CarRentalCard from '@/app/trip/[tripId]/@overview/components/cards/carrental';
+import { useGetReservationEmailInfo } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-get-reservation-email-info';
+import { useGetPreviewsReservation } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-get-previews-reservation';
 import {
   ReservationType,
   PreviewReservationRequest,
   ReservationDto,
 } from '@/api/reservations/type';
-import { useCreateReservationBulk } from '@/app/trip/[tripId]/overview/hooks/reservations/use-create-reservation-bulk';
-import { useReadEmailInbox } from '@/app/trip/[tripId]/overview/hooks/reservations/use-read-email-inbox';
+import { useCreateReservationBulk } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-create-reservation-bulk';
+import { useReadEmailInbox } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-read-email-inbox';
 
 dayjs.extend(relativeTime);
 
