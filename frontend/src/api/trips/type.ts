@@ -1,5 +1,6 @@
 import { PublicUserInfo } from '@/api/users';
 import { ReservationDto } from '../reservations';
+import { GoogleMapPlace } from '@/api/places';
 
 export interface CustomObjective {
   id: number | null;
@@ -36,10 +37,10 @@ export interface TripOverview {
   objectives: Objective[];
   reservations: ReservationDto[];
   wishlistPlaces: WishlistPlace[];
+  dailyPlans: DailyPlan[];
 }
 
-// Wishlist Place
-
+// === Wishlist Place === //
 export type WishlistPlace = {
   id: number;
   tripId: number;
@@ -92,4 +93,19 @@ type Point = {
   day: number;
   hour: number;
   minute: number;
+};
+
+// === Daily Plan === //
+export type DailyPlan = {
+  id: number;
+  date: string;
+  pinColor: string;
+  scheduledPlaces: ScheduledPlace[];
+};
+
+export type ScheduledPlace = {
+  id: number;
+  notes: string;
+  order: number;
+  ggmp: GoogleMapPlace;
 };

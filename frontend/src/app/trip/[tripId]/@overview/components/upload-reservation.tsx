@@ -17,13 +17,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import UploadIcon from '@mui/icons-material/Upload';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useState, useRef, useEffect } from 'react';
-import LodgingCard from '@/app/trip/[tripId]/overview/components/cards/lodging';
-import RestaurantCard from '@/app/trip/[tripId]/overview/components/cards/restaurant';
-import FlightCard from '@/app/trip/[tripId]/overview/components/cards/flight';
-import TrainCard from '@/app/trip/[tripId]/overview/components/cards/train';
-import BusCard from '@/app/trip/[tripId]/overview/components/cards/bus';
-import FerryCard from '@/app/trip/[tripId]/overview/components/cards/ferry';
-import CarRentalCard from '@/app/trip/[tripId]/overview/components/cards/carrental';
+import LodgingCard from '@/app/trip/[tripId]/@overview/components/cards/lodging';
+import RestaurantCard from '@/app/trip/[tripId]/@overview/components/cards/restaurant';
+import FlightCard from '@/app/trip/[tripId]/@overview/components/cards/flight';
+import TrainCard from '@/app/trip/[tripId]/@overview/components/cards/train';
+import BusCard from '@/app/trip/[tripId]/@overview/components/cards/bus';
+import FerryCard from '@/app/trip/[tripId]/@overview/components/cards/ferry';
+import CarRentalCard from '@/app/trip/[tripId]/@overview/components/cards/carrental';
 import { BackButton } from '@/components/button';
 
 interface UploadReservationProps {

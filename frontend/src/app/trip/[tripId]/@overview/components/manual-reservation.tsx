@@ -20,13 +20,13 @@ import { ElementType, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Building, Bus, Car, Plane, Ship, Train, Utensils } from 'lucide-react';
 
-import LodgingCard from '@/app/trip/[tripId]/overview/components/cards/lodging';
-import RestaurantCard from '@/app/trip/[tripId]/overview/components/cards/restaurant';
-import FlightCard from '@/app/trip/[tripId]/overview/components/cards/flight';
-import TrainCard from '@/app/trip/[tripId]/overview/components/cards/train';
-import BusCard from '@/app/trip/[tripId]/overview/components/cards/bus';
-import FerryCard from '@/app/trip/[tripId]/overview/components/cards/ferry';
-import CarRentalCard from '@/app/trip/[tripId]/overview/components/cards/carrental';
+import LodgingCard from '@/app/trip/[tripId]/@overview/components/cards/lodging';
+import RestaurantCard from '@/app/trip/[tripId]/@overview/components/cards/restaurant';
+import FlightCard from '@/app/trip/[tripId]/@overview/components/cards/flight';
+import TrainCard from '@/app/trip/[tripId]/@overview/components/cards/train';
+import BusCard from '@/app/trip/[tripId]/@overview/components/cards/bus';
+import FerryCard from '@/app/trip/[tripId]/@overview/components/cards/ferry';
+import CarRentalCard from '@/app/trip/[tripId]/@overview/components/cards/carrental';
 import { BackButton } from '@/components/button';
 import { fieldsByType } from './fields-by-type';
 
