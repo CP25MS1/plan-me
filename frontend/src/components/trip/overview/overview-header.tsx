@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Box,
-  Typography,
-  AvatarGroup,
   Avatar,
-  IconButton,
+  AvatarGroup,
+  Box,
   Button,
-  Stack,
   Chip,
+  IconButton,
   InputBase,
+  Stack,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import { Tag, X as XIcon } from 'lucide-react';
 import dayjs, { Dayjs } from 'dayjs';
@@ -20,10 +20,10 @@ import { useTranslation } from 'react-i18next';
 
 import DateRangePicker from '@/components/common/date-time/date-range-picker';
 import ObjectivePickerDialog, {
+  getDefaultObjectiveName,
+  getKey,
   MAX_OBJECTIVES,
   useDefaultObjectives,
-  getKey,
-  getDefaultObjectiveName,
 } from '@/components/trip/objective-picker-dialog';
 import { Objective } from '@/api/trips';
 import { BackButton } from '@/components/button';
@@ -32,29 +32,33 @@ import { RootState } from '@/store';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
-interface OverviewHeaderProps {
-  tripName: string;
-  members?: string[];
-  objectives?: Objective[];
-  startDate?: string;
-  endDate?: string;
-  canEdit?: boolean;
+export interface OverviewHeaderProps {
+  tripOverview: {
+    tripName: string;
+    members?: string[];
+    objectives?: Objective[];
+    startDate?: string;
+    endDate?: string;
+    canEdit?: boolean;
 
-  onUpdateTripName?: (name: string) => void;
-  onUpdateDates?: (start?: string, end?: string) => void;
-  onUpdateObjectives?: (objectives: Objective[]) => void;
+    onUpdateTripName?: (name: string) => void;
+    onUpdateDates?: (start?: string, end?: string) => void;
+    onUpdateObjectives?: (objectives: Objective[]) => void;
+  };
 }
 
 const OverviewHeader = ({
-  tripName,
-  members = [],
-  objectives = [],
-  startDate,
-  endDate,
-  canEdit = true,
-  onUpdateTripName,
-  onUpdateDates,
-  onUpdateObjectives,
+  tripOverview: {
+    tripName,
+    members = [],
+    objectives = [],
+    startDate,
+    endDate,
+    canEdit = true,
+    onUpdateTripName,
+    onUpdateDates,
+    onUpdateObjectives,
+  },
 }: OverviewHeaderProps) => {
   const locale = useSelector((s: RootState) => s.i18n.locale);
   const { t } = useTranslation('trip_overview');

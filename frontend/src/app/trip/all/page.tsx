@@ -11,7 +11,7 @@ const AllTripPage = () => {
   const { data: trips, isLoading, isError } = useGetAllTrips();
   const { t } = useTranslation('trip_all');
   const handleClick = (tripId: number) => {
-    router.push(`/trip/${tripId}/overview`);
+    router.push(`/trip/${tripId}?tab=overview`);
   };
 
   const formatDate = (dateString: string) => {

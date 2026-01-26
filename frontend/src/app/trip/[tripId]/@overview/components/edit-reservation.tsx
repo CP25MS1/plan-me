@@ -27,7 +27,7 @@ import {
   ReservationDto,
   ReservationType,
 } from '@/api/reservations/type';
-import { useUpdateReservation } from '@/app/trip/[tripId]/overview/hooks/reservations/use-update-reservation';
+import { useUpdateReservation } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-update-reservation';
 import { fieldsByType } from './fields-by-type';
 
 interface EditReservationProps {
