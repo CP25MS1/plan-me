@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.services;
+package capstone.ms.api.modules.itinerary.services.reservation;
 
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.ServerErrorException;
@@ -8,6 +8,7 @@ import capstone.ms.api.modules.itinerary.dto.external.MappedReservationResponse;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationPreviewRequest;
 import capstone.ms.api.modules.itinerary.mappers.ReservationMapper;
+import capstone.ms.api.modules.itinerary.services.TripAccessService;
 import capstone.ms.api.modules.typhoon.dto.ChatRequest;
 import capstone.ms.api.modules.typhoon.services.impl.TyphoonServiceImpl;
 import capstone.ms.api.modules.user.entities.User;

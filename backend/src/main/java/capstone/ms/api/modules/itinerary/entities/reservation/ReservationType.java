@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.entities;
+package capstone.ms.api.modules.itinerary.entities.reservation;
 
 public enum ReservationType {
     LODGING,

@@ -1,6 +1,6 @@
 package capstone.ms.api.modules.itinerary.repositories;
 
-import capstone.ms.api.modules.itinerary.entities.TrainReservation;
+import capstone.ms.api.modules.itinerary.entities.reservation.TrainReservation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TrainReservationRepository extends JpaRepository<TrainReservation, Integer> {

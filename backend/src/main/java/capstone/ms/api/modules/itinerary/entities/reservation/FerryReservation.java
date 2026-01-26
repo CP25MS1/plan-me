@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.entities;
+package capstone.ms.api.modules.itinerary.entities.reservation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -10,31 +10,31 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "bus_reservation", schema = "public")
-public class BusReservation {
+@Table(name = "ferry_reservation", schema = "public")
+public class FerryReservation {
     @Id
     private Integer reservationId;
 
     @Column(name = "transport_company", nullable = false)
     private String transportCompany;
 
-    @Column(name = "departure_station", nullable = false)
-    private String departureStation;
+    @Column(name = "passenger_name", nullable = false)
+    private String passengerName;
+
+    @Column(name = "departure_port", nullable = false)
+    private String departurePort;
 
     @Column(name = "departure_time", nullable = false)
     private LocalDateTime departureTime;
 
-    @Column(name = "arrival_station", nullable = false)
-    private String arrivalStation;
+    @Column(name = "arrival_port", nullable = false)
+    private String arrivalPort;
 
-    @Column(name = "bus_class")
-    private String busClass;
+    @Column(name = "arrival_time", nullable = false)
+    private LocalDateTime arrivalTime;
 
-    @Column(name = "passenger_name", nullable = false)
-    private String passengerName;
-
-    @Column(name = "seat_no", nullable = false)
-    private String seatNo;
+    @Column(name = "ticket_type", nullable = false)
+    private String ticketType;
 
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, optional = false)
