@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.entities;
+package capstone.ms.api.modules.itinerary.entities.reservation;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

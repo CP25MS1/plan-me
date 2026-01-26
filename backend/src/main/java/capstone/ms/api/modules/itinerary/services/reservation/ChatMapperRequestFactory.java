@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.services;
+package capstone.ms.api.modules.itinerary.services.reservation;
 
 import capstone.ms.api.modules.typhoon.dto.ChatMessage;
 import capstone.ms.api.modules.typhoon.dto.ChatRequest;
