@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.entities;
 
+import capstone.ms.api.modules.itinerary.entities.reservation.Reservation;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.services;
+package capstone.ms.api.modules.itinerary.services.reservation;
 
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
 import jakarta.validation.Validator;

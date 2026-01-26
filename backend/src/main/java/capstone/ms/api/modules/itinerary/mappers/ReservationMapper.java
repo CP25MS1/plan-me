@@ -2,7 +2,7 @@ package capstone.ms.api.modules.itinerary.mappers;
 
 import capstone.ms.api.modules.itinerary.dto.external.MappedReservationResponse;
 import capstone.ms.api.modules.itinerary.dto.reservation.*;
-import capstone.ms.api.modules.itinerary.entities.*;
+import capstone.ms.api.modules.itinerary.entities.reservation.*;
 import org.mapstruct.*;
 
 import java.util.LinkedHashSet;
