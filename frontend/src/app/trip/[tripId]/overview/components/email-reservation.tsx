@@ -191,20 +191,16 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
 
   const handleConfirm = async () => {
     try {
-      // 1. create reservation
       await createBulk(previewReservations);
 
-      // 2. mark email as read
-      await readEmailInbox({
+      setShowPreview(false);
+      onClose();
+
+      readEmailInbox({
         emailIds: emails.map((e) => e.emailId),
       });
 
-      // 3. refresh inbox
-      await refetchEmailInfos();
-
-      // 4. reset & close
-      setShowPreview(false);
-      onClose();
+      refetchEmailInfos();
     } catch (err) {
       console.error(err);
     }
