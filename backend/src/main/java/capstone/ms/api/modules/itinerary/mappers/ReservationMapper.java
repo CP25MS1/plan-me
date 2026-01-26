@@ -8,7 +8,6 @@ import org.mapstruct.*;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface ReservationMapper {
@@ -148,17 +147,4 @@ public interface ReservationMapper {
     @Mapping(target = "cost", source = "data.cost")
     @Mapping(target = "details", source = "data.details")
     ReservationDto toReservationDto(MappedReservationResponse response);
-
-    default boolean isMatchedType(MappedReservationResponse response, ReservationType expectedType) {
-        if (response == null || response.getData() == null) {
-            return false;
-        }
-
-        String detectedType = response.getData().getType();
-        if (detectedType == null) {
-            return false;
-        }
-
-        return expectedType.name().equalsIgnoreCase(detectedType);
-    }
 }

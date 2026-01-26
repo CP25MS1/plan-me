@@ -123,10 +123,6 @@ public class FileReservationExtractorService {
         try {
             MappedReservationResponse mapped = objectMapper.readValue(llmResult, MappedReservationResponse.class);
 
-            if (!reservationMapper.isMatchedType(mapped, type)) {
-                throw new BadRequestException("reservation.400", "reservation.400.type.notMatched");
-            }
-
             dto = reservationMapper.toReservationDto(mapped);
             dto.setTripId(tripId);
 
@@ -138,7 +134,7 @@ public class FileReservationExtractorService {
         }
 
         if (!validationService.isReservationValid(dto)) {
-            throw new ServerErrorException("reservation.file.500", "reservation.500.file.invalid");
+            throw new ServerErrorException("reservation.file.500", "reservation.500.file.invalidOrNotMatched");
         }
 
         return dto;
