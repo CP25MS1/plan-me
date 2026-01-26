@@ -26,10 +26,8 @@ reservation:
     type:
       notEqual: "Each uploaded file must have a corresponding reservation type."
       invalid: "An unsupported reservation type was provided."
-      notMatched: "Selected reservation type does not match file content."
-
   500:
     file:
       ocrFailed: "The system could not read the content of the uploaded file."
-      invalid: "The uploaded file does not contain valid reservation information for the selected type."
+      invalidOrNotMatched: "The uploaded file does not contain valid reservation information for the selected type or Selected reservation type does not match file content."
       mapFailed: "An error occurred while converting file content into reservation data."
