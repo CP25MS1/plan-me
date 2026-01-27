@@ -2,6 +2,7 @@ package capstone.ms.api.modules.itinerary.entities;
 
 import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -9,12 +10,11 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalTime;
-
 @Getter
 @Setter
 @Entity
 @Table(name = "scheduled_place")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class ScheduledPlace {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +28,6 @@ public class ScheduledPlace {
     @JoinColumn(name = "plan_id", nullable = false)
     private DailyPlan plan;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "ggmp_id")
