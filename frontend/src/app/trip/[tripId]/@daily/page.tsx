@@ -1,12 +1,13 @@
 'use client';
 
-import { Box } from '@mui/material';
+import { Box, List, ListItem } from '@mui/material';
 
 import { useFullPageLoading } from '@/components/full-page-loading';
 import SectionCard from '@/components/trip/overview/section-card';
 import AddItemButton from '@/components/trip/overview/add-item-button';
+import ScheduledPlaceCard from './components/scheduled-place-card';
 
-import { useTripSelector, useI18nSelector } from '@/store/selectors';
+import { useI18nSelector, useTripSelector } from '@/store/selectors';
 import { formatDateByLocale, sortByDateAsc } from '@/lib/date';
 
 const DailyPlanPage = () => {
@@ -23,10 +24,21 @@ const DailyPlanPage = () => {
       {sortByDateAsc(dailyPlans).map((plan, index) => {
         const titlePrefix = locale === 'en' ? 'Day' : 'วันที่';
         const planTitle = `${titlePrefix} ${index + 1}: ${formatDateByLocale(plan.date, locale)}`;
-        const hasPlace = !!plan.scheduledPlaces?.length;
+        const scheduledPlaces = plan.scheduledPlaces;
+        const hasPlace = !!scheduledPlaces?.length;
         return (
           <SectionCard key={`${plan.id}`} title={planTitle} asEmpty={!hasPlace}>
-            <AddItemButton label={'เพิ่มสถานที่'} />
+            {hasPlace ? (
+              <List>
+                {scheduledPlaces.map((place) => (
+                  <ListItem key={place.id} sx={{ p: 0, mb: 2 }}>
+                    <ScheduledPlaceCard scheduledPlace={place} locale={locale}></ScheduledPlaceCard>
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <AddItemButton label={'เพิ่มสถานที่'} />
+            )}
           </SectionCard>
         );
       })}
