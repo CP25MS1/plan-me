@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.repositories;
+package capstone.ms.api.modules.itinerary.repositories.reservation;
 
 import capstone.ms.api.modules.itinerary.entities.reservation.FerryReservation;
 import org.springframework.data.jpa.repository.JpaRepository;
