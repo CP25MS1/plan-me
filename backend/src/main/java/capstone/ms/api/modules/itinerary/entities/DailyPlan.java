@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -19,6 +20,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "daily_plan")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class DailyPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
