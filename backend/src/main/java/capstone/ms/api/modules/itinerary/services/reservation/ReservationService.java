@@ -11,6 +11,7 @@ import capstone.ms.api.modules.itinerary.entities.*;
 import capstone.ms.api.modules.itinerary.entities.reservation.*;
 import capstone.ms.api.modules.itinerary.mappers.ReservationMapper;
 import capstone.ms.api.modules.itinerary.repositories.*;
+import capstone.ms.api.modules.itinerary.repositories.reservation.*;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
