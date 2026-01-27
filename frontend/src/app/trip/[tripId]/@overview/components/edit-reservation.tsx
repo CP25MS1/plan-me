@@ -29,6 +29,9 @@ import {
 } from '@/api/reservations/type';
 import { useUpdateReservation } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-update-reservation';
 import { fieldsByType } from './fields-by-type';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { AlertColor } from '@mui/material/Alert';
+import { AxiosError } from 'axios';
 
 interface EditReservationProps {
   open: boolean;
@@ -96,6 +99,43 @@ export default function EditReservation({
       passengers: reservation.type === 'FLIGHT' ? flightPassengers : [],
     });
   }, [open, reservation]);
+
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: AlertColor;
+  }>({
+    open: false,
+    message: '',
+    severity: 'error',
+  });
+  const showErrorSnackbar = (error: unknown) => {
+    if (error instanceof AxiosError) {
+      const status = error.response?.status;
+
+      const message = (status && errorMessageMap[status]) || 'เกิดข้อผิดพลาดบางอย่าง';
+
+      setSnackbar({
+        open: true,
+        message,
+        severity: 'error',
+      });
+
+      return;
+    }
+
+    setSnackbar({
+      open: true,
+      message: 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ',
+      severity: 'error',
+    });
+  };
+
+  const errorMessageMap: Record<number, string> = {
+    400: 'ไม่สามารถแก้ไขข้อมูลการจองได้ โปรดตรวจสอบข้อมูลอีกครั้ง',
+    403: 'คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้',
+    404: 'ไม่พบข้อมูลการจองนี้ในระบบ',
+  };
 
   /** ---------- change detect ---------- */
   const hasChanges =
@@ -184,6 +224,10 @@ export default function EditReservation({
       onSuccess: (updatedReservation) => {
         dispatch(updateReservationAction(updatedReservation));
         onClose();
+      },
+      onError: (err) => {
+        console.error(err);
+        showErrorSnackbar(err);
       },
     });
   };
@@ -325,6 +369,17 @@ export default function EditReservation({
           </Button>
         </Box>
       </DialogContent>
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() =>
+          setSnackbar((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
+      />
     </Dialog>
   );
 }
