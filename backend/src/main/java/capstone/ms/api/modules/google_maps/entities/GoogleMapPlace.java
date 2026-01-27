@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.google_maps.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "google_map_place", schema = "public")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class GoogleMapPlace {
 
     @Id
