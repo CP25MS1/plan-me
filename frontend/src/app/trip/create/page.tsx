@@ -88,7 +88,7 @@ const CreateTripPage = () => {
       onSuccess: (data) => {
         if (data?.id) {
           setIsNavigating(false);
-          router.push(`/trip/${data.id}/overview` as Route);
+          router.push(`/trip/${data.id}?tab=overview` as Route);
         }
       },
     });

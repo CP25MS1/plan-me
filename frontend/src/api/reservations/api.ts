@@ -5,6 +5,7 @@ import {
   PreviewReservationRequest,
   ReadEmailInboxRequest,
   ReadEmailInboxResponse,
+  ReservationType,
 } from './type';
 
 /** Create a reservation */
@@ -61,5 +62,33 @@ export const readEmailInbox = async (
   payload: ReadEmailInboxRequest
 ): Promise<ReadEmailInboxResponse> => {
   const { data } = await apiClient.post('/email-inbox/read', payload);
+  return data;
+};
+
+/** POST /reservations/files/preview */
+export const getPreviewReservationsFromFiles = async (
+  tripId: number,
+  types: ReservationType[],
+  files: File[]
+): Promise<ReservationDto[]> => {
+  const formData = new FormData();
+
+  files.forEach((file) => {
+    formData.append('files', file);
+  });
+
+  const { data } = await apiClient.post('/reservations/files/preview', formData, {
+    params: {
+      tripId,
+      types,
+    },
+    paramsSerializer: {
+      indexes: null,
+    },
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
   return data;
 };
