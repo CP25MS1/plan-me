@@ -43,6 +43,9 @@ import {
 } from '@/api/reservations/type';
 import { useCreateReservationBulk } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-create-reservation-bulk';
 import { useReadEmailInbox } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-read-email-inbox';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { AlertColor } from '@mui/material/Alert';
+import { AxiosError } from 'axios';
 
 dayjs.extend(relativeTime);
 
@@ -133,6 +136,45 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     });
   };
 
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: AlertColor;
+  }>({
+    open: false,
+    message: '',
+    severity: 'error',
+  });
+
+  const errorMessageMap: Record<number, string> = {
+    400: 'โปรดตรวจสอบข้อมูลอีกครั้ง',
+    403: 'คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้',
+    404: 'ไม่พบทริปนี้ในระบบ',
+    500: 'เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก',
+  };
+
+  const showErrorSnackbar = (error: unknown) => {
+    if (error instanceof AxiosError) {
+      const status = error.response?.status;
+
+      const message = (status && errorMessageMap[status]) || 'เกิดข้อผิดพลาดบางอย่าง';
+
+      setSnackbar({
+        open: true,
+        message,
+        severity: 'error',
+      });
+
+      return;
+    }
+
+    setSnackbar({
+      open: true,
+      message: 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ',
+      severity: 'error',
+    });
+  };
+
   const handleTypeChange = (index: number, value: ReservationType) => {
     setSelectedTypes((prev) => ({ ...prev, [index]: value }));
 
@@ -181,6 +223,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
       setShowPreview(true);
     } catch (err) {
       console.error(err);
+      showErrorSnackbar(err);
     }
   };
 
@@ -203,6 +246,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
       refetchEmailInfos();
     } catch (err) {
       console.error(err);
+      showErrorSnackbar(err);
     }
   };
 
@@ -288,9 +332,21 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           <Button
             variant="contained"
             startIcon={<EmailIcon />}
-            sx={{ mb: 2, bgcolor: '#25CF7A', '&:hover': { bgcolor: 'grey.400' } }}
             onClick={checkEmails}
             disabled={isFetching}
+            sx={{
+              mb: 2,
+              bgcolor: '#25CF7A',
+
+              '&:hover': {
+                bgcolor: '#25CF7A',
+              },
+
+              '&.Mui-disabled': {
+                bgcolor: 'grey.400',
+                color: 'white',
+              },
+            }}
           >
             {isFetching ? 'กำลังโหลด...' : 'เช็คอีเมลที่เข้ามา'}
           </Button>
@@ -449,12 +505,18 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         </DialogContent>
       </Dialog>
 
-      <Snackbar
+      <AppSnackbar
         open={copiedAlert}
-        autoHideDuration={1500}
-        onClose={() => setCopiedAlert(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         message="คัดลอกอีเมลแล้ว"
+        severity="success"
+        onClose={() => setCopiedAlert(false)}
+      />
+
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       />
     </>
   );

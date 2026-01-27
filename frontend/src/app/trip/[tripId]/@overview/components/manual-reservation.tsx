@@ -29,6 +29,9 @@ import FerryCard from '@/app/trip/[tripId]/@overview/components/cards/ferry';
 import CarRentalCard from '@/app/trip/[tripId]/@overview/components/cards/carrental';
 import { BackButton } from '@/components/button';
 import { fieldsByType } from './fields-by-type';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { AlertColor } from '@mui/material/Alert';
+import { AxiosError } from 'axios';
 
 import {
   FlightDetails,
@@ -73,6 +76,44 @@ export default function ManualReservation({
     setShowPreview(false);
     setPassengers([{ passengerName: '', seatNo: '' }]);
   }, [open]);
+
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: AlertColor;
+  }>({
+    open: false,
+    message: '',
+    severity: 'error',
+  });
+
+  const errorMessageMap: Record<number, string> = {
+    400: 'ไม่สามารถเพิ่มข้อมูลการจองได้ โปรดตรวจสอบข้อมูลอีกครั้ง',
+    403: 'คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้',
+    404: 'ไม่พบข้อมูลการจองนี้ในระบบ',
+  };
+
+  const showErrorSnackbar = (error: unknown) => {
+    if (error instanceof AxiosError) {
+      const status = error.response?.status;
+
+      const message = (status && errorMessageMap[status]) || 'เกิดข้อผิดพลาดบางอย่าง';
+
+      setSnackbar({
+        open: true,
+        message,
+        severity: 'error',
+      });
+
+      return;
+    }
+
+    setSnackbar({
+      open: true,
+      message: 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ',
+      severity: 'error',
+    });
+  };
 
   const handleChange = (name: string, val: string) => {
     setFormData(
@@ -165,6 +206,10 @@ export default function ManualReservation({
         onClose();
         setShowPreview(false);
         onReservationCreated(data);
+      },
+      onError: (err) => {
+        console.error(err);
+        showErrorSnackbar(err);
       },
     });
   };
@@ -483,6 +528,17 @@ export default function ManualReservation({
           </Box>
         </DialogContent>
       </Dialog>
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() =>
+          setSnackbar((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
+      />
     </>
   );
 }
