@@ -31,3 +31,8 @@ reservation:
       ocrFailed: "The system could not read the content of the uploaded file."
       invalidOrNotMatched: "The uploaded file does not contain valid reservation information for the selected type or Selected reservation type does not match file content."
       mapFailed: "An error occurred while converting file content into reservation data."
+
+travelSegment:
+  400:
+    samePlaces: "Unable to create route as the starting and ending place are the same."
+    unsupportedMode: "An unsupported mode was provided."
