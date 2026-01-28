@@ -51,6 +51,8 @@ google:
     base-url: ${GOOGLE_PLACES_BASE_URL}
     api-key: ${GOOGLE_PLACES_API_KEY}
     field-mask: ${GOOGLE_PLACES_FIELD_MASK}
+  routes:
+    base-url: ${GOOGLE_ROUTES_BASE_URL}
 
 server:
   servlet:
