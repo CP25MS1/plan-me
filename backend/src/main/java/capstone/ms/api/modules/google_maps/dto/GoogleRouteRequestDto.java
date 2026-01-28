@@ -1,6 +1,6 @@
 package capstone.ms.api.modules.google_maps.dto;
 
-import capstone.ms.api.modules.itinerary.dto.ComputeRouteRequestDto;
+import capstone.ms.api.modules.itinerary.dto.travel_segment.ComputeRouteRequestDto;
 import lombok.Data;
 
 @Data

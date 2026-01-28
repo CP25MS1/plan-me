@@ -1,7 +1,7 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
-import capstone.ms.api.modules.itinerary.dto.ComputeRouteRequestDto;
-import capstone.ms.api.modules.itinerary.dto.TravelSegmentResponseDto;
+import capstone.ms.api.modules.itinerary.dto.travel_segment.ComputeRouteRequestDto;
+import capstone.ms.api.modules.itinerary.dto.travel_segment.TravelSegmentResponseDto;
 import capstone.ms.api.modules.itinerary.services.TravelSegmentService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
