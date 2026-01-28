@@ -1,7 +1,7 @@
 package capstone.ms.api.modules.google_maps.mappers;
 
 import capstone.ms.api.modules.google_maps.dto.GoogleRouteResponseDto;
-import capstone.ms.api.modules.itinerary.dto.RouteGoogleResultDto;
+import capstone.ms.api.modules.itinerary.dto.travel_segment.RouteGoogleResultDto;
 import capstone.ms.api.modules.itinerary.entities.TravelSegmentMode;
 import org.mapstruct.Mapper;
 
