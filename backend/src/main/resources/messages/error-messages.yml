@@ -84,3 +84,8 @@ dailyPlan:
     outOfRangeOrder:
       th: "ลำดับของสถานที่อยู่นอกช่วงที่อนุญาตสำหรับแผนนี้"
       en: "The specified place order is out of the allowed range for this plan."
+
+travelSegment:
+  500:
+    th: "ไม่สามารถคำนวณเส้นทางระหว่างสถานที่ได้ กรุณาลองใหม่อีกครั้งในภายหลัง"
+    en: "Unable to calculate the route between places. Please try again later."
