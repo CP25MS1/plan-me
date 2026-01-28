@@ -274,8 +274,13 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                 onChange={handleFilesChange}
               />
               <UploadIcon sx={{ fontSize: 50, color: 'grey.500' }} />
-              <Typography>ลากหรือวางไฟล์ที่นี่</Typography>
-              <Typography>หรือคลิกเพื่อเรียกดู</Typography>
+              <Typography sx={{ fontWeight: 600 }}>ลากหรือวางไฟล์ที่นี่</Typography>
+              <Typography sx={{ color: 'text.secondary' }}>
+                หรือคลิกเพื่อเลือกไฟล์จากอุปกรณ์
+              </Typography>
+              <Typography sx={{ fontSize: 14, color: 'text.disabled' }}>
+                รองรับไฟล์ประเภท .pdf, .png, .jpg, .jpeg
+              </Typography>
             </Box>
           )}
 
