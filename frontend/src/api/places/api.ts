@@ -1,6 +1,6 @@
 import { apiClient } from '@/api/client';
 import { geocodingClient } from './geocoding-client';
-import { GoogleMapPlace, GeocodingResponse, PlaceResult } from './type';
+import { GeocodingResponse, GoogleMapPlace, PlaceResult } from './type';
 import { Locale } from '@/store/i18n-slice';
 
 export const searchForGeocoding = async ({
@@ -102,4 +102,19 @@ export const searchForPlaces = async <K extends CombinedKeys>({
 
     return out;
   });
+};
+
+export const searchForProvince = async ({
+  address,
+  language,
+}: {
+  address: string;
+  language: Locale;
+}) => {
+  const geocodingResult = await searchForGeocoding({ address, language });
+  const assuredResult = geocodingResult[0];
+  const addressComponent = assuredResult.address_components.find((comp) =>
+    comp.types.includes('administrative_area_level_1')
+  );
+  return addressComponent?.long_name;
 };
