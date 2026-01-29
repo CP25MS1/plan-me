@@ -76,6 +76,10 @@ public class PlacesService {
         return List.of();
     }
 
+    public List<GoogleMapPlace> getAllPlacesById(List<String> ids) {
+        return googleMapPlaceRepository.findAllById(ids);
+    }
+
     public String searchAndGetGgmpId(final String query) {
         MergeResult mergeResult = fetchFromGoogle(query);
 
@@ -160,7 +164,6 @@ public class PlacesService {
 
         return new MergeResult(merged, enMap, thMap);
     }
-
 
     private void upsertPlacesBatch(Map<String, Place> enMap, Map<String, Place> thMap, List<Place> merged) {
         if (merged.isEmpty()) return;
