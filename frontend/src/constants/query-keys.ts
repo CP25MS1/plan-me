@@ -4,8 +4,11 @@ export const USERS = {
   SEARCH: 'users:search',
 };
 
-export const TRIPS = {};
-
 export const PLACES = {
   SEARCH: 'places:search',
+  PROVINCE: 'places:province',
 };
+
+export const RESERVATIONS = {
+  PLACES: 'reservations:places'
+}

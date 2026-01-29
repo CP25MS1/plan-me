@@ -5,7 +5,7 @@ import { Box, Typography, IconButton, Collapse } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 interface SectionCardProps {
-  title: string;
+  title: ReactNode;
   children?: ReactNode;
   asEmpty?: boolean;
 }
