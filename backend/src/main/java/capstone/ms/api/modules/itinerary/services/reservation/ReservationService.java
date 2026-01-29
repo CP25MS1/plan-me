@@ -5,13 +5,15 @@ import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.email.dto.EmailInfoDto;
 import capstone.ms.api.modules.email.services.EmailInboxService;
+import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import capstone.ms.api.modules.google_maps.services.PlacesService;
 import capstone.ms.api.modules.itinerary.dto.reservation.*;
-import capstone.ms.api.modules.itinerary.entities.*;
+import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.reservation.*;
 import capstone.ms.api.modules.itinerary.mappers.ReservationMapper;
-import capstone.ms.api.modules.itinerary.repositories.*;
+import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.reservation.*;
+import capstone.ms.api.modules.itinerary.services.TripResourceService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -19,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -36,6 +39,7 @@ public class ReservationService {
     private final ReservationMapper reservationMapper;
     private final EmailInboxService emailInboxService;
     private final PlacesService placesService;
+    private final TripResourceService tripResourceService;
 
     @Transactional
     public ReservationDto createReservation(ReservationDto dto, User currentUser) {
@@ -342,5 +346,11 @@ public class ReservationService {
         RestaurantDetails details = (RestaurantDetails) dto.getDetails();
         String query = details.getRestaurantName() + ": " + details.getRestaurantAddress();
         dto.setGgmpId(placesService.searchAndGetGgmpId(query));
+    }
+
+    public List<GoogleMapPlace> getAllReservationPlaces(Integer tripId) {
+        var reservations = tripResourceService.getTripOrThrow(tripId).getReservations();
+        var ggmpIds = reservations.stream().map(Reservation::getGgmpId).filter(Objects::nonNull).toList();
+        return placesService.getAllPlacesById(ggmpIds);
     }
 }

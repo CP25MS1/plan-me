@@ -2,6 +2,7 @@ package capstone.ms.api.modules.itinerary.controllers;
 
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.modules.email.dto.EmailInfoDto;
+import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationPreviewRequest;
 import capstone.ms.api.modules.itinerary.services.reservation.EmailReservationExtractionService;
@@ -84,5 +85,10 @@ public class ReservationController {
                                                                         @AuthenticationPrincipal User currentUser) {
         List<ReservationDto> previewResults = fileReservationExtractorService.previewReservationsFiles(tripId, files, types, currentUser);
         return ResponseEntity.ok(previewResults);
+    }
+
+    @GetMapping("/places")
+    public ResponseEntity<List<GoogleMapPlace>> getAllReservationPlaces(@RequestParam Integer tripId) {
+        return ResponseEntity.ok(reservationService.getAllReservationPlaces(tripId));
     }
 }
