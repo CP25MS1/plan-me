@@ -6,7 +6,7 @@ import { useI18nSelector, useTripSelector } from '@/store/selectors';
 import { createCustomTitle } from '../helpers/create-custom-title-for-search-section';
 import { List } from '@mui/material';
 import { Fragment } from 'react';
-import AddibleWishlistCard from '@/app/trip/[tripId]/@daily/components/addible-wishlist-card';
+import AddibleWishlistCard from './addible-wishlist-card';
 
 type SectionProps = {
   title: string;
@@ -35,6 +35,7 @@ const SuggestionFromWishlistSection = ({ title }: SectionProps) => {
               <Fragment key={wp.id}>
                 <AddibleWishlistCard
                   ggmpId={place.ggmpId}
+                  placeId={wp.id}
                   name={name}
                   address={place.en.address}
                   defaultPicUrl={place.defaultPicUrl}
