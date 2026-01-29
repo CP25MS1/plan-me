@@ -24,13 +24,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @AllArgsConstructor
 public class TyphoonServiceImpl implements TyphoonService {
     private final OpenAIClient typhoonBaseClient;
     private final TyphoonProps typhoonProps;
-    private final OkHttpClient ocrClient = new OkHttpClient();
+    private final OkHttpClient ocrClient = new OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(2, TimeUnit.MINUTES)
+            .readTimeout(2, TimeUnit.MINUTES)
+            .callTimeout(3, TimeUnit.MINUTES)
+            .build();
 
     @Override
     public Flux<String> streamChat(ChatRequest req) {
@@ -198,7 +204,6 @@ public class TyphoonServiceImpl implements TyphoonService {
     @Override
     public String ocr(byte[] fileBytes, String filename) {
         try {
-            // 🔹 detect content-type จากนามสกุลไฟล์
             String ext = "";
             if (filename != null && filename.contains(".")) {
                 ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
@@ -211,18 +216,11 @@ public class TyphoonServiceImpl implements TyphoonService {
                 default -> "application/octet-stream";
             };
 
-            RequestBody fileBody = RequestBody.create(
-                    fileBytes,
-                    MediaType.parse(contentType)
-            );
+            RequestBody fileBody = RequestBody.create(fileBytes, MediaType.parse(contentType));
 
             RequestBody requestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
-                    .addFormDataPart(
-                            "file",
-                            filename != null ? filename : "file",
-                            fileBody
-                    )
+                    .addFormDataPart("file", filename != null ? filename : "file", fileBody)
                     .addFormDataPart("model", "typhoon-ocr-preview")
                     .addFormDataPart("task_type", "default")
                     .addFormDataPart("max_tokens", "16384")
