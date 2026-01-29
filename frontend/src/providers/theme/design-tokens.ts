@@ -5,6 +5,7 @@ export const tokens = {
     primaryDark: '#167F4B',
 
     background: '#ffffff',
+    lightBackground: '#DCFCEB',
     textPrimary: '#090909',
     textSecondary: '#7C7C7C',
     contrastText: '#ffffff',

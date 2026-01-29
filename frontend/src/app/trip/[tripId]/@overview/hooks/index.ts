@@ -1,4 +1,4 @@
-export * from './wishlist-places/use-search-for-places';
+export * from '../../hooks/use-search-for-places';
 export * from './wishlist-places/use-add-wishlist-place';
 export * from './wishlist-places/use-remove-wishlist-place';
 export * from './wishlist-places/use-update-wishlist-place';
