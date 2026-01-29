@@ -62,6 +62,7 @@ public class ReservationService {
         Reservation reservation = reservationMapper.dtoToReservation(dto);
         reservation.setTrip(trip);
         enrichGgmpIdIfApplicable(dto);
+        reservation.setGgmpId(dto.getGgmpId());
         reservationRepository.save(reservation);
 
         switch (dto.getType()) {
@@ -157,7 +158,7 @@ public class ReservationService {
         reservation.setContactEmail(dto.getContactEmail());
         reservation.setCost(dto.getCost());
         enrichGgmpIdIfApplicable(dto);
-
+        reservation.setGgmpId(dto.getGgmpId());
         reservationRepository.save(reservation);
 
         switch (dto.getType()) {
@@ -225,7 +226,6 @@ public class ReservationService {
 
         dto.setId(reservation.getId());
 
-        enrichGgmpIdIfApplicable(dto);
         return dto;
     }
 
@@ -349,7 +349,8 @@ public class ReservationService {
     }
 
     public List<GoogleMapPlace> getAllReservationPlaces(Integer tripId) {
-        var reservations = tripResourceService.getTripOrThrow(tripId).getReservations();
+        var trip = tripResourceService.getTripOrThrow(tripId);
+        var reservations = reservationRepository.findByTrip(trip);
         var ggmpIds = reservations.stream().map(Reservation::getGgmpId).filter(Objects::nonNull).toList();
         return placesService.getAllPlacesById(ggmpIds);
     }
