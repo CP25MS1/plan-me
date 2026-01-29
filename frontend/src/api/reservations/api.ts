@@ -7,6 +7,7 @@ import {
   ReadEmailInboxResponse,
   ReservationType,
 } from './type';
+import { GoogleMapPlace } from '@/api/places';
 
 /** Create a reservation */
 export const createReservation = async (
@@ -90,5 +91,11 @@ export const getPreviewReservationsFromFiles = async (
     },
   });
 
+  return data;
+};
+
+/** GET /reservations/places?tripId={tripId} */
+export const getAllReservationPlaces = async (tripId: number) => {
+  const { data } = await apiClient.get<GoogleMapPlace[]>(`/reservations/places?tripId=${tripId}`);
   return data;
 };
