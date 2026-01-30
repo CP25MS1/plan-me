@@ -7,6 +7,7 @@ export const USERS = {
 export const PLACES = {
   SEARCH: 'places:search',
   PROVINCE: 'places:province',
+  GGMPID: 'places:ggmpId',
 };
 
 export const RESERVATIONS = {

@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.google_maps.services;
 
+import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.google_maps.clients.GooglePlacesClient;
 import capstone.ms.api.modules.google_maps.dto.Place;
 import capstone.ms.api.modules.google_maps.dto.TextSearchRequest;
@@ -74,6 +75,11 @@ public class PlacesService {
         }
 
         return List.of();
+    }
+
+    public GoogleMapPlace getPlaceById(final String id) {
+        return googleMapPlaceRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("400"));
     }
 
     public List<GoogleMapPlace> getAllPlacesById(List<String> ids) {
