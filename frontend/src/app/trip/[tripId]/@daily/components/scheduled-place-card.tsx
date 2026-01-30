@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { Box, IconButton, Typography, Button } from '@mui/material';
+import { Box, Button, IconButton, Typography } from '@mui/material';
 import { Menu, Star, Trash2 as Trash, Send } from 'lucide-react';
 
 import { SwipeReveal } from '@/components/common/card';
@@ -78,22 +78,40 @@ const ScheduledPlaceCard = ({ scheduledPlace, locale }: ScheduledPlaceCardProps)
         </Box>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', pr: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography noWrap variant="subtitle1">
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 1,
+            }}
+          >
+            <Typography
+              variant="subtitle1"
+              sx={{
+                flex: 1,
+                minWidth: 0,
+
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+
+                overflow: 'hidden',
+                wordBreak: 'break-word',
+              }}
+            >
               {name}
             </Typography>
+
             <Button
               variant="contained"
-              startIcon={<Send size={14} />}
               size="small"
+              startIcon={<Send size={14} />}
               sx={{
-                minHeight: 24,
+                flexShrink: 0,
                 height: 24,
-                px: 1,
-                py: 0,
                 fontSize: 12,
-                lineHeight: 1,
-                borderRadius: '0.7rem',
+                whiteSpace: 'nowrap',
+                borderRadius: '0.25rem',
               }}
             >
               เปิดแผนที่

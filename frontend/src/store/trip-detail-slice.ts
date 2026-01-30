@@ -1,8 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TripOverview, WishlistPlace } from '@/api/trips/type';
 import { ReservationDto } from '@/api/reservations';
+import { dailyPlanReducers } from '@/store/reducers/daily-plan.reducers';
 
-interface TripDetailState {
+export interface TripDetailState {
   overview: TripOverview | null;
 }
 
@@ -63,6 +64,8 @@ const tripDetailSlice = createSlice({
         tripId: oldWishlistPlace.tripId,
       });
     },
+
+    ...dailyPlanReducers
   },
 });
 
@@ -74,6 +77,7 @@ export const {
   addWishlistPlace,
   removeWishlistPlace,
   updateWishlistPlace,
+  addScheduledPlace,
 } = tripDetailSlice.actions;
 
 export default tripDetailSlice.reducer;

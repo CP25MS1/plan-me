@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { CombinedKeys, searchForPlaces, searchForProvince } from '@/api/places';
+import { CombinedKeys, getPlaceById, searchForPlaces, searchForProvince } from '@/api/places';
 import { PLACES } from '@/constants/query-keys';
 import { useI18nSelector } from '@/store/selectors';
 
@@ -54,6 +54,14 @@ export const useSearchForProvince = (address: string) => {
     ...query,
     province: query.data ?? '',
   };
+};
+
+export const useGetPlaceById = (ggmpId: string) => {
+  return useQuery({
+    queryKey: [PLACES.GGMPID, ggmpId],
+    queryFn: () => getPlaceById(ggmpId),
+    enabled: !!ggmpId,
+  });
 };
 
 export default useSearchForPlaces;
