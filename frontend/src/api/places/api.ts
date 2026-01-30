@@ -118,3 +118,8 @@ export const searchForProvince = async ({
   );
   return addressComponent?.long_name;
 };
+
+export const getPlaceById = async (ggmpId: string) => {
+  const { data } = await apiClient.get<GoogleMapPlace>(`/places/${ggmpId}`);
+  return data;
+};

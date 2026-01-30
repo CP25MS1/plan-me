@@ -1,15 +1,17 @@
 import { Fragment } from 'react';
-import { Box, List, Typography } from '@mui/material';
+import { Box, CircularProgress, List, Typography } from '@mui/material';
 import { MapPin } from 'lucide-react';
 
 import { tokens } from '@/providers/theme/design-tokens';
 import { createCustomTitle } from '../helpers/create-custom-title-for-search-section';
 import SectionCard from '@/components/trip/overview/section-card';
 import AddibleWishlistCard from './addible-wishlist-card';
+import { useTranslation } from 'react-i18next';
 
 type SectionProps = {
   title: string;
   debouncedQ: string;
+  isSearching: boolean;
   result: {
     ggmpId: string;
     name: string;
@@ -18,7 +20,8 @@ type SectionProps = {
   }[];
 };
 
-const SearchResultSection = ({ title, debouncedQ, result }: SectionProps) => {
+const SearchResultSection = ({ title, debouncedQ, isSearching, result }: SectionProps) => {
+  const { t } = useTranslation('common');
   const qty = result.length;
 
   const CustomTitle = createCustomTitle({
@@ -27,7 +30,16 @@ const SearchResultSection = ({ title, debouncedQ, result }: SectionProps) => {
     qty,
   });
 
-  return qty === 0 && debouncedQ.length >= 3 ? (
+  if (isSearching)
+    return (
+      <SectionCard title={CustomTitle}>
+        <Box display="flex" justifyContent="center" py={6}>
+          <CircularProgress />
+        </Box>
+      </SectionCard>
+    );
+
+  return qty === 0 && debouncedQ.length >= 3 && !isSearching ? (
     <>
       {CustomTitle}
       <Box
@@ -41,10 +53,10 @@ const SearchResultSection = ({ title, debouncedQ, result }: SectionProps) => {
       >
         <MapPin size={56} style={{ opacity: 0.12 }} />
         <Typography variant="h6" color="text.primary">
-          {'Not Found'}
+          {t('empty.no_results')}
         </Typography>
         <Typography variant="body2" color="text.secondary" align="center">
-          {'Not Found'}
+          {t('empty.no_results_cta_text')}
         </Typography>
       </Box>
     </>
