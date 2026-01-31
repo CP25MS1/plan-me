@@ -34,6 +34,12 @@
         "title": "Notes",
         "cta_text": "Click to add notes"
       }
+    },
+    "dailyPlan": {
+      "remove": {
+        "confirm_message": "Do you want to remove this place from a plan?",
+        "confirm_label": "Remove"
+      }
     }
   },
   "Header": {
