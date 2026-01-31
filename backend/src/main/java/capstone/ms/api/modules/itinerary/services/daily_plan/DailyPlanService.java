@@ -124,7 +124,9 @@ public class DailyPlanService {
         var targetPlan = tripResourceService.getDailyPlanOrThrow(request.getPlanId());
         var scheduledPlace = tripResourceService.getScheduledPlaceOrThrow(placeId);
 
-        scheduledPlace.setNotes(request.getNotes());
+        if (request.getNotes() != null && !request.getNotes().isEmpty()) {
+            scheduledPlace.setNotes(request.getNotes());
+        }
 
         return scheduledPlaceMapper.toDto(
                 scheduledPlaceOrderService.moveAndReorder(
