@@ -78,6 +78,7 @@ export const {
   removeWishlistPlace,
   updateWishlistPlace,
   addScheduledPlace,
+  removeScheduledPlace,
 } = tripDetailSlice.actions;
 
 export default tripDetailSlice.reducer;
