@@ -16,9 +16,14 @@ import { tokens } from '@/providers/theme/design-tokens';
 import { PLACEHOLDER_IMAGE } from '@/constants/link';
 import { Locale } from '@/store/i18n-slice';
 import { ConfirmDialog } from '@/components/common/dialog';
-import { useRemoveScheduledPlace } from '@/app/trip/[tripId]/@daily/hooks/use-scheduled-place-mutation';
+import {
+  useRemoveScheduledPlace,
+  useUpdateScheduledPlace,
+} from '@/app/trip/[tripId]/@daily/hooks/use-scheduled-place-mutation';
 import { useDispatch } from 'react-redux';
-import { removeScheduledPlace } from '@/store/trip-detail-slice';
+import { removeScheduledPlace, updateScheduledPlace } from '@/store/trip-detail-slice';
+import PlaceDetailsDialog from '@/app/trip/[tripId]/components/place-details/place-details-dialog';
+import { useOpeningDialogContext } from '@/app/trip/[tripId]/@daily/context/opening-dialog-context';
 
 type ScheduledPlaceCardProps = {
   planId: number;
@@ -38,6 +43,33 @@ const ScheduledPlaceCard = ({ planId, scheduledPlace, locale, index }: Scheduled
     locale === 'en'
       ? { name: place.enName, desc: place.enDescription }
       : { name: place.thName, desc: place.thDescription };
+
+  const { isDetailsDialogOpened, openDetailsDialog, closeDetailsDialog, selectedGgmpId } =
+    useOpeningDialogContext();
+  const { mutate: update } = useUpdateScheduledPlace();
+  const handleUpdateNotes = (notes: string) => {
+    update(
+      {
+        tripId,
+        placeId: scheduledPlace.id,
+        payload: {
+          planId,
+          notes,
+          order: scheduledPlace.order,
+        },
+      },
+      {
+        onSuccess: (res) => {
+          dispatch(
+            updateScheduledPlace({
+              planId,
+              scheduledPlace: { ...scheduledPlace, notes: res.notes ?? '' },
+            })
+          );
+        },
+      }
+    );
+  };
 
   const [isRemoveDialogOpened, setIsRemoveDialogOpened] = useState(false);
   const { mutate: remove, isPending: isRemoving } = useRemoveScheduledPlace();
@@ -81,7 +113,7 @@ const ScheduledPlaceCard = ({ planId, scheduledPlace, locale, index }: Scheduled
               cardSx={{ py: 2, pl: 2, pr: 0 }}
             >
               <Box
-                onClick={() => {}}
+                onClick={() => openDetailsDialog(scheduledPlace.ggmp.ggmpId)}
                 sx={{
                   display: 'flex',
                   gap: 1,
@@ -99,6 +131,7 @@ const ScheduledPlaceCard = ({ planId, scheduledPlace, locale, index }: Scheduled
                     mr: 1,
                     flexShrink: 0,
                   }}
+                  onClick={(e) => e.stopPropagation()}
                   {...provided.dragHandleProps}
                 >
                   <Menu size={21} color={tokens.color.textSecondary} />
@@ -151,6 +184,7 @@ const ScheduledPlaceCard = ({ planId, scheduledPlace, locale, index }: Scheduled
                     </Typography>
 
                     <Button
+                      onClick={(e) => e.stopPropagation()}
                       variant="contained"
                       size="small"
                       startIcon={<Send size={14} />}
@@ -184,6 +218,18 @@ const ScheduledPlaceCard = ({ planId, scheduledPlace, locale, index }: Scheduled
           </div>
         )}
       </Draggable>
+
+      {selectedGgmpId === place.ggmpId && (
+        <PlaceDetailsDialog
+          isOpened={isDetailsDialogOpened}
+          onClose={() => closeDetailsDialog()}
+          ggmpId={place.ggmpId}
+          notableProps={{
+            notes: scheduledPlace.notes,
+            onSave: handleUpdateNotes,
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={isRemoveDialogOpened}
