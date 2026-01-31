@@ -7,16 +7,19 @@ import { createCustomTitle } from '../helpers/create-custom-title-for-search-sec
 import { List } from '@mui/material';
 import { Fragment } from 'react';
 import AddibleWishlistCard from './addible-wishlist-card';
+import { filterWishlistPlacesByName } from '@/app/trip/[tripId]/@daily/helpers/search-filter';
 
 type SectionProps = {
   title: string;
+  q: string;
 };
 
-const SuggestionFromWishlistSection = ({ title }: SectionProps) => {
+const SuggestionFromWishlistSection = ({ title, q }: SectionProps) => {
   const { locale } = useI18nSelector();
   const { tripOverview } = useTripSelector();
   const wishlistPlaces = tripOverview?.wishlistPlaces ?? [];
-  const qty = wishlistPlaces.length;
+  const searchResult = filterWishlistPlacesByName(wishlistPlaces, q);
+  const qty = searchResult.length;
 
   const CustomTitle = createCustomTitle({
     startIcon: <Heart size={25} color={tokens.color.primary} fill={tokens.color.primary} />,
@@ -28,7 +31,7 @@ const SuggestionFromWishlistSection = ({ title }: SectionProps) => {
     qty > 0 && (
       <SectionCard title={CustomTitle}>
         <List>
-          {wishlistPlaces.map((wp) => {
+          {searchResult.map((wp) => {
             const place = wp.place;
             const name = locale === 'en' ? place.en.name : place.th.name;
             return (

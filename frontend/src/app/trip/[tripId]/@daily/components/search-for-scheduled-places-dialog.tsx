@@ -74,8 +74,8 @@ const SearchForScheduledPlacesDialog = ({ isOpened, onClose }: DialogProps) => {
           </Box>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2 }}>
-            <SuggestionFromWishlistSection title={'สถานที่ที่อยากไป'} />
-            <SuggestionFromReservationSection title={'ข้อมูลการจอง'} />
+            <SuggestionFromWishlistSection title={'สถานที่ที่อยากไป'} q={debouncedQ} />
+            <SuggestionFromReservationSection title={'ข้อมูลการจอง'} q={debouncedQ} />
             <SearchResultSection
               title={'สถานที่อื่น ๆ'}
               debouncedQ={debouncedQ}

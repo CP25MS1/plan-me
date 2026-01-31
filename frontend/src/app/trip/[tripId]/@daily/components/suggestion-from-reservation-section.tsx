@@ -9,18 +9,21 @@ import { createCustomTitle } from '../helpers/create-custom-title-for-search-sec
 import AddibleWishlistCard from './addible-wishlist-card';
 import { useGetReservationPlaces } from '@/app/trip/[tripId]/hooks/use-get-reservation-places';
 import { PLACEHOLDER_IMAGE } from '@/constants/link';
+import { filterGoogleMapPlacesByName } from '@/app/trip/[tripId]/@daily/helpers/search-filter';
 
 type SectionProps = {
   title: string;
+  q: string;
 };
 
-const SuggestionFromReservationSection = ({ title }: SectionProps) => {
+const SuggestionFromReservationSection = ({ title, q }: SectionProps) => {
   const { locale } = useI18nSelector();
   const { tripOverview } = useTripSelector();
 
   const { data: reservationPlaces } = useGetReservationPlaces(tripOverview?.id ?? 0);
-
-  const qty = reservationPlaces?.length ?? 0;
+  const wishlistPlaces = tripOverview?.wishlistPlaces ?? [];
+  const searchResult = filterGoogleMapPlacesByName(reservationPlaces ?? [], q);
+  const qty = searchResult.length;
 
   const CustomTitle = createCustomTitle({
     startIcon: <BookMarked size={25} color={tokens.color.primary} />,
@@ -32,15 +35,21 @@ const SuggestionFromReservationSection = ({ title }: SectionProps) => {
     qty > 0 && (
       <SectionCard title={CustomTitle}>
         <List>
-          {(reservationPlaces ?? []).map((place) => {
+          {searchResult.map((place) => {
             const name = locale === 'en' ? place.enName : place.thName;
+            const wishlistReservation = wishlistPlaces.find(
+              (wp) => wp.place.ggmpId === place.ggmpId
+            );
+            const inWishlist = !!wishlistReservation;
             return (
               <Fragment key={place.ggmpId}>
                 <AddibleWishlistCard
                   ggmpId={place.ggmpId}
+                  {...(inWishlist ? { placeId: wishlistReservation.id } : {})}
                   name={name}
                   address={place.enAddress}
                   defaultPicUrl={place.defaultPicUrl ?? PLACEHOLDER_IMAGE}
+                  inWishlist={inWishlist}
                 />
               </Fragment>
             );
