@@ -80,6 +80,7 @@ export const {
   addScheduledPlace,
   removeScheduledPlace,
   reorderScheduledPlace,
+  updateScheduledPlace,
 } = tripDetailSlice.actions;
 
 export default tripDetailSlice.reducer;

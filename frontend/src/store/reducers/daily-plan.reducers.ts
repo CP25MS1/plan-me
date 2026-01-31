@@ -23,6 +23,16 @@ export const dailyPlanReducers = {
     plan.scheduledPlaces.push(payload.scheduledPlace);
   },
 
+  updateScheduledPlace(state: TripDetailState, { payload }: PayloadAction<UpsertPayload>) {
+    const plan = findDailyPlan(state, payload.planId);
+    if (!plan) return;
+
+    const index = plan.scheduledPlaces.findIndex((place) => place.id === payload.scheduledPlace.id);
+    if (index === -1) return;
+
+    plan.scheduledPlaces[index] = payload.scheduledPlace;
+  },
+
   reorderScheduledPlace(
     state: TripDetailState,
     {

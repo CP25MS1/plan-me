@@ -23,7 +23,7 @@ import { Editor, useEditor } from '@tiptap/react';
 
 type PlaceNoteActionProps = {
   notes: string;
-  onSave: () => void;
+  onSave: (notes: string) => void;
 };
 
 const EMPTY_CONTENT = '<p></p>';
@@ -58,7 +58,8 @@ const PlaceNoteAction = ({ notes, onSave }: PlaceNoteActionProps) => {
       return;
     }
 
-    onSave();
+    onSave(notesHtml);
+    setIsEditing(false);
   }, [notesHtml, notes, onSave]);
 
   const handleTextFieldBlur = () => {
