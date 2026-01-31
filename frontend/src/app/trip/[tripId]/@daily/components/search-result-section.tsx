@@ -7,6 +7,7 @@ import { createCustomTitle } from '../helpers/create-custom-title-for-search-sec
 import SectionCard from '@/components/trip/overview/section-card';
 import AddibleWishlistCard from './addible-wishlist-card';
 import { useTranslation } from 'react-i18next';
+import { useTripSelector } from '@/store/selectors';
 
 type SectionProps = {
   title: string;
@@ -23,6 +24,9 @@ type SectionProps = {
 const SearchResultSection = ({ title, debouncedQ, isSearching, result }: SectionProps) => {
   const { t } = useTranslation('common');
   const qty = result.length;
+
+  const { tripOverview } = useTripSelector();
+  const wishlistPlaces = tripOverview?.wishlistPlaces ?? [];
 
   const CustomTitle = createCustomTitle({
     startIcon: <MapPin size={25} color={tokens.color.primary} />,
@@ -65,14 +69,17 @@ const SearchResultSection = ({ title, debouncedQ, isSearching, result }: Section
       <List>
         {result.map((detail) => {
           if (!detail.ggmpId) return <></>;
-
+          const wishlistResult = wishlistPlaces.find((wp) => wp.place.ggmpId === detail.ggmpId);
+          const inWishlist = !!wishlistResult;
           return (
             <Fragment key={detail.ggmpId}>
               <AddibleWishlistCard
                 ggmpId={detail.ggmpId}
+                {...(inWishlist ? { placeId: wishlistResult.id } : {})}
                 name={detail.name}
                 address={detail.address}
                 defaultPicUrl={detail.defaultPicUrl}
+                inWishlist={inWishlist}
               />
             </Fragment>
           );
