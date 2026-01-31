@@ -6,10 +6,12 @@ import Image from 'next/image';
 import { Box, Button, IconButton, Typography } from '@mui/material';
 import { Menu, Send, Star, Trash2 as Trash } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Draggable } from '@hello-pangea/dnd';
 
 import { SwipeReveal } from '@/components/common/card';
 import { ScheduledPlace } from '@/api/trips';
 
+import { sanitizeStyle } from '@/app/trip/[tripId]/@daily/helpers/sanitize-transform';
 import { tokens } from '@/providers/theme/design-tokens';
 import { PLACEHOLDER_IMAGE } from '@/constants/link';
 import { Locale } from '@/store/i18n-slice';
@@ -22,9 +24,10 @@ type ScheduledPlaceCardProps = {
   planId: number;
   scheduledPlace: ScheduledPlace;
   locale: Locale;
+  index: number;
 };
 
-const ScheduledPlaceCard = ({ planId, scheduledPlace, locale }: ScheduledPlaceCardProps) => {
+const ScheduledPlaceCard = ({ planId, scheduledPlace, locale, index }: ScheduledPlaceCardProps) => {
   const dispatch = useDispatch();
   const { t } = useTranslation('trip_overview');
   const params = useParams<{ tripId: string }>();
@@ -63,105 +66,124 @@ const ScheduledPlaceCard = ({ planId, scheduledPlace, locale }: ScheduledPlaceCa
 
   return (
     <>
-      <SwipeReveal
-        actionNode={openDeleteDialogButton}
-        actionWidth={80}
-        actionSide="right"
-        actionSx={{ bgcolor: 'error.main' }}
-        cardSx={{ py: 2, pl: 2, pr: 0 }}
-      >
-        <Box
-          onClick={() => {}}
-          sx={{
-            display: 'flex',
-            gap: 1,
-            flex: 1,
-            minWidth: 0,
-            width: '100%',
-            cursor: 'pointer',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Menu size={21} color={tokens.color.textSecondary} />
-          </Box>
-
-          <Box
-            sx={{
-              width: 75,
-              height: 65,
-              borderRadius: 1,
-              overflow: 'hidden',
-              position: 'relative',
-              flexShrink: 0,
-              mr: 0.5,
-            }}
+      <Draggable draggableId={String(scheduledPlace.id)} index={index}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            style={sanitizeStyle(provided.draggableProps.style)}
           >
-            <Image
-              src={place.defaultPicUrl ?? PLACEHOLDER_IMAGE}
-              alt={name || 'place image'}
-              fill
-              style={{ objectFit: 'cover' }}
-              sizes="75px"
-              unoptimized
-            />
-          </Box>
-
-          <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', pr: 2 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 1,
-              }}
+            <SwipeReveal
+              actionNode={openDeleteDialogButton}
+              actionWidth={80}
+              actionSide="right"
+              actionSx={{ bgcolor: 'error.main' }}
+              cardSx={{ py: 2, pl: 2, pr: 0 }}
             >
-              <Typography
-                variant="subtitle1"
+              <Box
+                onClick={() => {}}
                 sx={{
+                  display: 'flex',
+                  gap: 1,
                   flex: 1,
                   minWidth: 0,
-
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-
-                  overflow: 'hidden',
-                  wordBreak: 'break-word',
+                  width: '100%',
+                  cursor: 'pointer',
                 }}
               >
-                {name}
-              </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: snapshot.isDragging ? 'grabbing' : 'grab',
+                    mr: 1,
+                    flexShrink: 0,
+                  }}
+                  {...provided.dragHandleProps}
+                >
+                  <Menu size={21} color={tokens.color.textSecondary} />
+                </Box>
 
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<Send size={14} />}
-                sx={{
-                  flexShrink: 0,
-                  height: 24,
-                  fontSize: 12,
-                  whiteSpace: 'nowrap',
-                  borderRadius: '0.25rem',
-                }}
-              >
-                เปิดแผนที่
-              </Button>
-            </Box>
+                <Box
+                  sx={{
+                    width: 75,
+                    height: 65,
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    position: 'relative',
+                    flexShrink: 0,
+                    mr: 0.5,
+                  }}
+                >
+                  <Image
+                    src={place.defaultPicUrl ?? PLACEHOLDER_IMAGE}
+                    alt={name || 'place image'}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    sizes="75px"
+                    unoptimized
+                  />
+                </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', pr: 1 }}>
-              <Star size={14} fill={tokens.color.warning} strokeWidth={0} />
-              <Typography variant="subtitle2" color="warning" sx={{ ml: 0.5 }}>
-                {Number(place.rating).toFixed(1)}
-              </Typography>
-            </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', pr: 2 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        flex: 1,
+                        minWidth: 0,
 
-            <Box sx={{ display: 'flex' }}>
-              <Typography variant="caption" align="left" sx={{ display: 'block' }}>
-                {desc}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-      </SwipeReveal>
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+
+                        overflow: 'hidden',
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {name}
+                    </Typography>
+
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<Send size={14} />}
+                      sx={{
+                        flexShrink: 0,
+                        height: 24,
+                        fontSize: 12,
+                        whiteSpace: 'nowrap',
+                        borderRadius: '0.25rem',
+                      }}
+                    >
+                      เปิดแผนที่
+                    </Button>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', pr: 1 }}>
+                    <Star size={14} fill={tokens.color.warning} strokeWidth={0} />
+                    <Typography variant="subtitle2" color="warning" sx={{ ml: 0.5 }}>
+                      {Number(place.rating).toFixed(1)}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'flex' }}>
+                    <Typography variant="caption" align="left" sx={{ display: 'block' }}>
+                      {desc}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </SwipeReveal>
+          </div>
+        )}
+      </Draggable>
 
       <ConfirmDialog
         open={isRemoveDialogOpened}

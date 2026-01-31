@@ -5,23 +5,14 @@ import { PlusIcon } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 
 import { useAddScheduledPlace } from '@/app/trip/[tripId]/@daily/hooks/use-scheduled-place-mutation';
-import { CreateScheduledPlaceRequest, ScheduledPlaceDto } from '@/api/daily-plan';
+import { CreateScheduledPlaceRequest } from '@/api/daily-plan';
 import { addScheduledPlace } from '@/store/trip-detail-slice';
-import { ScheduledPlace } from '@/api/trips';
+import ScheduledPlaceMapper from '@/app/trip/[tripId]/@daily/helpers/scheduled-place-mapper';
 
 type AddScheduledPlaceProps = {
   tripId: number;
   payload: CreateScheduledPlaceRequest;
   onSuccess: () => void;
-};
-
-const mapResponseToState = (res: ScheduledPlaceDto): ScheduledPlace => {
-  return {
-    id: res.placeId,
-    notes: res.notes ?? '',
-    order: res.order,
-    ggmp: res.placeDetail,
-  };
 };
 
 const AddScheduledPlaceBtn = ({ tripId, payload, onSuccess }: AddScheduledPlaceProps) => {
@@ -34,7 +25,10 @@ const AddScheduledPlaceBtn = ({ tripId, payload, onSuccess }: AddScheduledPlaceP
       {
         onSuccess: (res) => {
           dispatch(
-            addScheduledPlace({ planId: res.planId, scheduledPlace: mapResponseToState(res) })
+            addScheduledPlace({
+              planId: res.planId,
+              scheduledPlace: ScheduledPlaceMapper.mapResponseToState(res),
+            })
           );
           onSuccess();
         },
@@ -43,7 +37,7 @@ const AddScheduledPlaceBtn = ({ tripId, payload, onSuccess }: AddScheduledPlaceP
   };
 
   return (
-    <Button variant='contained' startIcon={<PlusIcon />} onClick={() => handleSave()}>
+    <Button variant="contained" startIcon={<PlusIcon />} onClick={() => handleSave()}>
       เพิ่มสถานที่
     </Button>
   );
