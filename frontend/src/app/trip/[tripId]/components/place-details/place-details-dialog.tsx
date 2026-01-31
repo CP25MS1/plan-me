@@ -17,9 +17,9 @@ type DialogProps = {
 
 type PlaceDetailsProps = {
   ggmpId: string;
-  noteableProps?: {
+  notableProps?: {
     notes: string;
-    onSave: () => void;
+    onSave: (notes: string) => void;
   };
   cta?: ReactNode;
 };
@@ -28,7 +28,7 @@ const PlaceDetailsDialog = ({
   isOpened,
   onClose,
   ggmpId,
-  noteableProps,
+  notableProps,
   cta,
 }: DialogProps & PlaceDetailsProps) => {
   const { data: place } = useGetPlaceById(ggmpId);
@@ -74,8 +74,8 @@ const PlaceDetailsDialog = ({
 
               <Divider sx={{ my: 2 }} />
 
-              {noteableProps && (
-                <PlaceNoteAction notes={noteableProps.notes} onSave={noteableProps.onSave} />
+              {notableProps && (
+                <PlaceNoteAction notes={notableProps.notes} onSave={notableProps.onSave} />
               )}
             </Grid>
           </Grid>

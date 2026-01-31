@@ -2,10 +2,11 @@ import { createContext, useContext } from 'react';
 
 type DialogContextValue = {
   isSearchDialogOpened: boolean;
-  isDetailsDialogOpened: boolean;
   openSearchDialog: () => void;
   closeSearchDialog: () => void;
-  openDetailsDialog: () => void;
+  isDetailsDialogOpened: boolean;
+  selectedGgmpId: string | null;
+  openDetailsDialog: (ggmpId: string) => void;
   closeDetailsDialog: () => void;
 };
 

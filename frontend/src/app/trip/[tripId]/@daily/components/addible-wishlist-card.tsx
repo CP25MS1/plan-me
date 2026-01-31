@@ -69,15 +69,20 @@ const AddibleWishlistCard = ({
     );
   };
 
-  const { isDetailsDialogOpened, openDetailsDialog, closeDetailsDialog, closeSearchDialog } =
-    useOpeningDialogContext();
+  const {
+    isDetailsDialogOpened,
+    openDetailsDialog,
+    closeDetailsDialog,
+    closeSearchDialog,
+    selectedGgmpId,
+  } = useOpeningDialogContext();
 
   return (
     <>
       <ListItem
         alignItems="center"
         sx={{ gap: 2, '& .MuiListItem-root': { padding: '0' } }}
-        onClick={() => openDetailsDialog()}
+        onClick={() => openDetailsDialog(ggmpId)}
       >
         <ListItemText
           primary={<TruncatedTooltip text={name} />}
@@ -108,23 +113,25 @@ const AddibleWishlistCard = ({
         </Box>
       </ListItem>
 
-      <PlaceDetailsDialog
-        isOpened={isDetailsDialogOpened}
-        onClose={() => closeDetailsDialog()}
-        ggmpId={ggmpId}
-        cta={
-          <Box sx={{ display: 'flex', justifyContent: 'end' }}>
-            <AddScheduledPlaceBtn
-              tripId={tripId}
-              payload={{ planId, ggmpId }}
-              onSuccess={() => {
-                closeDetailsDialog();
-                closeSearchDialog();
-              }}
-            />
-          </Box>
-        }
-      />
+      {selectedGgmpId === ggmpId && (
+        <PlaceDetailsDialog
+          isOpened={isDetailsDialogOpened}
+          onClose={() => closeDetailsDialog()}
+          ggmpId={ggmpId}
+          cta={
+            <Box sx={{ display: 'flex', justifyContent: 'end' }}>
+              <AddScheduledPlaceBtn
+                tripId={tripId}
+                payload={{ planId, ggmpId }}
+                onSuccess={() => {
+                  closeDetailsDialog();
+                  closeSearchDialog();
+                }}
+              />
+            </Box>
+          }
+        />
+      )}
     </>
   );
 };
