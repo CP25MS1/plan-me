@@ -51,6 +51,7 @@ const DailyPlanPage = () => {
                       .map((place) => (
                         <ListItem key={place.id} sx={{ p: 0, mb: 2 }}>
                           <ScheduledPlaceCard
+                            planId={plan.id}
                             scheduledPlace={place}
                             locale={locale}
                           ></ScheduledPlaceCard>

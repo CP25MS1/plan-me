@@ -7,15 +7,30 @@ type UpsertPayload = {
   scheduledPlace: ScheduledPlace;
 };
 
+type RemovePayload = {
+  planId: number;
+  placeId: number;
+};
+
+const findDailyPlan = (state: TripDetailState, planId: number) =>
+  state.overview?.dailyPlans?.find((plan) => plan.id === planId);
+
 export const dailyPlanReducers = {
-  addScheduledPlace: (state: TripDetailState, action: PayloadAction<UpsertPayload>) => {
-    if (!state.overview?.dailyPlans) return;
+  addScheduledPlace(state: TripDetailState, { payload }: PayloadAction<UpsertPayload>) {
+    const plan = findDailyPlan(state, payload.planId);
+    if (!plan) return;
 
-    const planId = action.payload.planId;
-    const planIndex = state.overview.dailyPlans.findIndex((plan) => plan.id === planId);
+    plan.scheduledPlaces.push(payload.scheduledPlace);
+  },
 
-    if (planIndex === -1) return;
+  removeScheduledPlace(state: TripDetailState, { payload }: PayloadAction<RemovePayload>) {
+    const plan = findDailyPlan(state, payload.planId);
+    if (!plan) return;
 
-    state.overview.dailyPlans[planIndex].scheduledPlaces.push(action.payload.scheduledPlace);
+    const index = plan.scheduledPlaces.findIndex((place) => place.id === payload.placeId);
+
+    if (index === -1) return;
+
+    plan.scheduledPlaces.splice(index, 1);
   },
 };
