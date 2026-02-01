@@ -1,9 +1,22 @@
-import { OpeningHours } from '@/api/trips';
+import { OpeningHours, Period } from '@/api/trips';
 import { TFunction } from 'i18next';
 
 type TimePoint = { hour: number; minute: number };
+type PeriodWithOpenClose = Period & {
+  open: NonNullable<Period['open']>;
+  close: NonNullable<Period['close']>;
+};
 
 const DAYS_IN_WEEK = 7;
+
+const hasValidOpenClose = (p: Period): p is PeriodWithOpenClose => {
+  return (
+    p.open !== null &&
+    p.close !== null &&
+    p.open.day >= 0 &&
+    p.open.day < DAYS_IN_WEEK
+  );
+};
 
 const pad2 = (n: number) => n.toString().padStart(2, '0');
 
@@ -39,7 +52,10 @@ export const formatOpeningHours = ({
 
   const slots: string[][] = Array.from({ length: DAYS_IN_WEEK }, () => []);
 
-  for (const { open, close } of openingHours.periods) {
+  for (const period of openingHours.periods) {
+    if (!hasValidOpenClose(period)) continue;
+
+    const { open, close } = period;
     slots[open.day].push(`${formatTime(open)} - ${formatTime(close)}`);
   }
 

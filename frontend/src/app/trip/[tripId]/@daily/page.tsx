@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Box, Button, List, ListItem } from '@mui/material';
-import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 
 import { useFullPageLoading } from '@/components/full-page-loading';
 import SectionCard from '@/components/trip/overview/section-card';
@@ -19,6 +19,8 @@ import { processReorder } from '@/app/trip/[tripId]/@daily/helpers/process-order
 import { useUpdateScheduledPlace } from '@/app/trip/[tripId]/@daily/hooks/use-scheduled-place-mutation';
 import { useParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
+import TravelSegmentSelect from '@/app/trip/[tripId]/@daily/components/travel-segment-select';
+import { sanitizeStyle } from '@/app/trip/[tripId]/@daily/helpers/sanitize-transform';
 
 const DailyPlanPage = () => {
   const dispatch = useDispatch();
@@ -71,17 +73,43 @@ const DailyPlanPage = () => {
                           <List>
                             {scheduledPlaces
                               .toSorted((pA, pB) => pA.order - pB.order)
-                              .map((place, idx) => (
-                                <ListItem key={place.id} sx={{ p: 0, mb: 2, width: '100%' }}>
-                                  <ScheduledPlaceCard
+                              .map((place, idx, arr) => {
+                                const prevPlace = arr[idx - 1];
+
+                                return (
+                                  <Draggable
                                     key={place.id}
-                                    planId={plan.id}
-                                    scheduledPlace={place}
-                                    locale={locale}
+                                    draggableId={String(place.id)}
                                     index={idx}
-                                  />
-                                </ListItem>
-                              ))}
+                                  >
+                                    {(provided, snapshot) => (
+                                      <ListItem
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        style={sanitizeStyle(provided.draggableProps.style)}
+                                        sx={{ p: 0, mb: 2, width: '100%', display: 'block' }}
+                                      >
+                                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                          {!snapshot.isDragging && prevPlace && (
+                                            <TravelSegmentSelect
+                                              start={prevPlace.ggmp.ggmpId}
+                                              end={place.ggmp.ggmpId}
+                                            />
+                                          )}
+
+                                          <ScheduledPlaceCard
+                                            planId={plan.id}
+                                            scheduledPlace={place}
+                                            locale={locale}
+                                            dragHandleProps={provided.dragHandleProps}
+                                            isDragging={snapshot.isDragging}
+                                          />
+                                        </Box>
+                                      </ListItem>
+                                    )}
+                                  </Draggable>
+                                );
+                              })}
                             {provided.placeholder}
                           </List>
 

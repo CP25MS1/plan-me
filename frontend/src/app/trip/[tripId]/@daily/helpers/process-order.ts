@@ -19,6 +19,11 @@ export const processReorder = ({ result, dailyPlans, tripId, update, dispatch }:
   const { source, destination } = result;
   if (!destination) return;
 
+  // NO-OP GUARD
+  if (source.droppableId === destination.droppableId && source.index === destination.index) {
+    return;
+  }
+
   const fromPlanId = Number(source.droppableId);
   const toPlanId = Number(destination.droppableId);
   const isSamePlan = fromPlanId === toPlanId;
@@ -34,20 +39,15 @@ export const processReorder = ({ result, dailyPlans, tripId, update, dispatch }:
   let finalTargetPlaces: typeof fromPlaces;
 
   if (isSamePlan) {
-    // 🔑 simulate ผลลัพธ์สุดท้ายจริง
     finalTargetPlaces = simulateReorder(fromPlaces, source.index, destination.index);
   } else {
-    // cross-plan → simulate insert
     const targetPlaces = [...toPlan.scheduledPlaces].sort((a, b) => a.order - b.order);
     finalTargetPlaces = [...targetPlaces];
     finalTargetPlaces.splice(destination.index, 0, movedPlace);
   }
 
-  // 🔥 validate ทั้ง list
-  if (hasAnyAdjacentDuplicateGgmp(finalTargetPlaces)) {
-    console.warn('Adjacent duplicate ggmpId is not allowed');
-    return;
-  }
+  // validate final state
+  if (hasAnyAdjacentDuplicateGgmp(finalTargetPlaces)) return;
 
   update(
     {

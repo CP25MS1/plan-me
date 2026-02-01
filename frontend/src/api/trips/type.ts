@@ -72,9 +72,9 @@ export type OpeningHours = {
  *
  * NOTE: The ordering of the periods array is independent of the ordering of the weekdayDescriptions array. Do not assume they will begin on the same day.
  **/
-type Period = {
-  open: Point;
-  close: Point;
+export type Period = {
+  open: Point | null;
+  close: Point | null;
 };
 
 /**
@@ -87,7 +87,7 @@ type Period = {
  * hour: The hour in 24-hour format. Ranges from 0 to 23.
  *
  * minute: The minute. Ranges from 0 to 59.**/
-type Point = {
+export type Point = {
   date: Date;
   truncated: boolean;
   day: number;
