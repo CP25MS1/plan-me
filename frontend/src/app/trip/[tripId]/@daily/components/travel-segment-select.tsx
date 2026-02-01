@@ -4,7 +4,7 @@ type TravelSegmentProps = {
 };
 
 const TravelSegmentSelect = ({ start, end }: TravelSegmentProps) => {
-  return <>PLACEHOLDER</>;
+  return <></>;
 };
 
 export default TravelSegmentSelect;
