@@ -15,7 +15,7 @@ import { Plus } from 'lucide-react';
 import SearchForScheduledPlacesDialog from './components/search-for-scheduled-places-dialog';
 import { DailyPlanContext } from '@/app/trip/[tripId]/@daily/context/daily-plan-context';
 import { useOpeningDialogContext } from '@/app/trip/[tripId]/@daily/context/opening-dialog-context';
-import { processReorder } from '@/app/trip/[tripId]/@daily/helpers/dnd-scheduled-place-handler';
+import { processReorder } from '@/app/trip/[tripId]/@daily/helpers/process-order';
 import { useUpdateScheduledPlace } from '@/app/trip/[tripId]/@daily/hooks/use-scheduled-place-mutation';
 import { useParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
@@ -65,7 +65,7 @@ const DailyPlanPage = () => {
               <Droppable droppableId={String(plan.id)} key={plan.id} direction="vertical">
                 {(provided) => (
                   <div ref={provided.innerRef} {...provided.droppableProps}>
-                    <SectionCard key={`${plan.id}`} title={planTitle} asEmpty={!hasPlace}>
+                    <SectionCard key={plan.id} title={planTitle} asEmpty={!hasPlace}>
                       {hasPlace ? (
                         <>
                           <List>
