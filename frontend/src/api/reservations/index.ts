@@ -6,3 +6,5 @@ export * from '@/app/trip/[tripId]/@overview/hooks/reservations/use-delete-reser
 export * from '@/app/trip/[tripId]/@overview/hooks/reservations/use-get-reservation-email-info';
 export * from '@/app/trip/[tripId]/@overview/hooks/reservations/use-get-previews-reservation';
 export * from '@/app/trip/[tripId]/@overview/hooks/reservations/use-create-reservation-bulk';
+export * from '@/app/trip/[tripId]/@overview/hooks/reservations/use-get-reservation-email-info';
+export * from '@/app/trip/[tripId]/@overview/hooks/reservations/use-read-email-inbox';
