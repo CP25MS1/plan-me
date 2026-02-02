@@ -50,7 +50,7 @@ interface Props {
 
 export default function TravelSegmentSelect({ start, end }: Props) {
   const [mode, setMode] = useState<TravelMode>('CAR');
-
+  const [hasError, setHasError] = useState(true);
   const { mutate } = useCreateTravelSegment();
 
   const travelSegment = useSelectRoute(start, end, mode);
@@ -72,11 +72,21 @@ export default function TravelSegmentSelect({ start, end }: Props) {
 
     lastRequestRef.current = { start, end, mode };
 
-    mutate({
-      startPlaceId: start,
-      endPlaceId: end,
-      mode,
-    });
+    mutate(
+      {
+        startPlaceId: start,
+        endPlaceId: end,
+        mode,
+      },
+      {
+        onError: () => {
+          setHasError(true);
+        },
+        onSuccess: () => {
+          setHasError(false);
+        },
+      }
+    );
   }, [start, end, mode, mutate]);
 
   return (
@@ -139,6 +149,10 @@ export default function TravelSegmentSelect({ start, end }: Props) {
 
             <Typography>เวลา : {formatDuration(travelSegment.regularDuration)}</Typography>
           </>
+        ) : hasError ? (
+          <Typography variant="body2" color="error">
+            ไม่สามารถคำนวณการเดินทางด้วย {Mode_Segment[mode].label} ได้
+          </Typography>
         ) : (
           <>
             <Typography variant="body2" color="text.secondary">
