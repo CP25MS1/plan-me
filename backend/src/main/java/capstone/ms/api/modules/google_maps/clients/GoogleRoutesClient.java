@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.google_maps.clients;
 
+import capstone.ms.api.common.exceptions.ServerErrorException;
 import capstone.ms.api.modules.google_maps.dto.GoogleRouteRequestDto;
 import capstone.ms.api.modules.google_maps.dto.GoogleRouteResponseDto;
 import capstone.ms.api.modules.google_maps.mappers.GoogleRoutesMapper;
@@ -32,15 +33,14 @@ public class GoogleRoutesClient {
         GoogleRouteResponseDto response = webClient.post()
                 .uri(baseUrl + "/directions/v2:computeRoutes")
                 .header("X-Goog-Api-Key", apiKey)
-                .header("X-Goog-FieldMask",
-                        "routes.distanceMeters,routes.duration")
+                .header("X-Goog-FieldMask", "routes.distanceMeters,routes.duration")
                 .bodyValue(googleRequest)
                 .retrieve()
                 .bodyToMono(GoogleRouteResponseDto.class)
                 .block();
 
-        if (response == null || response.getRoutes().isEmpty()) {
-            throw new IllegalStateException("Google Routes API returned empty response");
+        if (response == null || response.getRoutes() == null || response.getRoutes().isEmpty()) {
+            throw new ServerErrorException("travelSegment.500");
         }
 
         return googleRoutesMapper.toRouteResult(response, mode);
