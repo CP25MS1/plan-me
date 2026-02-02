@@ -65,24 +65,6 @@ const tripDetailSlice = createSlice({
         tripId: oldWishlistPlace.tripId,
       });
     },
-    addTravelSegment: (state, action) => {
-      if (!state.overview) return;
-
-      if (!state.overview.travelSegments) {
-        state.overview.travelSegments = [];
-      }
-
-      const exist = state.overview.travelSegments.find(
-        (s) =>
-          s.startPlaceId === action.payload.startPlaceId &&
-          s.endPlaceId === action.payload.endPlaceId &&
-          s.mode === action.payload.mode
-      );
-
-      if (!exist) {
-        state.overview.travelSegments.push(action.payload);
-      }
-    },
     ...dailyPlanReducers,
   },
 });
@@ -99,7 +81,6 @@ export const {
   removeScheduledPlace,
   reorderScheduledPlace,
   updateScheduledPlace,
-  addTravelSegment,
 } = tripDetailSlice.actions;
 
 export default tripDetailSlice.reducer;
