@@ -1,5 +1,12 @@
 import { apiClient } from '@/api/client';
-import { DefaultObjective, UpsertTrip, TripOverview, WishlistPlace } from './type';
+import {
+  DefaultObjective,
+  UpsertTrip,
+  TripOverview,
+  WishlistPlace,
+  ComputeRouteRequestDto,
+  TravelSegmentResponseDto,
+} from './type';
 
 export const getDefaultObjectives = async (): Promise<DefaultObjective[]> => {
   const { data } = await apiClient.get('/trips/objectives');
@@ -61,4 +68,11 @@ export const removePlaceFromWishlist = async ({
   placeId: number;
 }) => {
   await apiClient.delete(`/trips/${tripId}/wishlist-places/${placeId}`);
+};
+
+export const createTravelSegment = async (
+  payload: ComputeRouteRequestDto
+): Promise<TravelSegmentResponseDto> => {
+  const { data } = await apiClient.post('/travel-segments', payload);
+  return data;
 };
