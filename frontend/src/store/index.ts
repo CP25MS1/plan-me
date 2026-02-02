@@ -4,6 +4,7 @@ import profileReducer from './profile-slice';
 import i18nReducer from './i18n-slice';
 import constantReducer from './constant-slice';
 import tripOverviewReducer from './trip-detail-slice';
+import routeReducer from './route-slice';
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     i18n: i18nReducer,
     constant: constantReducer,
     tripDetail: tripOverviewReducer,
+    route: routeReducer,
   },
 });
 

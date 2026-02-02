@@ -38,6 +38,7 @@ export interface TripOverview {
   reservations: ReservationDto[];
   wishlistPlaces: WishlistPlace[];
   dailyPlans: DailyPlan[];
+  travelSegments: TravelSegmentResponseDto[];
 }
 
 // === Wishlist Place === //
@@ -109,3 +110,19 @@ export type ScheduledPlace = {
   order: number;
   ggmp: GoogleMapPlace;
 };
+
+export type TravelMode = 'CAR' | 'MOTORCYCLE' | 'WALK';
+
+export interface ComputeRouteRequestDto {
+  startPlaceId: string;
+  endPlaceId: string;
+  mode?: TravelMode;
+}
+
+export interface TravelSegmentResponseDto {
+  startPlaceId: string;
+  endPlaceId: string;
+  mode: TravelMode;
+  distance: number;
+  regularDuration: number;
+}
