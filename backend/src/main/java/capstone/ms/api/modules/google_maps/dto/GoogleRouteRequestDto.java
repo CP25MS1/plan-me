@@ -9,6 +9,8 @@ public class GoogleRouteRequestDto {
     private Place origin;
     private Place destination;
     private String travelMode;
+    private String routingPreference;
+    private Boolean computeAlternativeRoutes;
 
     @Data
     public static class Place {
@@ -27,6 +29,11 @@ public class GoogleRouteRequestDto {
         req.setOrigin(origin);
         req.setDestination(destination);
         req.setTravelMode(googleMode);
+        req.setComputeAlternativeRoutes(false);
+
+        if (!"WALK".equalsIgnoreCase(googleMode)) {
+            req.setRoutingPreference("TRAFFIC_AWARE");
+        }
 
         return req;
     }
