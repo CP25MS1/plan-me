@@ -37,7 +37,7 @@ const formatDuration = (seconds: number) => {
   const minutes = totalMinutes % 60;
 
   if (hours > 0) {
-    return `${hours} ชม ${minutes} นาที`;
+    return minutes === 0 ? `${hours} ชม` : `${hours} ชม ${minutes} นาที`;
   }
 
   return `${totalMinutes} นาที`;
@@ -112,7 +112,7 @@ export default function TravelSegmentSelect({ start, end }: Props) {
               color: tokens.color.primary,
 
               '&:hover': {
-                backgroundColor: 'rgba(37, 207, 122, 0.08)',
+                backgroundColor: tokens.color.primaryDark,
                 borderColor: tokens.color.primary,
               },
             }}
