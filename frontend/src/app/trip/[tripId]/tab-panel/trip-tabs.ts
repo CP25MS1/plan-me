@@ -1,4 +1,4 @@
-export const TRIP_TABS = ['overview', 'daily', 'budget', 'checklist'] as const;
+export const TRIP_TABS = ['overview', 'daily', 'budget', 'checklist', 'map'] as const;
 
 export type TripTabKey = (typeof TRIP_TABS)[number];
 
@@ -8,3 +8,5 @@ export const tabKeyToIndex = (key: string | null): number => {
 };
 
 export const indexToTabKey = (index: number): TripTabKey => TRIP_TABS[index] ?? 'overview';
+
+export const mapIndex = TRIP_TABS.indexOf('map');

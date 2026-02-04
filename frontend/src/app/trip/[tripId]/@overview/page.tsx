@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Box, Button, IconButton, List, ListItem, Typography } from '@mui/material';
 import { Hand, Mail, Plus, Trash2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +14,7 @@ import EmailReservation from './components/email-reservation';
 import { addReservation, removeReservation } from '@/store/trip-detail-slice';
 import SectionCard from '@/components/trip/overview/section-card';
 import { useFullPageLoading } from '@/components/full-page-loading';
-import CustomMap from '@/components/trip/map-component';
+import MiniMap from '@/app/trip/[tripId]/components/maps/mini-map';
 import AddItemButton from '@/components/trip/overview/add-item-button';
 import { useFullScreenDialog } from '@/components/common/dialog';
 
@@ -47,6 +48,7 @@ import { useTripSelector } from '@/store/selectors';
 
 const TripOverviewPage = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
   const { tripOverview } = useTripSelector();
   const { mutate: deleteReservation, isPending } = useDeleteReservation();
 
@@ -133,7 +135,9 @@ const TripOverviewPage = () => {
       <Box sx={{ mt: 2 }}>
         {/* Map */}
         <SectionCard title={t('sectionCard.map')}>
-          <CustomMap />
+          <Box onClick={() => router.push(`/trip/${tripOverview.id}?tab=map`)}>
+            <MiniMap selectedDay="ALL" viewOnly />
+          </Box>
         </SectionCard>
 
         {/* Reservation */}
