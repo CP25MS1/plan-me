@@ -11,7 +11,7 @@ import { useFullPageLoading } from '@/components/full-page-loading';
 import OverviewHeader, { OverviewHeaderProps } from '@/components/trip/overview/overview-header';
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
 
-import { indexToTabKey, tabKeyToIndex } from './tab-panel/trip-tabs';
+import { indexToTabKey, mapIndex, tabKeyToIndex } from './tab-panel/trip-tabs';
 import useGetTripOverview from './hooks/use-get-trip-overview';
 import useUpdateTripOverview from './hooks/use-update-trip-overview';
 import { UpsertTrip } from '@/api/trips';
@@ -23,9 +23,10 @@ type TripLayoutProps = {
   daily: ReactNode;
   budget: ReactNode;
   checklist: ReactNode;
+  map: ReactNode;
 };
 
-const TripLayout = ({ overview, daily, budget, checklist, params }: TripLayoutProps) => {
+const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLayoutProps) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -84,27 +85,33 @@ const TripLayout = ({ overview, daily, budget, checklist, params }: TripLayoutPr
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 3 }}>
-      <OverviewHeader tripOverview={tripOverviewProps} />
+    <>
+      {tabValue === mapIndex ? (
+        map
+      ) : (
+        <Container maxWidth="sm" sx={{ py: 3 }}>
+          <OverviewHeader tripOverview={tripOverviewProps} />
 
-      <OverviewTabs value={tabValue} onChange={handleTabChange} />
+          <OverviewTabs value={tabValue} onChange={handleTabChange} />
 
-      <TripTabPanel value={tabValue} index={0}>
-        {overview}
-      </TripTabPanel>
+          <TripTabPanel value={tabValue} index={0}>
+            {overview}
+          </TripTabPanel>
 
-      <TripTabPanel value={tabValue} index={1}>
-        {daily}
-      </TripTabPanel>
+          <TripTabPanel value={tabValue} index={1}>
+            {daily}
+          </TripTabPanel>
 
-      <TripTabPanel value={tabValue} index={2}>
-        {budget}
-      </TripTabPanel>
+          <TripTabPanel value={tabValue} index={2}>
+            {budget}
+          </TripTabPanel>
 
-      <TripTabPanel value={tabValue} index={3}>
-        {checklist}
-      </TripTabPanel>
-    </Container>
+          <TripTabPanel value={tabValue} index={3}>
+            {checklist}
+          </TripTabPanel>
+        </Container>
+      )}
+    </>
   );
 };
 
