@@ -1,5 +1,7 @@
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import { sortByDateAsc } from '@/lib/date';
+import { DailyPlan } from '@/api/trips';
 
 export const useTripSelector = () => {
   const tripOverview = useSelector((s: RootState) => s.tripDetail.overview);
@@ -7,4 +9,17 @@ export const useTripSelector = () => {
   return {
     tripOverview,
   };
+};
+
+export const useDailyPlansSelector = () => {
+  const { tripOverview } = useTripSelector();
+
+  const dailyPlans = tripOverview?.dailyPlans ?? [];
+
+  return sortByDateAsc(
+    dailyPlans.map((plan) => ({
+      ...plan,
+      scheduledPlaces: [...plan.scheduledPlaces].sort((a, b) => a.order - b.order),
+    }))
+  ) as DailyPlan[];
 };
