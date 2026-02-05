@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.dto;
+package capstone.ms.api.modules.itinerary.dto.tripmate;
 
 import lombok.Builder;
 import lombok.Data;
@@ -9,5 +9,6 @@ import java.util.List;
 @Data
 public class InviteTripResponseDto {
     private Integer tripId;
-    private List<Integer> invitedIds;
+    private String status;
+    private List<InviteInfo> invites;
 }
