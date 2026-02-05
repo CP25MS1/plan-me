@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Box, Typography, Button, Skeleton } from '@mui/material';
-import { Car, Bike, Footprints } from 'lucide-react';
+import { Box, Button, Skeleton, Typography } from '@mui/material';
+import { Bike, Car, Footprints } from 'lucide-react';
 import { tokens } from '@/providers/theme/design-tokens';
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
 import { useCreateTravelSegment } from '@/app/trip/[tripId]/@daily/hooks/travel-segments';
@@ -51,6 +51,7 @@ interface Props {
 export default function TravelSegmentSelect({ start, end }: Props) {
   const [mode, setMode] = useState<TravelMode>('CAR');
   const [hasError, setHasError] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { mutate } = useCreateTravelSegment();
 
   const travelSegment = useSelectRoute(start, end, mode);
@@ -66,6 +67,9 @@ export default function TravelSegmentSelect({ start, end }: Props) {
 
     lastRequestRef.current = { start, end, mode };
 
+    setIsLoading(true);
+    setHasError(false);
+
     mutate(
       {
         startPlaceId: start,
@@ -75,9 +79,11 @@ export default function TravelSegmentSelect({ start, end }: Props) {
       {
         onError: () => {
           setHasError(true);
+          setIsLoading(false);
         },
         onSuccess: () => {
           setHasError(false);
+          setIsLoading(false);
         },
       }
     );
@@ -147,18 +153,16 @@ export default function TravelSegmentSelect({ start, end }: Props) {
               {formatDuration(travelSegment.regularDuration)}
             </Typography>
           </>
+        ) : isLoading ? (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Skeleton variant="text" width={95} height={22} />
+            <Skeleton variant="text" width={85} height={22} />
+          </Box>
         ) : hasError ? (
           <Typography sx={{ fontSize: 12, color: tokens.color.error }} variant="body2">
             ไม่สามารถเดินทางด้วย {ModeSegment[mode].label} ได้
           </Typography>
-        ) : (
-          <>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Skeleton variant="text" width={95} height={22} />
-              <Skeleton variant="text" width={85} height={22} />
-            </Box>
-          </>
-        )}
+        ) : null}
       </Box>
     </Box>
   );
