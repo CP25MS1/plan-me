@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Box, Button, IconButton, Typography } from '@mui/material';
-import { Menu, Send, Star, Trash2 as Trash } from 'lucide-react';
+import { Map, Menu, Star, Trash2 as Trash } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 
@@ -39,6 +39,7 @@ const ScheduledPlaceCard = ({
   isDragging,
 }: ScheduledPlaceCardProps) => {
   const dispatch = useDispatch();
+  const router = useRouter();
   const { t } = useTranslation('trip_overview');
   const params = useParams<{ tripId: string }>();
 
@@ -181,10 +182,13 @@ const ScheduledPlaceCard = ({
               </Typography>
 
               <Button
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/trip/${tripId}?tab=map&selectedPlaceId=${scheduledPlace.id}`);
+                }}
                 variant="contained"
                 size="small"
-                startIcon={<Send size={14} />}
+                startIcon={<Map size={14} />}
                 sx={{
                   flexShrink: 0,
                   height: 24,
