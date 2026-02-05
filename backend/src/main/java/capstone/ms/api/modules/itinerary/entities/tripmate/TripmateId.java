@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.entities;
+package capstone.ms.api.modules.itinerary.entities.tripmate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -15,8 +15,6 @@ import java.io.Serializable;
 @EqualsAndHashCode
 @Embeddable
 public class TripmateId implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 4563575130055547013L;
     @NotNull
     @Column(name = "user_id", nullable = false)
     private Integer userId;

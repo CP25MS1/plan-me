@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.dto;
+package capstone.ms.api.modules.itinerary.dto.tripmate;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
