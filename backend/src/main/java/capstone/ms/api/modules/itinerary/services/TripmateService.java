@@ -4,10 +4,14 @@ import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.itinerary.dto.InviteTripRequestDto;
-import capstone.ms.api.modules.itinerary.dto.InviteTripResponseDto;
-import capstone.ms.api.modules.itinerary.entities.PendingTripmateInvitation;
+import capstone.ms.api.modules.itinerary.dto.tripmate.AcceptInviteDto;
+import capstone.ms.api.modules.itinerary.dto.tripmate.InviteInfo;
+import capstone.ms.api.modules.itinerary.dto.tripmate.InviteTripRequestDto;
+import capstone.ms.api.modules.itinerary.dto.tripmate.InviteTripResponseDto;
+import capstone.ms.api.modules.itinerary.entities.tripmate.PendingTripmateInvitation;
 import capstone.ms.api.modules.itinerary.entities.Trip;
+import capstone.ms.api.modules.itinerary.entities.tripmate.Tripmate;
+import capstone.ms.api.modules.itinerary.entities.tripmate.TripmateId;
 import capstone.ms.api.modules.itinerary.repositories.PendingTripmateInvitationRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripmateRepository;
@@ -17,6 +21,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,7 +37,7 @@ public class TripmateService {
         Trip trip = loadTripOrThrow(tripId);
 
         if (!trip.getOwner().getId().equals(currentUser.getId())) {
-            throw new ForbiddenException("tripmate.403.ownerOnly");
+            throw new ForbiddenException("tripmate.invite.403.ownerOnly");
         }
 
         List<Integer> mutualFriendIds = userRepository.findMutualFriends(currentUser.getId())
@@ -40,17 +45,19 @@ public class TripmateService {
                 .map(User::getId)
                 .toList();
 
+        List<InviteInfo> invites = new ArrayList<>();
+
         for (Integer receiverId : request.getReceiverIds()) {
             if (!mutualFriendIds.contains(receiverId)) {
-                throw new BadRequestException("tripmate.400.notFriend");
+                throw new BadRequestException("tripmate.invite.400.notFriend");
             }
 
             if (tripmateRepository.existsTripmateByTripIdAndUserId(tripId, receiverId)) {
-                throw new ConflictException("tripmate.409.alreadyJoined");
+                throw new ConflictException("tripmate.invite.409.alreadyJoined");
             }
 
             if (pendingTripmateInvitationRepository.existsPendingTripmateInvitationByTripIdAndUserId(tripId, receiverId)) {
-                throw new ConflictException("tripmate.409.alreadyInvited");
+                throw new ConflictException("tripmate.invite.409.alreadyInvited");
             }
 
             User receiver = userRepository.findById(receiverId)
@@ -61,10 +68,55 @@ public class TripmateService {
             invitation.setUser(receiver);
 
             pendingTripmateInvitationRepository.save(invitation);
+
+            PendingTripmateInvitation savedInvitation =
+                    pendingTripmateInvitationRepository.save(invitation);
+
+            invites.add(
+                    InviteInfo.builder()
+                            .invitationId(savedInvitation.getId())
+                            .userId(receiverId)
+                            .build()
+            );
         }
         return InviteTripResponseDto.builder()
                 .tripId(tripId)
-                .invitedIds(request.getReceiverIds())
+                .status("PENDING")
+                .invites(invites)
+                .build();
+    }
+
+    @Transactional
+    public AcceptInviteDto acceptInvite(Integer tripId, Integer inviteId, User currentUser) {
+        Trip trip = loadTripOrThrow(tripId);
+
+        if (tripmateRepository.existsTripmateByTripIdAndUserId(tripId, currentUser.getId())) {
+            throw new ConflictException("tripmate.accept.409.alreadyJoined");
+        }
+
+        PendingTripmateInvitation invitation = pendingTripmateInvitationRepository.findById(inviteId)
+                .orElseThrow(() -> new NotFoundException("tripmate.accept.404.inviteNotFound"));
+
+        if (!invitation.getTrip().getId().equals(tripId) || !invitation.getUser().getId().equals(currentUser.getId())) {
+            throw new BadRequestException("tripmate.accept.400.invalidInvite");
+        }
+
+        TripmateId id = new TripmateId();
+        id.setTripId(trip.getId());
+        id.setUserId(currentUser.getId());
+
+        Tripmate tripmate = new Tripmate();
+        tripmate.setId(id);
+        tripmate.setTrip(trip);
+        tripmate.setUser(currentUser);
+
+        tripmateRepository.save(tripmate);
+        pendingTripmateInvitationRepository.delete(invitation);
+
+        return AcceptInviteDto.builder()
+                .tripId(tripId)
+                .invitationId(inviteId)
+                .status("ACCEPTED")
                 .build();
     }
 
