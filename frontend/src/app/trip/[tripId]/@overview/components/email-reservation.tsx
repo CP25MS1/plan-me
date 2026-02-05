@@ -1,29 +1,28 @@
 'use client';
 
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
-  Typography,
-  Button,
   Box,
-  Select,
-  MenuItem,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   FormControl,
+  IconButton,
+  MenuItem,
+  Select,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EmailIcon from '@mui/icons-material/Email';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { useState, useRef, useEffect } from 'react';
+import { ElementType, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { Building, Bus, Car, Plane, Ship, Train, Utensils } from 'lucide-react';
-import { ElementType } from 'react';
 
 import { BackButton } from '@/components/button';
 import LodgingCard from '@/app/trip/[tripId]/@overview/components/cards/lodging';
@@ -35,11 +34,7 @@ import FerryCard from '@/app/trip/[tripId]/@overview/components/cards/ferry';
 import CarRentalCard from '@/app/trip/[tripId]/@overview/components/cards/carrental';
 import { useGetReservationEmailInfo } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-get-reservation-email-info';
 import { useGetPreviewsReservation } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-get-previews-reservation';
-import {
-  ReservationType,
-  PreviewReservationRequest,
-  ReservationDto,
-} from '@/api/reservations/type';
+import { ReservationDto, ReservationType } from '@/api/reservations/type';
 import { useCreateReservationBulk } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-create-reservation-bulk';
 import { useReadEmailInbox } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-read-email-inbox';
 import { AppSnackbar } from '@/components/common/snackbar/snackbar';
@@ -76,11 +71,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   const { tripId } = useParams<{ tripId: string }>();
 
   const [emails, setEmails] = useState<EmailItem[]>([]);
-  const {
-    data: emailInfos,
-    refetch: refetchEmailInfos,
-    isFetching,
-  } = useGetReservationEmailInfo(Number(tripId));
+  const { refetch: refetchEmailInfos, isFetching } = useGetReservationEmailInfo(Number(tripId));
 
   const resetEmailSelection = () => {
     setEmails([]);
@@ -229,7 +220,6 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   // Confirm
   const { mutateAsync: createBulk, isPending: isCreating } = useCreateReservationBulk();
   const { mutateAsync: readEmailInbox } = useReadEmailInbox();
-  const selectedEmailIds = emails.map((e) => e.emailId);
 
   const handleConfirm = async () => {
     try {
