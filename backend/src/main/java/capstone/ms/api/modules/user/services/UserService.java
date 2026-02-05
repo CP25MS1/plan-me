@@ -151,4 +151,13 @@ public class UserService {
         follower.getFollowing().remove(currentUser);
         userRepository.save(currentUser);
     }
+
+    public List<PublicUserInfo> getMutualFriends(User user) {
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new NotFoundException(USER_404_KEY));
+        List<User> mutualFriends = userRepository.findMutualFriends(currentUser.getId());
+        return mutualFriends.stream()
+                .map(userMapper::userToPublicUserInfo)
+                .toList();
+    }
 }

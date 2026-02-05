@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/users")
@@ -75,5 +77,11 @@ public class UserController {
             @Valid @RequestBody final PreferenceDto updatedPreference
     ) {
         return ResponseEntity.ok(userService.updateUserPreference(user.getId(), updatedPreference));
+    }
+
+    @GetMapping("/me/friends")
+    public ResponseEntity<List<PublicUserInfo>> getMutualFriends(@AuthenticationPrincipal User currentUser) {
+        List<PublicUserInfo> mutualFriends = userService.getMutualFriends(currentUser);
+        return ResponseEntity.ok(mutualFriends);
     }
 }
