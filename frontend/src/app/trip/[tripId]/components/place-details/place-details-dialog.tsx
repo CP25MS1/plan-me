@@ -24,7 +24,7 @@ type PlaceDetailsProps = {
   cta?: ReactNode;
 };
 
-const PlaceDetailsDialog = ({
+export const PlaceDetailsDialog = ({
   isOpened,
   onClose,
   ggmpId,
