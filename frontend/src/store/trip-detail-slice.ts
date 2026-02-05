@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TripOverview, WishlistPlace } from '@/api/trips/type';
 import { ReservationDto } from '@/api/reservations';
-import { TravelSegmentResponseDto } from '@/api/trips';
 import { dailyPlanReducers } from '@/store/reducers/daily-plan.reducers';
 
 export interface TripDetailState {

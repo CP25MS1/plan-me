@@ -6,7 +6,7 @@ import { useI18nSelector } from '@/store/selectors';
 import { GoogleMapPlace } from '@/api/places';
 import { formatOpeningHours } from '@/app/trip/[tripId]/components/place-details/helpers/place-details-formatter';
 
-const PlaceLocationInfo = ({ place }: { place: GoogleMapPlace }) => {
+export const PlaceLocationInfo = ({ place }: { place: GoogleMapPlace }) => {
   const { locale } = useI18nSelector();
   const { t } = useTranslation('trip_overview');
 

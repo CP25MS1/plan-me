@@ -1,13 +1,12 @@
-import { ReactNode, useMemo, useRef, useState } from 'react';
-import { GoogleMap, LoadScript } from '@react-google-maps/api';
-import { Box, IconButton, SwipeableDrawer } from '@mui/material';
-import { ChevronLeft } from 'lucide-react';
+import { ReactNode, useState } from 'react';
+import { Map } from 'lucide-react';
 
-import { TruncatedTooltip } from '@/components/atoms';
-import { DailyPlan } from '@/api/trips';
-import PlaceMarker from './place-marker';
-import { usePlaceGeometry } from '@/lib/google-maps';
-import { BANGKOK_LOCATION } from '@/constants/location';
+import { Box, Fab, Portal } from '@mui/material';
+import { DailyPlan, ScheduledPlace } from '@/api/trips';
+import { useMapCenter, useSheetHeight, useVisiblePlans } from '../hooks';
+import MapHeader from './map-header';
+import MapCanvas from './map-canvas';
+import PlaceBottomSheet from './place-bottom-sheet';
 
 type FullScreenMapProps = {
   header: {
@@ -20,148 +19,66 @@ type FullScreenMapProps = {
 };
 
 const FullScreenMap = ({ header, dailyPlans, selectedDay }: FullScreenMapProps) => {
-  const handleOnBack = () => {
-    if (header.onBack) return header.onBack();
-    if (globalThis.history.length > 1) return globalThis.history.back();
-  };
+  const plans = useVisiblePlans(dailyPlans, selectedDay);
+  const center = useMapCenter(dailyPlans, selectedDay);
+  const sheetHeight = useSheetHeight(0.5);
 
-  const visiblePlans = useMemo(() => {
-    if (selectedDay === 'ALL') return dailyPlans;
-    return [dailyPlans[selectedDay]];
-  }, [dailyPlans, selectedDay]);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<ScheduledPlace | null>(null);
 
-  const centerPlaceId = useMemo(() => {
-    const plans = selectedDay === 'ALL' ? dailyPlans : [dailyPlans[selectedDay]];
-
-    const firstDay = plans.find((d) => d.scheduledPlaces.length > 0);
-    return firstDay?.scheduledPlaces[0]?.ggmp.ggmpId ?? null;
-  }, [dailyPlans, selectedDay]);
-
-  const { data: centerLocation } = usePlaceGeometry(centerPlaceId);
-  const mapCenter = centerLocation ?? BANGKOK_LOCATION;
-
-  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const SHEET_HEIGHT = window.innerHeight * 0.5; // ครึ่งจอ
+  const tempLink =
+    'https://www.google.com/maps/dir/?api=1\n' +
+    '&origin=Market+Place+Thonglor+Bangkok\n' +
+    '&origin_place_id=ChIJ36Uwvref4jAREPAHpp78-0k\n' +
+    '&destination=Ginza+Thonglor+Bangkok\n' +
+    '&destination_place_id=ChIJH7npy02f4jAR9zL2Fh2uDLo\n' +
+    '&waypoints=\n' +
+    'Era-izaan+Thonglor::place_id:ChIJN5K6EOaf4jARtBYfXEolwv0\n' +
+    '|\n' +
+    'Fatboy+Ekamai::place_id:ChIJY-4yKQCf4jARGpdFc75ypaY\n' +
+    '&travelmode=driving';
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
-      <Box
-        sx={{
-          position: 'relative',
-          display: 'flex',
-          alignItems: 'center',
-          flexShrink: 0,
-          paddingX: 1,
-          paddingY: 1.25,
-        }}
-      >
-        {/* Left */}
-        <Box>
-          <IconButton onClick={handleOnBack}>
-            <ChevronLeft />
-          </IconButton>
-        </Box>
+    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      <MapHeader {...header} />
 
-        {/* Center (title) */}
-        <Box
-          sx={{
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            maxWidth: '70%',
-            textAlign: 'center',
-            pointerEvents: 'none',
+      <Box flex={1}>
+        <MapCanvas
+          plans={plans}
+          center={center}
+          sheetHeight={sheetHeight}
+          selectedPlaceId={selectedPlace?.id ?? null}
+          onSelectPlaceAction={({ planId, place }) => {
+            setSelectedPlanId(planId);
+            setSelectedPlace(place);
           }}
-        >
-          <TruncatedTooltip text={header.title} className="text-2xl" />
-        </Box>
-
-        {/* Right (CTA) */}
-        {header.cta}
+        />
       </Box>
 
-      {/* Map */}
-      <Box flex={1}>
-        <LoadScript
-          googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-          libraries={['places']}
-        >
-          <GoogleMap
-            onLoad={(map) => {
-              mapRef.current = map;
-            }}
-            mapContainerStyle={{
-              width: '100%',
-              height: '100%',
-            }}
-            center={mapCenter}
-            zoom={12}
-            options={{
-              fullscreenControl: false,
-              mapTypeControl: false,
-              streetViewControl: false,
+      <PlaceBottomSheet
+        planId={selectedPlanId}
+        place={selectedPlace}
+        onClose={() => setSelectedPlace(null)}
+      />
+
+      <Portal>
+        <a href={tempLink} target="_blank">
+          <Fab
+            color="primary"
+            sx={{
+              position: 'fixed',
+              bottom: 25,
+              right: 20,
+              width: '3rem',
+              height: '3rem',
+              minHeight: 0,
+              zIndex: (theme) => theme.zIndex.modal + 1,
             }}
           >
-            {visiblePlans.map((day) =>
-              day.scheduledPlaces.map((sp) => (
-                <PlaceMarker
-                  key={sp.id}
-                  placeId={sp.ggmp.ggmpId}
-                  order={sp.order}
-                  color={day.pinColor}
-                  selected={selectedPlaceId === sp.id}
-                  onSelect={() => {
-                    setSelectedPlaceId(sp.id);
-                    requestAnimationFrame(() => {
-                      mapRef.current?.panBy(0, -SHEET_HEIGHT / 2);
-                    });
-                  }}
-                />
-              ))
-            )}
-          </GoogleMap>
-        </LoadScript>
-      </Box>
-
-      <SwipeableDrawer
-        anchor="bottom"
-        open={!!selectedPlaceId}
-        onClose={() => setSelectedPlaceId(null)}
-        onOpen={() => {}}
-        swipeAreaWidth={24}
-        disableSwipeToOpen={false}
-        ModalProps={{ keepMounted: true }}
-        slotProps={{
-          paper: {
-            sx: {
-              height: '50vh',
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
-              p: 2,
-            },
-          },
-        }}
-      >
-        {/* Content */}
-        {selectedPlaceId && (
-          <Box>
-            <Box
-              sx={{
-                width: 40,
-                height: 4,
-                bgcolor: 'grey.400',
-                borderRadius: 2,
-                mx: 'auto',
-                mb: 2,
-              }}
-            />
-            <div>Place ID: {selectedPlaceId}</div>
-            {/* ใส่รายละเอียดสถานที่ต่อได้ */}
-          </Box>
-        )}
-      </SwipeableDrawer>
+            <Map />
+          </Fab>
+        </a>
+      </Portal>
     </Box>
   );
 };
