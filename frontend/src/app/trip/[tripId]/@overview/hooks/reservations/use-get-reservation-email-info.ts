@@ -6,5 +6,6 @@ export const useGetReservationEmailInfo = (tripId: number) => {
   return useQuery<ReservationEmailInfo[], Error>({
     queryKey: ['reservationEmailInfo', tripId],
     queryFn: () => getReservationEmailInfo(tripId),
+    enabled: false,
   });
 };
