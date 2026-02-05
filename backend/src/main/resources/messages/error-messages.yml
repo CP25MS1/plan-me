@@ -89,3 +89,20 @@ travelSegment:
   500:
     th: "ไม่สามารถคำนวณเส้นทางระหว่างสถานที่ได้ กรุณาลองใหม่อีกครั้งในภายหลัง"
     en: "Unable to calculate the route between places. Please try again later."
+
+tripmate:
+  400:
+    notFriend:
+      th: "คุณสามารถเชิญเพื่อนที่อยู่ในรายชื่อเพื่อนของคุณเท่านั้น"
+      en: "You can only invite friends who are in your friend list."
+  403:
+    ownerOnly:
+      th: "เฉพาะเจ้าของทริปเท่านั้นที่สามารถเชิญเพื่อนเข้าทริปได้"
+      en: "Only the trip owner can invite friends to join the trip."
+  409:
+    alreadyInvited:
+        th: "คุณได้เชิญเพื่อนคนนี้เข้าทริปแล้ว"
+        en: "You have already invited this friend to the trip."
+    alreadyJoined:
+        th: "เพื่อนคนนี้เป็นสมาชิกของทริปอยู่แล้ว"
+        en: "This friend is already a member of the trip."
