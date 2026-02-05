@@ -1,7 +1,8 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
-import capstone.ms.api.modules.itinerary.dto.InviteTripRequestDto;
-import capstone.ms.api.modules.itinerary.dto.InviteTripResponseDto;
+import capstone.ms.api.modules.itinerary.dto.tripmate.AcceptInviteDto;
+import capstone.ms.api.modules.itinerary.dto.tripmate.InviteTripRequestDto;
+import capstone.ms.api.modules.itinerary.dto.tripmate.InviteTripResponseDto;
 import capstone.ms.api.modules.itinerary.services.TripmateService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.validation.Valid;
@@ -21,6 +22,14 @@ public class TripmateController {
                                                                  @Valid @RequestBody InviteTripRequestDto request,
                                                                  @AuthenticationPrincipal User currentUser) {
         InviteTripResponseDto response = tripmateService.inviteTripmates(tripId, currentUser, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{tripId}/invites/{invitationId}/accept")
+    public ResponseEntity<AcceptInviteDto> acceptTripInvite(@PathVariable Integer tripId,
+                                                            @PathVariable Integer invitationId,
+                                                            @AuthenticationPrincipal User currentUser) {
+        AcceptInviteDto response = tripmateService.acceptInvite(tripId, invitationId, currentUser);
         return ResponseEntity.ok(response);
     }
 }
