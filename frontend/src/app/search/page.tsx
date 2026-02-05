@@ -22,7 +22,6 @@ import { Search } from 'lucide-react';
 
 import { PublicUserInfo } from '@/api/users';
 import useSearchUsers from '@/app/search/hooks/use-search-users';
-import { BackButton } from '@/components/button';
 
 const SearchPage = () => {
   const router = useRouter();
@@ -79,7 +78,6 @@ const SearchPage = () => {
   return (
     <Container maxWidth="md" sx={{ py: 3 }}>
       <Box display="flex" alignItems="center" mb={2}>
-        <BackButton className="pl-0!" />
         <TextField
           fullWidth
           size="small"
