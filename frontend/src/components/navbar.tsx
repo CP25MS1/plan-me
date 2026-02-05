@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 const NAV_ITEMS = [
   { href: '/home', label: 'navbar.home', icon: 'fi fi-rs-home' },
-  { href: '/trip/all', label: 'navbar.trips', icon: 'fi fi-rs-map' },
+  { href: '/search', label: 'navbar.search', icon: 'fi fi-rr-search' },
   { href: '/trip/create', label: 'navbar.create', icon: 'fi fi-rs-add', hideOnPage: true },
   { href: '/memory', label: 'navbar.memories', icon: 'fi fi-rs-copy-image' },
   { href: '/profile', label: 'navbar.profile', icon: 'fi fi-rr-user' },
@@ -33,7 +33,7 @@ const activate = (
 };
 
 const Navbar = ({
-  items = activate(NAV_ITEMS, ['/home', '/profile', '/trip/create', '/trip/all']),
+  items = activate(NAV_ITEMS, ['/home', '/profile', '/trip/create', '/search']),
   className = '',
   listClassName = 'flex justify-around items-center py-2',
   itemClass = 'flex flex-col items-center text-xs',
@@ -49,7 +49,7 @@ const Navbar = ({
     !currentItem?.hideOnPage && (
       <nav
         aria-label="Primary navigation"
-        className={cn('w-full bg-white border-t shadow-md', className)}
+        className={cn('fixed bottom-0 left-0 w-full bg-white border-t shadow-md z-50', className)}
       >
         <ul className={listClassName}>
           {items.map(({ href, label, icon, disabled }) => {
