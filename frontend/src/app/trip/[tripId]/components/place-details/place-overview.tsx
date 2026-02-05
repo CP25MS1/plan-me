@@ -4,7 +4,7 @@ import { tokens } from '@/providers/theme/design-tokens';
 import { useI18nSelector } from '@/store/selectors';
 import { GoogleMapPlace } from '@/api/places';
 
-const PlaceOverview = ({ place }: { place: GoogleMapPlace }) => {
+export const PlaceOverview = ({ place }: { place: GoogleMapPlace }) => {
   const { locale } = useI18nSelector();
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'space-between' }}>

@@ -67,11 +67,11 @@ type PlaceMarkerProps = {
   order: number;
   color: string;
   selected?: boolean;
-  onSelect?: () => void;
+  onSelect: (latLng: google.maps.LatLngLiteral) => void;
 };
 
 const PlaceMarker = ({ placeId, order, color, selected = false, onSelect }: PlaceMarkerProps) => {
-  const { data } = usePlaceGeometry(placeId);
+  const { data: position } = usePlaceGeometry(placeId);
   const icon = useMemo(
     () => ({
       url: svgToDataUrl(createNumberedPinSvg(color, order, selected)),
@@ -81,9 +81,16 @@ const PlaceMarker = ({ placeId, order, color, selected = false, onSelect }: Plac
     [color, order, selected]
   );
 
-  if (!data) return null;
+  if (!position) return null;
 
-  return <MarkerF position={data} icon={icon} zIndex={selected ? 999 : 1} onClick={onSelect} />;
+  return (
+    <MarkerF
+      position={position}
+      icon={icon}
+      zIndex={selected ? 999 : 1}
+      onClick={() => onSelect(position)}
+    />
+  );
 };
 
 export default PlaceMarker;

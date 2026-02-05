@@ -31,7 +31,7 @@ const EMPTY_CONTENT = '<p></p>';
 const isEmptyHtml = (html?: string) => !html || !html.trim() || html === EMPTY_CONTENT;
 
 /** Components **/
-const PlaceNoteAction = ({ notes, onSave }: PlaceNoteActionProps) => {
+export const PlaceNoteAction = ({ notes, onSave }: PlaceNoteActionProps) => {
   const { t } = useTranslation('trip_overview');
 
   const [isEditing, setIsEditing] = useState(false);
