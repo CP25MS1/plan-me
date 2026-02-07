@@ -4,8 +4,11 @@ import capstone.ms.api.modules.itinerary.dto.NotificationDto;
 import capstone.ms.api.modules.itinerary.services.NotificationService;
 import capstone.ms.api.modules.user.entities.User;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,5 +24,12 @@ public class NotificationController {
     @GetMapping
     public List<NotificationDto> getNotifications(@AuthenticationPrincipal User currentUser) {
         return notificationService.getMyNotifications(currentUser);
+    }
+
+    @PatchMapping("/{notificationId}/read")
+    public ResponseEntity<NotificationDto> markAsRead(@PathVariable Integer notificationId,
+                                                      @AuthenticationPrincipal User currentUser) {
+        NotificationDto response = notificationService.markAsRead(notificationId, currentUser);
+        return ResponseEntity.ok(response);
     }
 }

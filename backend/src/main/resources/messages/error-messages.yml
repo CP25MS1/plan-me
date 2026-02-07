@@ -124,3 +124,9 @@ tripmate:
       alreadyJoined:
         th: "คุณเข้าร่วมทริปนี้แล้ว"
         en: "You have already joined this trip."
+
+notification:
+    404:
+      notFoundOrNoPermission:
+        th: "ไม่พบการแจ้งเตือนนี้ หรือคุณไม่มีสิทธิ์เข้าถึง"
+        en: "Notification not found or you don't have permission to access it."
