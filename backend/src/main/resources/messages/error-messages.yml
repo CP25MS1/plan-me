@@ -107,7 +107,7 @@ tripmate:
       alreadyJoined:
           th: "เพื่อนคนนี้เป็นสมาชิกของทริปอยู่แล้ว"
           en: "This friend is already a member of the trip."
-  accept:
+  inviteAction:
     400:
       invalidInvite:
         th: "คำเชิญเข้าร่วมทริปนี้ไม่ถูกต้อง"
