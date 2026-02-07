@@ -2,13 +2,12 @@ package capstone.ms.api.modules.itinerary.entities;
 
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.persistence.*;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
 
 import java.time.OffsetDateTime;
 
@@ -50,17 +49,14 @@ public class TripChecklist {
     private String name;
 
     @NotNull
-    @ColumnDefault("false")
     @Column(name = "completed", nullable = false)
     private Boolean completed;
 
-    @NotNull
-    @ColumnDefault("now()")
-    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    @NotNull
-    @ColumnDefault("now()")
+    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
