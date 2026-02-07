@@ -3,10 +3,12 @@ package capstone.ms.api.modules.itinerary.controllers;
 import capstone.ms.api.modules.itinerary.dto.tripmate.InviteActionResponseDto;
 import capstone.ms.api.modules.itinerary.dto.tripmate.InviteTripRequestDto;
 import capstone.ms.api.modules.itinerary.dto.tripmate.InviteTripResponseDto;
+import capstone.ms.api.modules.itinerary.dto.tripmate.TripmateResponseDto;
 import capstone.ms.api.modules.itinerary.services.TripmateService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,7 @@ public class TripmateController {
                                                                  @Valid @RequestBody InviteTripRequestDto request,
                                                                  @AuthenticationPrincipal User currentUser) {
         InviteTripResponseDto response = tripmateService.inviteTripmates(tripId, currentUser, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/{tripId}/invites/{invitationId}/accept")
@@ -38,6 +40,13 @@ public class TripmateController {
                                                                     @PathVariable Integer invitationId,
                                                                     @AuthenticationPrincipal User currentUser) {
         InviteActionResponseDto response = tripmateService.rejectInvite(tripId, invitationId, currentUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{tripId}/tripmates")
+    public ResponseEntity<TripmateResponseDto> getTripmates(@PathVariable Integer tripId,
+                                                            @AuthenticationPrincipal User currentUser) {
+        TripmateResponseDto response = tripmateService.getTripmates(tripId, currentUser);
         return ResponseEntity.ok(response);
     }
 }
