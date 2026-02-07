@@ -49,7 +49,7 @@ public class NotificationService {
     @Transactional
     public NotificationDto markAsRead(Integer notificationId, User currentUser) {
         Notification notification = notificationRepository.findByIdAndReceiverUserId(notificationId, currentUser.getId())
-                .orElseThrow(() -> new NotFoundException("notification.404.notFoundOrNoPermission"));
+                .orElseThrow(() -> new NotFoundException("notification.404.notFound"));
 
         if (!Boolean.TRUE.equals(notification.getIsRead())) {
             notification.setIsRead(true);
