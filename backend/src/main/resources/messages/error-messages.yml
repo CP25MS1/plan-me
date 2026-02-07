@@ -130,3 +130,8 @@ notification:
       notFoundOrNoPermission:
         th: "ไม่พบการแจ้งเตือนที่นี้ในระบบ"
         en: "The notification was not found in system."
+
+tripChecklist:
+  completeForbidden:
+    th: "เฉพาะคนที่ได้รับมอบหมายเท่านั้นที่สามารถเปลี่ยนสถานะได้"
+    en: "Only the assigned user can mark this checklist item as completed."
