@@ -34,6 +34,10 @@ public class UserService {
     private final PreferenceRepository preferenceRepository;
     private final UserMapper userMapper;
 
+    public User getUserOrThrow(final Integer userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException(USER_404_KEY));
+    }
+
     public UserDto toDto(User user) {
         return userMapper.userToUserDto(user);
     }
@@ -97,18 +101,15 @@ public class UserService {
     }
 
     public UserDto getUserProfile(final Integer userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(USER_404_KEY));
+        User user = getUserOrThrow(userId);
         return userMapper.userToUserDto(user);
     }
 
     @Transactional
     public PublicUserInfo followUser(User user, Integer followingId) {
-        User currentUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new NotFoundException(USER_404_KEY));
+        User currentUser = getUserOrThrow(user.getId());
 
-        User followUser = userRepository.findById(followingId)
-                .orElseThrow(() -> new NotFoundException(USER_404_KEY));
+        User followUser = getUserOrThrow(followingId);
 
         currentUser.getFollowing().add(followUser);
         followUser.getFollowers().add(currentUser);
@@ -119,11 +120,9 @@ public class UserService {
 
     @Transactional
     public void unfollowUser(User user, Integer followingId) {
-        User currentUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new NotFoundException(USER_404_KEY));
+        User currentUser = getUserOrThrow(user.getId());
 
-        User following = userRepository.findById(followingId)
-                .orElseThrow(() -> new NotFoundException(USER_404_KEY));
+        User following = getUserOrThrow(followingId);
 
         if (!currentUser.getFollowing().contains(following)) {
             throw new ConflictException("user.409.following");
@@ -137,11 +136,9 @@ public class UserService {
 
     @Transactional
     public void removeFollower(User user, Integer followerId) {
-        User currentUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new NotFoundException(USER_404_KEY));
+        User currentUser = getUserOrThrow(user.getId());
 
-        User follower = userRepository.findById(followerId)
-                .orElseThrow(() -> new NotFoundException(USER_404_KEY));
+        User follower = getUserOrThrow(followerId);
 
         if (!currentUser.getFollowers().contains(follower)) {
             throw new ConflictException("user.409.follower");
