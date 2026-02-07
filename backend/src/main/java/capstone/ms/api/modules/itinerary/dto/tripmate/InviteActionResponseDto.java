@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Builder
 @Data
-public class AcceptInviteDto {
+public class InviteActionResponseDto {
     private Integer tripId;
     private Integer invitationId;
     private String status;
