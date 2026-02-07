@@ -1,16 +1,27 @@
 package capstone.ms.api.modules.itinerary.dto.checklist;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class UpdateTripChecklistRequest {
-    private final Integer assignedById;
-    private final Integer assigneeId;
-
     @Size(max = 30)
     private final String name;
     private final Boolean completed;
+    private Integer assigneeId;
+
+    private boolean assigneePresent;
+
+    @JsonSetter("assigneeId")
+    public void setAssigneeId(JsonNode node) {
+        assigneePresent = true;
+
+        if (node == null || node.isNull()) {
+            this.assigneeId = null; // unassign
+        } else {
+            this.assigneeId = node.asInt();
+        }
+    }
 }
