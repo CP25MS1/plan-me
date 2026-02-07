@@ -29,6 +29,11 @@ public class NotificationService {
 
     @Transactional
     public void createNotification(String notiCode, User actor, User receiver, Trip trip) {
+
+        if (actor.getId().equals(receiver.getId())) {
+            return;
+        }
+
         Notification notification = new Notification();
         notification.setNotiCode(notiCode);
         notification.setActorUser(actor);
