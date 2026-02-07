@@ -4,14 +4,12 @@ import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.modules.itinerary.dto.tripmate.InviteActionResponseDto;
-import capstone.ms.api.modules.itinerary.dto.tripmate.InviteInfo;
-import capstone.ms.api.modules.itinerary.dto.tripmate.InviteTripRequestDto;
-import capstone.ms.api.modules.itinerary.dto.tripmate.InviteTripResponseDto;
+import capstone.ms.api.modules.itinerary.dto.tripmate.*;
 import capstone.ms.api.modules.itinerary.entities.tripmate.PendingTripmateInvitation;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.tripmate.Tripmate;
 import capstone.ms.api.modules.itinerary.entities.tripmate.TripmateId;
+import capstone.ms.api.modules.itinerary.mappers.TripmateMapper;
 import capstone.ms.api.modules.itinerary.repositories.PendingTripmateInvitationRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripmateRepository;
@@ -31,6 +29,7 @@ public class TripmateService {
     private final UserRepository userRepository;
     private final TripmateRepository tripmateRepository;
     private final PendingTripmateInvitationRepository pendingTripmateInvitationRepository;
+    private final TripmateMapper tripmateMapper;
 
     @Transactional
     public InviteTripResponseDto inviteTripmates(Integer tripId, User currentUser, InviteTripRequestDto request) {
@@ -121,7 +120,7 @@ public class TripmateService {
     }
 
     @Transactional
-    public InviteActionResponseDto rejectInvite (Integer tripId, Integer inviteId, User currentUser) {
+    public InviteActionResponseDto rejectInvite(Integer tripId, Integer inviteId, User currentUser) {
         Trip trip = loadTripOrThrow(tripId);
 
         PendingTripmateInvitation invitation = pendingTripmateInvitationRepository.findById(inviteId)
@@ -137,6 +136,33 @@ public class TripmateService {
                 .tripId(tripId)
                 .invitationId(inviteId)
                 .status("REJECTED")
+                .build();
+    }
+
+    public TripmateResponseDto getTripmates(Integer tripId, User currentUser) {
+        Trip trip = loadTripOrThrow(tripId);
+        boolean isOwner = trip.getOwner().getId().equals(currentUser.getId());
+        boolean isTripmate = tripmateRepository.existsTripmateByTripIdAndUserId(tripId, currentUser.getId());
+
+        if (!isOwner && !isTripmate) {
+            throw new ForbiddenException("tripmate.403.noPermission");
+        }
+
+        List<TripmateDto> joined = tripmateRepository.findByTripId(tripId)
+                .stream()
+                .map(tripmateMapper::toTripmateDto)
+                .toList();
+
+        List<PendingTripmateDto> pending =
+                pendingTripmateInvitationRepository.findByTripId(tripId)
+                        .stream()
+                        .map(tripmateMapper::toPendingTripmateDto)
+                        .toList();
+
+        return TripmateResponseDto.builder()
+                .tripId(tripId)
+                .joined(joined)
+                .pending(pending)
                 .build();
     }
 
