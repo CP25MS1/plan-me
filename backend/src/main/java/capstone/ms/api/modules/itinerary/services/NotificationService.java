@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.services;
 
+import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.NotificationDto;
 import capstone.ms.api.modules.itinerary.entities.Notification;
 import capstone.ms.api.modules.itinerary.entities.Trip;
@@ -43,5 +44,17 @@ public class NotificationService {
         notification.setCreatedAt(LocalDateTime.now());
 
         notificationRepository.save(notification);
+    }
+
+    @Transactional
+    public NotificationDto markAsRead(Integer notificationId, User currentUser) {
+        Notification notification = notificationRepository.findByIdAndReceiverUserId(notificationId, currentUser.getId())
+                .orElseThrow(() -> new NotFoundException("notification.404.notFoundOrNoPermission"));
+
+        if (!Boolean.TRUE.equals(notification.getIsRead())) {
+            notification.setIsRead(true);
+        }
+
+        return notificationMapper.toNotificationDto(notification);
     }
 }
