@@ -7,8 +7,8 @@ import { LangSwitcher } from '@/components/profile';
 import { TruncatedTooltip } from '@/components/atoms';
 import { useAppSelector } from '@/store';
 import { useTranslation } from 'react-i18next';
-import { TripList } from '@/app/trip/all/page';
-import { useGetAllTrips } from '@/app/trip/all/hooks/use-get-all-trips';
+import { TripList } from '@/app/profile/all-trip/trip-list';
+import { useGetAllTrips } from '@/app/profile/all-trip/hooks/use-get-all-trips';
 import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
