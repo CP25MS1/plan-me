@@ -5,6 +5,7 @@ import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.tripmate.*;
+import capstone.ms.api.modules.itinerary.entities.NotificationCode;
 import capstone.ms.api.modules.itinerary.entities.tripmate.PendingTripmateInvitation;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.tripmate.Tripmate;
@@ -28,6 +29,7 @@ public class TripmateService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
     private final TripmateRepository tripmateRepository;
+    private final NotificationService notificationService;
     private final PendingTripmateInvitationRepository pendingTripmateInvitationRepository;
     private final TripmateMapper tripmateMapper;
 
@@ -66,10 +68,14 @@ public class TripmateService {
             invitation.setTrip(trip);
             invitation.setUser(receiver);
 
-            pendingTripmateInvitationRepository.save(invitation);
+            PendingTripmateInvitation savedInvitation = pendingTripmateInvitationRepository.save(invitation);
 
-            PendingTripmateInvitation savedInvitation =
-                    pendingTripmateInvitationRepository.save(invitation);
+            notificationService.createNotification(
+                    NotificationCode.INVITE.name(),
+                    currentUser,
+                    receiver,
+                    trip
+            );
 
             invites.add(
                     InviteInfo.builder()
@@ -78,6 +84,7 @@ public class TripmateService {
                             .build()
             );
         }
+
         return InviteTripResponseDto.builder()
                 .tripId(tripId)
                 .status("PENDING")
@@ -112,6 +119,13 @@ public class TripmateService {
         tripmateRepository.save(tripmate);
         pendingTripmateInvitationRepository.delete(invitation);
 
+        notificationService.createNotification(
+                NotificationCode.INVITE_ACCEPTED.name(),
+                currentUser,
+                trip.getOwner(),
+                trip
+        );
+
         return InviteActionResponseDto.builder()
                 .tripId(tripId)
                 .invitationId(inviteId)
@@ -131,6 +145,13 @@ public class TripmateService {
         }
 
         pendingTripmateInvitationRepository.delete(invitation);
+
+        notificationService.createNotification(
+                NotificationCode.INVITE_REJECTED.name(),
+                currentUser,
+                trip.getOwner(),
+                trip
+        );
 
         return InviteActionResponseDto.builder()
                 .tripId(tripId)
