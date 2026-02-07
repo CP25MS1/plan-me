@@ -4,8 +4,6 @@ import capstone.ms.api.modules.itinerary.dto.tripmate.PendingTripmateDto;
 import capstone.ms.api.modules.itinerary.dto.tripmate.TripmateDto;
 import capstone.ms.api.modules.itinerary.entities.tripmate.PendingTripmateInvitation;
 import capstone.ms.api.modules.itinerary.entities.tripmate.Tripmate;
-import capstone.ms.api.modules.user.dto.PublicUserInfo;
-import capstone.ms.api.modules.user.entities.User;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
