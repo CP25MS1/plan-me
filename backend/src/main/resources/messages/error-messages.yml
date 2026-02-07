@@ -91,6 +91,10 @@ travelSegment:
     en: "Unable to calculate the route between places. Please try again later."
 
 tripmate:
+  403:
+    noPermission:
+      th: "คุณไม่มีสิทธิ์ดูสมาชิกของทริปนี้"
+      en: "You do not have permission to view this trip's members"
   invite:
     400:
       notFriend:
