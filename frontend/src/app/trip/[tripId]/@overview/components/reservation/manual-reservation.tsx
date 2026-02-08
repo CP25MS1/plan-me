@@ -28,7 +28,7 @@ import BusCard from '@/app/trip/[tripId]/@overview/components/cards/bus';
 import FerryCard from '@/app/trip/[tripId]/@overview/components/cards/ferry';
 import CarRentalCard from '@/app/trip/[tripId]/@overview/components/cards/carrental';
 import { BackButton } from '@/components/button';
-import { fieldsByType } from './fields-by-type';
+import { fieldsByType } from '../fields-by-type';
 import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
