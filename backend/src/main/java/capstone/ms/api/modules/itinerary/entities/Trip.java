@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.entities;
 
 import capstone.ms.api.modules.itinerary.entities.reservation.Reservation;
+import capstone.ms.api.modules.itinerary.entities.tripmate.Tripmate;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -43,6 +44,9 @@ public class Trip {
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Objective> objectives = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Tripmate> tripmates;
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<WishlistPlace> wishlistPlaces = new LinkedHashSet<>();
