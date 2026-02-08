@@ -36,7 +36,3 @@ travelSegment:
   400:
     samePlaces: "Unable to create route as the starting and ending place are the same."
     unsupportedMode: "An unsupported mode was provided."
-
-tripChecklist:
-  blankName:
-    name: "must not be blank"

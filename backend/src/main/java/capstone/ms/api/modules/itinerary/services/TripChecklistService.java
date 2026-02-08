@@ -1,6 +1,5 @@
 package capstone.ms.api.modules.itinerary.services;
 
-import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.checklist.CreateTripChecklistRequest;
@@ -65,7 +64,6 @@ public class TripChecklistService {
         final TripChecklist checklist = repository.findById(itemId).orElseThrow(() -> new NotFoundException("404"));
 
         if (request.getName() != null) {
-            validateChecklistName(request.getName());
             checklist.setName(request.getName());
         }
 
@@ -91,14 +89,6 @@ public class TripChecklistService {
     private void assertTripmateAccess(User user, Integer tripId) {
         if (!tripAccessService.hasTripmateLevelAccess(user, tripId)) {
             throw new ForbiddenException(TRIP_FORBIDDEN_KEY);
-        }
-    }
-
-    private void validateChecklistName(String name) {
-        if (name == null) return;
-
-        if (name.isBlank()) {
-            throw new BadRequestException("400", "tripChecklist.blankName");
         }
     }
 
