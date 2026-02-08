@@ -28,7 +28,7 @@ import {
   ReservationType,
 } from '@/api/reservations/type';
 import { useUpdateReservation } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-update-reservation';
-import { fieldsByType } from './fields-by-type';
+import { fieldsByType } from '../fields-by-type';
 import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
