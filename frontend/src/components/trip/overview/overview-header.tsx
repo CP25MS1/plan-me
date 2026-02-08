@@ -29,6 +29,9 @@ import { Objective } from '@/api/trips';
 import { BackButton } from '@/components/button';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import InviteDialog from '@/app/trip/[tripId]/@overview/components/invite/invite-dialog';
+import MembersModal from '@/app/trip/[tripId]/@overview/components/member/members-modal';
+import { useParams } from 'next/navigation';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
@@ -64,6 +67,10 @@ const OverviewHeader = ({
   const { t } = useTranslation('trip_overview');
   const router = useRouter();
   const defaultObjectives = useDefaultObjectives();
+
+  const { tripId } = useParams<{ tripId: string }>();
+  const [openShareDialog, setOpenShareDialog] = useState(false);
+  const [openMembers, setOpenMembers] = useState(false);
 
   // ----------------------------
   // TRIP NAME
@@ -163,7 +170,11 @@ const OverviewHeader = ({
         </Box>
 
         <Stack direction="column" alignItems="center" spacing={0.5}>
-          <AvatarGroup max={4} sx={{ '& .MuiAvatar-root': { width: 32, height: 32 } }}>
+          <AvatarGroup
+            max={4}
+            sx={{ cursor: 'pointer', '& .MuiAvatar-root': { width: 32, height: 32 } }}
+            onClick={() => setOpenMembers(true)}
+          >
             {members.map((m) => (
               <Avatar key={m} src={m} />
             ))}
@@ -180,6 +191,7 @@ const OverviewHeader = ({
               borderRadius: '10px',
               '&:hover': { bgcolor: '#00A85C' },
             }}
+            onClick={() => setOpenShareDialog(true)}
           >
             {t('shareButton')}
           </Button>
@@ -262,6 +274,16 @@ const OverviewHeader = ({
             }
             setSelectedObjectives(unique);
           }}
+        />
+        <InviteDialog
+          open={openShareDialog}
+          onClose={() => setOpenShareDialog(false)}
+          tripId={Number(tripId)}
+        />
+        <MembersModal
+          open={openMembers}
+          onClose={() => setOpenMembers(false)}
+          tripId={Number(tripId)}
         />
       </Stack>
     </Box>

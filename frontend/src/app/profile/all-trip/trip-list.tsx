@@ -43,21 +43,25 @@ export const TripList: React.FC<TripListProps> = ({
   onTripClick,
   t,
 }) => {
-  if (loading)
+  if (!loading && !error && (!trips || trips.length === 0)) {
     return (
-      <Box sx={{ p: 4 }}>
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} height={90} sx={{ borderRadius: 3, mb: 2 }} />
-        ))}
+      <Box
+        sx={{
+          p: 8,
+          textAlign: 'center',
+          borderRadius: 3,
+        }}
+      >
+        <Typography variant="h5" fontWeight={600}>
+          {t?.('noTrip') ?? 'คุณยังไม่มีทริป'}
+        </Typography>
+
+        <Typography variant="body2" color="text.secondary" mt={1}>
+          เริ่มสร้างทริปแรกของคุณได้เลย
+        </Typography>
       </Box>
     );
-
-  if (error)
-    return (
-      <Typography sx={{ p: 4 }} color="error">
-        {t?.('loadfail') ?? 'Load failed'}
-      </Typography>
-    );
+  }
 
   return (
     <Box
