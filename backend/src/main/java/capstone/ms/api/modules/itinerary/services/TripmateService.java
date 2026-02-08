@@ -71,7 +71,7 @@ public class TripmateService {
             PendingTripmateInvitation savedInvitation = pendingTripmateInvitationRepository.save(invitation);
 
             notificationService.createNotification(
-                    NotificationCode.INVITE.name(),
+                    NotificationCode.INVITE_PENDING.name(),
                     currentUser,
                     receiver,
                     trip
