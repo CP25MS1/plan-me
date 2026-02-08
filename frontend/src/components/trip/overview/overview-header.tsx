@@ -32,18 +32,13 @@ import { RootState } from '@/store';
 import InviteDialog from '@/app/trip/[tripId]/@overview/components/invite/invite-dialog';
 import MembersModal from '@/app/trip/[tripId]/@overview/components/member/members-modal';
 import { useParams } from 'next/navigation';
-import TripOverviewPage from '@/app/trip/[tripId]/@overview/page';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
 export interface OverviewHeaderProps {
   tripOverview: {
     tripName: string;
-    members?: {
-      id: number;
-      username: string;
-      profilePicUrl?: string;
-    }[];
+    members?: string[];
     objectives?: Objective[];
     startDate?: string;
     endDate?: string;
@@ -136,7 +131,6 @@ const OverviewHeader = ({
 
   useEffect(
     () => setEditingName(tripName === '' ? t('Header.defaultName') : tripName),
-
     [tripName, t]
   );
 
@@ -177,21 +171,12 @@ const OverviewHeader = ({
 
         <Stack direction="column" alignItems="center" spacing={0.5}>
           <AvatarGroup
-            max={3}
-            sx={{
-              cursor: 'pointer',
-              '& .MuiAvatar-root': {
-                width: 32,
-                height: 32,
-                fontSize: 12,
-              },
-            }}
+            max={4}
+            sx={{ cursor: 'pointer', '& .MuiAvatar-root': { width: 32, height: 32 } }}
             onClick={() => setOpenMembers(true)}
           >
             {members.map((m) => (
-              <Avatar key={m.id} src={m.profilePicUrl}>
-                {m.username?.[0]}
-              </Avatar>
+              <Avatar key={m} src={m} />
             ))}
           </AvatarGroup>
 
