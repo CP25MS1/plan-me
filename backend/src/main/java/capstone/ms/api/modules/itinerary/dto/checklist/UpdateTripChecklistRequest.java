@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 public class UpdateTripChecklistRequest {
-    @Size(max = 30)
+    @Size(min = 1, max = 30)
     private final String name;
     private final Boolean completed;
     private Integer assigneeId;
