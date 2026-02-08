@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.dto;
 
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
+import capstone.ms.api.modules.itinerary.dto.tripmate.TripmateDto;
 import capstone.ms.api.modules.itinerary.entities.DailyPlan;
 import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -20,7 +21,7 @@ public class TripOverviewDto {
     private final LocalDate endDate;
     private final PublicUserInfo owner;
     private final Set<MergedObjective> objectives;
-    private final Set<PublicUserInfo> tripmates;
+    private final Set<TripmateDto> tripmates;
     private final Set<ReservationDto> reservations;
     private final Set<WishlistPlaceDto> wishlistPlaces;
     private final Set<DailyPlan> dailyPlans;

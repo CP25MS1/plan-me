@@ -12,12 +12,12 @@ import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import capstone.ms.api.modules.user.entities.User;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = {ObjectiveMapper.class, ReservationMapper.class})
+@Mapper(componentModel = "spring", uses = {ObjectiveMapper.class, ReservationMapper.class, TripmateMapper.class})
 public interface TripMapper {
 
     @Mapping(source = "owner", target = "owner", qualifiedByName = "userToPublicUserInfo")
     @Mapping(source = "objectives", target = "objectives")
-    @Mapping(target = "tripmates", ignore = true)
+    @Mapping(source = "tripmates", target = "tripmates")
     @Mapping(source = "reservations", target = "reservations")
     @Mapping(source = "wishlistPlaces", target = "wishlistPlaces")
     @Mapping(source = "dailyPlans", target = "dailyPlans")
