@@ -7,10 +7,10 @@ import { Hand, Mail, Plus, Trash2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 
-import ManualReservation from './components/manual-reservation';
-import EditReservation from './components/edit-reservation';
-import UploadReservation from './components/upload-reservation';
-import EmailReservation from './components/email-reservation';
+import ManualReservation from './components/reservation/manual-reservation';
+import EditReservation from './components/reservation/edit-reservation';
+import UploadReservation from './components/reservation/upload-reservation';
+import EmailReservation from './components/reservation/email-reservation';
 import { addReservation, removeReservation } from '@/store/trip-detail-slice';
 import SectionCard from '@/components/trip/overview/section-card';
 import { useFullPageLoading } from '@/components/full-page-loading';
@@ -51,7 +51,7 @@ const TripOverviewPage = () => {
   const router = useRouter();
   const { tripOverview } = useTripSelector();
   const { mutate: deleteReservation, isPending } = useDeleteReservation();
-
+  
   const { FullPageLoading } = useFullPageLoading();
 
   const { t } = useTranslation('trip_overview');
@@ -218,27 +218,60 @@ const TripOverviewPage = () => {
             )}
 
             {/* Add reservation */}
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <AddItemButton label={t('sectionCard.reservation.button')} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center">
-                  <DropdownMenuItem onClick={openManualReservationDialog}>
-                    <Hand size={18} />
-                    {t('sectionCard.reservation.dropdown.Manual')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={openEmailReservationDialog}>
-                    <Mail size={18} />
-                    {t('sectionCard.reservation.dropdown.Email')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={openUploadReservationDialog}>
-                    <Upload size={18} />
-                    {t('sectionCard.reservation.dropdown.Upload')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </Box>
+            {hasReservation && (
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="contained" startIcon={<Plus />}>
+                      {t('sectionCard.reservation.button')}
+                    </Button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="center">
+                    <DropdownMenuItem onClick={openManualReservationDialog}>
+                      <Hand size={18} />
+                      {t('sectionCard.reservation.dropdown.Manual')}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={openEmailReservationDialog}>
+                      <Mail size={18} />
+                      {t('sectionCard.reservation.dropdown.Email')}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={openUploadReservationDialog}>
+                      <Upload size={18} />
+                      {t('sectionCard.reservation.dropdown.Upload')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </Box>
+            )}
+            {!hasReservation && (
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <AddItemButton label={t('sectionCard.reservation.button')} />
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="center">
+                    <DropdownMenuItem onClick={openManualReservationDialog}>
+                      <Hand size={18} />
+                      {t('sectionCard.reservation.dropdown.Manual')}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={openEmailReservationDialog}>
+                      <Mail size={18} />
+                      {t('sectionCard.reservation.dropdown.Email')}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={openUploadReservationDialog}>
+                      <Upload size={18} />
+                      {t('sectionCard.reservation.dropdown.Upload')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </Box>
+            )}
           </Box>
         </SectionCard>
 
