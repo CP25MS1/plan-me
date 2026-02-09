@@ -8,4 +8,5 @@ import java.util.List;
 public interface PendingTripmateInvitationRepository extends JpaRepository<PendingTripmateInvitation, Integer> {
     boolean existsPendingTripmateInvitationByTripIdAndUserId(Integer tripId, Integer userId);
     List<PendingTripmateInvitation> findByTripId(Integer tripId);
+    List<PendingTripmateInvitation> findByUserId(Integer userId);
 }

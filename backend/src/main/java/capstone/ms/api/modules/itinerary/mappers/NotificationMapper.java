@@ -10,7 +10,8 @@ import org.mapstruct.*;
 public interface NotificationMapper {
 
     @Mapping(source = "actorUser", target = "actor", qualifiedByName = "userToPublicUserInfo")
-    @Mapping(source = "trip.id", target = "tripId")
+    @Mapping(source = "trip.id", target = "tripRef.tripId")
+    @Mapping(source = "trip.name", target = "tripRef.tripName")
     NotificationDto toNotificationDto(Notification notification);
 
     @Named("userToPublicUserInfo")

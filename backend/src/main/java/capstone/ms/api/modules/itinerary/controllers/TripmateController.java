@@ -1,9 +1,6 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
-import capstone.ms.api.modules.itinerary.dto.tripmate.InviteActionResponseDto;
-import capstone.ms.api.modules.itinerary.dto.tripmate.InviteTripRequestDto;
-import capstone.ms.api.modules.itinerary.dto.tripmate.InviteTripResponseDto;
-import capstone.ms.api.modules.itinerary.dto.tripmate.TripmateResponseDto;
+import capstone.ms.api.modules.itinerary.dto.tripmate.*;
 import capstone.ms.api.modules.itinerary.services.TripmateService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.validation.Valid;
@@ -13,11 +10,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/trips")
 public class TripmateController {
     private final TripmateService tripmateService;
+
+    @GetMapping("/pending-invitations/me")
+    public ResponseEntity<List<PendingInvitationDto>> getMyReceivedInvitations(@AuthenticationPrincipal User currentUser) {
+        return ResponseEntity.ok(tripmateService.getReceivedInvitations(currentUser));
+    }
 
     @PostMapping("/{tripId}/invites")
     public ResponseEntity<InviteTripResponseDto> inviteTripmates(@PathVariable Integer tripId,
