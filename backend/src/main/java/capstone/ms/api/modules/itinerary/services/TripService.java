@@ -145,7 +145,6 @@ public class TripService {
 
     @Transactional
     public UpdateWishlistPlaceNoteDto updateWishlistPlaceNote(User currentUser, Integer tripId, Integer placeId, UpdateWishlistPlaceNoteDto newNote) {
-        Trip trip = loadTripOrThrow(tripId);
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
         WishlistPlace wp = wishlistPlaceRepository.findByIdAndTripId(placeId, tripId)
@@ -161,7 +160,6 @@ public class TripService {
 
     @Transactional
     public void removePlaceFromWishlist(User currentUser, Integer tripId, Integer placeId) {
-        Trip trip = loadTripOrThrow(tripId);
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
         WishlistPlace wp = wishlistPlaceRepository.findByIdAndTripId(placeId, tripId)

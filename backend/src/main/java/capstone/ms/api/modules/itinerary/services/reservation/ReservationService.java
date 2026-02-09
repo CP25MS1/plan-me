@@ -1,7 +1,6 @@
 package capstone.ms.api.modules.itinerary.services.reservation;
 
 import capstone.ms.api.common.exceptions.BadRequestException;
-import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.email.dto.EmailInfoDto;
 import capstone.ms.api.modules.email.services.EmailInboxService;
