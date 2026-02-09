@@ -29,8 +29,8 @@ public class TripmateService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
     private final TripmateRepository tripmateRepository;
-    private final NotificationService notificationService;
     private final PendingTripmateInvitationRepository pendingTripmateInvitationRepository;
+    private final NotificationService notificationService;
     private final TripmateMapper tripmateMapper;
 
     @Transactional
