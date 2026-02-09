@@ -7,10 +7,13 @@ import capstone.ms.api.modules.itinerary.dto.WishlistPlaceDto;
 import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.WishlistPlace;
+import capstone.ms.api.modules.itinerary.entities.tripmate.Tripmate;
 import capstone.ms.api.modules.itinerary.repositories.BasicObjectiveRepository;
 import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import capstone.ms.api.modules.user.entities.User;
 import org.mapstruct.*;
+
+import java.util.Set;
 
 @Mapper(componentModel = "spring", uses = {ObjectiveMapper.class, ReservationMapper.class, TripmateMapper.class})
 public interface TripMapper {
@@ -56,6 +59,15 @@ public interface TripMapper {
                 .profilePicUrl(user.getProfilePicUrl())
                 .build();
     }
+
+    default Set<PublicUserInfo> mapTripmatesToPublicUsers(Set<Tripmate> tripmates) {
+        if (tripmates == null) return null;
+        return tripmates.stream()
+                .map(Tripmate::getUser)
+                .map(this::mapUserToPublicUserInfo)
+                .collect(java.util.stream.Collectors.toSet());
+    }
+
 
     default WishlistPlaceDto mapWishlistPlaceToDto(WishlistPlace wp) {
         if (wp == null) return null;
