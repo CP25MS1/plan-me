@@ -21,7 +21,7 @@ public class TripOverviewDto {
     private final LocalDate endDate;
     private final PublicUserInfo owner;
     private final Set<MergedObjective> objectives;
-    private final Set<TripmateDto> tripmates;
+    private final Set<PublicUserInfo> tripmates;
     private final Set<ReservationDto> reservations;
     private final Set<WishlistPlaceDto> wishlistPlaces;
     private final Set<DailyPlan> dailyPlans;
