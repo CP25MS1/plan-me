@@ -6,8 +6,8 @@ import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.tripmate.*;
 import capstone.ms.api.modules.itinerary.entities.NotificationCode;
-import capstone.ms.api.modules.itinerary.entities.tripmate.PendingTripmateInvitation;
 import capstone.ms.api.modules.itinerary.entities.Trip;
+import capstone.ms.api.modules.itinerary.entities.tripmate.PendingTripmateInvitation;
 import capstone.ms.api.modules.itinerary.entities.tripmate.Tripmate;
 import capstone.ms.api.modules.itinerary.entities.tripmate.TripmateId;
 import capstone.ms.api.modules.itinerary.mappers.TripmateMapper;
@@ -15,6 +15,7 @@ import capstone.ms.api.modules.itinerary.repositories.PendingTripmateInvitationR
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripmateRepository;
 import capstone.ms.api.modules.user.entities.User;
+import capstone.ms.api.modules.user.mappers.UserMapper;
 import capstone.ms.api.modules.user.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,21 @@ public class TripmateService {
     private final PendingTripmateInvitationRepository pendingTripmateInvitationRepository;
     private final NotificationService notificationService;
     private final TripmateMapper tripmateMapper;
+    private final UserMapper userMapper;
+
+    public List<PendingInvitationDto> getReceivedInvitations(final User user) {
+        final Integer userId = user.getId();
+        var pendingInvitations = pendingTripmateInvitationRepository.findByUserId(userId);
+        return pendingInvitations.stream()
+                .map(invitation ->
+                        PendingInvitationDto.builder()
+                                .invitationId(invitation.getId())
+                                .inviter(userMapper.userToPublicUserInfo(invitation.getInviter()))
+                                .tripId(invitation.getTrip().getId())
+                                .build()
+                )
+                .toList();
+    }
 
     @Transactional
     public InviteTripResponseDto inviteTripmates(Integer tripId, User currentUser, InviteTripRequestDto request) {
