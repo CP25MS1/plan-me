@@ -153,9 +153,7 @@ public class DailyPlanService {
 
     private void checkTripAccess(User user, Integer tripId) {
         tripResourceService.getTripOrThrow(tripId);
-        if (!tripAccessService.hasAccess(user, tripId)) {
-            throw new ForbiddenException("trip.403");
-        }
+        tripAccessService.assertTripmateLevelAccess(user, tripId);
     }
 
     private Short getScheduledPlaceNextOrder(Integer planId) {
