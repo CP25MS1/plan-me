@@ -1,9 +1,4 @@
-import dayjs from 'dayjs';
-import buddhistEra from 'dayjs/plugin/buddhistEra';
-import 'dayjs/locale/th';
-import 'dayjs/locale/en';
-
-dayjs.extend(buddhistEra);
+import dayjs from './dayjs';
 
 export const formatDateByLocale = (date: string | Date, locale: 'en' | 'th'): string => {
   const d = dayjs(date);
