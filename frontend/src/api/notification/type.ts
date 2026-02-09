@@ -1,14 +1,13 @@
 import { PublicUserInfo } from '@/api/users';
 
-export type NotificationCode =
-  | 'INVITE_SENT'
-  | 'INVITE_ACCEPTED'
-  | 'INVITE_REJECTED'
-  | 'TRIP_UPDATED';
+export type NotificationCode = 'INVITE_PENDING' | 'INVITE_ACCEPTED' | 'INVITE_REJECTED';
 
 export interface NotificationDto {
   id: number;
-  tripId: number;
+  tripRef: {
+    tripId: number;
+    tripName: string | null;
+  };
   notiCode: NotificationCode;
   actor: PublicUserInfo;
   isRead: boolean;
