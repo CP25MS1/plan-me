@@ -45,7 +45,7 @@ public class EmailReservationExtractionService {
             List<ReservationPreviewRequest> requests,
             User currentUser
     ) {
-        if (!tripAccessService.hasAccess(currentUser, tripId)) throw new ForbiddenException("trip.403");
+        tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
         log.info(
                 "Start previewReservations: tripId={}, userId={}, requestCount={}",
