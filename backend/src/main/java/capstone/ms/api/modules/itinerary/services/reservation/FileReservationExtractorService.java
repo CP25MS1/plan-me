@@ -39,9 +39,7 @@ public class FileReservationExtractorService {
     private final ReservationMapper reservationMapper;
 
     public List<ReservationDto> previewReservationsFiles(Integer tripId, List<MultipartFile> files, List<String> types, User currentUser) {
-        if (!tripAccessService.hasAccess(currentUser, tripId)) {
-            throw new ForbiddenException("trip.403");
-        }
+        tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
         validateFilesRequest(files, types);
         validateTotalFileSize(files);
