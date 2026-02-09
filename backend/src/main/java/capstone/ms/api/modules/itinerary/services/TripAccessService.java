@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.services;
 
+import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
@@ -26,6 +27,12 @@ public class TripAccessService {
         boolean isTripmate = tripmateRepository.existsTripmateByTripIdAndUserId(tripId, user.getId());
 
         return isOwner || isTripmate;
+    }
+
+    public void assertTripmateLevelAccess(User user, Integer tripId) {
+        if (!hasTripmateLevelAccess(user, tripId)) {
+            throw new ForbiddenException("trip.403");
+        }
     }
 
     private Trip getTripOrThrow(Integer tripId) {
