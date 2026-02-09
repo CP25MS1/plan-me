@@ -6,6 +6,7 @@ import constantReducer from './constant-slice';
 import tripOverviewReducer from './trip-detail-slice';
 import routeReducer from './route-slice';
 import inviteReducer from './invite-slice';
+import notificationsReducer from './notifications-slice'
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     tripDetail: tripOverviewReducer,
     route: routeReducer,
     invite: inviteReducer,
+    notifications: notificationsReducer,
   },
 });
 
