@@ -1,6 +1,5 @@
 package capstone.ms.api.modules.itinerary.services.daily_plan;
 
-import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.CreateScheduledPlaceRequest;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.ScheduledPlaceDto;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.UpdateScheduledPlaceRequest;
