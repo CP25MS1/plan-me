@@ -39,6 +39,7 @@ public class TripService {
     private final WishlistPlaceRepository wishlistPlaceRepository;
     private final GoogleMapPlaceRepository googleMapPlaceRepository;
     private final DailyPlanRepository dailyPlanRepository;
+    private final TripAccessService tripAccessService;
 
     @Transactional
     public TripOverviewDto createTrip(UpsertTripDto tripInfo, User tripOwner) {
@@ -68,7 +69,7 @@ public class TripService {
 
     public TripOverviewDto getTripOverview(Integer tripId, User currentUser) {
         Trip trip = loadTripOrThrow(tripId);
-        ensureOwnerOrThrow(currentUser, trip);
+        tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
         return tripMapper.tripToTripOverviewDto(trip);
     }
 
@@ -122,7 +123,7 @@ public class TripService {
     @Transactional
     public WishlistPlaceDto addPlaceToWishlist(Integer tripId, String ggmpId, User currentUser) {
         Trip trip = loadTripOrThrow(tripId);
-        ensureOwnerOrThrow(currentUser, trip);
+        tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
         GoogleMapPlace place = googleMapPlaceRepository.findById(ggmpId)
                 .orElseThrow(() -> new NotFoundException("place.404"));
@@ -145,7 +146,7 @@ public class TripService {
     @Transactional
     public UpdateWishlistPlaceNoteDto updateWishlistPlaceNote(User currentUser, Integer tripId, Integer placeId, UpdateWishlistPlaceNoteDto newNote) {
         Trip trip = loadTripOrThrow(tripId);
-        ensureOwnerOrThrow(currentUser, trip);
+        tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
         WishlistPlace wp = wishlistPlaceRepository.findByIdAndTripId(placeId, tripId)
                 .orElseThrow(() -> new NotFoundException("place.404"));
@@ -161,7 +162,7 @@ public class TripService {
     @Transactional
     public void removePlaceFromWishlist(User currentUser, Integer tripId, Integer placeId) {
         Trip trip = loadTripOrThrow(tripId);
-        ensureOwnerOrThrow(currentUser, trip);
+        tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
         WishlistPlace wp = wishlistPlaceRepository.findByIdAndTripId(placeId, tripId)
                 .orElseThrow(() -> new NotFoundException("place.404"));
