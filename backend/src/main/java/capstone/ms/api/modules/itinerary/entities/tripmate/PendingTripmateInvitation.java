@@ -33,4 +33,9 @@ public class PendingTripmateInvitation {
     @JoinColumn(name = "trip_id", nullable = false)
     private Trip trip;
 
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "inviter_id", nullable = false)
+    private User inviter;
 }
