@@ -2,9 +2,10 @@ import { apiClient } from '@/api/client';
 import { PublicUserInfo } from '@/api/users';
 
 import {
+  InviteActionResponseDto,
   InviteTripRequestDto,
   InviteTripResponseDto,
-  InviteActionResponseDto,
+  PendingInvitationDto,
   TripmateResponseDto,
 } from './type';
 
@@ -45,5 +46,11 @@ export const rejectTripInvite = async (
 
 export const getTripmates = async (tripId: number): Promise<TripmateResponseDto> => {
   const { data } = await apiClient.get(`/trips/${tripId}/tripmates`);
+  return data;
+};
+
+// ================= PENDING INVITATIONS =================
+export const getMyReceivedInvitations = async () => {
+  const { data } = await apiClient.get<PendingInvitationDto[]>('/trips/pending-invitations/me');
   return data;
 };

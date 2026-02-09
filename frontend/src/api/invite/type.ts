@@ -43,3 +43,9 @@ export interface TripmateResponseDto {
   joined: JoinedTripmateDto[];
   pending: PendingTripmateDto[];
 }
+
+export type PendingInvitationDto = {
+  invitationId: number;
+  inviter: PublicUserInfo;
+  tripId: number;
+}
