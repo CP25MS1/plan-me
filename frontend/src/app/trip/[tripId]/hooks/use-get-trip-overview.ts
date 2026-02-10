@@ -14,6 +14,7 @@ export const useGetTripOverview = (tripId: number) => {
     queryKey: ['trip-overview', tripId],
     queryFn: () => getTripOverview(tripId),
     enabled: !!tripId,
+    retry: false,
   });
 
   useEffect(() => {
