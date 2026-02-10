@@ -3,6 +3,7 @@
 import { ReactNode, useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
+import { AxiosError } from 'axios';
 
 import { Container } from '@mui/material';
 
@@ -16,6 +17,7 @@ import useGetTripOverview from './hooks/use-get-trip-overview';
 import useUpdateTripOverview from './hooks/use-update-trip-overview';
 import { UpsertTrip } from '@/api/trips';
 import { setTripOverview } from '@/store/trip-detail-slice';
+import TripForbiddenPage from '@/app/trip/[tripId]/components/trip-forbidden-page';
 
 type TripLayoutProps = {
   params: { tripId: string };
@@ -40,8 +42,12 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
   };
 
   const tripIdAsNumber = Number(params.tripId);
-  const { overview: tripOverview, isLoading: isTripOverviewLoading } =
-    useGetTripOverview(tripIdAsNumber);
+  const {
+    overview: tripOverview,
+    isLoading: isTripOverviewLoading,
+    error,
+    isError,
+  } = useGetTripOverview(tripIdAsNumber);
 
   const { mutate: updateTrip } = useUpdateTripOverview(tripIdAsNumber);
   const handleSave = useCallback(
@@ -60,6 +66,10 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
       dispatch(setTripOverview(tripOverview));
     }
   }, [dispatch, tripOverview]);
+
+  if (isError && (error as AxiosError)?.response?.status === 403) {
+    return <TripForbiddenPage />;
+  }
 
   if (isTripOverviewLoading || !tripOverview) return <FullPageLoading />;
 
