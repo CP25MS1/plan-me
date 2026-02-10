@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useInvitationFromNotification } from '@/app/notifications/helpers/use-invitation-from-notification';
 import { useReadNotification } from '@/app/hooks/use-read-notification';
 import { useDispatch } from 'react-redux';
-import { markNotificationAsRead } from '@/store/notifications-slice';
+import { updateNotification } from '@/store/notifications-slice';
 
 export const NotificationItem = ({ notification }: { notification: NotificationDto }) => {
   const dispatch = useDispatch();
@@ -24,11 +24,10 @@ export const NotificationItem = ({ notification }: { notification: NotificationD
   const { mutate: readNotification } = useReadNotification();
 
   const handleOnClick = () => {
-    readNotification(notificationId, {
-      onSuccess: () => {
-        dispatch(markNotificationAsRead({ notificationId }));
-      },
-    });
+    if (!notification.isRead) {
+      dispatch(updateNotification({ ...notification, isRead: true }));
+      readNotification(notificationId);
+    }
 
     if (isInvitePendingNotification) {
       if (matchedInvitation) {
