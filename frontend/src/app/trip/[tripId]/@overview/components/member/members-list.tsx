@@ -2,23 +2,15 @@
 
 import { Box, Typography, Avatar, Checkbox } from '@mui/material';
 import { TruncatedTooltip } from '@/components/atoms';
-
-interface Member {
-  userId: number;
-  invitationId?: number;
-  username: string;
-  email: string;
-  profilePicUrl?: string;
-}
+import { InviteUser } from '@/store/invite-slice';
 
 interface Props {
-  data?: Member[];
+  data?: InviteUser[];
   emptyText: string;
   selectable?: boolean;
   selectedIds?: number[];
   onToggle?: (id: number, checked: boolean) => void;
 }
-
 export default function TripMembers({
   data,
   emptyText,
@@ -47,7 +39,7 @@ export default function TripMembers({
       {hasData ? (
         data!.map((m) => (
           <Box
-            key={m.invitationId ?? m.userId}
+            key={m.id}
             display="flex"
             alignItems="center"
             gap={2}
@@ -60,8 +52,8 @@ export default function TripMembers({
           >
             {selectable && (
               <Checkbox
-                checked={selectedIds.includes(m.userId)}
-                onChange={(e, checked) => onToggle?.(m.userId, checked)}
+                checked={selectedIds.includes(m.id)}
+                onChange={(e, checked) => onToggle?.(m.id, checked)}
               />
             )}
 
