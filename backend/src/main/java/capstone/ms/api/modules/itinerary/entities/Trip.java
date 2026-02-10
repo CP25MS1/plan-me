@@ -56,4 +56,8 @@ public class Trip {
 
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<DailyPlan> dailyPlans = new LinkedHashSet<>();
+
+    @NotNull
+    @Column(name = "invitation_code", nullable = false, length = Integer.MAX_VALUE)
+    private String invitationCode;
 }
