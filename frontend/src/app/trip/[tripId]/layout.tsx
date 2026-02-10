@@ -65,7 +65,21 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
 
   const tripOverviewProps: OverviewHeaderProps['tripOverview'] = {
     tripName: tripOverview.name,
-    members: [tripOverview.owner.profilePicUrl],
+    members: [
+      {
+        id: tripOverview.owner.id,
+        username: tripOverview.owner.username,
+        profilePicUrl: tripOverview.owner.profilePicUrl,
+      },
+      ...(tripOverview.tripmates ?? [])
+        .filter((m) => m.id !== tripOverview.owner.id)
+        .map((m) => ({
+          id: m.id,
+          username: m.username,
+          profilePicUrl: m.profilePicUrl,
+        })),
+    ],
+
     objectives: tripOverview.objectives,
     startDate: tripOverview.startDate,
     endDate: tripOverview.endDate,

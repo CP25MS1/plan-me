@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 import { useGetTripmates } from '@/app/trip/[tripId]/@overview/hooks/invite/use-get-tripmates';
 import TripMembers from './members-list';
+import { useAppSelector } from '@/store';
 
 export default function MembersModal({
   open,
@@ -17,6 +18,27 @@ export default function MembersModal({
   tripId: number;
 }) {
   const { data } = useGetTripmates(tripId);
+  const me = useAppSelector((s) => s.profile.currentUser);
+
+  if (!data) return null;
+
+  const joined = me
+    ? [
+        ...data.joined,
+        {
+          userId: me.id,
+          username: me.username,
+          email: me.email,
+          profilePicUrl: me.profilePicUrl,
+        },
+      ]
+    : data.joined;
+
+  const pending = data.pending;
+
+  // if (!data) return null;
+  // const joined = [...data.joined, me];
+  // const pending = data.pending;
 
   return (
     <Dialog
@@ -61,7 +83,7 @@ export default function MembersModal({
       >
         <Tabs defaultValue="joined" variant="underline" fullWidth>
           <TabsList className="justify-center">
-            <TabsTrigger value="joined">อยู่ในทริปแล้ว ({data?.joined.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="joined">อยู่ในทริปแล้ว ({joined.length})</TabsTrigger>
 
             <TabsTrigger value="pending">กำลังถูกเชิญ ({data?.pending.length ?? 0})</TabsTrigger>
           </TabsList>
@@ -72,11 +94,11 @@ export default function MembersModal({
               className="w-full flex justify-center"
               style={{ minHeight: 0 }}
             >
-              <TripMembers data={data?.joined} emptyText="ยังไม่มีสมาชิก" />
+              <TripMembers data={joined} emptyText="ยังไม่มีสมาชิก" />
             </TabsContent>
 
             <TabsContent value="pending" className="w-full flex justify-center">
-              <TripMembers data={data?.pending} emptyText="ไม่มีคำเชิญค้างอยู่" />
+              <TripMembers data={pending} emptyText="ไม่มีคำเชิญค้างอยู่" />
             </TabsContent>
           </Box>
         </Tabs>
