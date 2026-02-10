@@ -77,6 +77,10 @@ const OverviewHeader = ({
   const [openShareDialog, setOpenShareDialog] = useState(false);
   const [openMembers, setOpenMembers] = useState(false);
 
+  const { tripId } = useParams<{ tripId: string }>();
+  const [openShareDialog, setOpenShareDialog] = useState(false);
+  const [openMembers, setOpenMembers] = useState(false);
+
   // ----------------------------
   // TRIP NAME
   // ----------------------------
