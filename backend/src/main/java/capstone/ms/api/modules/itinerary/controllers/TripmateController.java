@@ -23,6 +23,24 @@ public class TripmateController {
         return ResponseEntity.ok(tripmateService.getReceivedInvitations(currentUser));
     }
 
+    @GetMapping("/{tripId}/invitation-code")
+    public ResponseEntity<String> getTripInvitationCode(
+                    @PathVariable Integer tripId,
+                    @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(tripmateService.getTripInvitationCode(tripId, currentUser));
+    }
+
+    @PostMapping("/{tripId}/invitation-code/apply")
+    public ResponseEntity<Void> respondToInvitation(
+            @PathVariable Integer tripId,
+            @Valid @RequestBody RespondInvitationRequest request,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        tripmateService.respondToInvitation(tripId, request, currentUser);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{tripId}/invites")
     public ResponseEntity<InviteTripResponseDto> inviteTripmates(@PathVariable Integer tripId,
                                                                  @Valid @RequestBody InviteTripRequestDto request,
