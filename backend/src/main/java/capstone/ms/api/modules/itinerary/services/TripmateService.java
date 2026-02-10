@@ -49,6 +49,63 @@ public class TripmateService {
                 .toList();
     }
 
+    public String getTripInvitationCode(final Integer tripId, final User user) {
+        Trip trip = loadTripOrThrow(tripId);
+
+        if (!trip.getOwner().getId().equals(user.getId())) {
+            throw new ForbiddenException("tripmate.invite.403.ownerOnly");
+        }
+
+        return trip.getInvitationCode();
+    }
+
+    @Transactional
+    public void respondToInvitation(final Integer tripId, final RespondInvitationRequest request, final User user) {
+        final String status = request.getStatus();
+
+        if (!status.equals("ACCEPTED") && !status.equals("REJECTED")) {
+            throw new BadRequestException("400");
+        }
+
+        final Trip trip = loadTripOrThrow(tripId);
+
+        if (!trip.getInvitationCode().equals(request.getInvitationCode())) {
+            throw new ForbiddenException("403");
+        }
+
+        if (status.equals("ACCEPTED")) {
+            if (tripmateRepository.existsTripmateByTripIdAndUserId(tripId, user.getId())) {
+                throw new ConflictException("tripmate.inviteAction.409.alreadyJoined");
+            }
+
+            final TripmateId id = new TripmateId();
+            id.setTripId(trip.getId());
+            id.setUserId(user.getId());
+
+            final Tripmate tripmate = new Tripmate();
+            tripmate.setId(id);
+            tripmate.setTrip(trip);
+            tripmate.setUser(user);
+
+            tripmateRepository.save(tripmate);
+
+            notificationService.createNotification(
+                    NotificationCode.INVITE_ACCEPTED.name(),
+                    user,
+                    trip.getOwner(),
+                    trip
+            );
+        } else {
+            notificationService.createNotification(
+                    NotificationCode.INVITE_REJECTED.name(),
+                    user,
+                    trip.getOwner(),
+                    trip
+            );
+
+        }
+    }
+
     @Transactional
     public InviteTripResponseDto inviteTripmates(Integer tripId, User currentUser, InviteTripRequestDto request) {
         Trip trip = loadTripOrThrow(tripId);
