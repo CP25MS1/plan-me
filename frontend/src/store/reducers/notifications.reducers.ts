@@ -1,15 +1,14 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 import { NotificationsState } from '@/store/notifications-slice';
+import { NotificationDto } from '@/api/notification';
 
 export const notificationsReducers = {
   receiveNotifications(state: NotificationsState, { payload }: PayloadAction<NotificationsState>) {
     state.push(...payload);
   },
-  markNotificationAsRead(
-    state: NotificationsState,
-    { payload }: PayloadAction<{ notificationId: number }>
-  ) {
-    const readId = state.findIndex((n) => n.id === payload.notificationId);
-    state[readId] = { ...state[readId], isRead: true };
+  updateNotification(state: NotificationsState, { payload }: PayloadAction<NotificationDto>) {
+    const index = state.findIndex((n) => n.id === payload.id);
+    if (index === -1) return;
+    state[index] = payload;
   },
 };
