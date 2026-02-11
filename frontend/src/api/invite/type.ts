@@ -49,3 +49,8 @@ export type PendingInvitationDto = {
   inviter: PublicUserInfo;
   tripId: number;
 }
+
+export type RespondInvitationRequest = {
+  status: 'ACCEPTED' | 'REJECTED';
+  invitationCode: string;
+};
