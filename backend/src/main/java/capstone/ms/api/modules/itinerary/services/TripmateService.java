@@ -73,6 +73,10 @@ public class TripmateService {
             throw new ForbiddenException("403");
         }
 
+        if (trip.getOwner().getId().equals(user.getId())) {
+            throw new BadRequestException("tripmate.inviteAction.400.invalidInvite");
+        }
+
         if (status.equals("ACCEPTED")) {
             if (tripmateRepository.existsTripmateByTripIdAndUserId(tripId, user.getId())) {
                 throw new ConflictException("tripmate.inviteAction.409.alreadyJoined");

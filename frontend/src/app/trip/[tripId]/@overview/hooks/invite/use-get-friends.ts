@@ -7,13 +7,11 @@ import { setFriends } from '@/store/invite-slice';
 import { PublicUserInfo } from '@/api/users';
 import { useEffect } from 'react';
 
-export const FRIENDS_QUERY_KEY = ['friends'] as const;
-
 export const useGetFriends = () => {
   const dispatch = useAppDispatch();
 
   const query = useQuery<PublicUserInfo[]>({
-    queryKey: FRIENDS_QUERY_KEY,
+    queryKey: ['FRIENDS'],
     queryFn: getFriends,
   });
 

@@ -5,6 +5,8 @@ import InvitationActionPage from './invitation-action-page';
 import { decodeBase64Json } from '@/lib/base64-json';
 import { PublicUserInfo } from '@/api/users';
 import { useRespondToInvitation } from '@/app/invitations/use-respond-to-invitation';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 export type InvitationByCodeParams = {
   tripId: number;
@@ -16,14 +18,19 @@ export type InvitationByCodeParams = {
 const InvitationByCodeClient = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const currentUser = useSelector((s: RootState) => s.profile.currentUser);
   const ref = searchParams.get('ref');
 
   const { mutate: respondInvitation } = useRespondToInvitation();
 
-  if (!ref) return null;
+  if (!ref || !currentUser) return null;
 
   const { tripId, tripName, invitationCode, inviter } =
     decodeBase64Json<InvitationByCodeParams>(ref);
+
+  if (inviter.id === currentUser.id) {
+    router.push(`/trip/${tripId}`);
+  }
 
   const handleAccept = () => {
     respondInvitation(
@@ -48,6 +55,6 @@ const InvitationByCodeClient = () => {
       onBack={() => router.push('/home')}
     />
   );
-}
+};
 
 export default InvitationByCodeClient;

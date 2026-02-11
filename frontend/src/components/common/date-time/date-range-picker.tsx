@@ -45,12 +45,14 @@ const DateRangePicker = ({
   label,
   required,
   noOutline = false,
+  disabled = false
 }: {
   value: DateRange;
   onChange: (v: DateRange) => void;
   label?: string;
   required?: boolean;
   noOutline?: boolean;
+  disabled?: boolean
 }) => {
   const { t } = useTranslation('trip_create');
   const { locale } = useI18nSelector();
@@ -170,7 +172,7 @@ const DateRangePicker = ({
           </Typography>
         )}
 
-        <Box ref={anchorRef} onClick={() => setOpen(true)}>
+        <Box ref={anchorRef} onClick={() => !disabled && setOpen(true)}>
           <TextField
             sx={
               noOutline

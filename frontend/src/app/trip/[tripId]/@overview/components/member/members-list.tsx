@@ -1,24 +1,24 @@
 'use client';
 
-import { Box, Typography, Avatar, Checkbox } from '@mui/material';
+import { Avatar, Box, Checkbox, Typography } from '@mui/material';
 import { TruncatedTooltip } from '@/components/atoms';
-import { InviteUser } from '@/store/invite-slice';
+import { PublicUserInfo } from '@/api/users';
 
 interface Props {
-  data?: InviteUser[];
+  members?: PublicUserInfo[];
   emptyText: string;
   selectable?: boolean;
   selectedIds?: number[];
   onToggle?: (id: number, checked: boolean) => void;
 }
 export default function TripMembers({
-  data,
+  members,
   emptyText,
   selectable = false,
   selectedIds = [],
   onToggle,
 }: Props) {
-  const hasData = data && data.length > 0;
+  const hasData = members && members.length > 0;
 
   return (
     <Box
@@ -37,7 +37,7 @@ export default function TripMembers({
       }}
     >
       {hasData ? (
-        data.map((m) => (
+        members.map((m) => (
           <Box
             key={m.id}
             display="flex"
