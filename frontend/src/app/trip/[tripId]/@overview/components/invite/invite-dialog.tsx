@@ -21,11 +21,13 @@ export default function InviteDialog({ open, onClose, tripId }: Props) {
       }}
       fullWidth
       maxWidth="sm"
-      PaperProps={{
-        sx: {
-          borderRadius: 4,
-          px: 2,
-          pb: 2,
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 4,
+            px: 2,
+            pb: 2,
+          },
         },
       }}
     >

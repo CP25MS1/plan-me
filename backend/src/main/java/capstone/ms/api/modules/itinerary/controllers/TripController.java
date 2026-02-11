@@ -41,7 +41,7 @@ public class TripController {
 
     @GetMapping("/me")
     public ResponseEntity<List<TripDto>> getAllTrips(@AuthenticationPrincipal User currentUser) {
-        List<TripDto> trips = tripService.getTripsByUser(currentUser.getId());
+        List<TripDto> trips = tripService.getTripsByUser(currentUser);
         return ResponseEntity.ok(trips);
     }
 

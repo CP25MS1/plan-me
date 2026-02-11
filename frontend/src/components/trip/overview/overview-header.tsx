@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Avatar,
   AvatarGroup,
@@ -31,6 +31,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import InviteDialog from '@/app/trip/[tripId]/@overview/components/invite/invite-dialog';
 import MembersModal from '@/app/trip/[tripId]/@overview/components/member/members-modal';
+import { useTripSelector } from '@/store/selectors';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
@@ -45,7 +46,6 @@ export interface OverviewHeaderProps {
     objectives?: Objective[];
     startDate?: string;
     endDate?: string;
-    canEdit?: boolean;
 
     onUpdateTripName?: (name: string) => void;
     onUpdateDates?: (start?: string, end?: string) => void;
@@ -60,7 +60,6 @@ const OverviewHeader = ({
     objectives = [],
     startDate,
     endDate,
-    canEdit = true,
     onUpdateTripName,
     onUpdateDates,
     onUpdateObjectives,
@@ -74,6 +73,15 @@ const OverviewHeader = ({
   const { tripId } = useParams<{ tripId: string }>();
   const [openShareDialog, setOpenShareDialog] = useState(false);
   const [openMembers, setOpenMembers] = useState(false);
+
+  const currentUser = useSelector((s: RootState) => s.profile.currentUser);
+  const { tripOverview } = useTripSelector();
+  const isTripOwner = useMemo(() => {
+    if (currentUser && tripOverview) {
+      return currentUser.id === tripOverview.owner.id;
+    }
+    return false;
+  }, [currentUser, tripOverview]);
 
   // ----------------------------
   // TRIP NAME
@@ -96,7 +104,7 @@ const OverviewHeader = ({
   };
 
   const handleNameBlur = () => {
-    if (!canEdit) return;
+    if (!isTripOwner) return;
 
     const trimmed = editingName.trim();
     const valueToSave = trimmed; // save "" ถ้า user ไม่ใส่
@@ -108,20 +116,25 @@ const OverviewHeader = ({
   // ----------------------------
   // DATE PICKER
   // ----------------------------
-  const [dateRange, setDateRange] = useState<DateRange>([
-    startDate ? dayjs(startDate) : null,
-    endDate ? dayjs(endDate) : null,
-  ]);
+  const [dateRange, setDateRange] = useState<DateRange>([null, null]);
+
+  useEffect(() => {
+    setDateRange([startDate ? dayjs(startDate) : null, endDate ? dayjs(endDate) : null]);
+  }, [startDate, endDate]);
 
   // ----------------------------
   // OBJECTIVES
   // ----------------------------
-  const [selectedObjectives, setSelectedObjectives] = useState<Objective[]>(objectives);
+  const [selectedObjectives, setSelectedObjectives] = useState<Objective[]>([]);
   const [openObjectiveModal, setOpenObjectiveModal] = useState(false);
+
+  useEffect(() => {
+    setSelectedObjectives(objectives ?? []);
+  }, [objectives]);
 
   const handleObjectiveModalClose = () => {
     setOpenObjectiveModal(false);
-    if (!canEdit) return;
+    if (!isTripOwner) return;
 
     const valid = selectedObjectives.slice(0, MAX_OBJECTIVES).map((o) => ({
       ...o,
@@ -151,7 +164,7 @@ const OverviewHeader = ({
               onChange={(e) => setEditingName(e.target.value)}
               onFocus={handleFocus}
               onBlur={handleNameBlur}
-              disabled={!canEdit}
+              disabled={!isTripOwner}
               placeholder={t('Header.placeholderName')}
               inputProps={{
                 maxLength: 50,
@@ -166,7 +179,6 @@ const OverviewHeader = ({
               }}
               sx={{
                 width: '100%',
-                color: canEdit ? 'inherit' : 'gray',
                 '&::placeholder': { color: '#999' },
               }}
             />
@@ -195,16 +207,15 @@ const OverviewHeader = ({
 
           <Button
             sx={{
-              bgcolor: '#00C46A',
-              color: 'white',
               fontWeight: 600,
               px: 2,
               py: 0.5,
               fontSize: 13,
               borderRadius: '10px',
-              '&:hover': { bgcolor: '#00A85C' },
             }}
+            variant="contained"
             onClick={() => setOpenShareDialog(true)}
+            disabled={!isTripOwner}
           >
             {t('shareButton')}
           </Button>
@@ -231,6 +242,7 @@ const OverviewHeader = ({
                 end ? dayjs(end).format('YYYY-MM-DD') : undefined
               );
             }}
+            disabled={!isTripOwner}
           />
         </Stack>
 
@@ -239,7 +251,7 @@ const OverviewHeader = ({
           direction="row"
           spacing={1}
           alignItems="center"
-          onClick={() => canEdit && setOpenObjectiveModal(true)}
+          onClick={() => isTripOwner && setOpenObjectiveModal(true)}
           sx={{ cursor: 'pointer', maxWidth: 'fit-content' }}
         >
           <IconButton sx={{ paddingX: '0' }}>
@@ -295,7 +307,7 @@ const OverviewHeader = ({
         />
         <MembersModal
           open={openMembers}
-          onClose={() => setOpenMembers(false)}
+          onCloseAction={() => setOpenMembers(false)}
           tripId={Number(tripId)}
         />
       </Stack>

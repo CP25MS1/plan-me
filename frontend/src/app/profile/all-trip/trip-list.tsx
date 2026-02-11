@@ -27,7 +27,7 @@ const formatDate = (dateString?: string | null) => {
   if (!dateString) return '';
 
   const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '-';
+  if (Number.isNaN(date.getTime())) return '-';
 
   return date.toLocaleDateString('th-TH', {
     day: '2-digit',

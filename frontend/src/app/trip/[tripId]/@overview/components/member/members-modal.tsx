@@ -10,41 +10,40 @@ import { useTripSelector } from '@/store/selectors';
 
 export default function MembersModal({
   open,
-  onClose,
+  onCloseAction,
   tripId,
 }: {
   open: boolean;
-  onClose: () => void;
+  onCloseAction: () => void;
   tripId: number;
 }) {
-  const { data } = useGetTripmates(tripId);
+  const { data: tripmate } = useGetTripmates(tripId);
   const { tripOverview } = useTripSelector();
 
-  if (!data || !tripOverview) return null;
+  if (!tripmate || !tripOverview) return null;
 
   const tripOwner = tripOverview.owner;
-  const joined = [...data.joined, tripOwner];
+  const joined = [...tripmate.joined.map((t) => t.user), tripOwner];
 
-  const pending = data.pending;
-
-  console.log('joined: ', joined);
-  console.log('pending: ', pending);
+  const pending = tripmate.pending.map((t) => t.user);
 
   return (
     <Dialog
       open={open}
       onClose={(_, reason) => {
         if (reason === 'backdropClick') return;
-        onClose();
+        onCloseAction();
       }}
       fullWidth
       maxWidth="sm"
-      PaperProps={{
-        sx: {
-          borderRadius: 4,
-          px: 2,
-          pb: 2,
-          overflow: 'visible',
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 4,
+            px: 2,
+            pb: 2,
+            overflow: 'visible',
+          },
         },
       }}
     >
@@ -57,7 +56,7 @@ export default function MembersModal({
         }}
       >
         สมาชิก
-        <IconButton onClick={onClose} sx={{ position: 'absolute', right: 12, top: 12 }}>
+        <IconButton onClick={onCloseAction} sx={{ position: 'absolute', right: 12, top: 12 }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -71,11 +70,14 @@ export default function MembersModal({
           overflow: 'visible',
         }}
       >
+        {/* !NOTE: We won't use components from shadCN anymore */}
         <Tabs defaultValue="joined" variant="underline" fullWidth>
           <TabsList className="justify-center">
             <TabsTrigger value="joined">อยู่ในทริปแล้ว ({joined.length})</TabsTrigger>
 
-            <TabsTrigger value="pending">กำลังถูกเชิญ ({data?.pending.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="pending">
+              กำลังถูกเชิญ ({tripmate?.pending.length ?? 0})
+            </TabsTrigger>
           </TabsList>
 
           <Box mt={3} sx={{ minHeight: 0 }}>
@@ -84,11 +86,11 @@ export default function MembersModal({
               className="w-full flex justify-center"
               style={{ minHeight: 0 }}
             >
-              <TripMembers data={joined} emptyText="ยังไม่มีสมาชิก" />
+              <TripMembers members={joined} emptyText="ยังไม่มีสมาชิก" />
             </TabsContent>
 
             <TabsContent value="pending" className="w-full flex justify-center">
-              <TripMembers data={pending} emptyText="ไม่มีคำเชิญค้างอยู่" />
+              <TripMembers members={pending} emptyText="ไม่มีคำเชิญค้างอยู่" />
             </TabsContent>
           </Box>
         </Tabs>
