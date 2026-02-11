@@ -8,7 +8,7 @@ export interface InviteUser extends PublicUserInfo {
 }
 
 type InviteState = {
-  friends: InviteUser[];
+  friends: PublicUserInfo[];
   tripmates: InviteUser[];
 };
 
@@ -19,25 +19,20 @@ const initialState: InviteState = {
 
 const inviteSlice = createSlice({
   name: 'invite',
-
   initialState,
-
   reducers: {
-    setFriends(state, action: PayloadAction<InviteUser[]>) {
+    setFriends(state, action: PayloadAction<PublicUserInfo[]>) {
       state.friends = action.payload;
     },
-
     setTripmates(state, action: PayloadAction<InviteUser[]>) {
       state.tripmates = action.payload;
     },
-
     addTripmate(state, action: PayloadAction<InviteUser>) {
       const exists = state.tripmates.find((u) => u.id === action.payload.id);
       if (!exists) {
         state.tripmates.push(action.payload);
       }
     },
-
     clearInviteStore(state) {
       state.friends = [];
       state.tripmates = [];

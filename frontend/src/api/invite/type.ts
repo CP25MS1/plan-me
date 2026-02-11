@@ -1,8 +1,5 @@
 import { PublicUserInfo } from '@/api/users';
 
-// ===== Friends =====
-export type FriendResponseDto = PublicUserInfo;
-
 // ===== Invite Trip =====
 export interface InviteTripRequestDto {
   receiverIds: number[];
@@ -27,20 +24,17 @@ export interface InviteActionResponseDto {
 }
 
 // ===== Tripmates =====
-export interface JoinedTripmateDto {
-  userId: number;
-  username: string;
-  email: string;
-  profilePicUrl: string;
+export interface TripmateDto {
+  user: PublicUserInfo
 }
 
-export interface PendingTripmateDto extends JoinedTripmateDto {
+export interface PendingTripmateDto extends TripmateDto {
   invitationId: number;
 }
 
 export interface TripmateResponseDto {
   tripId: number;
-  joined: JoinedTripmateDto[];
+  joined: TripmateDto[];
   pending: PendingTripmateDto[];
 }
 
