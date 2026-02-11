@@ -144,6 +144,7 @@ public class TripmateService {
             PendingTripmateInvitation invitation = new PendingTripmateInvitation();
             invitation.setTrip(trip);
             invitation.setUser(receiver);
+            invitation.setInviter(currentUser);
 
             PendingTripmateInvitation savedInvitation = pendingTripmateInvitationRepository.save(invitation);
 
