@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { Tag, X as XIcon } from 'lucide-react';
 import dayjs, { Dayjs } from 'dayjs';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
 import DateRangePicker from '@/components/common/date-time/date-range-picker';
@@ -31,14 +31,17 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import InviteDialog from '@/app/trip/[tripId]/@overview/components/invite/invite-dialog';
 import MembersModal from '@/app/trip/[tripId]/@overview/components/member/members-modal';
-import { useParams } from 'next/navigation';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
 export interface OverviewHeaderProps {
   tripOverview: {
     tripName: string;
-    members?: string[];
+    members?: {
+      id: number;
+      username: string;
+      profilePicUrl?: string;
+    }[];
     objectives?: Objective[];
     startDate?: string;
     endDate?: string;
@@ -131,6 +134,7 @@ const OverviewHeader = ({
 
   useEffect(
     () => setEditingName(tripName === '' ? t('Header.defaultName') : tripName),
+
     [tripName, t]
   );
 
@@ -171,12 +175,21 @@ const OverviewHeader = ({
 
         <Stack direction="column" alignItems="center" spacing={0.5}>
           <AvatarGroup
-            max={4}
-            sx={{ cursor: 'pointer', '& .MuiAvatar-root': { width: 32, height: 32 } }}
+            max={3}
+            sx={{
+              cursor: 'pointer',
+              '& .MuiAvatar-root': {
+                width: 32,
+                height: 32,
+                fontSize: 12,
+              },
+            }}
             onClick={() => setOpenMembers(true)}
           >
             {members.map((m) => (
-              <Avatar key={m} src={m} />
+              <Avatar key={m.id} src={m.profilePicUrl}>
+                {m.username?.[0]}
+              </Avatar>
             ))}
           </AvatarGroup>
 
