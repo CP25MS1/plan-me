@@ -1,3 +1,5 @@
+'use client'
+
 import InvitationActionPage from '@/app/invitations/invitation-action-page';
 import { useDirectInvitationAction } from '../use-direct-invitation-action';
 
