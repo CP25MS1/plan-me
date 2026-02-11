@@ -3,68 +3,72 @@
 import { useState } from 'react';
 import { Copy } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
-
+import { Box, IconButton, Tooltip } from '@mui/material';
 import { AppSnackbar } from '@/components/common/snackbar/snackbar';
-import { Typography } from '@mui/material';
-
-import { tokens } from '@/providers/theme/design-tokens';
+import { TruncatedTooltip } from '@/components/atoms';
+import { encodeBase64Json } from '@/lib/base64-json';
+import { InvitationByCodeParams } from '@/app/invitations/invitation-by-code-client';
+import { useTripSelector } from '@/store/selectors';
+import { useGetTripInvitationCode } from '@/app/trip/[tripId]/hooks/use-get-trip-invitation-code';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 export default function InviteTripModal({ tripId }: { tripId: number }) {
-  const inviteLink = `https://cp25ms1.sit.kmutt.th/invite/trip/${tripId}`;
+  const { tripOverview } = useTripSelector();
+  const currentUser = useSelector((s: RootState) => s.profile.currentUser);
+  const { data: invitationCode } = useGetTripInvitationCode(tripId);
 
   const [copied, setCopied] = useState(false);
-
   const copy = async () => {
     await navigator.clipboard.writeText(inviteLink);
     setCopied(true);
   };
 
+  if (!tripOverview || !currentUser || !invitationCode) return null;
+
+  const ref = encodeBase64Json({
+    tripId,
+    tripName: tripOverview.name,
+    invitationCode,
+    inviter: {
+      id: currentUser.id,
+      username: currentUser.username,
+      email: currentUser.email,
+      profilePicUrl: currentUser.profilePicUrl,
+    },
+  } as InvitationByCodeParams);
+  const inviteLink = `http://localhost:3000/invitations?ref=${ref}`;
+
   return (
     <div className="w-full flex flex-col items-center">
       <Tabs defaultValue="link" className="w-full">
         <TabsContent value="link">
-          <Typography
+          {/* ===== Link box ===== */}
+          <Box
             sx={{
-              mb: 4,
-              textAlign: 'left',
-              fontWeight: 500,
-              color: tokens.color.textPrimary,
+              width: '100%',
+              maxWidth: 520,
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              bgcolor: '#f5f5f5',
+              borderRadius: 2,
+              border: '1px solid #d0d0d0',
+              px: 2,
+              py: 1.2,
             }}
           >
-            ลิ้งก์คำเชิญ
-          </Typography>
+            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+              <TruncatedTooltip text={inviteLink} className="text-[14px] text-gray-700 truncate" />
+            </Box>
 
-          <div className="space-y-6 flex flex-col items-center">
-            {/* ===== Link box ===== */}
-            <div
-              className="w-full max-w-md flex items-center rounded-full px-5 py-3"
-              style={{
-                border: '1.5px solid #000',
-                boxShadow: '0 6px 14px rgba(0,0,0,0.15)',
-              }}
-            >
-              <span
-                className="flex-1 truncate text-sm"
-                style={{ color: tokens.color.textSecondary }}
-              >
-                {inviteLink}
-              </span>
-            </div>
-
-            {/* ===== Copy Button ===== */}
-            <Button
-              onClick={copy}
-              className="w-[120px] flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-medium text-white shadow-md"
-              style={{
-                backgroundColor: tokens.color.primary,
-              }}
-            >
-              <Copy size={18} />
-              คัดลอก
-            </Button>
-          </div>
+            <Tooltip title="คัดลอกลิงก์">
+              <IconButton onClick={copy} size="small">
+                <Copy size={16} />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </TabsContent>
       </Tabs>
 
