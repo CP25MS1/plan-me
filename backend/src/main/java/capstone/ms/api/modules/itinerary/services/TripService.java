@@ -22,7 +22,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -40,6 +39,7 @@ public class TripService {
     private final WishlistPlaceRepository wishlistPlaceRepository;
     private final GoogleMapPlaceRepository googleMapPlaceRepository;
     private final DailyPlanRepository dailyPlanRepository;
+
     private final TripAccessService tripAccessService;
 
     @Transactional
@@ -173,13 +173,11 @@ public class TripService {
         wishlistPlaceRepository.delete(wp);
     }
 
-    public List<TripDto> getTripsByUser(Integer userId) {
-        List<Trip> trips = tripRepository.findByOwnerId(userId);
-        if (trips == null) {
-            return Collections.emptyList();
-        }
-        return trips.stream()
+    public List<TripDto> getTripsByUser(User user) {
+        List<Trip> accessibleTrips = tripRepository.findAccessibleTrips(user.getId());
+
+        return accessibleTrips.stream()
                 .map(tripMapper::tripToTripDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 }
