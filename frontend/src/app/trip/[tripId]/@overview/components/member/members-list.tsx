@@ -37,7 +37,7 @@ export default function TripMembers({
       }}
     >
       {hasData ? (
-        data!.map((m) => (
+        data.map((m) => (
           <Box
             key={m.id}
             display="flex"

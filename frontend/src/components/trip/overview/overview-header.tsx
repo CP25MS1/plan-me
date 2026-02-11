@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { Tag, X as XIcon } from 'lucide-react';
 import dayjs, { Dayjs } from 'dayjs';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
 import DateRangePicker from '@/components/common/date-time/date-range-picker';
@@ -31,8 +31,6 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import InviteDialog from '@/app/trip/[tripId]/@overview/components/invite/invite-dialog';
 import MembersModal from '@/app/trip/[tripId]/@overview/components/member/members-modal';
-import { useParams } from 'next/navigation';
-import TripOverviewPage from '@/app/trip/[tripId]/@overview/page';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
@@ -72,10 +70,6 @@ const OverviewHeader = ({
   const { t } = useTranslation('trip_overview');
   const router = useRouter();
   const defaultObjectives = useDefaultObjectives();
-
-  const { tripId } = useParams<{ tripId: string }>();
-  const [openShareDialog, setOpenShareDialog] = useState(false);
-  const [openMembers, setOpenMembers] = useState(false);
 
   const { tripId } = useParams<{ tripId: string }>();
   const [openShareDialog, setOpenShareDialog] = useState(false);

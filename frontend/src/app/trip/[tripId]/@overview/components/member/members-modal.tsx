@@ -1,12 +1,12 @@
 'use client';
 
-import { Box, Dialog, DialogTitle, IconButton, DialogContent } from '@mui/material';
+import { Box, Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { useGetTripmates } from '@/app/trip/[tripId]/@overview/hooks/invite/use-get-tripmates';
 import TripMembers from './members-list';
-import { useAppSelector } from '@/store';
+import { useTripSelector } from '@/store/selectors';
 
 export default function MembersModal({
   open,
@@ -18,27 +18,17 @@ export default function MembersModal({
   tripId: number;
 }) {
   const { data } = useGetTripmates(tripId);
-  const me = useAppSelector((s) => s.profile.currentUser);
+  const { tripOverview } = useTripSelector();
 
-  if (!data) return null;
+  if (!data || !tripOverview) return null;
 
-  const joined = me
-    ? [
-        ...data.joined,
-        {
-          userId: me.id,
-          username: me.username,
-          email: me.email,
-          profilePicUrl: me.profilePicUrl,
-        },
-      ]
-    : data.joined;
+  const tripOwner = tripOverview.owner;
+  const joined = [...data.joined, tripOwner];
 
   const pending = data.pending;
 
-  // if (!data) return null;
-  // const joined = [...data.joined, me];
-  // const pending = data.pending;
+  console.log('joined: ', joined);
+  console.log('pending: ', pending);
 
   return (
     <Dialog

@@ -6,6 +6,7 @@ import {
   InviteTripRequestDto,
   InviteTripResponseDto,
   PendingInvitationDto,
+  RespondInvitationRequest,
   TripmateResponseDto,
 } from './type';
 
@@ -53,4 +54,14 @@ export const getTripmates = async (tripId: number): Promise<TripmateResponseDto>
 export const getMyReceivedInvitations = async () => {
   const { data } = await apiClient.get<PendingInvitationDto[]>('/trips/pending-invitations/me');
   return data;
+};
+
+// ================= INVITATION CODE =================
+export const getTripInvitationCode = async (tripId: number) => {
+  const { data } = await apiClient.get<string>(`/trips/${tripId}/invitation-code`);
+  return data;
+};
+
+export const respondToInvitation = async (tripId: number, request: RespondInvitationRequest) => {
+  await apiClient.post(`/trips/${tripId}/invitation-code/apply`, request);
 };

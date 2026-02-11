@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +47,10 @@ public class TripService {
         validateDates(tripInfo.getStartDate(), tripInfo.getEndDate());
 
         final Trip tripEntity = tripMapper.tripDtoToEntity(tripInfo, tripOwner, objectiveMapper, basicObjectiveRepository);
+        final UUID uuid = UUID.randomUUID();
+        final String invitationCode = uuid.toString();
+
+        tripEntity.setInvitationCode(invitationCode);
         final Trip saved = tripRepository.save(tripEntity);
 
         syncDailyPlans(saved);
