@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useCallback, useEffect } from 'react';
+import { ReactNode, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { AxiosError } from 'axios';
@@ -60,12 +60,6 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
   );
 
   const { FullPageLoading } = useFullPageLoading();
-
-  useEffect(() => {
-    if (tripOverview) {
-      dispatch(setTripOverview(tripOverview));
-    }
-  }, [dispatch, tripOverview]);
 
   if (isError && (error as AxiosError)?.response?.status === 403) {
     return <TripForbiddenPage />;

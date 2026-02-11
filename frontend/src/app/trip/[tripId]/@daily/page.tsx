@@ -13,14 +13,15 @@ import { useI18nSelector, useTripSelector } from '@/store/selectors';
 import { formatDateByLocale, sortByDateAsc } from '@/lib/date';
 import { Plus } from 'lucide-react';
 import SearchForScheduledPlacesDialog from './components/search-for-scheduled-places-dialog';
-import { DailyPlanContext } from '@/app/trip/[tripId]/@daily/context/daily-plan-context';
-import { useOpeningDialogContext } from '@/app/trip/[tripId]/@daily/context/opening-dialog-context';
-import { processReorder } from '@/app/trip/[tripId]/@daily/helpers/process-order';
-import { useUpdateScheduledPlace } from '@/app/trip/[tripId]/@daily/hooks/use-scheduled-place-mutation';
+import { DailyPlanContext } from './context/daily-plan-context';
+import { useOpeningDialogContext } from './context/opening-dialog-context';
+import { processReorder } from './helpers/process-order';
+import { useUpdateScheduledPlace } from './hooks/use-scheduled-place-mutation';
 import { useParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import TravelSegmentSelect from '@/app/trip/[tripId]/@daily/components/travel-segment-select';
-import { sanitizeStyle } from '@/app/trip/[tripId]/@daily/helpers/sanitize-transform';
+import TravelSegmentSelect from './components/travel-segment-select';
+import { sanitizeStyle } from './helpers/sanitize-transform';
+import EmptyDailyPlanState from './components/empty-daily-plan-state';
 
 const DailyPlanPage = () => {
   const dispatch = useDispatch();
@@ -44,7 +45,7 @@ const DailyPlanPage = () => {
 
   if (!tripOverview) return <FullPageLoading />;
 
-  return (
+  return dailyPlans.length > 0 ? (
     <>
       <DragDropContext
         onDragEnd={(result) =>
@@ -143,6 +144,8 @@ const DailyPlanPage = () => {
         />
       </DailyPlanContext.Provider>
     </>
+  ) : (
+    <EmptyDailyPlanState />
   );
 };
 
