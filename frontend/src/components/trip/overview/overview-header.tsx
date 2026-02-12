@@ -155,8 +155,7 @@ const OverviewHeader = ({
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       {/* HEADER */}
       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-        <BackButton onBack={() => router.push('/home')} />
-
+        {currentUser && <BackButton onBack={() => router.push(`/profile/${currentUser.id}`)} />}
         <Box sx={{ flex: 1, textAlign: 'center' }}>
           <Tooltip title={editingName} arrow disableInteractive>
             <InputBase
@@ -184,7 +183,6 @@ const OverviewHeader = ({
             />
           </Tooltip>
         </Box>
-
         <Stack direction="column" alignItems="center" spacing={0.5}>
           <AvatarGroup
             max={3}
