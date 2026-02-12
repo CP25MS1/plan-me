@@ -7,15 +7,11 @@ import capstone.ms.api.modules.google_maps.dto.TextSearchRequest;
 import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import capstone.ms.api.modules.google_maps.mappers.PlaceMapper;
 import capstone.ms.api.modules.google_maps.repositories.GoogleMapPlaceRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -25,12 +21,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PlacesService {
 
+    private static final int PHOTO_QUOTA = 10;
     private final GooglePlacesClient placesClient;
     private final GoogleMapPlaceRepository googleMapPlaceRepository;
-    private final StringRedisTemplate redis;
-    private final ObjectMapper objectMapper;
     private final PlaceMapper placeMapper;
-
     @Value("${google.places.api-key}")
     private String apiKey;
 
@@ -38,43 +32,94 @@ public class PlacesService {
     private String fieldMask;
 
     public List<GoogleMapPlace> searchText(final String query) {
-        final String normalizedQuery = normalizeQuery(query);
-        final String cacheKey = "places:search:" + normalizedQuery;
 
-        String cached = redis.opsForValue().get(cacheKey);
-        if (cached != null) {
-            List<String> ids = parseIdsFromCache(cached);
-            Map<String, GoogleMapPlace> map = googleMapPlaceRepository.findAllById(ids).stream()
-                    .collect(Collectors.toMap(GoogleMapPlace::getGgmpId, r -> r));
-            return ids.stream()
-                    .map(map::get)
-                    .filter(Objects::nonNull)
-                    .toList();
+        final String requestId = UUID.randomUUID().toString();
+        final long startNs = System.nanoTime();
+
+        String normalizedQuery = normalizeQuery(query);
+
+        log.info("[SEARCH][START] requestId={}, query='{}'", requestId, normalizedQuery);
+
+        /* 1. search from DB first */
+        List<GoogleMapPlace> dbResults =
+                googleMapPlaceRepository.searchFullText(normalizedQuery);
+
+        int dbCount = dbResults.size();
+
+        if (dbCount >= PHOTO_QUOTA) {
+
+            long tookMs = (System.nanoTime() - startNs) / 1_000_000;
+
+            log.info("""
+                            [SEARCH][DB_ONLY]
+                            requestId={}
+                            dbCount={}
+                            googleFetchCount=0
+                            photoFetchCount=0
+                            totalResult={}
+                            durationMs={}
+                            """,
+                    requestId,
+                    dbCount,
+                    dbCount,
+                    tookMs
+            );
+
+            return dbResults;
         }
 
-        MergeResult mergeResult = fetchFromGoogle(query);
+        /* 2. need Google fetch */
+        int missing = PHOTO_QUOTA - dbCount;
+
+        MergeResult mergeResult = fetchFromGoogle(query, missing);
+
+        int googleFetchCount = mergeResult.merged.size();
+
+        int photoFetchCount = 0;
 
         if (!mergeResult.merged.isEmpty()) {
-            upsertPlacesBatch(mergeResult.enMap, mergeResult.thMap, mergeResult.merged);
-
-            List<String> idsToCache = mergeResult.merged.stream().map(Place::getId).toList();
-            try {
-                String json = objectMapper.writeValueAsString(idsToCache);
-                long cacheTtlSeconds = 300;
-                redis.opsForValue().set(cacheKey, json, Duration.ofSeconds(cacheTtlSeconds));
-            } catch (JsonProcessingException ignored) {
-            }
-
-            Map<String, GoogleMapPlace> map = googleMapPlaceRepository.findAllById(idsToCache)
-                    .stream()
-                    .collect(Collectors.toMap(GoogleMapPlace::getGgmpId, e -> e));
-            return idsToCache.stream()
-                    .map(map::get)
-                    .filter(Objects::nonNull)
-                    .toList();
+            photoFetchCount = upsertPlacesBatch(
+                    mergeResult.enMap,
+                    mergeResult.thMap,
+                    mergeResult.merged,
+                    missing
+            );
         }
 
-        return List.of();
+        /* 3. merge result */
+        List<String> fetchedIds = mergeResult.merged.stream()
+                .map(Place::getId)
+                .toList();
+
+        List<GoogleMapPlace> fetched =
+                googleMapPlaceRepository.findAllById(fetchedIds);
+
+        List<GoogleMapPlace> finalResult = new ArrayList<>();
+        finalResult.addAll(dbResults);
+        finalResult.addAll(fetched);
+
+        long tookMs = (System.nanoTime() - startNs) / 1_000_000;
+
+        log.info("""
+                        [SEARCH][DB_AND_GOOGLE]
+                        requestId={}
+                        dbCount={}
+                        googleFetchCount={}
+                        photoFetchCount={}
+                        missingRequested={}
+                        totalResult={}
+                        durationMs={}
+                        """,
+                requestId,
+                dbCount,
+                googleFetchCount,
+                photoFetchCount,
+                missing,
+                finalResult.size(),
+                tookMs
+        );
+
+        return finalResult;
     }
 
     public GoogleMapPlace getPlaceById(final String id) {
@@ -87,10 +132,10 @@ public class PlacesService {
     }
 
     public String searchAndGetGgmpId(final String query) {
-        MergeResult mergeResult = fetchFromGoogle(query);
+        MergeResult mergeResult = fetchFromGoogle(query, PHOTO_QUOTA);
 
         if (!mergeResult.merged.isEmpty()) {
-            upsertPlacesBatch(mergeResult.enMap, mergeResult.thMap, mergeResult.merged);
+            upsertPlacesBatch(mergeResult.enMap, mergeResult.thMap, mergeResult.merged, PHOTO_QUOTA);
         }
 
         return mergeResult.merged.getFirst().getId();
@@ -101,15 +146,7 @@ public class PlacesService {
         return q.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
     }
 
-    private List<String> parseIdsFromCache(String cached) {
-        try {
-            return objectMapper.readValue(cached, objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
-        } catch (Exception e) {
-            return List.of();
-        }
-    }
-
-    private MergeResult fetchFromGoogle(final String query) {
+    private MergeResult fetchFromGoogle(final String query, int limit) {
         final long startNs = System.nanoTime();
         log.info("fetchFromGoogle - start, query='{}'", query);
 
@@ -158,11 +195,8 @@ public class PlacesService {
         log.info("Common IDs count: {}", enIds.size());
 
         List<Place> merged = enIds.stream()
-                .map(id -> {
-                    Place pEn = enMap.get(id);
-                    Place pTh = thMap.get(id);
-                    return pEn != null ? pEn : pTh;
-                })
+                .map(id -> enMap.getOrDefault(id, thMap.get(id)))
+                .limit(limit)
                 .toList();
 
         long tookMs = (System.nanoTime() - startNs) / 1_000_000;
@@ -171,36 +205,46 @@ public class PlacesService {
         return new MergeResult(merged, enMap, thMap);
     }
 
-    private void upsertPlacesBatch(Map<String, Place> enMap, Map<String, Place> thMap, List<Place> merged) {
-        if (merged.isEmpty()) return;
+    private int upsertPlacesBatch(
+            Map<String, Place> enMap,
+            Map<String, Place> thMap,
+            List<Place> merged,
+            int photoQuota
+    ) {
 
-        List<String> ids = merged.stream().map(Place::getId).toList();
-        Map<String, GoogleMapPlace> existMap = googleMapPlaceRepository.findAllById(ids).stream()
-                .collect(Collectors.toMap(GoogleMapPlace::getGgmpId, e -> e));
+        if (merged.isEmpty()) return 0;
+
+        final int[] photoCount = {0};
 
         List<GoogleMapPlace> toSave = merged.stream()
                 .map(p -> {
-                    GoogleMapPlace enEntity = placeMapper.toEntity(enMap.get(p.getId()));
-                    GoogleMapPlace thEntity = placeMapper.toEntity(thMap.get(p.getId()));
 
-                    GoogleMapPlace existing = existMap.getOrDefault(p.getId(), new GoogleMapPlace());
+                    GoogleMapPlace existing =
+                            googleMapPlaceRepository.findById(p.getId())
+                                    .orElseGet(GoogleMapPlace::new);
+
                     existing.setGgmpId(p.getId());
 
-                    existing.setEnName(enEntity.getEnName());
-                    existing.setEnDescription(enEntity.getEnDescription());
-                    existing.setEnAddress(enEntity.getEnAddress());
+                    GoogleMapPlace en = placeMapper.toEntity(enMap.get(p.getId()));
+                    GoogleMapPlace th = placeMapper.toEntity(thMap.get(p.getId()));
 
-                    existing.setThName(thEntity.getThName());
-                    existing.setThDescription(thEntity.getThDescription());
-                    existing.setThAddress(thEntity.getThAddress());
+                    existing.setEnName(en.getEnName());
+                    existing.setEnAddress(en.getEnAddress());
+                    existing.setEnDescription(en.getEnDescription());
 
-                    existing.setRating(enEntity.getRating());
-                    existing.setOpeningHours(enEntity.getOpeningHours());
+                    existing.setThName(th.getThName());
+                    existing.setThAddress(th.getThAddress());
+                    existing.setThDescription(th.getThDescription());
 
-                    if (enEntity.getDefaultPicUrl() != null) {
-                        final String photoPathName = enEntity.getDefaultPicUrl();
-                        final var photoRes = placesClient.searchPhoto(photoPathName, 500, true, apiKey);
+                    existing.setRating(en.getRating());
+                    existing.setOpeningHours(en.getOpeningHours());
+
+                    if (photoCount[0] < photoQuota && en.getDefaultPicUrl() != null) {
+                        var photoRes = placesClient.searchPhoto(
+                                en.getDefaultPicUrl(), 500, true, apiKey
+                        );
                         existing.setDefaultPicUrl(photoRes.getPhotoUri());
+                        photoCount[0]++;
                     }
 
                     return existing;
@@ -208,6 +252,8 @@ public class PlacesService {
                 .toList();
 
         googleMapPlaceRepository.saveAll(toSave);
+
+        return photoCount[0];
     }
 
     private record MergeResult(List<Place> merged, Map<String, Place> enMap, Map<String, Place> thMap) {
