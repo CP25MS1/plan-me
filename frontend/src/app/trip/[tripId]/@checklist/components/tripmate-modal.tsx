@@ -39,7 +39,20 @@ export default function TripmateModal({ anchorEl, onClose, tripmates, onAssign }
         },
       }}
     >
-      <Box px={1}>
+      <Box
+        px={1}
+        sx={{
+          maxHeight: 240,
+          overflowY: 'auto',
+          '&::-webkit-scrollbar': {
+            width: 6,
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#ccc',
+            borderRadius: 3,
+          },
+        }}
+      >
         {tripmates.map((m) => (
           <Stack
             key={m.id}
