@@ -2,13 +2,16 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TripOverview, WishlistPlace } from '@/api/trips/type';
 import { ReservationDto } from '@/api/reservations';
 import { dailyPlanReducers } from '@/store/reducers/daily-plan.reducers';
+import { TripChecklistDto } from '@/api/checklist/type';
 
 export interface TripDetailState {
   overview: TripOverview | null;
+  checklist: Record<number, TripChecklistDto[]>;
 }
 
 const initialState: TripDetailState = {
   overview: null,
+  checklist: {},
 };
 
 const tripDetailSlice = createSlice({
@@ -64,7 +67,62 @@ const tripDetailSlice = createSlice({
         tripId: oldWishlistPlace.tripId,
       });
     },
+
     ...dailyPlanReducers,
+    setTripChecklist: (
+      state,
+      action: PayloadAction<{
+        tripId: number;
+        items: TripChecklistDto[];
+      }>
+    ) => {
+      state.checklist[action.payload.tripId] = action.payload.items;
+    },
+
+    addChecklistItem: (
+      state,
+      action: PayloadAction<{
+        tripId: number;
+        item: TripChecklistDto;
+      }>
+    ) => {
+      const { tripId, item } = action.payload;
+
+      if (!state.checklist[tripId]) {
+        state.checklist[tripId] = [];
+      }
+
+      state.checklist[tripId].push(item);
+    },
+
+    updateChecklistItem: (
+      state,
+      action: PayloadAction<{
+        tripId: number;
+        item: TripChecklistDto;
+      }>
+    ) => {
+      const list = state.checklist[action.payload.tripId];
+      if (!list) return;
+
+      const idx = list.findIndex((i) => i.id === action.payload.item.id);
+      if (idx === -1) return;
+
+      list[idx] = action.payload.item;
+    },
+
+    removeChecklistItem: (
+      state,
+      action: PayloadAction<{
+        tripId: number;
+        itemId: string;
+      }>
+    ) => {
+      const list = state.checklist[action.payload.tripId];
+      if (!list) return;
+
+      state.checklist[action.payload.tripId] = list.filter((i) => i.id !== action.payload.itemId);
+    },
   },
 });
 
@@ -80,6 +138,10 @@ export const {
   removeScheduledPlace,
   reorderScheduledPlace,
   updateScheduledPlace,
+  setTripChecklist,
+  addChecklistItem,
+  updateChecklistItem,
+  removeChecklistItem,
 } = tripDetailSlice.actions;
 
 export default tripDetailSlice.reducer;
