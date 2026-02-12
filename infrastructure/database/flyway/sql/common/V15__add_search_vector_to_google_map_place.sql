@@ -1,17 +1,38 @@
 ALTER TABLE google_map_place
     ADD COLUMN search_vector tsvector;
 
-UPDATE google_map_place
-SET search_vector =
+CREATE
+OR REPLACE FUNCTION google_map_place_search_vector_update()
+RETURNS trigger AS $$
+BEGIN
+    NEW.search_vector
+:=
         to_tsvector('simple',
-                    coalesce(th_name, '') || ' ' ||
-                    coalesce(th_address, '') || ' ' ||
-                    coalesce(th_description, '') || ' ' ||
-                    coalesce(en_name, '') || ' ' ||
-                    coalesce(en_address, '') || ' ' ||
-                    coalesce(en_description, '')
+            coalesce(NEW.th_name,'') || ' ' ||
+            coalesce(NEW.th_address,'') || ' ' ||
+            coalesce(NEW.th_description,'') || ' ' ||
+            coalesce(NEW.en_name,'') || ' ' ||
+            coalesce(NEW.en_address,'') || ' ' ||
+            coalesce(NEW.en_description,'')
         );
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql;
 
-CREATE INDEX idx_google_map_place_search
+DROP TRIGGER IF EXISTS trg_google_map_place_search_vector
+ON google_map_place;
+
+CREATE TRIGGER trg_google_map_place_search_vector
+    BEFORE INSERT OR
+UPDATE
+    ON google_map_place
+    FOR EACH ROW
+    EXECUTE FUNCTION google_map_place_search_vector_update();
+
+UPDATE public.google_map_place
+SET th_name = th_name;
+
+CREATE INDEX IF NOT EXISTS idx_google_map_place_search
     ON google_map_place
     USING GIN (search_vector);
