@@ -38,7 +38,7 @@ export default function InviteTripModal({ tripId }: { tripId: number }) {
       profilePicUrl: currentUser.profilePicUrl,
     },
   } as InvitationByCodeParams);
-  const inviteLink = `http://localhost:3000/invitations?ref=${ref}`;
+  const inviteLink = `https://bscit.sit.kmutt.ac.th/capstone25/cp25ms1/invitations?ref=${ref}`;
 
   return (
     <div className="w-full flex flex-col items-center">
