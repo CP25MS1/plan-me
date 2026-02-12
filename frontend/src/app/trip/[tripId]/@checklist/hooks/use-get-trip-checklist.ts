@@ -8,27 +8,23 @@ import { RootState } from '@/store';
 export const useGetTripChecklist = (tripId: number) => {
   const dispatch = useDispatch();
 
-  const itemsInStore = useSelector((s: RootState) => s.tripDetail.checklist?.[tripId]);
+  const itemsInStore = useSelector((s: RootState) => s.tripDetail.checklist);
 
   const query = useQuery({
     queryKey: ['trip-checklist', tripId],
     queryFn: () => getChecklistItems(tripId),
-    enabled: !itemsInStore, // ถ้ามีแล้วไม่ต้องยิง
+
+    enabled: itemsInStore.length === 0,
   });
 
   useEffect(() => {
     if (query.data) {
-      dispatch(
-        setTripChecklist({
-          tripId,
-          items: query.data,
-        })
-      );
+      dispatch(setTripChecklist(query.data));
     }
-  }, [query.data, tripId, dispatch]);
+  }, [query.data, dispatch]);
 
   return {
     ...query,
-    data: itemsInStore ?? query.data,
+    data: itemsInStore.length > 0 ? itemsInStore : query.data,
   };
 };

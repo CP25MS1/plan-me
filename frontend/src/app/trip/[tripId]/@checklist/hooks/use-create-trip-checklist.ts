@@ -10,12 +10,7 @@ export const useCreateTripChecklist = (tripId: number) => {
     mutationFn: (name: string) => createChecklistItem(tripId, { name }),
 
     onSuccess: (item) => {
-      dispatch(
-        addChecklistItem({
-          tripId,
-          item,
-        })
-      );
+      dispatch(addChecklistItem(item));
     },
   });
 };

@@ -6,8 +6,8 @@ export interface TripChecklistDto {
   completed: boolean;
   tripId: string;
   createdBy: PublicUserInfo;
-  assignedBy?: PublicUserInfo | null;
-  assignee?: PublicUserInfo | null;
+  assignedBy: PublicUserInfo | null;
+  assignee: PublicUserInfo | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -16,12 +16,7 @@ export const useUpdateTripChecklist = (tripId: number) => {
     mutationFn: ({ itemId, payload }) => updateChecklistItem(tripId, itemId, payload),
 
     onSuccess: (item) => {
-      dispatch(
-        updateChecklistInStore({
-          tripId,
-          item,
-        })
-      );
+      dispatch(updateChecklistInStore(item));
     },
   });
 };
