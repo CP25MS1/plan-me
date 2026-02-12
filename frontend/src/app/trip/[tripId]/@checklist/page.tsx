@@ -6,12 +6,7 @@ import { useParams } from 'next/navigation';
 import {
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   IconButton,
-  InputAdornment,
   Avatar,
   TextField,
   Typography,
@@ -21,11 +16,13 @@ import {
   Badge,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import AddItemButton from '@/components/trip/overview/add-item-button';
+import SectionCard from '@/components/trip/overview/section-card';
 
 import { Add } from '@mui/icons-material';
 import { CheckBoxOutlineBlank, CheckBox } from '@mui/icons-material';
 
-import { ChevronDown, ChevronUp, UserPen, Trash2 } from 'lucide-react';
+import { UserPen, Trash2 } from 'lucide-react';
 
 import { TripChecklistDto } from '@/api/checklist/type';
 
@@ -38,6 +35,7 @@ import { useAppSelector } from '@/store';
 import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { useGetTripMembers } from '@/app/hooks/use-get-trip-members';
 import TripmateModal from '@/app/trip/[tripId]/@checklist/components/tripmate-modal';
+import { tokens } from '@/providers/theme/design-tokens';
 
 export default function ChecklistPage() {
   const params = useParams();
@@ -54,13 +52,16 @@ export default function ChecklistPage() {
   const deleteMut = useDeleteTripChecklist(tripId);
 
   /* ===== local state ===== */
-  const [openSection, setOpenSection] = useState(true);
-
-  const [openAdd, setOpenAdd] = useState(false);
-  const [newName, setNewName] = useState('');
+  const [openSection] = useState(true);
 
   const [assignTarget, setAssignTarget] = useState<TripChecklistDto | null>(null);
   const [assignAnchor, setAssignAnchor] = useState<HTMLElement | null>(null);
+
+  const [isAdding, setIsAdding] = useState(false);
+  const [addingName, setAddingName] = useState('');
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
 
   const [snack, setSnack] = useState<{
     open: boolean;
@@ -74,26 +75,55 @@ export default function ChecklistPage() {
 
   if (!tripId || Number.isNaN(tripId)) return null;
 
-  /* ===== actions ===== */
+  const handleInlineAdd = () => {
+    const name = addingName.trim();
 
-  const handleAdd = () => {
-    if (!newName.trim())
-      return setSnack({ open: true, message: 'กรุณากรอกชื่อ', severity: 'error' });
+    if (!name) {
+      setIsAdding(false);
+      setAddingName('');
+      return;
+    }
 
-    if (newName.length > 30)
-      return setSnack({
+    if (name.length > 30) {
+      setSnack({
         open: true,
         message: 'ชื่อยาวเกิน 30 ตัว',
         severity: 'error',
       });
+      return;
+    }
 
-    createMut.mutate(newName.trim(), {
+    createMut.mutate(name, {
       onSuccess: () => {
-        setOpenAdd(false);
-        setNewName('');
-        setSnack({ open: true, message: 'สร้างรายการแล้ว', severity: 'success' });
+        setAddingName('');
+        setIsAdding(false);
       },
     });
+  };
+
+  const handleInlineUpdate = (id: string) => {
+    const name = editingName.trim();
+
+    if (!name) {
+      setEditingId(null);
+      return;
+    }
+
+    if (name.length > 30) {
+      setSnack({
+        open: true,
+        message: 'ชื่อยาวเกิน 30 ตัว',
+        severity: 'error',
+      });
+      return;
+    }
+
+    updateMut.mutate({
+      itemId: id,
+      payload: { name },
+    });
+
+    setEditingId(null);
   };
 
   const handleToggleComplete = (item: TripChecklistDto) => {
@@ -128,45 +158,83 @@ export default function ChecklistPage() {
 
   return (
     <Box sx={{ width: '100%', p: 2 }}>
-      {/* ===== Header ===== */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 2, cursor: 'pointer' }}
-        onClick={() => setOpenSection((s) => !s)}
-      >
-        <Typography fontWeight={600}>Checklist</Typography>
-        {openSection ? <ChevronUp /> : <ChevronDown />}
-      </Stack>
-
       {openSection && (
-        <Box
-          sx={{
-            bgcolor: '#E9FBEF',
-            borderRadius: 4,
-            p: 2,
-          }}
-        >
+        <SectionCard title="เช็กลิสต์" asEmpty={!isLoading && items.length === 0 && !isAdding}>
           {/* ===== List ===== */}
-          {isLoading
-            ? [1, 2, 3].map((i) => (
+          {isLoading ? (
+            [1, 2, 3].map((i) => (
+              <Box
+                key={i}
+                sx={{
+                  bgcolor: '#fff',
+                  borderRadius: 3,
+                  p: 2,
+                  mb: 2,
+                }}
+              >
+                <Stack direction="row" justifyContent="space-between">
+                  <Skeleton width="40%" />
+                  <Skeleton variant="circular" width={32} height={32} />
+                </Stack>
+              </Box>
+            ))
+          ) : items.length === 0 ? (
+            <Box
+              sx={{
+                borderRadius: 4,
+                textAlign: 'center',
+                bgcolor: '#fff',
+              }}
+            >
+              {isAdding ? (
                 <Box
-                  key={i}
                   sx={{
                     bgcolor: '#fff',
                     borderRadius: 3,
                     p: 2,
-                    mb: 2,
+                    boxShadow: '0 6px 14px rgba(0,0,0,0.06)',
                   }}
                 >
-                  <Stack direction="row" justifyContent="space-between">
-                    <Skeleton width="40%" />
-                    <Skeleton variant="circular" width={32} height={32} />
-                  </Stack>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    autoFocus
+                    placeholder="eg. ถุงขยะ, ชุดกันหนาว, ทิชชู่"
+                    value={addingName}
+                    onChange={(e) => setAddingName(e.target.value)}
+                    onBlur={handleInlineAdd}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleInlineAdd();
+                      }
+                    }}
+                    inputProps={{ maxLength: 30 }}
+                    InputProps={{
+                      endAdornment: (
+                        <Typography
+                          variant="caption"
+                          sx={{ ml: 1, color: tokens.color.textSecondary }}
+                        >
+                          {addingName.length}/30
+                        </Typography>
+                      ),
+                    }}
+                  />
                 </Box>
-              ))
-            : items.map((it) => {
+              ) : (
+                <AddItemButton label="เพิ่มเช็กลิสต์" onClick={() => setIsAdding(true)} />
+              )}
+            </Box>
+          ) : (
+            [...items]
+              .sort((a, b) => {
+                if (a.completed !== b.completed) {
+                  return a.completed ? 1 : -1;
+                }
+
+                return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+              })
+              .map((it) => {
                 const canToggle = !it.assignee || (me && it.assignee && me.id === it.assignee.id);
 
                 return (
@@ -179,23 +247,65 @@ export default function ChecklistPage() {
                       mb: 2,
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'center',
+                      alignItems: 'flex-start',
                       boxShadow: '0 6px 14px rgba(0,0,0,0.06)',
                     }}
                   >
                     {/* Left */}
-                    <Stack direction="row" spacing={2} alignItems="center">
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      alignItems="center"
+                      sx={{ flex: 1, minWidth: 0 }}
+                    >
                       <IconButton onClick={() => handleToggleComplete(it)} disabled={!canToggle}>
                         {it.completed ? <CheckBox /> : <CheckBoxOutlineBlank />}
                       </IconButton>
 
-                      <Typography
-                        sx={{
-                          textDecoration: it.completed ? 'line-through' : 'none',
-                        }}
-                      >
-                        {it.name}
-                      </Typography>
+                      {editingId === it.id ? (
+                        <TextField
+                          size="small"
+                          autoFocus
+                          fullWidth
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          onBlur={() => handleInlineUpdate(it.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleInlineUpdate(it.id);
+                            }
+                          }}
+                          inputProps={{ maxLength: 30 }}
+                          InputProps={{
+                            endAdornment: (
+                              <Typography
+                                variant="caption"
+                                sx={{ ml: 1, color: tokens.color.textSecondary }}
+                              >
+                                {editingName.length}/30
+                              </Typography>
+                            ),
+                          }}
+                        />
+                      ) : (
+                        <Typography
+                          sx={{
+                            textDecoration: it.completed ? 'line-through' : 'none',
+                            cursor: 'pointer',
+                            flex: 1,
+                            textAlign: 'left',
+                            wordBreak: 'break-word',
+                            whiteSpace: 'normal',
+                            lineHeight: 1.5,
+                          }}
+                          onClick={() => {
+                            setEditingId(it.id);
+                            setEditingName(it.name);
+                          }}
+                        >
+                          {it.name}
+                        </Typography>
+                      )}
                     </Stack>
 
                     {/* Right */}
@@ -271,20 +381,57 @@ export default function ChecklistPage() {
                     </Stack>
                   </Box>
                 );
-              })}
+              })
+          )}
 
-          {/* ===== Add Button ===== */}
-          <Box textAlign="center" mt={2}>
-            <Button
-              startIcon={<Add />}
-              variant="contained"
-              color="success"
-              onClick={() => setOpenAdd(true)}
-            >
-              Add Checklist
-            </Button>
-          </Box>
-        </Box>
+          {/* ===== Add Section ===== */}
+          {!isLoading && items.length > 0 && (
+            <Box mt={2}>
+              {isAdding ? (
+                <Box
+                  sx={{
+                    bgcolor: '#fff',
+                    borderRadius: 3,
+                    p: 2,
+                    boxShadow: '0 6px 14px rgba(0,0,0,0.06)',
+                  }}
+                >
+                  <TextField
+                    fullWidth
+                    size="small"
+                    autoFocus
+                    placeholder="eg. ถุงขยะ, ชุดกันหนาว, ทิชชู่"
+                    value={addingName}
+                    onChange={(e) => setAddingName(e.target.value)}
+                    onBlur={handleInlineAdd}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleInlineAdd();
+                      }
+                    }}
+                    inputProps={{ maxLength: 30 }}
+                    InputProps={{
+                      endAdornment: (
+                        <Typography
+                          variant="caption"
+                          sx={{ ml: 1, color: tokens.color.textSecondary }}
+                        >
+                          {addingName.length}/30
+                        </Typography>
+                      ),
+                    }}
+                  />
+                </Box>
+              ) : (
+                <Box textAlign="center">
+                  <Button startIcon={<Add />} variant="contained" onClick={() => setIsAdding(true)}>
+                    เพิ่มเช็กลิสต์
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          )}
+        </SectionCard>
       )}
 
       {/* ===== Assign Dialog ===== */}
@@ -299,35 +446,6 @@ export default function ChecklistPage() {
           if (assignTarget) handleAssign(assignTarget, userId);
         }}
       />
-
-      {/* ===== Add Dialog ===== */}
-      <Dialog open={openAdd} onClose={() => setOpenAdd(false)} fullWidth>
-        <DialogTitle>เพิ่ม Checklist</DialogTitle>
-
-        <DialogContent>
-          <TextField
-            fullWidth
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="ชื่อรายการ (ไม่เกิน 30 ตัว)"
-            inputProps={{ maxLength: 30 }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Typography variant="caption">{newName.length}/30</Typography>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </DialogContent>
-
-        <DialogActions>
-          <Button onClick={() => setOpenAdd(false)}>ยกเลิก</Button>
-          <Button variant="contained" onClick={handleAdd}>
-            สร้าง
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       <AppSnackbar
         open={snack.open}
