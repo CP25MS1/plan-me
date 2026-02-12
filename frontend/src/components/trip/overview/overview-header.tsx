@@ -155,7 +155,7 @@ const OverviewHeader = ({
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       {/* HEADER */}
       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-        {currentUser && <BackButton onBack={() => router.push(`/profile/${currentUser.id}`)} />}
+        {currentUser && <BackButton onBack={() => router.push('/profile')} />}
         <Box sx={{ flex: 1, textAlign: 'center' }}>
           <Tooltip title={editingName} arrow disableInteractive>
             <InputBase
