@@ -1,28 +1,30 @@
 'use client';
 
-import { useEffect, useRef, useState, Fragment } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import {
-  Container,
   Box,
-  TextField,
+  Button,
+  CircularProgress,
+  Container,
+  Divider,
   InputAdornment,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
+  TextField,
   Typography,
-  CircularProgress,
 } from '@mui/material';
-import { Search, MapPin } from 'lucide-react';
+import { MapPin, PlusIcon, Search } from 'lucide-react';
 import Image from 'next/image';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
 import { BackButton } from '@/components/button';
-import { useSearchForPlaces, useAddWishlistPlace } from '../hooks';
+import { useAddWishlistPlace, useSearchForPlaces } from '../hooks';
 import { tokens } from '@/providers/theme/design-tokens';
 import { addWishlistPlace } from '@/store/trip-detail-slice';
+import PlaceDetailsDialog from '../../components/place-details/place-details-dialog';
 
 type SearchAddWishlistPlaceProps = {
   tripId: number;
@@ -36,6 +38,8 @@ export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishl
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { t } = useTranslation('trip_overview');
   const { t: tCommon } = useTranslation('common');
+
+  const [selectedGgmpId, setSelectedGgmpId] = useState<string | null>(null);
 
   useEffect(() => {
     if (timerRef.current) globalThis.clearTimeout(timerRef.current);
@@ -98,10 +102,7 @@ export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishl
         {places.map((p) => (
           <Fragment key={p.ggmpId}>
             <ListItem
-              onClick={() => {
-                if (mutation.isPending) return;
-                handleAdd(p.ggmpId);
-              }}
+              onClick={() => setSelectedGgmpId(p.ggmpId)}
               alignItems="center"
               sx={{ gap: 2, '& .MuiListItem-root': { padding: '0' } }}
             >
@@ -134,6 +135,25 @@ export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishl
               {mutation.isPending ? <CircularProgress size={18} /> : null}
             </ListItem>
             <Divider />
+
+            {p.ggmpId && selectedGgmpId === p.ggmpId && (
+              <PlaceDetailsDialog
+                isOpened={!!selectedGgmpId}
+                onClose={() => setSelectedGgmpId(p.ggmpId)}
+                ggmpId={p.ggmpId}
+                cta={
+                  <Box sx={{ display: 'flex', justifyContent: 'end' }}>
+                    <Button
+                      variant="contained"
+                      startIcon={<PlusIcon />}
+                      onClick={() => handleAdd(p.ggmpId)}
+                    >
+                      เพิ่มสถานที่
+                    </Button>
+                  </Box>
+                }
+              />
+            )}
           </Fragment>
         ))}
       </List>
