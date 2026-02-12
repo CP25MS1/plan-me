@@ -10,12 +10,7 @@ export const useDeleteTripChecklist = (tripId: number) => {
     mutationFn: (itemId: string) => deleteChecklistItem(tripId, itemId),
 
     onSuccess: (_, itemId) => {
-      dispatch(
-        removeChecklistItem({
-          tripId,
-          itemId,
-        })
-      );
+      dispatch(removeChecklistItem(itemId));
     },
   });
 };

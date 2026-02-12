@@ -6,12 +6,12 @@ import { TripChecklistDto } from '@/api/checklist/type';
 
 export interface TripDetailState {
   overview: TripOverview | null;
-  checklist: Record<number, TripChecklistDto[]>;
+  checklist: TripChecklistDto[];
 }
 
 const initialState: TripDetailState = {
   overview: null,
-  checklist: {},
+  checklist: [],
 };
 
 const tripDetailSlice = createSlice({
@@ -69,59 +69,24 @@ const tripDetailSlice = createSlice({
     },
 
     ...dailyPlanReducers,
-    setTripChecklist: (
-      state,
-      action: PayloadAction<{
-        tripId: number;
-        items: TripChecklistDto[];
-      }>
-    ) => {
-      state.checklist[action.payload.tripId] = action.payload.items;
+    setTripChecklist: (state, action: PayloadAction<TripChecklistDto[]>) => {
+      state.checklist = action.payload;
     },
 
-    addChecklistItem: (
-      state,
-      action: PayloadAction<{
-        tripId: number;
-        item: TripChecklistDto;
-      }>
-    ) => {
-      const { tripId, item } = action.payload;
+    addChecklistItem: (state, action: PayloadAction<TripChecklistDto>) => {
+      state.checklist.push(action.payload);
+    },
 
-      if (!state.checklist[tripId]) {
-        state.checklist[tripId] = [];
+    updateChecklistItem: (state, action: PayloadAction<TripChecklistDto>) => {
+      const idx = state.checklist.findIndex((i) => i.id === action.payload.id);
+
+      if (idx !== -1) {
+        state.checklist[idx] = action.payload;
       }
-
-      state.checklist[tripId].push(item);
     },
 
-    updateChecklistItem: (
-      state,
-      action: PayloadAction<{
-        tripId: number;
-        item: TripChecklistDto;
-      }>
-    ) => {
-      const list = state.checklist[action.payload.tripId];
-      if (!list) return;
-
-      const idx = list.findIndex((i) => i.id === action.payload.item.id);
-      if (idx === -1) return;
-
-      list[idx] = action.payload.item;
-    },
-
-    removeChecklistItem: (
-      state,
-      action: PayloadAction<{
-        tripId: number;
-        itemId: string;
-      }>
-    ) => {
-      const list = state.checklist[action.payload.tripId];
-      if (!list) return;
-
-      state.checklist[action.payload.tripId] = list.filter((i) => i.id !== action.payload.itemId);
+    removeChecklistItem: (state, action: PayloadAction<string>) => {
+      state.checklist = state.checklist.filter((i) => i.id !== action.payload);
     },
   },
 });
