@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useCallback } from 'react';
+import { ReactNode, useCallback, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { AxiosError } from 'axios';
@@ -20,7 +20,7 @@ import { setTripOverview } from '@/store/trip-detail-slice';
 import TripForbiddenPage from '@/app/trip/[tripId]/components/trip-forbidden-page';
 
 type TripLayoutProps = {
-  params: { tripId: string };
+  params: Promise<{ tripId: string }>;
   overview: ReactNode;
   daily: ReactNode;
   budget: ReactNode;
@@ -41,7 +41,9 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
     router.push(`?tab=${key}`, { scroll: false });
   };
 
-  const tripIdAsNumber = Number(params.tripId);
+  const { tripId } = use(params);
+  const tripIdAsNumber = Number(tripId);
+
   const {
     overview: tripOverview,
     isLoading: isTripOverviewLoading,
