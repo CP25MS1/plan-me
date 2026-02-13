@@ -2,8 +2,11 @@ package capstone.ms.api.modules.itinerary.dto.reservation;
 
 import capstone.ms.api.common.annotations.ErrorMessage;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -18,14 +21,14 @@ public class FerryDetails implements ReservationDetails {
     @NotBlank
     private String departurePort;
 
-    @NotBlank
-    private String departureTime;
+    @NotNull
+    private LocalDateTime departureTime;
 
     @NotBlank
     private String arrivalPort;
 
-    @NotBlank
-    private String arrivalTime;
+    @NotNull
+    private LocalDateTime arrivalTime;
 
     @NotBlank
     private String ticketType;

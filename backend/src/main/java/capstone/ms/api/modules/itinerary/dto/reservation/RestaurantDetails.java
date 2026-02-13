@@ -3,9 +3,11 @@ package capstone.ms.api.modules.itinerary.dto.reservation;
 import capstone.ms.api.common.annotations.ErrorMessage;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Data
@@ -21,8 +23,8 @@ public class RestaurantDetails implements ReservationDetails {
     @NotBlank
     private String underName;
 
-    @NotBlank
-    private String reservationDate;
+    @NotNull
+    private LocalDate reservationDate;
 
     private LocalTime reservationTime;
     private String tableNo;
