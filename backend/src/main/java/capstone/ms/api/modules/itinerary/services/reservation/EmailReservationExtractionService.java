@@ -72,7 +72,7 @@ public class EmailReservationExtractionService {
         );
 
         Integer emailId = request.getEmailId();
-        String reservationType = request.getType().toUpperCase();
+        String reservationType = request.getType().toString().toUpperCase();
 
         Message message = requireMessage(emailId, messages);
         String emailBody = emailParser.getTextFromMessage(message);
