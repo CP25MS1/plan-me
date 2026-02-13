@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 public class ReservationDto {
     private Integer id;
 
-    @NotNull
     private Integer tripId;
 
     private String ggmpId;
@@ -34,6 +33,5 @@ public class ReservationDto {
     private BigDecimal cost;
 
     @Valid
-    @NotNull
     private ReservationDetails details;
 }
