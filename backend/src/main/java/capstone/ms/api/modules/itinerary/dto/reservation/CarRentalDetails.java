@@ -2,8 +2,11 @@ package capstone.ms.api.modules.itinerary.dto.reservation;
 
 import capstone.ms.api.common.annotations.ErrorMessage;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -24,14 +27,14 @@ public class CarRentalDetails implements ReservationDetails {
     @NotBlank
     private String pickupLocation;
 
-    @NotBlank
-    private String pickupTime;
+    @NotNull
+    private LocalDateTime pickupTime;
 
     @NotBlank
     private String dropoffLocation;
 
-    @NotBlank
-    private String dropoffTime;
+    @NotNull
+    private LocalDateTime dropoffTime;
 
     @Override
     public String getType() {

@@ -36,7 +36,7 @@ public class ChatMapperRequestFactory {
             - Extraction confidence: include optional field when text explicitly mentions it; do not invent values.
             
             Type-specific fields (put under data.details):
-            - LODGING: lodgingName, lodgingAddress, underName, checkinDate, checkoutDate
+            - LODGING: lodgingName, lodgingAddress, underName, checkinDate, checkoutDate (should including time)
             - RESTAURANT: restaurantName, restaurantAddress, underName, reservationDate
               - optional but include if present: reservationTime, tableNo, queueNo, partySize
             - FLIGHT: airline, flightNo, departureAirport, departureTime, arrivalAirport, arrivalTime
@@ -70,7 +70,7 @@ public class ChatMapperRequestFactory {
                 .model("typhoon-v2.5-30b-a3b-instruct")
                 .messages(List.of(systemInstruction, userInstruction))
                 .temperature(0.1)
-                .maxTokens(80000)
+                .maxTokens(5000)
                 .topP(0.8)
                 .frequencyPenalty(0.0)
                 .build();

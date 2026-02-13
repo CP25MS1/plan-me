@@ -44,7 +44,7 @@ public class TyphoonServiceImpl implements TyphoonService {
                     List<ChatCompletionMessageParam> sdkMessages = toSdkMessages(req);
 
                     ChatCompletionCreateParams params = buildCreateParams(req, sdkMessages);
-                    Object resp = typhoonBaseClient.chat().completions().create(params);
+                    var resp = typhoonBaseClient.chat().completions().create(params);
                     String content = extractContentFromResponse(resp);
                     return content == null ? "" : content;
                 })
