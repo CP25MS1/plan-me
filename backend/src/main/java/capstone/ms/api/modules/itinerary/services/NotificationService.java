@@ -11,7 +11,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -41,7 +41,7 @@ public class NotificationService {
         notification.setReceiverUser(receiver);
         notification.setTrip(trip);
         notification.setIsRead(false);
-        notification.setCreatedAt(LocalDateTime.now());
+        notification.setCreatedAt(Instant.now());
 
         notificationRepository.save(notification);
     }

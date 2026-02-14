@@ -16,6 +16,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  jackson:
+    time-zone: Asia/Bangkok
   security:
     oauth2:
       client:

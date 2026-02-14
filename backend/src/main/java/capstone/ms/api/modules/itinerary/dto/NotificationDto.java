@@ -4,7 +4,7 @@ import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Builder
 @Data
@@ -14,7 +14,7 @@ public class NotificationDto {
     private String notiCode;
     private PublicUserInfo actor;
     private Boolean isRead;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Builder
     @Data
