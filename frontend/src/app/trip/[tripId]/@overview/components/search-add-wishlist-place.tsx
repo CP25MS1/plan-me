@@ -139,7 +139,7 @@ export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishl
             {p.ggmpId && selectedGgmpId === p.ggmpId && (
               <PlaceDetailsDialog
                 isOpened={!!selectedGgmpId}
-                onClose={() => setSelectedGgmpId(p.ggmpId)}
+                onClose={() => setSelectedGgmpId(null)}
                 ggmpId={p.ggmpId}
                 cta={
                   <Box sx={{ display: 'flex', justifyContent: 'end' }}>
