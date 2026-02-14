@@ -1,7 +1,7 @@
 'use client';
 
 import { ReservationDto, RestaurantDetails } from '@/api/reservations';
-import { Box, Typography, Divider, Tooltip } from '@mui/material';
+import { Box, Typography, Divider, Tooltip, Stack } from '@mui/material';
 import { Utensils, Phone, Mail, UserRound, Clock, Table, Ticket, Users } from 'lucide-react';
 
 const formatDate = (datetime: string) => {
@@ -135,13 +135,15 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
           </Box>
 
           <Box sx={{ mt: 1 }}>
-            <Typography variant="caption" fontWeight={600}>
-              CONFIRMATION #
-            </Typography>
+            <Stack direction="column" alignItems="flex-center" textAlign="center" spacing={0.5}>
+              <Typography variant="caption" fontWeight={600}>
+                หมายเลขการจอง
+              </Typography>
 
-            <Typography variant="caption" color="text.secondary" noWrap>
-              {restaurant.bookingRef || '-'}
-            </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {restaurant.bookingRef || ''}
+              </Typography>
+            </Stack>
           </Box>
         </Box>
 
@@ -153,7 +155,12 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
           <Info icon={<UserRound size={14} />} text={restaurant.underName} />
           <Info icon={<Table size={14} />} text={`หมายเลขโต๊ะ ${restaurant.tableNo}`} />
           <Info icon={<Ticket size={14} />} text={`หมายเลขคิว ${restaurant.queueNo}`} />
-          <Info icon={<Users size={14} />} text={`จำนวนสมาชิก ${restaurant.partySize}`} />
+          <Info
+            icon={<Users size={14} />}
+            text={
+              restaurant.partySize != null ? `จำนวนสมาชิก ${restaurant.partySize}` : 'จำนวนสมาชิก'
+            }
+          />
 
           <Box sx={{ mt: 0.5, textAlign: 'right' }}>
             <Typography

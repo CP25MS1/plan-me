@@ -21,9 +21,7 @@ const formatDate = (date: string) =>
       })
     : '-';
 
-/* =========================
-   Item (เหมือน Flight)
-========================= */
+/* Item */
 const Item = ({ label, value }: { label: string; value: string }) => (
   <Box sx={{ minWidth: 0 }}>
     <Typography
@@ -44,8 +42,6 @@ const Item = ({ label, value }: { label: string; value: string }) => (
         fontWeight: 600,
         lineHeight: '16px',
         whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
       }}
     >
       {value}
@@ -53,15 +49,13 @@ const Item = ({ label, value }: { label: string; value: string }) => (
   </Box>
 );
 
-/* =========================
-   Row (Fix column width)
-========================= */
+/* Row */
 const Row = ({ children }: { children: React.ReactNode }) => (
   <Box
     sx={{
       display: 'grid',
       gridTemplateColumns: '1fr 1fr 1fr 1fr',
-      columnGap: 8,
+      columnGap: 4,
       alignItems: 'start',
     }}
   >
@@ -142,7 +136,7 @@ export default function TrainCard({ data }: { data: ReservationDto | null }) {
       <Row>
         <Item label="ปลายทาง" value={train.arrivalStation} />
         <Item label="ถึง" value={formatTime(train.arrivalTime)} />
-        <Item label="CONF #" value={train.bookingRef} />
+        <Item label="หมายเลขการจอง" value={train.bookingRef} />
         <Item label="โทรศัพท์" value={train.contactTel} />
       </Row>
     </Box>

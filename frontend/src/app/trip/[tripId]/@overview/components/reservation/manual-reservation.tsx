@@ -19,7 +19,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { ElementType, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Building, Bus, Car, Plane, Ship, Train, Utensils } from 'lucide-react';
-
+import CircularProgress from '@mui/material/CircularProgress';
 import LodgingCard from '@/app/trip/[tripId]/@overview/components/cards/lodging';
 import RestaurantCard from '@/app/trip/[tripId]/@overview/components/cards/restaurant';
 import FlightCard from '@/app/trip/[tripId]/@overview/components/cards/flight';
@@ -32,13 +32,13 @@ import { fieldsByType } from '../fields-by-type';
 import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
+import dayjs from 'dayjs';
+import { DatePicker, TimePicker, DateTimePicker } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { tokens } from '@/providers/theme/design-tokens';
 
-import {
-  FlightDetails,
-  ReservationDto,
-  ReservationType,
-  useCreateReservation,
-} from '@/api/reservations';
+import { ReservationDto, ReservationType, useCreateReservation } from '@/api/reservations';
 
 interface ManualReservationProps {
   open: boolean;
@@ -66,7 +66,7 @@ export default function ManualReservation({
   const fieldsRef = useRef<Record<string, HTMLDivElement | null>>({});
   const createReservation = useCreateReservation();
 
-  /** 🔒 RESET ทุกครั้งที่เปิด (Manual = Add only) */
+  /** RESET ทุกครั้งที่เปิด */
   useEffect(() => {
     if (!open) return;
 
@@ -87,21 +87,14 @@ export default function ManualReservation({
     severity: 'error',
   });
 
-  const errorMessageMap: Record<number, string> = {
-    400: 'ไม่สามารถเพิ่มข้อมูลการจองได้ โปรดตรวจสอบข้อมูลอีกครั้ง',
-    403: 'คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้',
-    404: 'ไม่พบข้อมูลการจองนี้ในระบบ',
-  };
-
   const showErrorSnackbar = (error: unknown) => {
     if (error instanceof AxiosError) {
-      const status = error.response?.status;
-
-      const message = (status && errorMessageMap[status]) || 'เกิดข้อผิดพลาดบางอย่าง';
+      const apiMessage =
+        error.response?.data?.message || error.response?.data?.error || error.message;
 
       setSnackbar({
         open: true,
-        message,
+        message: apiMessage || 'เกิดข้อผิดพลาดบางอย่าง',
         severity: 'error',
       });
 
@@ -134,10 +127,36 @@ export default function ManualReservation({
 
   const handlePassengerChange = (index: number, key: 'passengerName' | 'seatNo', value: string) => {
     setPassengers((prev) => prev.map((p, i) => (i === index ? { ...p, [key]: value } : p)));
+
+    setErrors((prev) => {
+      if (!prev) return prev;
+
+      const newErrors = { ...prev };
+
+      const passengerKey = `passenger-${index}`;
+
+      const updatedPassenger =
+        key === 'passengerName'
+          ? { ...passengers[index], passengerName: value }
+          : { ...passengers[index], seatNo: value };
+
+      if (updatedPassenger.passengerName && updatedPassenger.seatNo) {
+        delete newErrors[passengerKey];
+      }
+
+      return newErrors;
+    });
   };
 
   const handlePreview = () => {
-    if (!typeValue) return;
+    if (!typeValue) {
+      setSnackbar({
+        open: true,
+        message: 'กรุณาเลือกประเภทของข้อมูลการจอง',
+        severity: 'error',
+      });
+      return;
+    }
 
     const typeFields = fieldsByType[typeValue];
     const newErrors: Record<string, boolean> = {};
@@ -185,7 +204,14 @@ export default function ManualReservation({
   };
 
   const handleConfirm = () => {
-    if (!typeValue || !formData) return;
+    if (!typeValue || !formData) {
+      setSnackbar({
+        open: true,
+        message: 'ไม่สามารถบันทึกข้อมูลได้',
+        severity: 'error',
+      });
+      return;
+    }
 
     const payload: ReservationDto = {
       tripId,
@@ -203,9 +229,15 @@ export default function ManualReservation({
 
     createReservation.mutate(payload, {
       onSuccess: (data) => {
-        onClose();
-        setShowPreview(false);
+        setSnackbar({
+          open: true,
+          message: 'เพิ่มข้อมูลการจองสำเร็จ',
+          severity: 'success',
+        });
+
         onReservationCreated(data);
+        setShowPreview(false);
+        onClose();
       },
       onError: (err) => {
         console.error(err);
@@ -259,6 +291,7 @@ export default function ManualReservation({
   return (
     <>
       {/* Dialog กรอกข้อมูล */}
+
       <Dialog
         open={open && !showPreview}
         fullWidth
@@ -270,195 +303,357 @@ export default function ManualReservation({
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-
-        <DialogContent sx={{ pt: 0 }}>
-          <FormControl fullWidth>
-            <Select
-              value={typeValue}
-              onChange={(e) => {
-                const newType = e.target.value;
-                setTypeValue(newType);
-                setFormData(null);
-                setErrors({});
-                setPassengers([{ passengerName: '', seatNo: '' }]);
-              }}
-              displayEmpty
-              sx={{
-                borderRadius: 2,
-                '& .MuiSelect-displayEmpty': {
-                  color: typeValue ? 'inherit' : 'grey.500',
-                },
-              }}
-              renderValue={(selected) => {
-                if (!selected) return t('ManualReservation.placeholder');
-                return (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {icons[selected as keyof typeof icons]}{' '}
-                    {t(`ManualReservation.Type.${selected}`)}
-                  </Box>
-                );
-              }}
-            >
-              <MenuItem value="" disabled>
-                {t('ManualReservation.placeholder')}
-              </MenuItem>
-              {Object.keys(fieldsByType).map((type) => {
-                const IconComp = {
-                  Lodging: Building,
-                  Restaurant: Utensils,
-                  Flight: Plane,
-                  Train: Train,
-                  Bus: Bus,
-                  Ferry: Ship,
-                  CarRental: Car,
-                }[type] as ElementType;
-                return (
-                  <MenuItem key={type} value={type} className="flex items-center gap-3">
-                    <IconComp size={18} color="#25CF7A" />
-                    {t(`ManualReservation.Type.${type}`)}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
-
-          {typeValue && fieldsByType[typeValue]?.length ? (
-            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {fieldsByType[typeValue].map((field) => (
-                <Box
-                  key={field.name}
-                  ref={(el: HTMLDivElement | null) => {
-                    fieldsRef.current[field.name] = el;
-                  }}
-                  sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}
-                >
-                  <Typography
-                    variant="body2"
-                    color={(errors ? errors[field.name] : false) ? 'error.main' : 'text.secondary'}
-                  >
-                    {field.label}
-                  </Typography>
-                  <TextField
-                    type={field.type || 'text'}
-                    value={formData?.[field.name as keyof ReservationDto] ?? ''}
-                    onChange={(e) => handleChange(field.name, e.target.value)}
-                    fullWidth
-                    variant="outlined"
-                    error={errors ? !!errors[field.name] : false}
-                    placeholder={field.placeholder}
-                    InputProps={{
-                      sx: {
-                        '& input::placeholder': {
-                          color: '#AFB1B6',
-                          opacity: 1,
-                        },
-                      },
-                    }}
-                  />
-                </Box>
-              ))}
-
-              {/* Section ผู้โดยสาร Flight */}
-              {typeValue === 'Flight' && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    รายชื่อผู้โดยสาร
-                  </Typography>
-                  {passengers.map((p, idx) => (
-                    <Box key={idx} sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
-                      <TextField
-                        label="ชื่อ"
-                        value={p.passengerName}
-                        onChange={(e) => {
-                          const newName = e.target.value;
-                          handlePassengerChange(idx, 'passengerName', newName);
-                          const editedPassenger = { ...passengers[idx], passengerName: newName };
-                          handleChange(
-                            'passengers',
-                            passengers.with(idx, editedPassenger) as unknown as string
-                          );
-                        }}
-                        fullWidth
-                        size="small"
-                        error={errors ? !!errors[`passenger-${idx}`] : false}
-                      />
-                      <TextField
-                        label="เลขที่นั่ง"
-                        value={p.seatNo}
-                        onChange={(e) => {
-                          const newSeatNumber = e.target.value;
-                          handlePassengerChange(idx, 'seatNo', newSeatNumber);
-                          const editedPassenger = { ...passengers[idx], seatNo: newSeatNumber };
-                          handleChange(
-                            'passengers',
-                            passengers.with(idx, editedPassenger) as unknown as string
-                          );
-                        }}
-                        fullWidth
-                        size="small"
-                        error={errors ? !!errors[`passenger-${idx}`] : false}
-                      />
-                      <IconButton
-                        color="error"
-                        onClick={() => removePassenger(idx)}
-                        disabled={passengers.length === 1}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DialogContent sx={{ pt: 0 }}>
+            <FormControl fullWidth>
+              <Select
+                value={typeValue}
+                onChange={(e) => {
+                  const newType = e.target.value;
+                  setTypeValue(newType);
+                  setFormData(null);
+                  setErrors({});
+                  setPassengers([{ passengerName: '', seatNo: '' }]);
+                }}
+                displayEmpty
+                sx={{
+                  borderRadius: 2,
+                  '& .MuiSelect-displayEmpty': {
+                    color: typeValue ? 'inherit' : 'grey.500',
+                  },
+                }}
+                renderValue={(selected) => {
+                  if (!selected) return t('ManualReservation.placeholder');
+                  return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {icons[selected as keyof typeof icons]}{' '}
+                      {t(`ManualReservation.Type.${selected}`)}
                     </Box>
-                  ))}
-                  <Box
-                    sx={{
-                      textAlign: 'center',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Button variant="outlined" sx={{ mt: 1 }} onClick={addPassenger}>
-                      + เพิ่มผู้โดยสาร
-                    </Button>
-                  </Box>
-                </Box>
-              )}
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                textAlign: 'center',
-                height: '260px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'column',
-                color: 'grey.600',
-              }}
-            >
-              <Typography variant="subtitle1" fontWeight={500}>
-                {t('ManualReservation.nodata')}
-              </Typography>
-              <Typography variant="body2">{t('ManualReservation.placeholder')}</Typography>
-            </Box>
-          )}
+                  );
+                }}
+              >
+                {Object.keys(fieldsByType).map((type) => {
+                  const IconComp = {
+                    Lodging: Building,
+                    Restaurant: Utensils,
+                    Flight: Plane,
+                    Train: Train,
+                    Bus: Bus,
+                    Ferry: Ship,
+                    CarRental: Car,
+                  }[type] as ElementType;
+                  return (
+                    <MenuItem key={type} value={type} className="flex items-center gap-3">
+                      <IconComp size={18} color="#25CF7A" />
+                      {t(`ManualReservation.Type.${type}`)}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
 
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pb: 6, mt: 2 }}>
-            <Button
-              variant="contained"
-              sx={{
-                borderRadius: 5,
-                px: 3,
-                textTransform: 'none',
-                boxShadow: 'none',
-                color: '#fff',
-                bgcolor: typeValue ? '#25CF7A' : '#B0B0B0',
-                pointerEvents: typeValue ? 'auto' : 'none',
-              }}
-              startIcon={<VisibilityIcon />}
-              onClick={handlePreview}
-            >
-              {t('ManualReservation.Button')}
-            </Button>
-          </Box>
-        </DialogContent>
+            {typeValue && fieldsByType[typeValue]?.length ? (
+              <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {fieldsByType[typeValue].map((field) => {
+                  const hasError = !!errors?.[field.name];
+                  const value = formData?.[field.name as keyof ReservationDto] as string;
+                  const isEmail = field.type === 'email';
+                  const isNumber = field.type === 'number';
+
+                  const emailInvalid =
+                    isEmail && !!value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+                  const numberInvalid = isNumber && !!value && !/^\d+$/.test(value);
+                  return (
+                    <Box
+                      key={field.name}
+                      ref={(el: HTMLDivElement | null) => {
+                        fieldsRef.current[field.name] = el;
+                      }}
+                      sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}
+                    >
+                      <Typography
+                        variant="body2"
+                        color={
+                          (errors ? errors[field.name] : false) ? 'error.main' : 'text.secondary'
+                        }
+                      >
+                        {field.label}
+                        {field.required && (
+                          <Box
+                            component="span"
+                            sx={{
+                              color: 'error.main',
+                              ml: 1,
+                              fontSize: '1.1em',
+                              position: 'relative',
+                              top: '0.2em',
+                            }}
+                          >
+                            *
+                          </Box>
+                        )}
+                      </Typography>
+
+                      {field.type === 'date' ? (
+                        <DatePicker
+                          enableAccessibleFieldDOMStructure={false}
+                          value={
+                            formData?.[field.name as keyof ReservationDto]
+                              ? dayjs(formData?.[field.name as keyof ReservationDto] as string)
+                              : null
+                          }
+                          onChange={(value) =>
+                            handleChange(field.name, value ? value.format('YYYY-MM-DD') : '')
+                          }
+                          format="DD/MM/YYYY"
+                          slots={{ textField: TextField }}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              error: hasError,
+                              placeholder: field.placeholder,
+                              helperText: hasError ? 'โปรดระบุข้อมูล' : '',
+                              FormHelperTextProps: {
+                                sx: { color: tokens.color.error },
+                              },
+                            },
+                          }}
+                        />
+                      ) : field.type === 'time' ? (
+                        <TimePicker
+                          enableAccessibleFieldDOMStructure={false}
+                          ampm={false}
+                          value={
+                            formData?.[field.name as keyof ReservationDto]
+                              ? dayjs(
+                                  formData?.[field.name as keyof ReservationDto] as string,
+                                  'HH:mm'
+                                )
+                              : null
+                          }
+                          onChange={(value) =>
+                            handleChange(field.name, value ? value.format('HH:mm') : '')
+                          }
+                          format="HH:mm"
+                          slots={{ textField: TextField }}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              error: hasError,
+                              placeholder: field.placeholder,
+                              helperText: hasError ? 'โปรดระบุข้อมูล' : '',
+                              FormHelperTextProps: {
+                                sx: { color: tokens.color.error },
+                              },
+                            },
+                          }}
+                        />
+                      ) : field.type === 'datetime-local' ? (
+                        <DateTimePicker
+                          enableAccessibleFieldDOMStructure={false}
+                          ampm={false}
+                          views={['year', 'day', 'hours', 'minutes']}
+                          openTo="day"
+                          timeSteps={{ minutes: 1 }}
+                          value={
+                            formData?.[field.name as keyof ReservationDto]
+                              ? dayjs(formData?.[field.name as keyof ReservationDto] as string)
+                              : null
+                          }
+                          onChange={(value) =>
+                            handleChange(field.name, value ? value.toISOString() : '')
+                          }
+                          format="DD/MM/YYYY HH:mm"
+                          slots={{ textField: TextField }}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              error: hasError,
+                              placeholder: field.placeholder,
+                              helperText: hasError ? 'โปรดระบุข้อมูล' : '',
+                              FormHelperTextProps: {
+                                sx: { color: tokens.color.error },
+                              },
+                            },
+                          }}
+                        />
+                      ) : (
+                        <TextField
+                          type={field.type || 'text'}
+                          value={value ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+
+                            if (field.type === 'number') {
+                              if (/^\d*$/.test(value)) {
+                                handleChange(field.name, value);
+                              }
+                              return;
+                            }
+
+                            handleChange(field.name, value);
+                          }}
+                          fullWidth
+                          error={hasError || emailInvalid || numberInvalid}
+                          placeholder={field.placeholder}
+                          helperText={
+                            hasError
+                              ? 'โปรดระบุข้อมูล'
+                              : emailInvalid
+                                ? 'โปรดระบุอีเมลในรูปแบบ username@domain'
+                                : numberInvalid
+                                  ? 'กรุณากรอกตัวเลขเท่านั้น'
+                                  : ''
+                          }
+                          FormHelperTextProps={{
+                            sx: {
+                              color: tokens.color.error,
+                            },
+                          }}
+                        />
+                      )}
+                    </Box>
+                  );
+                })}
+
+                {/* Section ผู้โดยสาร Flight */}
+                {typeValue === 'Flight' && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      รายชื่อผู้โดยสาร
+                    </Typography>
+
+                    {passengers.map((p, idx) => {
+                      const hasError = !!errors?.[`passenger-${idx}`];
+
+                      const nameError = hasError && !p.passengerName;
+                      const seatError = hasError && !p.seatNo;
+
+                      return (
+                        <Box key={idx} sx={{ mt: 2 }}>
+                          {/* ===== ชื่อ ===== */}
+                          <Typography variant="body2" sx={{ mb: 0.5 }}>
+                            ผู้จอง
+                            <Box
+                              component="span"
+                              sx={{
+                                color: 'error.main',
+                                ml: 0.5,
+                                fontSize: '1.1em',
+                                position: 'relative',
+                                top: '0.2em',
+                              }}
+                            >
+                              *
+                            </Box>
+                          </Typography>
+
+                          <TextField
+                            value={p.passengerName}
+                            onChange={(e) =>
+                              handlePassengerChange(idx, 'passengerName', e.target.value)
+                            }
+                            fullWidth
+                            error={nameError}
+                            placeholder="eg. สมพงษ์"
+                            helperText={nameError ? 'โปรดระบุข้อมูล' : ''}
+                            FormHelperTextProps={{
+                              sx: { color: tokens.color.error },
+                            }}
+                            sx={{ mb: 2 }}
+                          />
+
+                          {/* ===== เลขที่นั่ง ===== */}
+                          <Typography variant="body2" sx={{ mb: 0.5 }}>
+                            เลขที่นั่ง
+                            <Box
+                              component="span"
+                              sx={{
+                                color: 'error.main',
+                                ml: 0.5,
+                                fontSize: '1.1em',
+                                position: 'relative',
+                                top: '0.2em',
+                              }}
+                            >
+                              *
+                            </Box>
+                          </Typography>
+
+                          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                            <TextField
+                              value={p.seatNo}
+                              onChange={(e) => handlePassengerChange(idx, 'seatNo', e.target.value)}
+                              fullWidth
+                              error={seatError}
+                              placeholder="eg. 12A"
+                              helperText={seatError ? 'โปรดระบุข้อมูล' : ''}
+                              FormHelperTextProps={{
+                                sx: { color: tokens.color.error },
+                              }}
+                            />
+
+                            <IconButton
+                              color="error"
+                              onClick={() => removePassenger(idx)}
+                              disabled={passengers.length === 1}
+                              sx={{ mt: 1 }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Button variant="outlined" sx={{ mt: 1 }} onClick={addPassenger}>
+                        + เพิ่มผู้โดยสาร
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  textAlign: 'center',
+                  height: '260px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'column',
+                  color: 'grey.600',
+                }}
+              >
+                <Typography variant="subtitle1" fontWeight={500}>
+                  {t('ManualReservation.nodata')}
+                </Typography>
+                <Typography variant="body2">{t('ManualReservation.placeholder')}</Typography>
+              </Box>
+            )}
+
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pb: 6, mt: 2 }}>
+              <Button
+                variant="contained"
+                sx={{
+                  borderRadius: 5,
+                  px: 3,
+                  textTransform: 'none',
+                  boxShadow: 'none',
+                  color: '#fff',
+                  bgcolor: typeValue ? '#25CF7A' : '#B0B0B0',
+                  pointerEvents: typeValue ? 'auto' : 'none',
+                }}
+                startIcon={<VisibilityIcon />}
+                onClick={handlePreview}
+              >
+                {t('ManualReservation.Button')}
+              </Button>
+            </Box>
+          </DialogContent>
+        </LocalizationProvider>
       </Dialog>
 
       {/* Dialog Preview */}
@@ -472,20 +667,18 @@ export default function ManualReservation({
           <Box sx={{ position: 'absolute', left: 8, top: 8 }}>
             <BackButton onBack={() => setShowPreview(false)} />
           </Box>
-          ตัวอย่างข้อมูลของ {typeValue && t(`ManualReservation.Type.${typeValue}`)}
+          ตัวอย่างข้อมูลการจอง
           <IconButton
             onClick={() => setShowPreview(false)}
             sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
+          ></IconButton>
         </DialogTitle>
 
         <DialogContent
           sx={{
             pt: 0,
             maxHeight: '400px',
-            overflowY: 'auto',
+            overflowY: 'scroll',
             display: 'flex',
             flexDirection: 'column',
             gap: 1,
@@ -493,17 +686,24 @@ export default function ManualReservation({
         >
           {typeValue === 'Lodging' && <LodgingCard data={formData} />}
           {typeValue === 'Restaurant' && <RestaurantCard data={formData} />}
-          {typeValue === 'Flight' && (
+          {typeValue === 'Flight' && formData && (
             <>
-              {(formData as unknown as FlightDetails)?.passengers?.map((p, i) => {
-                const flightDetails = (formData as unknown as FlightDetails) || null;
-                return (
-                  <FlightCard
-                    key={`${flightDetails?.passengers?.[i]?.seatNo}`}
-                    data={flightDetails as unknown as ReservationDto}
-                    passengerIndex={i}
-                  />
-                );
+              {passengers.map((_, i) => {
+                const previewData: ReservationDto = {
+                  tripId,
+                  ggmpId: formData.ggmpId ?? null,
+                  bookingRef: formData.bookingRef ?? '',
+                  contactTel: formData.contactTel ?? '',
+                  contactEmail: formData.contactEmail ?? '',
+                  cost: Number(formData.cost) || 0,
+                  type: 'FLIGHT',
+                  details: {
+                    type: 'FLIGHT',
+                    ...buildDetails(),
+                  },
+                };
+
+                return <FlightCard key={i} data={previewData} passengerIndex={i} />;
               })}
             </>
           )}
@@ -512,21 +712,25 @@ export default function ManualReservation({
           {typeValue === 'Bus' && <BusCard data={formData} />}
           {typeValue === 'Ferry' && <FerryCard data={formData} />}
           {typeValue === 'CarRental' && <CarRentalCard data={formData} />}
-
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pb: 2, mt: 2 }}>
-            <Button
-              variant="contained"
-              onClick={handleConfirm}
-              sx={{
-                borderRadius: 5,
-                px: 3,
-                bgcolor: '#25CF7A',
-              }}
-            >
-              ยืนยัน
-            </Button>
-          </Box>
         </DialogContent>
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pb: 1, mt: 1 }}>
+          <Button
+            variant="contained"
+            onClick={handleConfirm}
+            disabled={createReservation.isPending}
+            sx={{
+              borderRadius: 5,
+              px: 3,
+              bgcolor: '#25CF7A',
+            }}
+          >
+            {createReservation.isPending ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              'ยืนยัน'
+            )}
+          </Button>
+        </Box>
       </Dialog>
       <AppSnackbar
         open={snackbar.open}
