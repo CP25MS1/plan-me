@@ -93,7 +93,6 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
     onUpdateTripName: (name) => handleSave({ ...tripOverview, name }),
 
     onUpdateDates: (start?, end?) => {
-      if (!start || !end) return;
       handleSave({
         ...tripOverview,
         startDate: start,
