@@ -45,7 +45,12 @@ public class DailyPlanService {
                 dailyPlanRepository.findAllByTripId(tripId).stream()
                         .collect(Collectors.toMap(DailyPlan::getDate, Function.identity()));
 
-        if (startDate == null) return;
+        if (startDate == null) {
+            if (!existingPlansByDate.isEmpty()) {
+                dailyPlanRepository.deleteAllInBatch(existingPlansByDate.values());
+            }
+            return;
+        }
 
         LocalDate effectiveEndDate = (endDate != null) ? endDate : startDate;
 
