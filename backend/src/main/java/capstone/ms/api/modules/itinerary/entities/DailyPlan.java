@@ -43,6 +43,7 @@ public class DailyPlan {
     @Column(name = "pin_color", nullable = false, length = 7)
     private String pinColor;
 
+    @Builder.Default
     @OneToMany(mappedBy = "plan")
     private Set<ScheduledPlace> scheduledPlaces = new LinkedHashSet<>();
 
