@@ -18,12 +18,12 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EmailIcon from '@mui/icons-material/Email';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { ElementType, useEffect, useRef, useState } from 'react';
+import { ReactNode, ElementType, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { Building, Bus, Car, Plane, Ship, Train, Utensils } from 'lucide-react';
-
+import CircularProgress from '@mui/material/CircularProgress';
 import { BackButton } from '@/components/button';
 import LodgingCard from '@/app/trip/[tripId]/@overview/components/cards/lodging';
 import RestaurantCard from '@/app/trip/[tripId]/@overview/components/cards/restaurant';
@@ -40,6 +40,13 @@ import { useReadEmailInbox } from '@/app/trip/[tripId]/@overview/hooks/reservati
 import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
+import { useTranslation } from 'react-i18next';
+
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 dayjs.extend(relativeTime);
 
@@ -57,19 +64,19 @@ interface EmailItem {
 }
 
 const types = ['LODGING', 'RESTAURANT', 'FLIGHT', 'TRAIN', 'BUS', 'FERRY', 'CAR_RENTAL'];
-const icons = {
-  Lodging: <Building size={18} color="#25CF7A" />,
-  Restaurant: <Utensils size={18} color="#25CF7A" />,
-  Flight: <Plane size={18} color="#25CF7A" />,
-  Train: <Train size={18} color="#25CF7A" />,
-  Bus: <Bus size={18} color="#25CF7A" />,
-  Ferry: <Ship size={18} color="#25CF7A" />,
-  CarRental: <Car size={18} color="#25CF7A" />,
+const icons: Record<ReservationType, ReactNode> = {
+  LODGING: <Building size={18} color="#25CF7A" />,
+  RESTAURANT: <Utensils size={18} color="#25CF7A" />,
+  FLIGHT: <Plane size={18} color="#25CF7A" />,
+  TRAIN: <Train size={18} color="#25CF7A" />,
+  BUS: <Bus size={18} color="#25CF7A" />,
+  FERRY: <Ship size={18} color="#25CF7A" />,
+  CAR_RENTAL: <Car size={18} color="#25CF7A" />,
 };
 
 export default function EmailReservation({ open, onClose }: EmailReservationProps) {
   const { tripId } = useParams<{ tripId: string }>();
-
+  const { t } = useTranslation('trip_overview');
   const [emails, setEmails] = useState<EmailItem[]>([]);
   const { refetch: refetchEmailInfos, isFetching } = useGetReservationEmailInfo(Number(tripId));
 
@@ -83,7 +90,6 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   const [selectedTypes, setSelectedTypes] = useState<Record<number, ReservationType>>({});
   const [copiedAlert, setCopiedAlert] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isAllTypeSelected = emails.length > 0 && emails.every((_, index) => !!selectedTypes[index]);
 
   useEffect(() => {
     if (open) {
@@ -106,12 +112,16 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     if (!data) return;
 
     setEmails(
-      data.map((e) => ({
-        emailId: e.emailId,
-        subject: e.subject,
-        receivedAt: dayjs(e.sentAt).fromNow(),
-        type: '',
-      }))
+      data.map((e) => {
+        const cleanedDate = e.sentAt.replace(' ICT', '');
+
+        return {
+          emailId: e.emailId,
+          subject: e.subject,
+          receivedAt: dayjs(cleanedDate).fromNow(),
+          type: '',
+        };
+      })
     );
   };
 
@@ -130,40 +140,41 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     open: boolean;
     message: string;
     severity: AlertColor;
+    duration?: number;
   }>({
     open: false,
     message: '',
     severity: 'error',
   });
 
-  const errorMessageMap: Record<number, string> = {
-    400: 'โปรดตรวจสอบข้อมูลอีกครั้ง',
-    403: 'คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้',
-    404: 'ไม่พบทริปนี้ในระบบ',
-    500: 'เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก',
-  };
-
   const showErrorSnackbar = (error: unknown) => {
-    if (error instanceof AxiosError) {
-      const status = error.response?.status;
+    if (!(error instanceof AxiosError)) return;
 
-      const message = (status && errorMessageMap[status]) || 'เกิดข้อผิดพลาดบางอย่าง';
+    const data = error.response?.data;
 
-      setSnackbar({
-        open: true,
-        message,
-        severity: 'error',
-      });
+    if (
+      typeof data === 'object' &&
+      data !== null &&
+      typeof (data as { message?: unknown }).message === 'object' &&
+      (data as { message?: unknown }).message !== null
+    ) {
+      const thMessage = (
+        data as {
+          message?: { TH?: unknown };
+        }
+      ).message?.TH;
 
-      return;
+      if (typeof thMessage === 'string' && thMessage.trim() !== '') {
+        setSnackbar({
+          open: true,
+          message: thMessage,
+          severity: 'error',
+        });
+      }
     }
-
-    setSnackbar({
-      open: true,
-      message: 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ',
-      severity: 'error',
-    });
   };
+
+  const isAllSelected = emails.length > 0 && emails.every((_, index) => !!selectedTypes[index]);
 
   const handleTypeChange = (index: number, value: ReservationType) => {
     setSelectedTypes((prev) => ({ ...prev, [index]: value }));
@@ -190,14 +201,23 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
 
     setEmails(updated);
 
-    if (hasError && containerRef.current) {
-      const firstError = updated.findIndex((e) => e.error);
-      const element = containerRef.current.children[firstError] as HTMLElement;
-      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (hasError) {
+      setSnackbar({
+        open: true,
+        message: 'เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก',
+        severity: 'error',
+        duration: 5000,
+      });
+
+      if (containerRef.current) {
+        const firstError = updated.findIndex((e) => e.error);
+        const element = containerRef.current.children[firstError] as HTMLElement;
+        element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
       return;
     }
 
-    // ===== ยิง API =====
     try {
       const payload = emails.map((e, i) => ({
         emailId: e.emailId,
@@ -211,13 +231,17 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
 
       setPreviewReservations(result);
       setShowPreview(true);
-    } catch (err) {
-      console.error(err);
-      showErrorSnackbar(err);
+    } catch {
+      setSnackbar({
+        open: true,
+        message: 'เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก',
+        severity: 'error',
+        duration: 5000,
+      });
     }
   };
 
-  // Confirm
+  // Confirm Create
   const { mutateAsync: createBulk, isPending: isCreating } = useCreateReservationBulk();
   const { mutateAsync: readEmailInbox } = useReadEmailInbox();
 
@@ -225,16 +249,21 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     try {
       await createBulk(previewReservations);
 
+      setSnackbar({
+        open: true,
+        message: 'เพิ่มข้อมูลการจองสำเร็จ',
+        severity: 'success',
+      });
+
       setShowPreview(false);
       onClose();
 
-      readEmailInbox({
+      await readEmailInbox({
         emailIds: emails.map((e) => e.emailId),
       });
 
       refetchEmailInfos();
     } catch (err) {
-      console.error(err);
       showErrorSnackbar(err);
     }
   };
@@ -320,30 +349,31 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
 
           <Button
             variant="contained"
-            startIcon={<EmailIcon />}
+            startIcon={!isFetching ? <EmailIcon /> : null}
             onClick={checkEmails}
-            disabled={isFetching}
+            disabled={isFetching || isPending}
             sx={{
               mb: 2,
               bgcolor: '#25CF7A',
-
-              '&:hover': {
-                bgcolor: '#25CF7A',
-              },
-
-              '&.Mui-disabled': {
-                bgcolor: 'grey.400',
-                color: 'white',
-              },
+              minWidth: 180,
+              position: 'relative',
             }}
           >
-            {isFetching ? 'กำลังโหลด...' : 'เช็คอีเมลที่เข้ามา'}
+            <span style={{ visibility: isFetching ? 'hidden' : 'visible' }}>
+              เช็คอีเมลที่เข้ามา
+            </span>
+
+            {isFetching && (
+              <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
+            )}
           </Button>
 
           {emails.length > 0 && (
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              อีเมล ({selectedCount}/{emails.length})
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+              <Typography variant="subtitle2">
+                อีเมล ({selectedCount}/{emails.length})
+              </Typography>
+            </Box>
           )}
 
           <Box
@@ -384,19 +414,17 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                     onChange={(e) => handleTypeChange(index, e.target.value as ReservationType)}
                     error={!!item.error}
                     renderValue={(selected) => {
-                      if (!selected) return 'เลือกประเภทข้อมูลการจอง';
+                      if (!selected) return t('ManualReservation.placeholder');
+
                       return (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           {icons[selected as keyof typeof icons]}
-                          {selected}
+                          {t(`EmailReservation.Type.${selected}`)}
                         </Box>
                       );
                     }}
                   >
-                    <MenuItem value="" disabled>
-                      เลือกประเภทข้อมูลการจอง
-                    </MenuItem>
-                    {types.map((t) => {
+                    {types.map((type) => {
                       const IconComp = {
                         LODGING: Building,
                         RESTAURANT: Utensils,
@@ -405,12 +433,12 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                         BUS: Bus,
                         FERRY: Ship,
                         CAR_RENTAL: Car,
-                      }[t] as ElementType;
+                      }[type] as ElementType;
 
                       return (
-                        <MenuItem key={t} value={t} className="flex items-center gap-3">
+                        <MenuItem key={type} value={type} className="flex items-center gap-3">
                           <IconComp size={18} color="#25CF7A" />
-                          {t}
+                          {t(`EmailReservation.Type.${type}`)}
                         </MenuItem>
                       );
                     })}
@@ -423,14 +451,23 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
             <Button
               variant="contained"
-              startIcon={<VisibilityIcon />}
+              startIcon={!isPending && <VisibilityIcon />}
               onClick={handlePreview}
-              disabled={!isAllTypeSelected || isPending}
+              disabled={isPending || !isAllSelected}
               sx={{
-                bgcolor: isAllTypeSelected ? '#25CF7A' : 'grey.400',
+                bgcolor: isAllSelected ? '#25CF7A' : 'grey.400',
+                minWidth: 150,
+                position: 'relative',
+                '&:hover': {
+                  bgcolor: isAllSelected ? '#25CF7A' : 'grey.400',
+                },
               }}
             >
-              {isPending ? 'กำลังโหลด...' : 'แสดงตัวอย่าง'}
+              <span style={{ visibility: isPending ? 'hidden' : 'visible' }}>แสดงตัวอย่าง</span>
+
+              {isPending && (
+                <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
+              )}
             </Button>
           </Box>
         </DialogContent>
@@ -484,11 +521,19 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
             <Button
               variant="contained"
-              sx={{ bgcolor: '#25CF7A' }}
               onClick={handleConfirm}
               disabled={isCreating}
+              sx={{
+                bgcolor: '#25CF7A',
+                minWidth: 120,
+                position: 'relative',
+              }}
             >
-              {isCreating ? 'กำลังบันทึก...' : 'ยืนยัน'}
+              <span style={{ visibility: isCreating ? 'hidden' : 'visible' }}>ยืนยัน</span>
+
+              {isCreating && (
+                <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
+              )}
             </Button>
           </Box>
         </DialogContent>
@@ -505,6 +550,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         open={snackbar.open}
         message={snackbar.message}
         severity={snackbar.severity}
+        duration={snackbar.duration}
         onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       />
     </>
