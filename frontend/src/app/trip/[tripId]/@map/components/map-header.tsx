@@ -14,40 +14,31 @@ const MapHeader = ({ title, onBack, cta }: MapHeaderProps) => {
     if (onBack) return onBack();
     if (globalThis.history.length > 1) return globalThis.history.back();
   };
+
   return (
     <Box
       sx={{
-        position: 'relative',
         display: 'flex',
         alignItems: 'center',
-        flexShrink: 0,
-        paddingX: 1,
-        paddingY: 1.25,
+        px: 1,
+        py: 1.25,
       }}
     >
-      {/* Left */}
-      <Box>
-        <IconButton onClick={handleOnBack}>
-          <ChevronLeft />
-        </IconButton>
-      </Box>
+      <IconButton onClick={handleOnBack}>
+        <ChevronLeft />
+      </IconButton>
 
-      {/* Center (title) */}
       <Box
         sx={{
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          maxWidth: '70%',
+          flex: 1,
+          minWidth: 0,
           textAlign: 'center',
-          pointerEvents: 'none',
         }}
       >
         <TruncatedTooltip text={title} className="text-2xl" />
       </Box>
 
-      {/* Right (CTA) */}
-      {cta}
+      <Box sx={{ minWidth: 40, display: 'flex', justifyContent: 'flex-end' }}>{cta}</Box>
     </Box>
   );
 };
