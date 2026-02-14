@@ -17,12 +17,16 @@ const TripMapFullScreen = () => {
     ? Number(searchParams.get('selectedPlaceId'))
     : undefined;
 
-  const firstDayWithPlaceIndex = useMemo(() => {
-    return dailyPlans.findIndex((d) => d.scheduledPlaces.length > 0);
-  }, [dailyPlans]);
+  const computedDefaultDay: DayFilter = useMemo(() => {
+    const daysWithPlaces = dailyPlans.filter((d) => d.scheduledPlaces.length > 0);
 
-  const computedDefaultDay: DayFilter =
-    firstDayWithPlaceIndex === -1 ? 'ALL' : firstDayWithPlaceIndex;
+    if (daysWithPlaces.length === 0) return 'ALL';
+    if (daysWithPlaces.length === 1) {
+      return dailyPlans.findIndex((d) => d.scheduledPlaces.length > 0);
+    }
+
+    return 'ALL';
+  }, [dailyPlans]);
 
   const [selectedDay, setSelectedDay] = useState<DayFilter>('ALL');
 
