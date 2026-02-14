@@ -1,11 +1,16 @@
 'use client';
 
-import { BusDetails, ReservationDto } from '@/api/reservations';
+import { ReservationDto, TrainDetails } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
-import { Bus } from 'lucide-react';
+import { Train } from 'lucide-react';
 
 const formatTime = (date: string) =>
-  date ? new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-';
+  date
+    ? new Date(date).toLocaleTimeString('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '-';
 
 const formatDate = (date: string) =>
   date
@@ -16,33 +21,52 @@ const formatDate = (date: string) =>
       })
     : '-';
 
-export default function BusCard({ data }: { data: ReservationDto | null }) {
-  const busDetails = (data?.details as BusDetails | undefined) ?? (data as unknown as BusDetails);
+/* Train */
+const ColItem = ({ label, value }: { label: string; value?: string }) => (
+  <Box sx={{ minWidth: 0 }}>
+    <Typography variant="caption" sx={{ fontSize: '9px', color: 'text.secondary' }} noWrap>
+      {label}
+    </Typography>
+    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '11px' }} noWrap>
+      {value || '-'}
+    </Typography>
+  </Box>
+);
 
-  const bus = {
-    transportCompany: busDetails?.transportCompany || '',
-    busClass: busDetails?.busClass || '',
-    bookingRef: data?.bookingRef || '',
-    departureStation: busDetails?.departureStation || '',
-    seatNo: busDetails?.seatNo || '',
-    contactTel: data?.contactTel || '',
-    arrivalStation: busDetails?.arrivalStation || '',
-    passengerName: busDetails?.passengerName || '',
-    contactEmail: data?.contactEmail || '',
-    departureTime: busDetails?.departureTime || '',
-    cost: Number(data?.cost),
-  };
-
-  const ColItem = ({ label, value }: { label: string; value?: string }) => (
-    <Box sx={{ minWidth: 0 }}>
-      <Typography variant="caption" sx={{ fontSize: '9px', color: 'text.secondary' }} noWrap>
-        {label}
-      </Typography>
-      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '11px' }} noWrap>
-        {value || '-'}
-      </Typography>
+function Col({ children }: { children: React.ReactNode }) {
+  return (
+    <Box
+      sx={{
+        flex: 1,
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0.4,
+      }}
+    >
+      {children}
     </Box>
   );
+}
+
+export default function TrainCard({ data }: { data: ReservationDto | null }) {
+  const trainDetails =
+    (data?.details as TrainDetails | undefined) ?? (data as unknown as TrainDetails);
+
+  const train = {
+    trainNo: trainDetails?.trainNo || '',
+    trainClass: trainDetails?.trainClass || '',
+    seatClass: trainDetails?.seatClass || '',
+    seatNo: trainDetails?.seatNo || '',
+    passengerName: trainDetails?.passengerName || '',
+    departureStation: trainDetails?.departureStation || '',
+    departureTime: trainDetails?.departureTime || '',
+    arrivalStation: trainDetails?.arrivalStation || '',
+    arrivalTime: trainDetails?.arrivalTime || '',
+    bookingRef: data?.bookingRef || '',
+    contactTel: data?.contactTel || '',
+    cost: Number(data?.cost),
+  };
 
   return (
     <Box
@@ -60,9 +84,9 @@ export default function BusCard({ data }: { data: ReservationDto | null }) {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Bus size={18} color="#25CF7A" />
+          <Train size={18} color="#25CF7A" />
           <Typography variant="subtitle2" sx={{ fontSize: '13px', fontWeight: 700 }}>
-            รถทัวร์
+            รถไฟ
           </Typography>
         </Box>
 
@@ -77,44 +101,36 @@ export default function BusCard({ data }: { data: ReservationDto | null }) {
             fontSize: '10px',
           }}
         >
-          THB {bus.cost?.toFixed(2) ?? '-'}
+          THB {train.cost?.toFixed(2) ?? '-'}
         </Typography>
       </Box>
 
-      {/* Columns layout (เหมือน Flight) */}
+      {/* Columns layout */}
       <Box sx={{ display: 'flex', gap: 1, minWidth: 0 }}>
         <Col>
-          <ColItem label="บริษัท" value={bus.transportCompany} />
-          <ColItem label="ประเภทรถ" value={bus.busClass} />
-          <ColItem label="CONF #" value={bus.bookingRef} />
+          <ColItem label="หมายเลขขบวน" value={train.trainNo} />
+          <ColItem label="ชั้นโดยสาร" value={train.trainClass} />
+          <ColItem label="หมายเลขการจอง" value={train.bookingRef} />
         </Col>
 
         <Col>
-          <ColItem label="ต้นทาง" value={bus.departureStation} />
-          <ColItem label="ที่นั่ง" value={bus.seatNo} />
-          <ColItem label="โทรศัพท์" value={bus.contactTel} />
+          <ColItem label="ต้นทาง" value={train.departureStation} />
+          <ColItem label="ที่นั่ง" value={train.seatNo} />
+          <ColItem label="โทรศัพท์" value={train.contactTel} />
         </Col>
 
         <Col>
-          <ColItem label="ปลายทาง" value={bus.arrivalStation} />
-          <ColItem label="ผู้โดยสาร" value={bus.passengerName} />
-          <ColItem label="Email" value={bus.contactEmail} />
+          <ColItem label="ปลายทาง" value={train.arrivalStation} />
+          <ColItem label="ประเภทที่นั่ง" value={train.seatClass} />
+          <ColItem label="ผู้โดยสาร" value={train.passengerName} />
         </Col>
 
         <Col>
-          <ColItem label="เวลาออก" value={formatTime(bus.departureTime)} />
-          <ColItem label="วันที่" value={formatDate(bus.departureTime)} />
+          <ColItem label="เวลาออก" value={formatTime(train.departureTime)} />
+          <ColItem label="ถึง" value={formatTime(train.arrivalTime)} />
+          <ColItem label="วันที่" value={formatDate(train.departureTime)} />
         </Col>
       </Box>
-    </Box>
-  );
-}
-
-/* column helper (เหมือน FlightCard) */
-function Col({ children }: { children: React.ReactNode }) {
-  return (
-    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.4 }}>
-      {children}
     </Box>
   );
 }

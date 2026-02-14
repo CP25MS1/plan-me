@@ -51,7 +51,7 @@ const TripOverviewPage = () => {
   const router = useRouter();
   const { tripOverview } = useTripSelector();
   const { mutate: deleteReservation, isPending } = useDeleteReservation();
-  
+
   const { FullPageLoading } = useFullPageLoading();
 
   const { t } = useTranslation('trip_overview');
@@ -336,7 +336,8 @@ const TripOverviewPage = () => {
         onConfirm={handleConfirmDelete}
         confirmLoading={isPending}
         color="error"
-        content={<Typography>ต้องการลบข้อมูลการจองนี้ใช่หรือไม่?</Typography>}
+        content={<Typography>คุณต้องการลบข้อมูลการจองนี้ใช่หรือไม่?</Typography>}
+        confirmLabel={'ลบข้อมูลการจอง'}
       />
     </>
   );

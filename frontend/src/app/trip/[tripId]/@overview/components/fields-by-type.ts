@@ -32,18 +32,18 @@ export const fieldsByType: Record<string, Field[]> = {
       placeholder: 'e.g. Puttinat Lertwech',
     },
     {
-      label: 'วันที่ Check in',
+      label: 'วันที่เช็คอิน',
       name: 'checkinDate',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-02-10 14:00',
+      placeholder: 'e.g. 10-02-2026 14:00',
     },
     {
-      label: 'วันที่ Check out',
+      label: 'วันที่เช็คเอ้าท์',
       name: 'checkoutDate',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-02-12 12:00',
+      placeholder: 'e.g. 12-02-2026 12:00',
     },
     {
       label: 'หมายเลขการจอง',
@@ -98,7 +98,7 @@ export const fieldsByType: Record<string, Field[]> = {
       name: 'reservationDate',
       type: 'date',
       required: true,
-      placeholder: 'e.g. 2026-03-01',
+      placeholder: 'e.g. 01-03-2026',
     },
     {
       label: 'เวลาที่จอง',
@@ -168,7 +168,7 @@ export const fieldsByType: Record<string, Field[]> = {
       label: 'เวลา Boarding',
       name: 'boardingTime',
       type: 'datetime-local',
-      placeholder: 'e.g. 2026-04-01 09:30',
+      placeholder: 'e.g. 01-04-2026 09:30',
     },
     {
       label: 'Gate',
@@ -187,7 +187,7 @@ export const fieldsByType: Record<string, Field[]> = {
       name: 'departureTime',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-04-01 10:30',
+      placeholder: 'e.g. 01-04-2026 10:30',
     },
     {
       label: 'สนามบินปลายทาง',
@@ -200,7 +200,7 @@ export const fieldsByType: Record<string, Field[]> = {
       name: 'arrivalTime',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-04-01 18:00',
+      placeholder: 'e.g. 01-04-2026 18:00',
     },
     {
       label: 'ชั้นโดยสาร',
@@ -278,7 +278,7 @@ export const fieldsByType: Record<string, Field[]> = {
       name: 'departureTime',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-05-01 07:00',
+      placeholder: 'e.g. 01-05-2026 07:00',
     },
     {
       label: 'สถานีปลายทาง',
@@ -291,7 +291,7 @@ export const fieldsByType: Record<string, Field[]> = {
       name: 'arrivalTime',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-05-01 18:00',
+      placeholder: 'e.g. 01-05-2026 18:00',
     },
     {
       label: 'หมายเลขการจอง',
@@ -338,7 +338,7 @@ export const fieldsByType: Record<string, Field[]> = {
       name: 'departureTime',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-06-01 08:00',
+      placeholder: 'e.g. 01-06-2026 08:00',
     },
     {
       label: 'สถานีปลายทาง',
@@ -416,7 +416,7 @@ export const fieldsByType: Record<string, Field[]> = {
       name: 'departureTime',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-07-01 09:00',
+      placeholder: 'e.g. 01-07-2026 09:00',
     },
     {
       label: 'ท่าเรือปลายทาง',
@@ -429,7 +429,7 @@ export const fieldsByType: Record<string, Field[]> = {
       name: 'arrivalTime',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-07-01 11:30',
+      placeholder: 'e.g. 01-07-2026 11:30',
     },
     {
       label: 'ประเภทตั๋ว',
@@ -502,7 +502,7 @@ export const fieldsByType: Record<string, Field[]> = {
       name: 'pickupTime',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-08-01 10:00',
+      placeholder: 'e.g. 01-08-2026 10:00',
     },
     {
       label: 'สถานที่คืนรถ',
@@ -515,7 +515,7 @@ export const fieldsByType: Record<string, Field[]> = {
       name: 'dropoffTime',
       type: 'datetime-local',
       required: true,
-      placeholder: 'e.g. 2026-08-05 18:00',
+      placeholder: 'e.g. 05-08-2026 18:00',
     },
     {
       label: 'หมายเลขการจอง',

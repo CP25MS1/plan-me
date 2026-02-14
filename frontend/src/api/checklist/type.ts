@@ -1,10 +1,10 @@
 import { PublicUserInfo } from '@/api/users';
 
 export interface TripChecklistDto {
-  id: string;
+  id: number;
   name: string;
   completed: boolean;
-  tripId: string;
+  tripId: number;
   createdBy: PublicUserInfo;
   assignedBy: PublicUserInfo | null;
   assignee: PublicUserInfo | null;

@@ -18,6 +18,8 @@ import UploadIcon from '@mui/icons-material/Upload';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useState, useRef, useEffect, ElementType } from 'react';
 import { Building, Utensils, Plane, Train, Bus, Ship, Car } from 'lucide-react';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useTranslation } from 'react-i18next';
 
 import LodgingCard from '@/app/trip/[tripId]/@overview/components/cards/lodging';
 import RestaurantCard from '@/app/trip/[tripId]/@overview/components/cards/restaurant';
@@ -70,6 +72,11 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
   const [files, setFiles] = useState<FileItem[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const MAX_TOTAL_SIZE = 20 * 1024 * 1024;
+  const ALLOWED_TYPES = ['application/pdf', 'image/png', 'image/jpeg'];
+  const selectedCount = files.filter((f) => f.type && !f.error).length;
+  const isAllSelected = files.length > 0 && files.every((f) => !!f.type);
+  const { t } = useTranslation('trip_overview');
 
   useEffect(() => {
     if (open) {
@@ -97,43 +104,70 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
     severity: 'error',
   });
 
-  const errorMessageMap: Record<number, string> = {
-    400: 'โปรดตรวจสอบข้อมูลอีกครั้ง',
-    403: 'คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้',
-    404: 'ไม่พบทริปนี้ในระบบ',
-    500: 'เกิดข้อผิดพลาด หรือเนื้อหาในไฟล์ไม่สอดคล้องกับประเภทการจองที่เลือก',
-  };
-
   const showErrorSnackbar = (error: unknown) => {
-    if (error instanceof AxiosError) {
-      const status = error.response?.status;
+    if (!(error instanceof AxiosError)) return;
 
-      const message = (status && errorMessageMap[status]) || 'เกิดข้อผิดพลาดบางอย่าง';
+    const data = error.response?.data;
 
-      setSnackbar({
-        open: true,
-        message,
-        severity: 'error',
-      });
+    if (
+      typeof data === 'object' &&
+      data !== null &&
+      typeof (data as { message?: unknown }).message === 'object' &&
+      (data as { message?: unknown }).message !== null
+    ) {
+      const thMessage = (
+        data as {
+          message?: { TH?: unknown };
+        }
+      ).message?.TH;
 
-      return;
+      if (typeof thMessage === 'string' && thMessage.trim() !== '') {
+        setSnackbar({
+          open: true,
+          message: thMessage,
+          severity: 'error',
+        });
+      }
     }
-
-    setSnackbar({
-      open: true,
-      message: 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ',
-      severity: 'error',
-    });
   };
 
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    const newFiles = Array.from(e.target.files).map((f) => ({
+
+    const selectedFiles = Array.from(e.target.files);
+
+    const invalidType = selectedFiles.find((f) => !ALLOWED_TYPES.includes(f.type));
+
+    if (invalidType) {
+      setSnackbar({
+        open: true,
+        message: 'ไม่สามารถอัพโหลดไฟล์ได้',
+        severity: 'error',
+      });
+      return;
+    }
+
+    const currentTotalSize = files.reduce((sum, f) => sum + f.file.size, 0);
+    const newTotalSize = currentTotalSize + selectedFiles.reduce((sum, f) => sum + f.size, 0);
+
+    if (newTotalSize > MAX_TOTAL_SIZE) {
+      setSnackbar({
+        open: true,
+        message: 'ขนาดไฟล์รวมต้องไม่เกิน 20 MB',
+        severity: 'error',
+      });
+      return;
+    }
+
+    const newFiles = selectedFiles.map((f) => ({
       file: f,
       type: '' as const,
       error: false,
     }));
+
     setFiles((prev) => [...prev, ...newFiles]);
+
+    e.target.value = '';
   };
 
   const removeFile = (index: number) => {
@@ -269,17 +303,23 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
               <input
                 id="upload-input"
                 type="file"
+                accept=".pdf,.png,.jpg,.jpeg"
                 style={{ display: 'none' }}
                 multiple
                 onChange={handleFilesChange}
               />
+
               <UploadIcon sx={{ fontSize: 50, color: 'grey.500' }} />
-              <Typography sx={{ fontWeight: 600 }}>ลากหรือวางไฟล์ที่นี่</Typography>
-              <Typography sx={{ color: 'text.secondary' }}>
-                หรือคลิกเพื่อเลือกไฟล์จากอุปกรณ์
-              </Typography>
+              <Typography sx={{ fontWeight: 600 }}>กดเพื่ออัพโหลดไฟล์</Typography>
               <Typography sx={{ fontSize: 14, color: 'text.disabled' }}>
-                รองรับไฟล์ประเภท .pdf, .png, .jpg, .jpeg
+                รองรับไฟล์ประเภท .pdf, .png, .jpg
+              </Typography>
+            </Box>
+          )}
+          {files.length > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+              <Typography variant="subtitle2">
+                ไฟล์ ({selectedCount}/{files.length})
               </Typography>
             </Box>
           )}
@@ -306,6 +346,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                 >
                   <IconButton
                     onClick={() => removeFile(index)}
+                    disabled={isPreviewing}
                     sx={{ position: 'absolute', right: 0, top: 0 }}
                     size="small"
                   >
@@ -324,7 +365,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                       error={item.error}
                       renderValue={(selected) => {
                         if (!selected) {
-                          return <Typography color="grey.500">เลือกประเภทข้อมูลการจอง</Typography>;
+                          return t('UploadReservation.placeholder');
                         }
 
                         const Icon = typeIcons[selected as ReservationType];
@@ -332,22 +373,19 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                         return (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Icon size={18} color="#25CF7A" />
-                            {selected}
+                            {t(`UploadReservation.Type.${selected}`)}
                           </Box>
                         );
                       }}
                     >
-                      <MenuItem value="" disabled>
-                        เลือกประเภทข้อมูลการจอง
-                      </MenuItem>
-                      {types.map((t) => {
-                        const Icon = typeIcons[t];
+                      {types.map((tType) => {
+                        const Icon = typeIcons[tType];
 
                         return (
-                          <MenuItem key={t} value={t}>
+                          <MenuItem key={tType} value={tType}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                               <Icon size={18} color="#25CF7A" />
-                              {t}
+                              {t(`UploadReservation.Type.${tType}`)}
                             </Box>
                           </MenuItem>
                         );
@@ -363,11 +401,25 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
           <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center', pb: 1 }}>
             <Button
               variant="contained"
-              startIcon={<VisibilityIcon />}
+              startIcon={!isPreviewing && <VisibilityIcon />}
               onClick={handlePreview}
-              disabled={files.length === 0 || isPreviewing}
+              disabled={!isAllSelected || isPreviewing}
+              sx={{
+                bgcolor: isAllSelected ? '#25CF7A' : 'grey.400',
+                minWidth: 150,
+                position: 'relative',
+                '&:hover': {
+                  bgcolor: isAllSelected ? '#25CF7A' : 'grey.400',
+                },
+              }}
             >
-              {isPreviewing ? 'กำลังโหลด...' : 'แสดงตัวอย่าง'}
+              <span style={{ visibility: isPreviewing ? 'hidden' : 'visible' }}>
+                {t('UploadReservation.Button')}
+              </span>
+
+              {isPreviewing && (
+                <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
+              )}
             </Button>
           </Box>
         </DialogContent>
@@ -391,9 +443,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
           <IconButton
             onClick={() => setShowPreview(false)}
             sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
+          ></IconButton>
         </DialogTitle>
 
         <DialogContent
@@ -405,6 +455,12 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
             height: '100%',
           }}
         >
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+            <Typography variant="subtitle2">
+              ไฟล์ ({previewReservations.length}/{previewReservations.length})
+            </Typography>
+          </Box>
+
           {/* List ของไฟล์ / Card */}
           <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1, pt: 1 }}>
             {previewReservations.map((item, index) => (
@@ -418,11 +474,19 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1, pb: 1 }}>
             <Button
               variant="contained"
-              sx={{ bgcolor: '#25CF7A' }}
+              sx={{
+                bgcolor: '#25CF7A',
+                minWidth: 120,
+                position: 'relative',
+              }}
               onClick={handleConfirm}
               disabled={isCreating}
             >
-              {isCreating ? 'กำลังบันทึก...' : 'ยืนยัน'}
+              <span style={{ visibility: isCreating ? 'hidden' : 'visible' }}>ยืนยัน</span>
+
+              {isCreating && (
+                <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
+              )}
             </Button>
           </Box>
         </DialogContent>

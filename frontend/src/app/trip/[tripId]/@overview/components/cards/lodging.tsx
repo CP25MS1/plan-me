@@ -1,7 +1,7 @@
 'use client';
 
 import { LodgingDetails, ReservationDto } from '@/api/reservations';
-import { Box, Typography, Divider, Tooltip } from '@mui/material';
+import { Box, Typography, Divider, Tooltip, Stack } from '@mui/material';
 import { Building, Phone, Mail, UserRound, Clock } from 'lucide-react';
 
 const formatDate = (datetime: string) => {
@@ -144,30 +144,32 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
           </Box>
 
           <Box sx={{ mt: 1 }}>
-            <Typography variant="caption" fontWeight={600}>
-              CONFIRMATION #
-            </Typography>
+            <Stack direction="column" alignItems="flex-center" textAlign="center" spacing={0.5}>
+              <Typography variant="caption" fontWeight={600}>
+                หมายเลขการจอง
+              </Typography>
 
-            <Typography variant="caption" color="text.secondary" noWrap>
-              {lodging.bookingRef || '-'}
-            </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {lodging.bookingRef || ''}
+              </Typography>
+            </Stack>
           </Box>
         </Box>
 
         <Divider orientation="vertical" flexItem />
 
-        {/* Right (เหมือนร้านอาหาร) */}
+        {/* Right */}
         <Box sx={{ width: 150, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          <Info icon={<UserRound size={14} />} label="Under name" value={lodging.underName} />
+          <Info icon={<UserRound size={14} />} label="ชื่อผู้จอง" value={lodging.underName} />
           <Info
             icon={<Clock size={14} />}
-            label="Check-in"
+            label="วันที่เช็คอิน"
             value={formatDateTime(lodging.checkinDate)}
           />
 
           <Info
             icon={<Clock size={14} />}
-            label="Check-out"
+            label="วันที่เช็คเอ้าท์"
             value={formatDateTime(lodging.checkoutDate)}
           />
           <Box sx={{ mt: 0.5, textAlign: 'right' }}>
