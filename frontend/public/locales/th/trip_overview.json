@@ -63,5 +63,31 @@
       "CarRental": "รถเช่า"
     },
     "Button": "แสดงตัวอย่าง"
+  },
+  "EmailReservation": {
+    "placeholder": "โปรดเลือกประเภทของข้อมูลการจอง",
+    "Type": {
+      "LODGING": "ที่พัก",
+      "RESTAURANT": "ร้านอาหาร",
+      "FLIGHT": "เที่ยวบิน",
+      "TRAIN": "รถไฟ",
+      "BUS": "รถทัวร์",
+      "FERRY": "เรือข้ามฟาก",
+      "CAR_RENTAL": "รถเช่า"
+    },
+    "Button": "แสดงตัวอย่าง"
+  },
+  "UploadReservation": {
+    "placeholder": "โปรดเลือกประเภทของข้อมูลการจอง",
+    "Type": {
+      "LODGING": "ที่พัก",
+      "RESTAURANT": "ร้านอาหาร",
+      "FLIGHT": "เที่ยวบิน",
+      "TRAIN": "รถไฟ",
+      "BUS": "รถทัวร์",
+      "FERRY": "เรือข้ามฟาก",
+      "CAR_RENTAL": "รถเช่า"
+    },
+    "Button": "แสดงตัวอย่าง"
   }
 }

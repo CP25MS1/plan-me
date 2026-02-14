@@ -102,7 +102,7 @@ export default function FlightCard({
         <Col>
           <ColItem label="เที่ยวบิน" value={flight.flightNo} />
           <ColItem label="ที่นั่ง" value={flight.passengers[passengerIndex]?.seatNo || '-'} />
-          <ColItem label="CONFIRMATION #" value={flight.bookingRef} />
+          <ColItem label="หมายเลขการจอง" value={flight.bookingRef} />
         </Col>
 
         <Col>

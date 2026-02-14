@@ -8,6 +8,7 @@ export const tokens = {
     lightBackground: '#DCFCEB',
     textPrimary: '#090909',
     textSecondary: '#7C7C7C',
+    textplaceholder: '#AFB1B6',
     contrastText: '#ffffff',
 
     success: '#00bc7d',

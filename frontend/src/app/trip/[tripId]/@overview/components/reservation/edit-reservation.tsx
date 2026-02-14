@@ -303,12 +303,28 @@ export default function EditReservation({
             ref={(el: HTMLDivElement | null) => {
               fieldsRef.current[field.name] = el;
             }}
+            sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}
           >
             <Typography
               variant="body2"
               color={errors[field.name] ? 'error.main' : 'text.secondary'}
             >
               {field.label}
+
+              {field.required && (
+                <Box
+                  component="span"
+                  sx={{
+                    color: 'error.main',
+                    ml: 1,
+                    fontSize: '1.1em',
+                    position: 'relative',
+                    top: '0.2em',
+                  }}
+                >
+                  *
+                </Box>
+              )}
             </Typography>
 
             <TextField
@@ -316,29 +332,61 @@ export default function EditReservation({
               type={field.type || 'text'}
               value={formData[field.name as keyof ReservationDto] ?? ''}
               onChange={(e) => handleChange(field.name, e.target.value)}
-              error={errors[field.name]}
-              placeholder={field.placeholder}
+              error={!!errors[field.name]}
+              placeholder={errors[field.name] ? 'โปรดระบุข้อมูล' : field.placeholder}
+              InputLabelProps={
+                field.type === 'date' || field.type === 'time' ? { shrink: true } : undefined
+              }
+              sx={{
+                '& input::placeholder': {
+                  color: errors[field.name] ? 'error.main' : '#AFB1B6',
+                  opacity: 1,
+                },
+              }}
             />
           </Box>
         ))}
 
         {typeValue === 'Flight' && (
-          <Box>
-            <Typography variant="body2">รายชื่อผู้โดยสาร</Typography>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              รายชื่อผู้โดยสาร
+            </Typography>
+
             {passengers.map((p, idx) => (
-              <Box key={idx} sx={{ display: 'flex', gap: 1, mt: 1 }}>
+              <Box key={idx} sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
                 <TextField
                   label="ชื่อ"
                   value={p.passengerName}
+                  placeholder={errors[`passenger-${idx}`] ? 'โปรดระบุข้อมูล' : 'eg. สมพงษ์'}
                   onChange={(e) => handlePassengerChange(idx, 'passengerName', e.target.value)}
                   fullWidth
+                  size="small"
+                  error={!!errors[`passenger-${idx}`]}
+                  sx={{
+                    '& input::placeholder': {
+                      color: errors[`passenger-${idx}`] ? 'error.main' : '#AFB1B6',
+                      opacity: 1,
+                    },
+                  }}
                 />
+
                 <TextField
                   label="เลขที่นั่ง"
                   value={p.seatNo}
+                  placeholder={errors[`passenger-${idx}`] ? 'โปรดระบุข้อมูล' : 'eg. 12A'}
                   onChange={(e) => handlePassengerChange(idx, 'seatNo', e.target.value)}
                   fullWidth
+                  size="small"
+                  error={!!errors[`passenger-${idx}`]}
+                  sx={{
+                    '& input::placeholder': {
+                      color: errors[`passenger-${idx}`] ? 'error.main' : '#AFB1B6',
+                      opacity: 1,
+                    },
+                  }}
                 />
+
                 <IconButton
                   color="error"
                   disabled={passengers.length === 1}
@@ -348,6 +396,7 @@ export default function EditReservation({
                 </IconButton>
               </Box>
             ))}
+
             <Button onClick={addPassenger} sx={{ mt: 1 }}>
               + เพิ่มผู้โดยสาร
             </Button>
