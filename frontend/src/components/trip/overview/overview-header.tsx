@@ -267,6 +267,7 @@ const OverviewHeader = ({
                 label={'boId' in obj ? getDefaultObjectiveName(locale, obj) : obj.name}
                 size="small"
                 sx={{ bgcolor: obj.badgeColor ?? '#C8F7D8' }}
+                disabled={!isTripOwner}
                 onDelete={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
