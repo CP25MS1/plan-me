@@ -10,8 +10,13 @@ import { useTranslation } from 'react-i18next';
 import { TripList } from '@/app/profile/all-trip/trip-list';
 import { useGetAllTrips } from '@/app/profile/all-trip/hooks/use-get-all-trips';
 import { useRouter } from 'next/navigation';
+import { useGetProfile } from '@/app/profile/hooks';
+import { useEffect } from 'react';
+import { setCurrentUser } from '@/store/profile-slice';
+import { useDispatch } from 'react-redux';
 
 export default function ProfilePage() {
+  const dispatch = useDispatch();
   const currentUser = useAppSelector((s) => s.profile.currentUser);
   const { t } = useTranslation('common');
   const router = useRouter();
@@ -21,6 +26,12 @@ export default function ProfilePage() {
   const handleTripClick = (tripId: number) => {
     router.push(`/trip/${tripId}?tab=overview`);
   };
+
+  const { data: fetchedCurrentUser } = useGetProfile(currentUser?.id ?? 0);
+
+  useEffect(() => {
+    dispatch(setCurrentUser(fetchedCurrentUser ?? currentUser));
+  }, [currentUser, dispatch, fetchedCurrentUser]);
 
   if (!currentUser) {
     return <FullPageLoading />;
