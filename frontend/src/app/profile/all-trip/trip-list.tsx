@@ -63,6 +63,47 @@ export const TripList: React.FC<TripListProps> = ({
     );
   }
 
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          p: 4,
+          width: '100%',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 2.5,
+        }}
+      >
+        {title && (
+          <Typography variant="h4" fontWeight={700} gridColumn="span 2">
+            {title}
+          </Typography>
+        )}
+
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Card
+            key={index}
+            sx={{
+              p: 2.5,
+              borderRadius: 3,
+              boxShadow: 2,
+            }}
+          >
+            <Stack spacing={1}>
+              <Skeleton variant="text" width="70%" height={28} />
+              <Skeleton variant="text" width="50%" height={20} />
+              <Stack direction="row" spacing={1} mt={1}>
+                <Skeleton variant="rounded" width={50} height={22} />
+                <Skeleton variant="rounded" width={60} height={22} />
+                <Skeleton variant="rounded" width={45} height={22} />
+              </Stack>
+            </Stack>
+          </Card>
+        ))}
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
