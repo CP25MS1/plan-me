@@ -8,7 +8,7 @@ export type ReservationType =
   | 'CAR_RENTAL';
 
 export interface ReservationDto {
-  id?: number; // Response only
+  id?: number;
   tripId: number;
   ggmpId?: string | null;
   type: ReservationType;

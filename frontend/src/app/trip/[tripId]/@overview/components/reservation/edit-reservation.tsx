@@ -12,6 +12,7 @@ import {
   FormControl,
   Select,
   MenuItem,
+  CircularProgress,
 } from '@mui/material';
 import { Plane, Building, Utensils, Train, Ship, Bus, Car } from 'lucide-react';
 import CloseIcon from '@mui/icons-material/Close';
@@ -20,6 +21,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { updateReservation as updateReservationAction } from '@/store/trip-detail-slice';
+import { tokens } from '@/providers/theme/design-tokens';
 
 import {
   FlightDetails,
@@ -32,6 +34,10 @@ import { fieldsByType } from '../fields-by-type';
 import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
+import dayjs from 'dayjs';
+import { DatePicker, TimePicker, DateTimePicker } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 interface EditReservationProps {
   open: boolean;
@@ -90,8 +96,9 @@ export default function EditReservation({
     let flightPassengers = [] as FlightPassenger[];
     if (reservation.type === 'FLIGHT') {
       flightPassengers = (reservation.details as unknown as FlightDetails)?.passengers ?? [];
-
       setPassengers(flightPassengers);
+    } else {
+      setPassengers([]);
     }
 
     originalRef.current = JSON.stringify({
@@ -109,11 +116,11 @@ export default function EditReservation({
     message: '',
     severity: 'error',
   });
+
   const showErrorSnackbar = (error: unknown) => {
     if (error instanceof AxiosError) {
-      const status = error.response?.status;
-
-      const message = (status && errorMessageMap[status]) || 'เกิดข้อผิดพลาดบางอย่าง';
+      const message =
+        error.response?.data?.message || error.response?.data?.error || 'เกิดข้อผิดพลาดบางอย่าง';
 
       setSnackbar({
         open: true,
@@ -129,12 +136,6 @@ export default function EditReservation({
       message: 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ',
       severity: 'error',
     });
-  };
-
-  const errorMessageMap: Record<number, string> = {
-    400: 'ไม่สามารถแก้ไขข้อมูลการจองได้ โปรดตรวจสอบข้อมูลอีกครั้ง',
-    403: 'คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้',
-    404: 'ไม่พบข้อมูลการจองนี้ในระบบ',
   };
 
   /** ---------- change detect ---------- */
@@ -158,27 +159,42 @@ export default function EditReservation({
 
   const removePassenger = (idx: number) => setPassengers((p) => p.filter((_, i) => i !== idx));
 
+  // clear specific passenger field error on change
   const handlePassengerChange = (idx: number, key: 'passengerName' | 'seatNo', val: string) => {
     setPassengers((p) => p.map((row, i) => (i === idx ? { ...row, [key]: val } : row)));
+
+    setErrors((prev) => {
+      if (!prev) return prev;
+      const copy = { ...prev };
+      if (key === 'passengerName') delete copy[`passengerName-${idx}`];
+      if (key === 'seatNo') delete copy[`seatNo-${idx}`];
+      return copy;
+    });
   };
 
   const validate = () => {
     const newErrors: Record<string, boolean> = {};
     let firstError: string | null = null;
 
+    // validate main fields
     fieldsByType[typeValue].forEach((field) => {
       const value = formData?.[field.name as keyof ReservationDto];
-
       if (field.required && (!value || value === '')) {
         newErrors[field.name] = true;
         if (!firstError) firstError = field.name;
       }
     });
 
+    // validate passengers (split per-field)
     if (typeValue === 'Flight') {
       passengers.forEach((p, idx) => {
-        if (!p.passengerName || !p.seatNo) {
-          const key = `passenger-${idx}`;
+        if (!p.passengerName) {
+          const key = `passengerName-${idx}`;
+          newErrors[key] = true;
+          if (!firstError) firstError = key;
+        }
+        if (!p.seatNo) {
+          const key = `seatNo-${idx}`;
           newErrors[key] = true;
           if (!firstError) firstError = key;
         }
@@ -234,7 +250,7 @@ export default function EditReservation({
 
   const buildDetails = () => {
     switch (typeValue) {
-      case 'Flight':
+      case 'Flight': {
         const f = formData as unknown as FlightDetails;
         return {
           airline: f.airline ?? '',
@@ -248,6 +264,7 @@ export default function EditReservation({
           flightClass: f.flightClass ?? '',
           passengers,
         };
+      }
       default:
         return fieldsByType[typeValue].reduce(
           (acc, field) => {
@@ -267,7 +284,11 @@ export default function EditReservation({
     <Dialog open={open} fullWidth PaperProps={{ sx: { width: 420, borderRadius: 3 } }}>
       <DialogTitle sx={{ textAlign: 'center', fontWeight: 600 }}>
         แก้ไขข้อมูลการจอง
-        <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+        <IconButton
+          onClick={onClose}
+          disabled={updateReservation.isPending}
+          sx={{ position: 'absolute', right: 8, top: 8 }}
+        >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -297,55 +318,156 @@ export default function EditReservation({
             </MenuItem>
           </Select>
         </FormControl>
-        {fieldsByType[typeValue].map((field) => (
-          <Box
-            key={field.name}
-            ref={(el: HTMLDivElement | null) => {
-              fieldsRef.current[field.name] = el;
-            }}
-            sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}
-          >
-            <Typography
-              variant="body2"
-              color={errors[field.name] ? 'error.main' : 'text.secondary'}
-            >
-              {field.label}
 
-              {field.required && (
-                <Box
-                  component="span"
-                  sx={{
-                    color: 'error.main',
-                    ml: 1,
-                    fontSize: '1.1em',
-                    position: 'relative',
-                    top: '0.2em',
-                  }}
-                >
-                  *
-                </Box>
-              )}
-            </Typography>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          {fieldsByType[typeValue].map((field) => {
+            const hasError = !!errors?.[field.name];
+            const value = formData?.[field.name as keyof ReservationDto] as string;
+            const isEmail = field.type === 'email';
+            const isNumber = field.type === 'number';
 
-            <TextField
-              fullWidth
-              type={field.type || 'text'}
-              value={formData[field.name as keyof ReservationDto] ?? ''}
-              onChange={(e) => handleChange(field.name, e.target.value)}
-              error={!!errors[field.name]}
-              placeholder={errors[field.name] ? 'โปรดระบุข้อมูล' : field.placeholder}
-              InputLabelProps={
-                field.type === 'date' || field.type === 'time' ? { shrink: true } : undefined
-              }
-              sx={{
-                '& input::placeholder': {
-                  color: errors[field.name] ? 'error.main' : '#AFB1B6',
-                  opacity: 1,
-                },
-              }}
-            />
-          </Box>
-        ))}
+            const emailInvalid = isEmail && !!value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            const numberInvalid = isNumber && !!value && !/^\d+$/.test(value);
+
+            return (
+              <Box
+                key={field.name}
+                ref={(el: HTMLDivElement | null) => {
+                  fieldsRef.current[field.name] = el;
+                }}
+                sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}
+              >
+                <Typography variant="body2" color={hasError ? 'error.main' : 'text.secondary'}>
+                  {field.label}
+                  {field.required && (
+                    <Box
+                      component="span"
+                      sx={{
+                        color: 'error.main',
+                        ml: 1,
+                        fontSize: '1.1em',
+                        position: 'relative',
+                        top: '0.2em',
+                      }}
+                    >
+                      *
+                    </Box>
+                  )}
+                </Typography>
+
+                {field.type === 'date' ? (
+                  <DatePicker
+                    enableAccessibleFieldDOMStructure={false}
+                    value={
+                      formData?.[field.name as keyof ReservationDto]
+                        ? dayjs(formData?.[field.name as keyof ReservationDto] as string)
+                        : null
+                    }
+                    onChange={(value) =>
+                      handleChange(field.name, value ? value.format('YYYY-MM-DD') : '')
+                    }
+                    format="DD/MM/YYYY"
+                    slots={{ textField: TextField }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        error: hasError,
+                        placeholder: field.placeholder,
+                        helperText: hasError ? 'โปรดระบุข้อมูล' : '',
+                        FormHelperTextProps: {
+                          sx: { color: tokens.color.error },
+                        },
+                      },
+                    }}
+                  />
+                ) : field.type === 'time' ? (
+                  <TimePicker
+                    enableAccessibleFieldDOMStructure={false}
+                    ampm={false}
+                    value={
+                      formData?.[field.name as keyof ReservationDto]
+                        ? dayjs(formData?.[field.name as keyof ReservationDto] as string, 'HH:mm')
+                        : null
+                    }
+                    onChange={(value) =>
+                      handleChange(field.name, value ? value.format('HH:mm') : '')
+                    }
+                    format="HH:mm"
+                    slots={{ textField: TextField }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        error: hasError,
+                        placeholder: field.placeholder,
+                        helperText: hasError ? 'โปรดระบุข้อมูล' : '',
+                        FormHelperTextProps: {
+                          sx: { color: tokens.color.error },
+                        },
+                      },
+                    }}
+                  />
+                ) : field.type === 'datetime-local' ? (
+                  <DateTimePicker
+                    enableAccessibleFieldDOMStructure={false}
+                    ampm={false}
+                    views={['year', 'day', 'hours', 'minutes']}
+                    openTo="day"
+                    timeSteps={{ minutes: 1 }}
+                    value={
+                      formData?.[field.name as keyof ReservationDto]
+                        ? dayjs(formData?.[field.name as keyof ReservationDto] as string)
+                        : null
+                    }
+                    onChange={(value) => handleChange(field.name, value ? value.toISOString() : '')}
+                    format="DD/MM/YYYY HH:mm"
+                    slots={{ textField: TextField }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        error: hasError,
+                        placeholder: field.placeholder,
+                        helperText: hasError ? 'โปรดระบุข้อมูล' : '',
+                        FormHelperTextProps: {
+                          sx: { color: tokens.color.error },
+                        },
+                      },
+                    }}
+                  />
+                ) : (
+                  <TextField
+                    type={field.type || 'text'}
+                    value={value ?? ''}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (field.type === 'number') {
+                        if (/^\d*$/.test(v)) handleChange(field.name, v);
+                        return;
+                      }
+                      handleChange(field.name, v);
+                    }}
+                    fullWidth
+                    error={hasError || emailInvalid || numberInvalid}
+                    placeholder={field.placeholder}
+                    helperText={
+                      hasError
+                        ? 'โปรดระบุข้อมูล'
+                        : emailInvalid
+                          ? 'โปรดระบุอีเมลในรูปแบบ username@domain'
+                          : numberInvalid
+                            ? 'กรุณากรอกตัวเลขเท่านั้น'
+                            : ''
+                    }
+                    FormHelperTextProps={{
+                      sx: {
+                        color: tokens.color.error,
+                      },
+                    }}
+                  />
+                )}
+              </Box>
+            );
+          })}
+        </LocalizationProvider>
 
         {typeValue === 'Flight' && (
           <Box sx={{ mt: 2 }}>
@@ -353,68 +475,114 @@ export default function EditReservation({
               รายชื่อผู้โดยสาร
             </Typography>
 
-            {passengers.map((p, idx) => (
-              <Box key={idx} sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
-                <TextField
-                  label="ชื่อ"
-                  value={p.passengerName}
-                  placeholder={errors[`passenger-${idx}`] ? 'โปรดระบุข้อมูล' : 'eg. สมพงษ์'}
-                  onChange={(e) => handlePassengerChange(idx, 'passengerName', e.target.value)}
-                  fullWidth
-                  size="small"
-                  error={!!errors[`passenger-${idx}`]}
-                  sx={{
-                    '& input::placeholder': {
-                      color: errors[`passenger-${idx}`] ? 'error.main' : '#AFB1B6',
-                      opacity: 1,
-                    },
-                  }}
-                />
+            {passengers.map((p, idx) => {
+              const nameError = !!errors?.[`passengerName-${idx}`];
+              const seatError = !!errors?.[`seatNo-${idx}`];
 
-                <TextField
-                  label="เลขที่นั่ง"
-                  value={p.seatNo}
-                  placeholder={errors[`passenger-${idx}`] ? 'โปรดระบุข้อมูล' : 'eg. 12A'}
-                  onChange={(e) => handlePassengerChange(idx, 'seatNo', e.target.value)}
-                  fullWidth
-                  size="small"
-                  error={!!errors[`passenger-${idx}`]}
-                  sx={{
-                    '& input::placeholder': {
-                      color: errors[`passenger-${idx}`] ? 'error.main' : '#AFB1B6',
-                      opacity: 1,
-                    },
-                  }}
-                />
+              return (
+                <Box key={idx} sx={{ mt: 2 }}>
+                  {/* ===== ชื่อ ===== */}
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    ผู้จอง
+                    <Box
+                      component="span"
+                      sx={{
+                        color: 'error.main',
+                        ml: 0.5,
+                        fontSize: '1.1em',
+                        position: 'relative',
+                        top: '0.2em',
+                      }}
+                    >
+                      *
+                    </Box>
+                  </Typography>
 
-                <IconButton
-                  color="error"
-                  disabled={passengers.length === 1}
-                  onClick={() => removePassenger(idx)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
-            ))}
+                  <TextField
+                    value={p.passengerName}
+                    onChange={(e) => handlePassengerChange(idx, 'passengerName', e.target.value)}
+                    fullWidth
+                    size="small"
+                    error={nameError}
+                    placeholder="eg. สมพงษ์"
+                    helperText={nameError ? 'โปรดระบุข้อมูล' : ''}
+                    FormHelperTextProps={{
+                      sx: { color: tokens.color.error },
+                    }}
+                    sx={{ mb: 2 }}
+                  />
 
-            <Button onClick={addPassenger} sx={{ mt: 1 }}>
-              + เพิ่มผู้โดยสาร
-            </Button>
+                  {/* ===== เลขที่นั่ง ===== */}
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    เลขที่นั่ง
+                    <Box
+                      component="span"
+                      sx={{
+                        color: 'error.main',
+                        ml: 0.5,
+                        fontSize: '1.1em',
+                        position: 'relative',
+                        top: '0.2em',
+                      }}
+                    >
+                      *
+                    </Box>
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+                    <TextField
+                      value={p.seatNo}
+                      onChange={(e) => handlePassengerChange(idx, 'seatNo', e.target.value)}
+                      fullWidth
+                      size="small"
+                      error={seatError}
+                      placeholder="eg. 12A"
+                      helperText={seatError ? 'โปรดระบุข้อมูล' : ''}
+                      FormHelperTextProps={{
+                        sx: { color: tokens.color.error },
+                      }}
+                    />
+
+                    <IconButton
+                      color="error"
+                      onClick={() => removePassenger(idx)}
+                      disabled={passengers.length === 1}
+                      sx={{ mt: 1 }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                </Box>
+              );
+            })}
+
+            <Box sx={{ textAlign: 'center' }}>
+              <Button variant="outlined" sx={{ mt: 1 }} onClick={addPassenger}>
+                + เพิ่มผู้โดยสาร
+              </Button>
+            </Box>
           </Box>
         )}
 
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Button
             variant="contained"
-            disabled={!hasChanges}
+            disabled={!hasChanges || updateReservation.isPending}
             onClick={handleConfirm}
             sx={{
               borderRadius: 5,
               px: 4,
-              bgcolor: hasChanges ? '#25CF7A' : '#B0B0B0',
+              bgcolor:
+                !hasChanges || updateReservation.isPending
+                  ? tokens.color.textSecondary
+                  : tokens.color.primary,
             }}
           >
-            ยืนยัน
+            {updateReservation.isPending ? (
+              <CircularProgress size={22} sx={{ color: tokens.color.background }} />
+            ) : (
+              'ยืนยัน'
+            )}
           </Button>
         </Box>
       </DialogContent>

@@ -5,7 +5,7 @@ import { updateChecklistItem as updateChecklistInStore } from '@/store/trip-deta
 import { UpdateTripChecklistRequest, TripChecklistDto } from '@/api/checklist/type';
 
 type UpdateVars = {
-  itemId: string;
+  itemId: number;
   payload: UpdateTripChecklistRequest;
 };
 

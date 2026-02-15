@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddItemButton from '@/components/trip/overview/add-item-button';
-import SectionCard from '@/components/trip/overview/section-card';
+import SectionCard from '@/components/trip/overview/section-card-no-close';
 
 import { Add } from '@mui/icons-material';
 import { CheckBoxOutlineBlank, CheckBox } from '@mui/icons-material';
@@ -60,7 +60,7 @@ export default function ChecklistPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [addingName, setAddingName] = useState('');
 
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
 
   const [snack, setSnack] = useState<{
@@ -101,7 +101,7 @@ export default function ChecklistPage() {
     });
   };
 
-  const handleInlineUpdate = (id: string) => {
+  const handleInlineUpdate = (id: number) => {
     const name = editingName.trim();
 
     if (!name) {
@@ -150,7 +150,7 @@ export default function ChecklistPage() {
     setAssignTarget(null);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (id: number) => {
     deleteMut.mutate(id);
   };
 

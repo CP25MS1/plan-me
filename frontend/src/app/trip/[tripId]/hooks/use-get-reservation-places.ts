@@ -8,5 +8,8 @@ export const useGetReservationPlaces = (tripId: number) => {
     queryKey: [RESERVATIONS.PLACES, tripId],
     queryFn: () => getAllReservationPlaces(tripId),
     enabled: tripId > 0,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
 };
