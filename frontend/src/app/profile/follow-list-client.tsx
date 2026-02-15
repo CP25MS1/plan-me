@@ -4,10 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-import { TruncatedTooltip, EmptyState } from '@/components/atoms';
+import { EmptyState, TruncatedTooltip } from '@/components/atoms';
 import { BackButton } from '@/components/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserListCta, ConfirmUnfollow } from '@/components/profile';
+import { ConfirmUnfollow, UserListCta } from '@/components/profile';
 
 import { useAppSelector } from '@/store';
 import { useFollowersWithCta } from './helpers/use-followers-with-cta';
