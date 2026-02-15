@@ -494,9 +494,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               onClose();
             }}
             sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
+          ></IconButton>
         </DialogTitle>
 
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

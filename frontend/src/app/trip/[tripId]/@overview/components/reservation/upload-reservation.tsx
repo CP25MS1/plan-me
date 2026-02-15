@@ -141,7 +141,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
     if (invalidType) {
       setSnackbar({
         open: true,
-        message: 'ไม่สามารถอัพโหลดไฟล์ได้',
+        message: 'โปรดอัปโหลดไฟล์ .pdf, .png, .jpg, .jpeg',
         severity: 'error',
       });
       return;

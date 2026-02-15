@@ -85,8 +85,11 @@ const tripDetailSlice = createSlice({
       }
     },
 
-    removeChecklistItem: (state, action: PayloadAction<string>) => {
+    removeChecklistItem: (state, action: PayloadAction<number>) => {
       state.checklist = state.checklist.filter((i) => i.id !== action.payload);
+    },
+    resetTripChecklist: (state) => {
+      state.checklist = [];
     },
   },
 });
@@ -107,6 +110,7 @@ export const {
   addChecklistItem,
   updateChecklistItem,
   removeChecklistItem,
+  resetTripChecklist,
 } = tripDetailSlice.actions;
 
 export default tripDetailSlice.reducer;

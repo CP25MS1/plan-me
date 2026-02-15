@@ -3,6 +3,7 @@
 import { Box, Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useEffect } from 'react';
 
 import { useGetTripmates } from '@/app/trip/[tripId]/@overview/hooks/invite/use-get-tripmates';
 import TripMembers from './members-list';
@@ -17,8 +18,14 @@ export default function MembersModal({
   onCloseAction: () => void;
   tripId: number;
 }) {
-  const { data: tripmate } = useGetTripmates(tripId);
+  const { data: tripmate, refetch } = useGetTripmates(tripId);
   const { tripOverview } = useTripSelector();
+
+  useEffect(() => {
+    if (open) {
+      refetch();
+    }
+  }, [open, refetch]);
 
   if (!tripmate || !tripOverview) return null;
 

@@ -16,13 +16,13 @@ export const createChecklistItem = async (
 
 export const updateChecklistItem = async (
   tripId: number,
-  itemId: string,
+  itemId: number,
   payload: UpdateTripChecklistRequest
 ): Promise<TripChecklistDto> => {
   const { data } = await apiClient.patch(`/trips/${tripId}/checklist-items/${itemId}`, payload);
   return data;
 };
 
-export const deleteChecklistItem = async (tripId: number, itemId: string): Promise<void> => {
+export const deleteChecklistItem = async (tripId: number, itemId: number): Promise<void> => {
   await apiClient.delete(`/trips/${tripId}/checklist-items/${itemId}`);
 };
