@@ -8,6 +8,7 @@ export const useGetProfile = (userId: number) => {
     queryFn: () => getProfile(userId),
     enabled: !!userId,
     refetchOnWindowFocus: false,
+    gcTime: 0,
   });
 };
 

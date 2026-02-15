@@ -16,7 +16,8 @@ const profileSlice = createSlice({
   name: 'profile',
   initialState,
   reducers: {
-    setCurrentUser(state, action: PayloadAction<UserProfile>) {
+    setCurrentUser(state, action: PayloadAction<UserProfile | null>) {
+      if (!action.payload) return;
       state.currentUser = action.payload;
     },
     followUser(state, action: PayloadAction<PublicUserInfo>) {
