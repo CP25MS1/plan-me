@@ -254,14 +254,12 @@ export const fieldsByType: Record<string, Field[]> = {
     {
       label: 'หมายเลขที่นั่ง',
       name: 'seatNo',
-      required: true,
       placeholder: 'e.g. 12A',
     },
     {
       label: 'ชื่อผู้โดยสาร',
       name: 'passengerName',
       maxLength: 80,
-      required: true,
       placeholder: 'e.g. Puttinat Lertwech',
     },
     {

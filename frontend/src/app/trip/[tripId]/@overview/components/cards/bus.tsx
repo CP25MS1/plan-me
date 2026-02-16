@@ -1,8 +1,8 @@
 'use client';
 
-import { ReservationDto, TrainDetails } from '@/api/reservations';
+import { ReservationDto, BusDetails } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
-import { Train } from 'lucide-react';
+import { Bus } from 'lucide-react';
 import { formatCurrencyTHB } from '@/lib/string';
 
 const formatTime = (date: string) =>
@@ -50,22 +50,20 @@ function Col({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function TrainCard({ data }: { data: ReservationDto | null }) {
-  const trainDetails =
-    (data?.details as TrainDetails | undefined) ?? (data as unknown as TrainDetails);
+export default function BusCard({ data }: { data: ReservationDto | null }) {
+  const busDetails = (data?.details as BusDetails | undefined) ?? (data as unknown as BusDetails);
 
-  const train = {
-    trainNo: trainDetails?.trainNo || '',
-    trainClass: trainDetails?.trainClass || '',
-    seatClass: trainDetails?.seatClass || '',
-    seatNo: trainDetails?.seatNo || '',
-    passengerName: trainDetails?.passengerName || '',
-    departureStation: trainDetails?.departureStation || '',
-    departureTime: trainDetails?.departureTime || '',
-    arrivalStation: trainDetails?.arrivalStation || '',
-    arrivalTime: trainDetails?.arrivalTime || '',
+  const bus = {
+    transportCompany: busDetails?.transportCompany || '',
+    departureStation: busDetails?.departureStation || '',
+    departureTime: busDetails?.departureTime || '',
+    arrivalStation: busDetails?.arrivalStation || '',
+    busClass: busDetails?.busClass || '',
+    passengerName: busDetails?.passengerName || '',
+    seatNo: busDetails?.seatNo || '',
     bookingRef: data?.bookingRef || '',
     contactTel: data?.contactTel || '',
+    contactEmail: data?.contactEmail || '',
     cost: Number(data?.cost),
   };
 
@@ -85,9 +83,9 @@ export default function TrainCard({ data }: { data: ReservationDto | null }) {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Train size={18} color="#25CF7A" />
+          <Bus size={18} color="#25CF7A" />
           <Typography variant="subtitle2" sx={{ fontSize: '13px', fontWeight: 700 }}>
-            รถไฟ
+            รถทัวร์
           </Typography>
         </Box>
 
@@ -109,27 +107,26 @@ export default function TrainCard({ data }: { data: ReservationDto | null }) {
       {/* Columns layout */}
       <Box sx={{ display: 'flex', gap: 1, minWidth: 0 }}>
         <Col>
-          <ColItem label="หมายเลขขบวน" value={train.trainNo} />
-          <ColItem label="ชั้นโดยสาร" value={train.trainClass} />
-          <ColItem label="หมายเลขการจอง" value={train.bookingRef} />
+          <ColItem label="ชื่อบริษัทรถ" value={bus.transportCompany} />
+          <ColItem label="ประเภทรถ" value={bus.busClass} />
+          <ColItem label="หมายเลขการจอง" value={bus.bookingRef} />
         </Col>
 
         <Col>
-          <ColItem label="ต้นทาง" value={train.departureStation} />
-          <ColItem label="ที่นั่ง" value={train.seatNo} />
-          <ColItem label="โทรศัพท์" value={train.contactTel} />
+          <ColItem label="สถานีต้นทาง" value={bus.departureStation} />
+          <ColItem label="เวลาออกเดินทาง" value={formatTime(bus.departureTime)} />
+          <ColItem label="วันที่" value={formatDate(bus.departureTime)} />
         </Col>
 
         <Col>
-          <ColItem label="ปลายทาง" value={train.arrivalStation} />
-          <ColItem label="ประเภทที่นั่ง" value={train.seatClass} />
-          <ColItem label="ผู้โดยสาร" value={train.passengerName} />
+          <ColItem label="สถานีปลายทาง" value={bus.arrivalStation} />
+          <ColItem label="หมายเลขที่นั่ง" value={bus.seatNo} />
+          <ColItem label="ชื่อผู้โดยสาร" value={bus.passengerName} />
         </Col>
 
         <Col>
-          <ColItem label="เวลาออก" value={formatTime(train.departureTime)} />
-          <ColItem label="ถึง" value={formatTime(train.arrivalTime)} />
-          <ColItem label="วันที่" value={formatDate(train.departureTime)} />
+          <ColItem label="เบอร์ติดต่อ" value={bus.contactTel} />
+          <ColItem label="Email ติดต่อ" value={bus.contactEmail} />
         </Col>
       </Box>
     </Box>
