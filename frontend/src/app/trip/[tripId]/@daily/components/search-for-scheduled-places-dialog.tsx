@@ -36,6 +36,13 @@ const SearchForScheduledPlacesDialog = ({ isOpened, onClose }: DialogProps) => {
     };
   }, [value]);
 
+  useEffect(() => {
+    if (!isOpened) {
+      setValue('');
+      setDebouncedQ('');
+    }
+  }, [isOpened]);
+
   return (
     <FullScreenSlideDialog isOpened={isOpened} onClose={onClose}>
       {({ onClose }) => (
