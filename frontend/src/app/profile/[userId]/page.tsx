@@ -4,7 +4,7 @@ import { use } from 'react';
 import { Container, Box, Avatar, Typography, Skeleton, Divider, Stack } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-
+import { tokens } from '@/providers/theme/design-tokens';
 import { TruncatedTooltip } from '@/components/atoms';
 import { useGetProfile, useFollowActionButton } from '@/app/profile/hooks';
 import { BackButton } from '@/components/button';
@@ -67,7 +67,7 @@ const UserProfilePage = ({ params }: UserProfilePageProps) => {
             <Avatar
               src={user?.profilePicUrl}
               alt={user?.username ?? 'User'}
-              sx={{ width: 112, height: 112, border: 2 }}
+              sx={{ width: 112, height: 112, border: `4px solid ${tokens.color.primary}` }}
             />
           )}
 

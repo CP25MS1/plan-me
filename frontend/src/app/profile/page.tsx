@@ -53,7 +53,7 @@ export default function ProfilePage() {
             src={currentUser?.profilePicUrl ?? ''}
             alt="Profile picture"
             fill
-            className="rounded-full object-cover border-4 border-primary/30"
+            className="rounded-full object-cover border-4 border-primary"
           />
         </div>
 
