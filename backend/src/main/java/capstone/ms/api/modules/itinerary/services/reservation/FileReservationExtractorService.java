@@ -116,8 +116,7 @@ public class FileReservationExtractorService {
         }
 
         String llmResult = callTyphoon(ocrText, type.name());
-
-        log.info(llmResult);
+        log.info("Typhoon raw response: {}", llmResult);
 
         ReservationDto dto;
         try {

@@ -21,10 +21,8 @@ public class TrainDetails implements ReservationDetails {
     @NotBlank
     private String seatClass;
 
-    @NotBlank
     private String seatNo;
 
-    @NotBlank
     private String passengerName;
 
     @NotBlank
