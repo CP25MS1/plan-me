@@ -20,12 +20,6 @@ public class ScheduledPlaceOrderService {
         if (sp == null || targetPlan == null)
             throw new NotFoundException("404");
 
-        Integer sourceTripId = sp.getPlan().getTrip().getId();
-        Integer targetTripId = targetPlan.getTrip().getId();
-        if (!sourceTripId.equals(targetTripId)) {
-            throw new ConflictException("dailyPlan.scheduledPlace.nonRelatedTrip");
-        }
-
         Integer sourcePlanId = sp.getPlan().getId();
         Integer targetPlanId = targetPlan.getId();
 
