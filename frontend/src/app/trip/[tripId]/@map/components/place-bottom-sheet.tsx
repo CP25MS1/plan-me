@@ -65,7 +65,7 @@ const PlaceBottomSheet = ({ planId, place, onClose }: PlaceBottomSheetProps) => 
         slotProps={{
           paper: {
             sx: {
-              height: '50vh',
+              height: '70vh',
               borderTopLeftRadius: 16,
               borderTopRightRadius: 16,
               p: 2,
