@@ -24,10 +24,10 @@ public class TrainReservation {
     @Column(name = "seat_class", nullable = false)
     private String seatClass;
 
-    @Column(name = "seat_no", nullable = false)
+    @Column(name = "seat_no")
     private String seatNo;
 
-    @Column(name = "passenger_name", nullable = false)
+    @Column(name = "passenger_name")
     private String passengerName;
 
     @Column(name = "departure_station", nullable = false)
