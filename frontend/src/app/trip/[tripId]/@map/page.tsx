@@ -18,11 +18,11 @@ const TripMapFullScreen = () => {
     : undefined;
 
   const computedDefaultDay: DayFilter = useMemo(() => {
-    const daysWithPlaces = dailyPlans.filter((d) => d.scheduledPlaces.length > 0);
+    const daysWithPlaces = dailyPlans.filter((d) => (d?.scheduledPlaces ?? []).length > 0);
 
     if (daysWithPlaces.length === 0) return 'ALL';
     if (daysWithPlaces.length === 1) {
-      return dailyPlans.findIndex((d) => d.scheduledPlaces.length > 0);
+      return dailyPlans.findIndex((d) => (d?.scheduledPlaces ?? []).length > 0);
     }
 
     return 'ALL';

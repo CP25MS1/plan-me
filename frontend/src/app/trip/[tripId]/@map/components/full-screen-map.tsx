@@ -22,7 +22,10 @@ type FullScreenMapProps = {
 
 const FullScreenMap = ({ header, dailyPlans, selectedDay, focusedPlaceId }: FullScreenMapProps) => {
   const plans = useVisiblePlans(dailyPlans, selectedDay);
-  const [center, setCenter] = useState(useMapCenter(dailyPlans, selectedDay));
+
+  const computedCenter = useMapCenter(dailyPlans, selectedDay);
+  const [center, setCenter] = useState(computedCenter);
+
   const sheetHeight = useSheetHeight(0.5);
 
   const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
@@ -34,6 +37,10 @@ const FullScreenMap = ({ header, dailyPlans, selectedDay, focusedPlaceId }: Full
     const focusedPlace = allScheduledPlaces.find((place) => place.id === focusedPlaceId);
     setSelectedPlace(focusedPlace ?? null);
   }, [focusedPlaceId, plans]);
+
+  useEffect(() => {
+    setCenter(computedCenter);
+  }, [computedCenter]);
 
   useEffect(() => {
     if (selectedLocation) {
