@@ -1,11 +1,11 @@
+import { Fragment, useMemo } from 'react';
+import { List } from '@mui/material';
 import { Heart } from 'lucide-react';
 
 import SectionCard from '@/components/trip/overview/section-card';
 import { tokens } from '@/providers/theme/design-tokens';
 import { useI18nSelector, useTripSelector } from '@/store/selectors';
 import { createCustomTitle } from '../helpers/create-custom-title-for-search-section';
-import { List } from '@mui/material';
-import { Fragment } from 'react';
 import AddibleWishlistCard from './addible-wishlist-card';
 import { filterWishlistPlacesByName } from '@/app/trip/[tripId]/@daily/helpers/search-filter';
 
@@ -17,8 +17,10 @@ type SectionProps = {
 const SuggestionFromWishlistSection = ({ title, q }: SectionProps) => {
   const { locale } = useI18nSelector();
   const { tripOverview } = useTripSelector();
-  const wishlistPlaces = tripOverview?.wishlistPlaces ?? [];
-  const searchResult = filterWishlistPlacesByName(wishlistPlaces, q);
+  const searchResult = useMemo(
+    () => filterWishlistPlacesByName(tripOverview?.wishlistPlaces ?? [], q),
+    [q, tripOverview?.wishlistPlaces]
+  );
   const qty = searchResult.length;
 
   const CustomTitle = createCustomTitle({
