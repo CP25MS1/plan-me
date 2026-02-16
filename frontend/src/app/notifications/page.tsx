@@ -1,24 +1,27 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { Box, Container, IconButton, Tab, Tabs, Typography } from '@mui/material';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
 
-import { useNotificationsSelector } from '@/store/selectors';
 import { NotificationItem } from './components/notification-item';
 import { EmptyState } from './components/empty-state';
 import { groupNotificationsByDate } from './helpers/group-notifications';
+import { useGetNotifications } from '@/app/hooks/use-get-notifications';
+import { useNotificationsSelector } from '@/store/selectors';
 
 type Filter = 'ALL' | 'UNREAD';
 
 const NotificationPage = () => {
   const router = useRouter();
+
+  useGetNotifications();
   const { notifications } = useNotificationsSelector();
   const [filter, setFilter] = useState<Filter>('ALL');
 
   const filtered = useMemo(() => {
-    const sorted = [...notifications].sort(
+    const sorted = [...(notifications ?? [])].sort(
       (a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)
     );
 
