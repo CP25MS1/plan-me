@@ -28,6 +28,16 @@ public class NotificationService {
                 .toList();
     }
 
+    public NotificationDto getNotificationByCriteria(String notiCode, Integer receiverUserId, Integer actorUserId, Integer tripid) {
+        var searchedNotifications = notificationRepository.findByDynamicCriteria(notiCode, receiverUserId, actorUserId, tripid);
+
+        if (searchedNotifications.isEmpty()) {
+            return null;
+        }
+
+        return notificationMapper.toNotificationDto(searchedNotifications.getFirst());
+    }
+
     @Transactional
     public void createNotification(String notiCode, User actor, User receiver, Trip trip) {
 
