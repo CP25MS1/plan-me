@@ -487,7 +487,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           <Box sx={{ position: 'absolute', left: 8, top: 8 }}>
             <BackButton onBack={() => setShowPreview(false)} />
           </Box>
-          ตัวอย่างข้อมูลอีเมล
+          ตัวอย่างข้อมูล
           <IconButton
             onClick={() => {
               setShowPreview(false);
@@ -498,9 +498,11 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         </DialogTitle>
 
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            อีเมล ({selectedCount}/{selectedCount})
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+            <Typography variant="subtitle2">
+              อีเมล ({selectedCount}/{selectedCount})
+            </Typography>
+          </Box>
 
           <Box
             sx={{
