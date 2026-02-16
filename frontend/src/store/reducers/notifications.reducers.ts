@@ -4,7 +4,7 @@ import { NotificationDto } from '@/api/notification';
 
 export const notificationsReducers = {
   receiveNotifications(state: NotificationsState, { payload }: PayloadAction<NotificationsState>) {
-    state.push(...payload);
+    Object.assign(state, payload);
   },
   updateNotification(state: NotificationsState, { payload }: PayloadAction<NotificationDto>) {
     const index = state.findIndex((n) => n.id === payload.id);
