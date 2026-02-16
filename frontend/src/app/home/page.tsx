@@ -5,12 +5,14 @@ import { Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useNotificationsSelector } from '@/store/selectors';
 import { useGetNotifications } from '@/app/hooks/use-get-notifications';
+import { useGetMyReceivedInvitations } from '@/app/hooks';
 
 const HomePage = () => {
   const router = useRouter();
 
   const { unreadCount } = useNotificationsSelector();
 
+  useGetMyReceivedInvitations();
   useGetNotifications();
 
   return (

@@ -10,13 +10,12 @@ import { I18nextProvider } from 'react-i18next';
 import type { RootState } from '@/store';
 import { store } from '@/store';
 import i18n from '@/lib/i18n.client';
-import { setCurrentUser, setInvitations } from '@/store/profile-slice';
+import { setCurrentUser } from '@/store/profile-slice';
 import { setDefaultObjectives } from '@/store/constant-slice';
 import { type Locale, setLocale } from '@/store/i18n-slice';
 import { getProfile } from '@/api/users';
 import { getDefaultObjectives } from '@/api/trips';
 import ThemeProvider from './theme/theme-provider';
-import { getMyReceivedInvitations } from '@/api/invite';
 
 export const QueryProvider = ({ children }: { children: ReactNode }) => {
   const [client] = useState(
@@ -64,12 +63,10 @@ const StateInitializer = () => {
   const isNotLoginPage = pathname !== '/login';
   const currentUser = useSelector((s: RootState) => s.profile.currentUser);
   const defaultObjectives = useSelector((s: RootState) => s.constant.defaultObjectives);
-  const pendingInvitations = useSelector((s: RootState) => s.profile.invitations);
 
   const shouldFetch = {
     profile: isNotLoginPage && !currentUser,
     objectives: isNotLoginPage && !defaultObjectives.length,
-    invitations: isNotLoginPage && !pendingInvitations.length,
   };
 
   const { data: profile } = useQuery({
@@ -86,13 +83,6 @@ const StateInitializer = () => {
     retry: false,
   });
 
-  const { data: invitations } = useQuery({
-    queryKey: ['RECEIVED_INVITATIONS'],
-    queryFn: () => getMyReceivedInvitations(),
-    enabled: shouldFetch.invitations,
-    retry: false,
-  });
-
   useEffect(() => {
     if (profile) {
       dispatch(setCurrentUser(profile));
@@ -104,12 +94,6 @@ const StateInitializer = () => {
       dispatch(setDefaultObjectives(objectives));
     }
   }, [objectives, dispatch]);
-
-  useEffect(() => {
-    if (invitations) {
-      dispatch(setInvitations(invitations));
-    }
-  }, [invitations, dispatch]);
 
   return null;
 };

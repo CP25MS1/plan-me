@@ -10,12 +10,14 @@ import { EmptyState } from './components/empty-state';
 import { groupNotificationsByDate } from './helpers/group-notifications';
 import { useGetNotifications } from '@/app/hooks/use-get-notifications';
 import { useNotificationsSelector } from '@/store/selectors';
+import { useGetMyReceivedInvitations } from '@/app/hooks';
 
 type Filter = 'ALL' | 'UNREAD';
 
 const NotificationPage = () => {
   const router = useRouter();
 
+  useGetMyReceivedInvitations();
   useGetNotifications();
   const { notifications } = useNotificationsSelector();
   const [filter, setFilter] = useState<Filter>('ALL');
