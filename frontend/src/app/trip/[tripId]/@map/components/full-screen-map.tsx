@@ -30,7 +30,7 @@ const FullScreenMap = ({ header, dailyPlans, selectedDay, focusedPlaceId }: Full
   const { data: selectedLocation } = usePlaceGeometry(selectedPlace?.ggmp.ggmpId ?? null);
 
   useEffect(() => {
-    const allScheduledPlaces = plans.flatMap((plan) => plan.scheduledPlaces);
+    const allScheduledPlaces = plans.flatMap((plan) => plan?.scheduledPlaces ?? []);
     const focusedPlace = allScheduledPlaces.find((place) => place.id === focusedPlaceId);
     setSelectedPlace(focusedPlace ?? null);
   }, [focusedPlaceId, plans]);
