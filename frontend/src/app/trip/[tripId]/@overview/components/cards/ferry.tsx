@@ -3,6 +3,7 @@
 import { FerryDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
 import { Ship } from 'lucide-react';
+import { formatCurrencyTHB } from '@/lib/string';
 
 const formatTime = (date: string) =>
   date ? new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-';
@@ -78,7 +79,7 @@ export default function FerryCard({ data }: { data: ReservationDto | null }) {
             fontSize: '10px',
           }}
         >
-          THB {ferry.cost?.toFixed(2) ?? '-'}
+          {formatCurrencyTHB(ferry.cost)}
         </Typography>
       </Box>
 
