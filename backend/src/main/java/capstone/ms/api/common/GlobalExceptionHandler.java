@@ -66,8 +66,8 @@ public class GlobalExceptionHandler {
         // If message is null, fallback to generic
         if (message == null) {
             message = LocalizedText.builder()
-                    .th("ข้อผิดพลาดของคำขอ")
-                    .en("Request validation failed")
+                    .th("โปรดตรวจสอบข้อมูลอีกครั้ง")
+                    .en("Please check your input and try again.")
                     .build();
         }
 
