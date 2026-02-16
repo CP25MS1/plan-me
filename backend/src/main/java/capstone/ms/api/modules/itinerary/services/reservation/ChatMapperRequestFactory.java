@@ -40,7 +40,7 @@ public class ChatMapperRequestFactory {
             - RESTAURANT: restaurantName, restaurantAddress, underName, reservationDate
               - optional but include if present: reservationTime, tableNo, queueNo, partySize
             - FLIGHT: airline, flightNo, departureAirport, departureTime, arrivalAirport, arrivalTime, passengers ({ passengerName, seatNo }[])
-            - TRAIN: trainNo, trainClass, seatClass, seatNo, passengerName, departureStation, departureTime, arrivalStation, arrivalTime
+            - TRAIN: trainNo, trainClass, seatClass (CLASS - COACH TYPE / ชั้น - ประเภทตู้), seatNo (CAR - SEAT NO. / คันที่ - เลขที่นั่ง), passengerName, departureStation, departureTime, arrivalStation, arrivalTime
             - BUS: transportCompany, departureStation, departureTime, arrivalStation, passengerName, seatNo
             - FERRY: transportCompany, passengerName, departurePort, departureTime, arrivalPort, arrivalTime, ticketType
             - CAR_RENTAL: rentalCompany, carModel, vrn, renterName, pickupLocation, pickupTime, dropoffLocation, dropoffTime
