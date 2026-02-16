@@ -33,19 +33,24 @@ public class PlacesService {
 
     public List<GoogleMapPlace> searchText(final String query) {
 
+        // Generate requestId for tracing this search request
         final String requestId = UUID.randomUUID().toString();
         final long startNs = System.nanoTime();
 
+        // Normalize user input (trim, lowercase, collapse spaces)
         String normalizedQuery = normalizeQuery(query);
 
         log.info("[SEARCH][START] requestId={}, query='{}'", requestId, normalizedQuery);
 
-        /* 1. search from DB first */
+    /* ---------------------------------------------------------
+       1. Search from local database first (full-text search)
+       --------------------------------------------------------- */
         List<GoogleMapPlace> dbResults =
                 googleMapPlaceRepository.searchFullText(normalizedQuery);
 
         int dbCount = dbResults.size();
 
+        // If DB already satisfies required quota, skip Google entirely
         if (dbCount >= PHOTO_QUOTA) {
 
             long tookMs = (System.nanoTime() - startNs) / 1_000_000;
@@ -68,35 +73,64 @@ public class PlacesService {
             return dbResults;
         }
 
-        /* 2. need Google fetch */
+    /* ---------------------------------------------------------
+       2. Need additional results from Google Places
+       --------------------------------------------------------- */
+
+        // How many more results we need to reach quota
         int missing = PHOTO_QUOTA - dbCount;
 
+        // Collect existing IDs from DB to prevent duplicates
+        Set<String> dbIds = dbResults.stream()
+                .map(GoogleMapPlace::getGgmpId)
+                .collect(Collectors.toSet());
+
+        // Fetch results from Google (both th + en merged internally)
         MergeResult mergeResult = fetchFromGoogle(query, missing);
 
-        int googleFetchCount = mergeResult.merged.size();
+        // Filter out places that already exist in DB
+        List<Place> newPlaces = mergeResult.merged.stream()
+                .filter(p -> !dbIds.contains(p.getId()))
+                .toList();
 
+        int googleFetchCount = newPlaces.size();
         int photoFetchCount = 0;
 
-        if (!mergeResult.merged.isEmpty()) {
+    /* ---------------------------------------------------------
+       3. Upsert only NEW places (avoid redundant update + photo call)
+       --------------------------------------------------------- */
+        if (!newPlaces.isEmpty()) {
             photoFetchCount = upsertPlacesBatch(
                     mergeResult.enMap,
                     mergeResult.thMap,
-                    mergeResult.merged,
+                    newPlaces,
                     missing
             );
         }
 
-        /* 3. merge result */
-        List<String> fetchedIds = mergeResult.merged.stream()
+    /* ---------------------------------------------------------
+       4. Load newly inserted places from DB
+       --------------------------------------------------------- */
+        List<String> fetchedIds = newPlaces.stream()
                 .map(Place::getId)
                 .toList();
 
         List<GoogleMapPlace> fetched =
                 googleMapPlaceRepository.findAllById(fetchedIds);
 
-        List<GoogleMapPlace> finalResult = new ArrayList<>();
-        finalResult.addAll(dbResults);
-        finalResult.addAll(fetched);
+    /* ---------------------------------------------------------
+       5. Merge DB + newly fetched results (deduplicated)
+       --------------------------------------------------------- */
+
+        // Use LinkedHashMap to:
+        // - Preserve order (DB results first)
+        // - Guarantee unique ggmpId
+        Map<String, GoogleMapPlace> dedup = new LinkedHashMap<>();
+
+        dbResults.forEach(p -> dedup.put(p.getGgmpId(), p));
+        fetched.forEach(p -> dedup.put(p.getGgmpId(), p));
+
+        List<GoogleMapPlace> finalResult = new ArrayList<>(dedup.values());
 
         long tookMs = (System.nanoTime() - startNs) / 1_000_000;
 
