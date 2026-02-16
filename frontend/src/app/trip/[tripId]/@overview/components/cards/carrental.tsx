@@ -3,6 +3,7 @@
 import { CarRentalDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
 import { Car } from 'lucide-react';
+import { formatCurrencyTHB } from '@/lib/string';
 
 const formatTime = (date: string) =>
   date
@@ -87,7 +88,7 @@ export default function CarRentalCard({ data }: { data: ReservationDto | null })
             borderRadius: 1,
           }}
         >
-          THB {car.cost?.toFixed(2) ?? '-'}
+          {formatCurrencyTHB(car.cost)}
         </Typography>
       </Box>
 
