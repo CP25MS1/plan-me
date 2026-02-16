@@ -77,6 +77,10 @@ public class TripmateService {
             throw new BadRequestException("tripmate.inviteAction.400.invalidInvite");
         }
 
+        var wasRejected = notificationService.getNotificationByCriteria(
+                NotificationCode.INVITE_REJECTED.name(), null, user.getId(), tripId
+        ) != null;
+
         if (status.equals("ACCEPTED")) {
             if (tripmateRepository.existsTripmateByTripIdAndUserId(tripId, user.getId())) {
                 throw new ConflictException("tripmate.inviteAction.409.alreadyJoined");
@@ -99,7 +103,7 @@ public class TripmateService {
                     trip.getOwner(),
                     trip
             );
-        } else {
+        } else if (!wasRejected) {
             notificationService.createNotification(
                     NotificationCode.INVITE_REJECTED.name(),
                     user,
