@@ -3,6 +3,7 @@
 import { FlightDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
 import { Plane } from 'lucide-react';
+import { formatCurrencyTHB } from '@/lib/string';
 
 const formatTime = (date: string) =>
   date ? new Date(date).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '-';
@@ -87,7 +88,7 @@ export default function FlightCard({
             fontSize: '10px',
           }}
         >
-          THB {flight.cost?.toFixed(2) ?? '-'}
+          {formatCurrencyTHB(flight.cost)}
         </Typography>
       </Box>
 

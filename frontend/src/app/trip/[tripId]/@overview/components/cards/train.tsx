@@ -3,6 +3,7 @@
 import { ReservationDto, TrainDetails } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
 import { Train } from 'lucide-react';
+import { formatCurrencyTHB } from '@/lib/string';
 
 const formatTime = (date: string) =>
   date
@@ -114,7 +115,7 @@ export default function TrainCard({ data }: { data: ReservationDto | null }) {
             fontSize: '10px',
           }}
         >
-          THB {train.cost?.toFixed(2) ?? '-'}
+          {formatCurrencyTHB(train.cost)}
         </Typography>
       </Box>
 

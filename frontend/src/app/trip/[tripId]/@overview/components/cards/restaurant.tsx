@@ -3,6 +3,7 @@
 import { ReservationDto, RestaurantDetails } from '@/api/reservations';
 import { Box, Typography, Divider, Tooltip, Stack } from '@mui/material';
 import { Utensils, Phone, Mail, UserRound, Clock, Table, Ticket, Users } from 'lucide-react';
+import { formatCurrencyTHB } from '@/lib/string';
 
 const formatDate = (datetime: string) => {
   if (!datetime) return '-';
@@ -174,7 +175,7 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
                 display: 'inline-block',
               }}
             >
-              THB {restaurant.cost?.toFixed(2) ?? '-'}
+              {formatCurrencyTHB(restaurant.cost)}
             </Typography>
           </Box>
         </Box>

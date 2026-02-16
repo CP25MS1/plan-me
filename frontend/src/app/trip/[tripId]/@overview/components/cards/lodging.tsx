@@ -3,6 +3,7 @@
 import { LodgingDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography, Divider, Tooltip, Stack } from '@mui/material';
 import { Building, Phone, Mail, UserRound, Clock } from 'lucide-react';
+import { formatCurrencyTHB } from '@/lib/string';
 
 const formatDate = (datetime: string) => {
   if (!datetime) return '-';
@@ -184,7 +185,7 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
                 display: 'inline-block',
               }}
             >
-              THB {lodging.cost?.toFixed(2) ?? '-'}
+              {formatCurrencyTHB(lodging.cost)}
             </Typography>
           </Box>
         </Box>
