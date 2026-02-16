@@ -41,9 +41,9 @@ export const useMapCenter = (dailyPlans: DailyPlan[], selectedDay: 'ALL' | numbe
   const centerPlaceId = useMemo(() => {
     const plans = selectedDay === 'ALL' ? dailyPlans : [dailyPlans[selectedDay]];
 
-    const firstDayWithPlace = plans.find((d) => d.scheduledPlaces.length > 0);
+    const firstDayWithPlace = plans.find((d) => (d?.scheduledPlaces ?? []).length > 0);
 
-    return firstDayWithPlace?.scheduledPlaces[0]?.ggmp.ggmpId ?? null;
+    return (firstDayWithPlace?.scheduledPlaces ?? [])[0]?.ggmp.ggmpId ?? null;
   }, [dailyPlans, selectedDay]);
 
   const { data } = usePlaceGeometry(centerPlaceId);
@@ -59,7 +59,7 @@ export const buildGoogleMapsDirectionsLinkFromPlan = (
   plan: DailyPlan,
   travelMode: 'driving' | 'walking' | 'bicycling' | 'transit' = 'driving'
 ) => {
-  const places = [...plan.scheduledPlaces].sort((a, b) => a.order - b.order);
+  const places = [...(plan?.scheduledPlaces ?? [])].sort((a, b) => a.order - b.order);
   if (places.length === 0) return '';
 
   const origin = places[0];

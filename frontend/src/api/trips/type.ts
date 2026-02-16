@@ -102,7 +102,7 @@ export type DailyPlan = {
   id: number;
   date: string;
   pinColor: string;
-  scheduledPlaces: ScheduledPlace[];
+  scheduledPlaces?: ScheduledPlace[];
 };
 
 export type ScheduledPlace = {
