@@ -4,11 +4,14 @@ import { Badge, Box, Container, IconButton } from '@mui/material';
 import { Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useNotificationsSelector } from '@/store/selectors';
+import { useGetNotifications } from '@/app/hooks/use-get-notifications';
 
 const HomePage = () => {
   const router = useRouter();
 
   const { unreadCount } = useNotificationsSelector();
+
+  useGetNotifications();
 
   return (
     <Container disableGutters>
