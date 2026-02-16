@@ -117,6 +117,8 @@ public class FileReservationExtractorService {
 
         String llmResult = callTyphoon(ocrText, type.name());
 
+        log.info(llmResult);
+
         ReservationDto dto;
         try {
             MappedReservationResponse mapped = objectMapper.readValue(llmResult, MappedReservationResponse.class);

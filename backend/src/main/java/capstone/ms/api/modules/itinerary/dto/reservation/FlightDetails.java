@@ -2,6 +2,7 @@ package capstone.ms.api.modules.itinerary.dto.reservation;
 
 import capstone.ms.api.common.annotations.ErrorMessage;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
@@ -37,6 +38,7 @@ public class FlightDetails implements ReservationDetails {
 
     private String flightClass;
 
+    @NotEmpty
     private List<FlightPassenger> passengers;
 
     @Override
