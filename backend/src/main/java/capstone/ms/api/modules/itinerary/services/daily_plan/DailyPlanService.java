@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.services.daily_plan;
 
+import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.CreateScheduledPlaceRequest;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.ScheduledPlaceDto;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.UpdateScheduledPlaceRequest;
@@ -125,8 +126,13 @@ public class DailyPlanService {
     ) {
         checkTripAccess(currentUser, tripId);
 
+        var trip = tripResourceService.getTripOrThrow(tripId);
         var targetPlan = tripResourceService.getDailyPlanOrThrow(request.getPlanId());
         var scheduledPlace = tripResourceService.getScheduledPlaceOrThrow(placeId);
+
+        if (!trip.getId().equals(targetPlan.getTrip().getId())) {
+            throw new ConflictException("dailyPlan.scheduledPlace.nonRelatedTrip");
+        }
 
         if (request.getNotes() != null && !request.getNotes().isEmpty()) {
             scheduledPlace.setNotes(request.getNotes());
