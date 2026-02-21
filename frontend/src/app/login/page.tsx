@@ -2,6 +2,7 @@
 'use client';
 
 import Image from 'next/image';
+import type { Route } from 'next';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -12,6 +13,23 @@ import FullPageLoading from '@/components/full-page-loading';
 import { startGoogleLogin } from './actions';
 import useLogin from './hooks/use-login';
 import useCreateUser from './hooks/use-create-user';
+
+const POST_LOGIN_REDIRECT_KEY = 'post-login-redirect-path';
+const DEFAULT_REDIRECT_PATH = '/home';
+
+const normalizeRedirectPath = (value: string | null) => {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value === '/login') {
+    return null;
+  }
+
+  return value;
+};
+
+const consumePostLoginRedirectPath = () => {
+  const stored = normalizeRedirectPath(globalThis.sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY));
+  globalThis.sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+  return stored ?? DEFAULT_REDIRECT_PATH;
+};
 
 const LoginContent = () => {
   const router = useRouter();
@@ -24,13 +42,21 @@ const LoginContent = () => {
   const login = useLogin(searchParams.get('code') || '');
   const { isSuccess: loginSuccess, data: userData } = login;
 
+  useEffect(() => {
+    const requestedNextPath = normalizeRedirectPath(searchParams.get('next'));
+
+    if (requestedNextPath) {
+      globalThis.sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, requestedNextPath);
+    }
+  }, [searchParams]);
+
   const handleLogin = useCallback(() => startGoogleLogin(), []);
   const handleCreateAccount = useCallback(() => {
     if (!loginSuccess) return;
     mutate(userData, {
       onSuccess: () => {
         setIsNavigating(false);
-        router.push('/home');
+        router.push(consumePostLoginRedirectPath() as Route);
       },
       onError: console.error,
     });
@@ -41,7 +67,7 @@ const LoginContent = () => {
 
     if (userData.registered) {
       setIsNavigating(true);
-      router.push('/home');
+      router.push(consumePostLoginRedirectPath() as Route);
     } else {
       setShowDialog(true);
     }
@@ -101,3 +127,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
