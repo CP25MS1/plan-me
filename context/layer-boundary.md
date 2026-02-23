@@ -15,6 +15,7 @@ Spring Boot
 ↓
 PostgreSQL (Source of Truth)
 Redis (Cache Only)
+Object Storage (MinIO/S3-compatible, blob only)
 
 Realtime Path:
 Client ⇄ Elysia (WebSocket)
@@ -214,7 +215,17 @@ Forbidden:
 
 ---
 
-## 6.3 Global Components Rule
+## 6.3 Media Rendering Boundary
+
+For image/video retrieval:
+
+- Backend returns metadata + signed URL
+- Frontend controls progressive rendering behavior
+- Do not route media bytes through Spring Boot by default
+
+---
+
+## 6.4 Global Components Rule
 
 components/ should contain:
 
@@ -241,7 +252,7 @@ Exceeding limit requires refactor before merge.
 # 8. ARCHITECTURE SUMMARY
 
 REST:
-NextJS → Spring Boot → PostgreSQL
+NextJS → Spring Boot → PostgreSQL (+ Object Storage for blob files)
 
 Realtime:
 NextJS → Elysia (presence only)

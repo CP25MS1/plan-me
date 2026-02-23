@@ -32,6 +32,38 @@ reservation:
       invalidOrNotMatched: "The uploaded file does not contain valid reservation information for the selected type or Selected reservation type does not match file content."
       mapFailed: "An error occurred while converting file content into reservation data."
 
+album:
+  400:
+    name:
+      invalid: "Album name is required and must be at most 100 characters."
+    cursor:
+      invalid: "The album pagination cursor is invalid."
+    limit:
+      invalid: "The requested album page size is out of allowed range."
+  500:
+    storage: "Storage operation failed while processing album."
+
+memory:
+  400:
+    files:
+      empty: "No memory file was provided."
+    extension:
+      invalid: "Unsupported memory extension was provided."
+    file:
+      maxSize: "A memory file exceeds the per-file size limit."
+    request:
+      maxSize: "Total upload payload exceeds the request size limit."
+    tripQuotaExceeded: "Total memory size for this trip exceeds the configured quota."
+    cursor:
+      invalid: "The pagination cursor is invalid."
+    limit:
+      invalid: "The requested page size is out of allowed range."
+    memoryIds:
+      empty: "No memory ids were provided for bulk delete."
+      invalid: "Memory ids must be positive integers."
+  500:
+    storage: "Storage operation failed while processing memory."
+
 travelSegment:
   400:
     samePlaces: "Unable to create route as the starting and ending place are the same."

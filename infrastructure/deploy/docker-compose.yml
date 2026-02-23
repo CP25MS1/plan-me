@@ -6,6 +6,7 @@ volumes:
   pgdata-prod:
     external: true
   redisdata-prod:
+  miniodata-prod:
 
 services:
   database:
@@ -62,6 +63,24 @@ services:
     networks:
       - database-network
 
+  minio:
+    image: ${MINIO_IMAGE:-minio/minio:latest}
+    container_name: minio-prod
+    env_file:
+      - .env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":${MINIO_CONSOLE_PORT:-9001}"
+    ports:
+      - "${MINIO_HOST_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_HOST_PORT:-9001}:9001"
+    volumes:
+      - miniodata-prod:/data
+    restart: always
+    networks:
+      - database-network
+
   backend:
     image: cp25ms1/backend:prod-latest
     container_name: backend-prod
@@ -71,6 +90,8 @@ services:
       database:
         condition: service_healthy
       caching:
+        condition: service_started
+      minio:
         condition: service_started
     restart: always
     networks:
