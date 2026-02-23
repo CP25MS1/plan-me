@@ -1,8 +1,8 @@
 spring:
   servlet:
     multipart:
-      max-file-size: 20MB
-      max-request-size: 22MB
+      max-file-size: ${MEDIA_MAX_FILE_SIZE:1GB}
+      max-request-size: ${MEDIA_MAX_REQUEST_SIZE:1002MB}
   application:
     name: CP25MS1-backend
   datasource:
@@ -51,7 +51,7 @@ google:
   certificate-uri: ${GOOGLE_CERTS_URI}
   places:
     base-url: ${GOOGLE_PLACES_BASE_URL}
-    api-key: ${GOOGLE_PLACES_API_KEY}
+    api-key: ${GOOGLE_MAPS_API_KEY}
     field-mask: ${GOOGLE_PLACES_FIELD_MASK}
   routes:
     base-url: ${GOOGLE_ROUTES_BASE_URL}
@@ -86,6 +86,22 @@ typhoon:
 
 frontend:
   url: http://localhost:3000
+
+media:
+  validation:
+    allowed-image-extensions: ${MEDIA_ALLOWED_IMAGE_EXTENSIONS:jpg,jpeg,png,webp,gif}
+    allowed-video-extensions: ${MEDIA_ALLOWED_VIDEO_EXTENSIONS:mp4,mov,webm,m4v}
+    max-file-size: ${MEDIA_MAX_FILE_SIZE:1GB}
+    max-request-size: ${MEDIA_MAX_REQUEST_SIZE:1GB}
+    max-trip-total-size: ${MEDIA_MAX_TRIP_TOTAL_SIZE:3GB}
+  storage:
+    endpoint: ${MEDIA_STORAGE_ENDPOINT:http://localhost:9000}
+    access-key: ${MEDIA_STORAGE_ACCESS_KEY:minioadmin}
+    secret-key: ${MEDIA_STORAGE_SECRET_KEY:minioadmin123}
+    bucket: ${MEDIA_STORAGE_BUCKET:trip-media}
+    public-base-url: ${MEDIA_STORAGE_PUBLIC_BASE_URL:}
+    signed-url-ttl-seconds: ${MEDIA_SIGNED_URL_TTL_SECONDS:900}
+    auto-create-bucket: ${MEDIA_STORAGE_AUTO_CREATE_BUCKET:true}
 
 logging:
   level:

@@ -35,6 +35,12 @@ public class TripAccessService {
         }
     }
 
+    public void assertOwnerAccess(User user, Integer tripId) {
+        if (!hasAccess(user, tripId)) {
+            throw new ForbiddenException("trip.403");
+        }
+    }
+
     private Trip getTripOrThrow(Integer tripId) {
         return tripRepository.findById(tripId).orElseThrow(() -> new NotFoundException("trip.404"));
     }
