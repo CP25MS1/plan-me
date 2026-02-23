@@ -76,6 +76,34 @@ reservation:
       th: "เกิดข้อผิดพลาด หรือเนื้อหาในไฟล์ไม่สอดคล้องกับประเภทการจองที่เลือก"
       en: "An error occurred, or the file content does not match the selected booking type."
 
+album:
+  400:
+    th: "โปรดตรวจสอบข้อมูลอัลบั้มอีกครั้ง"
+    en: "Please check album input and try again."
+  404:
+    th: "ไม่พบอัลบั้มของทริปนี้"
+    en: "The album was not found for this trip."
+  409:
+    exists:
+      th: "ทริปนี้มีอัลบั้มอยู่แล้ว"
+      en: "An album already exists for this trip."
+  500:
+    storage:
+      th: "ระบบจัดเก็บไฟล์มีปัญหา กรุณาลองใหม่อีกครั้ง"
+      en: "Storage operation failed while processing album."
+
+memory:
+  400:
+    th: "โปรดตรวจสอบข้อมูลไฟล์อีกครั้ง"
+    en: "Please check your memory input and try again."
+  404:
+    th: "ไม่พบไฟล์ที่ร้องขอในอัลบั้มนี้"
+    en: "The requested memory file was not found in this album."
+  500:
+    storage:
+      th: "ระบบจัดเก็บไฟล์มีปัญหา กรุณาลองใหม่อีกครั้ง"
+      en: "Storage operation failed while processing memory."
+
 dailyPlan:
   scheduledPlace:
     nonRelatedTrip:
