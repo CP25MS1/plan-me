@@ -6,6 +6,8 @@ import {
   WishlistPlace,
   ComputeRouteRequestDto,
   TravelSegmentResponseDto,
+  ToggleTripVisibilityRequest,
+  ToggleTripVisibilityResponse,
 } from './type';
 
 export const getDefaultObjectives = async (): Promise<DefaultObjective[]> => {
@@ -75,4 +77,16 @@ export const createTravelSegment = async (
 ): Promise<TravelSegmentResponseDto> => {
   const { data } = await apiClient.post('/travel-segments', payload);
   return data;
+};
+
+export const toggleTripVisibility = async (
+  tripId: number,
+  payload: ToggleTripVisibilityRequest
+): Promise<ToggleTripVisibilityResponse> => {
+  const { data } = await apiClient.patch(`/trips/${tripId}/visibility`, payload);
+  return data;
+};
+
+export const deleteTrip = async (tripId: number): Promise<void> => {
+  await apiClient.delete(`/trips/${tripId}`);
 };

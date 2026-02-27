@@ -127,3 +127,14 @@ export interface TravelSegmentResponseDto {
   distance: number;
   regularDuration: number;
 }
+
+export type TripVisibility = 'PUBLIC' | 'PRIVATE';
+
+export interface ToggleTripVisibilityRequest {
+  visibility: TripVisibility;
+}
+
+export interface ToggleTripVisibilityResponse {
+  tripId: number;
+  visibility: TripVisibility;
+}
