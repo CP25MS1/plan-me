@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { TripOverview, WishlistPlace } from '@/api/trips/type';
+import { TripOverview, TripVisibility, WishlistPlace } from '@/api/trips/type';
 import { ReservationDto } from '@/api/reservations';
 import { dailyPlanReducers } from '@/store/reducers/daily-plan.reducers';
 import { TripChecklistDto } from '@/api/checklist/type';
@@ -7,11 +7,13 @@ import { TripChecklistDto } from '@/api/checklist/type';
 export interface TripDetailState {
   overview: TripOverview | null;
   checklist: TripChecklistDto[];
+  tripVisibilityById: Record<number, TripVisibility>;
 }
 
 const initialState: TripDetailState = {
   overview: null,
   checklist: [],
+  tripVisibilityById: {},
 };
 
 const tripDetailSlice = createSlice({
@@ -20,6 +22,21 @@ const tripDetailSlice = createSlice({
   reducers: {
     setTripOverview: (state, action: PayloadAction<TripOverview>) => {
       state.overview = action.payload;
+    },
+    setTripVisibility: (
+      state,
+      action: PayloadAction<{ tripId: number; visibility: TripVisibility }>
+    ) => {
+      state.tripVisibilityById[action.payload.tripId] = action.payload.visibility;
+    },
+    clearTripContextForDeletedTrip: (state, action: PayloadAction<{ tripId: number }>) => {
+      const { tripId } = action.payload;
+      delete state.tripVisibilityById[tripId];
+
+      if (state.overview?.id === tripId) {
+        state.overview = null;
+        state.checklist = [];
+      }
     },
     addReservation: (state, action: PayloadAction<ReservationDto>) => {
       if (!state.overview) return;
@@ -96,6 +113,8 @@ const tripDetailSlice = createSlice({
 
 export const {
   setTripOverview,
+  setTripVisibility,
+  clearTripContextForDeletedTrip,
   addReservation,
   removeReservation,
   updateReservation,
