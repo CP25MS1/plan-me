@@ -39,7 +39,6 @@ const AddibleWishlistCard = ({
   const tripId = Number(params.tripId);
   const { planId } = useDailyPlanContext();
   const { province } = useSearchForProvince(address);
-
   const dispatch = useDispatch();
   const { mutate: mutateAdd } = useAddWishlistPlace();
   const { mutate: mutateRemove } = useRemoveWishlistPlace();
