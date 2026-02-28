@@ -8,6 +8,8 @@ import capstone.ms.api.common.exceptions.ServerErrorException;
 import capstone.ms.api.modules.itinerary.dto.album.CreateTripAlbumResponse;
 import capstone.ms.api.modules.itinerary.dto.album.TripAlbumListItemDto;
 import capstone.ms.api.modules.itinerary.dto.album.TripAlbumListResponse;
+import capstone.ms.api.modules.itinerary.dto.album.TripAlbumSignedUrlItemDto;
+import capstone.ms.api.modules.itinerary.dto.album.TripAlbumSignedUrlsResponse;
 import capstone.ms.api.modules.itinerary.dto.memory.TripMemoryDto;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.memory.TripAlbum;
@@ -169,6 +171,26 @@ public class TripAlbumService {
         return TripAlbumListResponse.builder()
                 .items(items)
                 .nextCursor(nextCursor)
+                .build();
+    }
+
+    public TripAlbumSignedUrlsResponse getAlbumSignedUrls(Integer tripId, User currentUser) {
+        tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+
+        TripAlbum album = tripAlbumRepository.findByTripId(tripId)
+                .orElseThrow(() -> new NotFoundException("album.404"));
+
+        List<TripMemory> memories = tripMemoryRepository.findAllByAlbumIdOrderByCreatedAtDescIdDesc(album.getId());
+        List<TripAlbumSignedUrlItemDto> items = memories.stream()
+                .map(tripMemoryUrlService::toAlbumSignedUrlItem)
+                .toList();
+
+        return TripAlbumSignedUrlsResponse.builder()
+                .albumId(album.getId())
+                .tripId(tripId)
+                .albumName(album.getName())
+                .totalItems(items.size())
+                .items(items)
                 .build();
     }
 

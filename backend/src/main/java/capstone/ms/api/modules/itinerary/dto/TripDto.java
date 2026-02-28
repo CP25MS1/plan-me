@@ -15,4 +15,6 @@ public class TripDto {
     private final LocalDate startDate;
     private final LocalDate endDate;
     private final Set<MergedObjective> objectives;
+    private final PublicUserInfo owner;
+    private final String visibility;
 }

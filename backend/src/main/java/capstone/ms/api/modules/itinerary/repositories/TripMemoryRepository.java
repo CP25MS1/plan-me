@@ -78,4 +78,6 @@ public interface TripMemoryRepository extends JpaRepository<TripMemory, Integer>
             WHERE tm.album.id = :albumId
             """)
     List<String> findObjectKeysByAlbumId(@Param("albumId") Integer albumId);
+
+    List<TripMemory> findAllByAlbumIdOrderByCreatedAtDescIdDesc(Integer albumId);
 }
