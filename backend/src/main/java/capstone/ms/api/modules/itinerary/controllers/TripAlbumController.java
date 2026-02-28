@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
 import capstone.ms.api.modules.itinerary.dto.album.CreateTripAlbumResponse;
+import capstone.ms.api.modules.itinerary.dto.album.TripAlbumSignedUrlsResponse;
 import capstone.ms.api.modules.itinerary.services.trip_memory.TripAlbumService;
 import capstone.ms.api.modules.user.entities.User;
 import lombok.RequiredArgsConstructor;
@@ -37,5 +38,14 @@ public class TripAlbumController {
     ) {
         tripAlbumService.deleteAlbum(tripId, currentUser);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/signed-urls")
+    public ResponseEntity<TripAlbumSignedUrlsResponse> getAlbumSignedUrls(
+            @PathVariable Integer tripId,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        TripAlbumSignedUrlsResponse response = tripAlbumService.getAlbumSignedUrls(tripId, currentUser);
+        return ResponseEntity.ok(response);
     }
 }
