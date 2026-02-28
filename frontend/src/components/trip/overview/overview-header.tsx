@@ -13,7 +13,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { Tag, X as XIcon } from 'lucide-react';
+import { Globe, Lock, Tag, X as XIcon } from 'lucide-react';
 import dayjs, { Dayjs } from 'dayjs';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -25,13 +25,13 @@ import ObjectivePickerDialog, {
   MAX_OBJECTIVES,
   useDefaultObjectives,
 } from '@/components/trip/objective-picker-dialog';
-import { Objective } from '@/api/trips';
+import { Objective, TripVisibility } from '@/api/trips';
 import { BackButton } from '@/components/button';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import InviteDialog from '@/app/trip/[tripId]/@overview/components/invite/invite-dialog';
 import MembersModal from '@/app/trip/[tripId]/@overview/components/member/members-modal';
-import { useTripSelector } from '@/store/selectors';
+import { useTripSelector, useTripVisibilitySelector } from '@/store/selectors';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
@@ -67,10 +67,12 @@ const OverviewHeader = ({
 }: OverviewHeaderProps) => {
   const locale = useSelector((s: RootState) => s.i18n.locale);
   const { t } = useTranslation('trip_overview');
+  const { t: tCommon } = useTranslation('common');
   const router = useRouter();
   const defaultObjectives = useDefaultObjectives();
 
   const { tripId } = useParams<{ tripId: string }>();
+  const tripIdAsNumber = Number(tripId);
   const [openShareDialog, setOpenShareDialog] = useState(false);
   const [openMembers, setOpenMembers] = useState(false);
 
@@ -82,6 +84,11 @@ const OverviewHeader = ({
     }
     return false;
   }, [currentUser, tripOverview]);
+
+  const visibilityFromStore = useTripVisibilitySelector(tripIdAsNumber);
+  const resolvedVisibility: TripVisibility =
+    visibilityFromStore ?? tripOverview?.visibility ?? 'PRIVATE';
+  const isPublicVisibility = resolvedVisibility === 'PUBLIC';
 
   // ----------------------------
   // TRIP NAME
@@ -222,6 +229,28 @@ const OverviewHeader = ({
 
       {/* DATE + OBJECTIVES */}
       <Stack spacing={1.5} sx={{ mt: 2, width: '100%', px: 2 }}>
+        <Chip
+          size="small"
+          icon={isPublicVisibility ? <Globe size={14} /> : <Lock size={14} />}
+          label={tCommon(isPublicVisibility ? 'trip.visibility.public' : 'trip.visibility.private')}
+          sx={{
+            width: 'fit-content',
+            height: 24,
+            borderRadius: '999px',
+            bgcolor: isPublicVisibility ? '#E8F5FF' : '#F5F5F5',
+            color: isPublicVisibility ? '#0D47A1' : 'text.secondary',
+            '& .MuiChip-icon': {
+              color: 'inherit',
+              ml: 0.75,
+            },
+            '& .MuiChip-label': {
+              px: 1,
+              fontSize: 11,
+              fontWeight: 600,
+            },
+          }}
+        />
+
         {/* DATE RANGE */}
         <Stack
           direction="row"
@@ -302,12 +331,12 @@ const OverviewHeader = ({
         <InviteDialog
           open={openShareDialog}
           onClose={() => setOpenShareDialog(false)}
-          tripId={Number(tripId)}
+          tripId={tripIdAsNumber}
         />
         <MembersModal
           open={openMembers}
           onCloseAction={() => setOpenMembers(false)}
-          tripId={Number(tripId)}
+          tripId={tripIdAsNumber}
         />
       </Stack>
     </Box>

@@ -33,6 +33,7 @@ export interface TripOverview {
   name: string;
   startDate: string;
   endDate: string;
+  visibility?: TripVisibility;
   owner: PublicUserInfo;
   objectives: Objective[];
   tripmates: PublicUserInfo[]; // NOTE: ตอนนี้ backend ให้มาเป็น { userId, ... }
@@ -126,4 +127,15 @@ export interface TravelSegmentResponseDto {
   mode: TravelMode;
   distance: number;
   regularDuration: number;
+}
+
+export type TripVisibility = 'PUBLIC' | 'PRIVATE';
+
+export interface ToggleTripVisibilityRequest {
+  visibility: TripVisibility;
+}
+
+export interface ToggleTripVisibilityResponse {
+  tripId: number;
+  visibility: TripVisibility;
 }
