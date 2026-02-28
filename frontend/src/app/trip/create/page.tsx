@@ -19,7 +19,7 @@ import { X as XIcon } from 'lucide-react';
 import { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
-
+import { useCreateTripAlbum } from '@/app/memory/hooks/use-create-trip-album';
 import { useFullPageLoading } from '@/components/full-page-loading';
 import DateRangePicker from '@/components/common/date-time/date-range-picker';
 import ObjectivePickerDialog, {
@@ -46,7 +46,7 @@ const CreateTripPage = () => {
   const [dateRange, setDateRange] = useState<DateRange>([null, null]);
   const [openObjectiveModal, setOpenObjectiveModal] = useState(false);
   const [selectedObjectives, setSelectedObjectives] = useState<Objective[]>([]);
-
+  const { mutate: createAlbum } = useCreateTripAlbum();
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!tripName.trim()) {
@@ -86,10 +86,22 @@ const CreateTripPage = () => {
 
     mutate(tripInfo, {
       onSuccess: (data) => {
-        if (data?.id) {
-          setIsNavigating(false);
-          router.push(`/trip/${data.id}?tab=overview` as Route);
-        }
+        if (!data?.id) return;
+
+        const tripId = data.id;
+
+        const formData = new FormData();
+        formData.append('name', tripName.trim());
+
+        createAlbum(
+          { tripId, formData },
+          {
+            onSuccess: () => {
+              setIsNavigating(false);
+              router.push(`/trip/${tripId}?tab=overview` as Route);
+            },
+          }
+        );
       },
     });
   };

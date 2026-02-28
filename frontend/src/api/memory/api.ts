@@ -16,7 +16,11 @@ export const createTripAlbum = async (
   formData: FormData
 ): Promise<CreateAlbumResponseDto> => {
   const response: AxiosResponse<CreateAlbumResponseDto> =
-    await apiClient.post<CreateAlbumResponseDto>(`/trips/${tripId}/album`, formData);
+    await apiClient.post<CreateAlbumResponseDto>(`/trips/${tripId}/album`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
   return response.data;
 };
@@ -34,7 +38,11 @@ export const uploadMemories = async (
   formData: FormData
 ): Promise<UploadMemoriesResponseDto> => {
   const response: AxiosResponse<UploadMemoriesResponseDto> =
-    await apiClient.post<UploadMemoriesResponseDto>(`/trips/${tripId}/album/memories`, formData);
+    await apiClient.post<UploadMemoriesResponseDto>(`/trips/${tripId}/album/memories`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
   return response.data;
 };

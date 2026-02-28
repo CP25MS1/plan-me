@@ -4,15 +4,16 @@ import { deleteTripAlbum } from '@/api/memory/api';
 export const useDeleteTripAlbum = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, number>({
-    mutationFn: (tripId) => deleteTripAlbum(tripId),
-    onSuccess: (_, tripId) => {
+  return useMutation<void, Error, { albumId: number }>({
+    mutationFn: ({ albumId }) => deleteTripAlbum(albumId),
+
+    onSuccess: (_, { albumId }) => {
       queryClient.invalidateQueries({
         queryKey: ['my-accessible-albums'],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ['memories-in-album', tripId],
+        queryKey: ['memories-in-album', albumId],
       });
     },
   });
