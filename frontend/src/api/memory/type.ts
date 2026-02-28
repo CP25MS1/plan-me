@@ -14,12 +14,8 @@ export interface AlbumDto {
   memoryCount: number;
   totalSizeBytes: number; // ใช้คำนวณ limit 3GB
   createdAt: string;
-
-  // ใช้ควบคุม rule owner
-  isOwner: boolean;
-
-  // ใช้แสดง thumbnail (รูปแรกที่อัปโหลด)
-  thumbnailMemoryId?: number;
+  isOwner: boolean; // ใช้ควบคุม rule owner
+  thumbnailMemoryId?: number; // ใช้แสดง thumbnail (รูปแรกที่อัปโหลด)
 }
 
 export interface CreateAlbumResponseDto {
