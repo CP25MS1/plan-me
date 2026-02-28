@@ -33,6 +33,7 @@ export interface TripOverview {
   name: string;
   startDate: string;
   endDate: string;
+  visibility?: TripVisibility;
   owner: PublicUserInfo;
   objectives: Objective[];
   tripmates: PublicUserInfo[]; // NOTE: ตอนนี้ backend ให้มาเป็น { userId, ... }
