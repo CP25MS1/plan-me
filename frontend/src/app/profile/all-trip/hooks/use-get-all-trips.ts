@@ -1,11 +1,10 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getAllTrips } from '@/api/all/api';
-import { TripOverview } from '@/api/trips/type';
+import { getAllTrips, TripSummary } from '@/api/all';
 
 export const useGetAllTrips = () => {
-  return useQuery<TripOverview[]>({
+  return useQuery<TripSummary[]>({
     queryKey: ['all-trips'],
     queryFn: getAllTrips,
   });

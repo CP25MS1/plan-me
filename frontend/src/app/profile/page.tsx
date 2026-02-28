@@ -80,7 +80,14 @@ export default function ProfilePage() {
         </div>
       </div>
       <div className="w-full pb-6">
-        <TripList trips={trips} loading={isLoading} error={isError} onTripClick={handleTripClick} />
+        <TripList
+          t={t}
+          trips={trips}
+          loading={isLoading}
+          error={isError}
+          onTripClick={handleTripClick}
+          currentUserId={currentUser?.id}
+        />
       </div>
     </div>
   );
