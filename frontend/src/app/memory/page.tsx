@@ -21,28 +21,35 @@ import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { getMyAccessibleAlbums, getMemoriesInAlbum } from '@/api/memory/api';
-
+import { useGetAlbumSignedUrls } from './hooks/use-get-album-signed-urls';
 import { ListAlbumsResponseDto, AlbumDto, ListMemoriesResponseDto } from '@/api/memory/type';
-
 import { useDeleteTripAlbum } from './hooks/use-delete-trip-album';
 import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
+import { useAppSelector } from '@/store';
+import CreateTripAlbumModal from './components/create-trip-album-modal';
+import UploadMemoryDialog from './components/upload-memory-dialog';
 
 export default function MemoryPage() {
   const router = useRouter();
+  const me = useAppSelector((s) => s.profile.currentUser);
+
+  const [openCreateModal, setOpenCreateModal] = React.useState(false);
+
+  // upload dialog state (opened when selecting "เพิ่มความทรงจำ" from kebab)
+  const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
+  const [uploadTripId, setUploadTripId] = React.useState<number | null>(null);
 
   const { data, isLoading, isError, error } = useQuery<ListAlbumsResponseDto>({
-    queryKey: ['albums', 'me'],
+    queryKey: ['my-accessible-albums'],
     queryFn: () => getMyAccessibleAlbums(100),
-    staleTime: 30_000,
   });
 
-  const albums: AlbumDto[] = data?.items ?? [];
-
-  const sorted = React.useMemo(() => {
+  const sortedAlbums = React.useMemo(() => {
+    const albums = data?.items ?? [];
     return [...albums].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [albums]);
+  }, [data?.items]);
 
   if (isLoading) {
     return (
@@ -83,6 +90,7 @@ export default function MemoryPage() {
           sx={{
             borderRadius: 3,
             boxShadow: 2,
+            cursor: 'pointer',
             transition: '0.25s ease',
             background: 'linear-gradient(135deg, #fff 0%, #fafafa 100%)',
             '&:hover': {
@@ -90,7 +98,7 @@ export default function MemoryPage() {
               transform: 'translateY(-4px)',
             },
           }}
-          onClick={() => router.push('/trip/create')}
+          onClick={() => setOpenCreateModal(true)}
         >
           <Box
             sx={{
@@ -109,34 +117,75 @@ export default function MemoryPage() {
         </Card>
 
         {/* ALBUM CARDS */}
-        {sorted.map((album) => (
-          <AlbumCard key={album.albumId} album={album} />
-        ))}
+        {sortedAlbums.map((album) => {
+          const isOwner =
+            !!me?.id && !!album.createdBy?.id && String(me.id) === String(album.createdBy.id);
+
+          return (
+            <AlbumCard
+              key={album.albumId}
+              album={album}
+              isOwner={isOwner}
+              onOpenUpload={(tId) => {
+                setUploadTripId(tId);
+                setOpenUploadDialog(true);
+              }}
+              onOpenAlbum={(tId) => router.push(`/memory/${tId}/memories`)}
+            />
+          );
+        })}
       </Box>
+
+      {/* CREATE MODAL */}
+      <CreateTripAlbumModal
+        open={openCreateModal}
+        onClose={() => setOpenCreateModal(false)}
+        // optional onCreated handled inside modal if it redirects
+      />
+
+      {/* UPLOAD DIALOG (opened from kebab "เพิ่มความทรงจำ") */}
+      <UploadMemoryDialog
+        open={openUploadDialog}
+        onClose={() => {
+          setOpenUploadDialog(false);
+          setUploadTripId(null);
+        }}
+        tripId={uploadTripId ?? 0}
+        existingTotalBytes={0}
+      />
     </Box>
   );
 }
 
-/*        ALBUM CARD       */
+/* =================== ALBUM CARD ====================== */
+type AlbumCardProps = {
+  album: AlbumDto;
+  isOwner: boolean;
+  onOpenUpload: (tripId: number) => void;
+  onOpenAlbum: (tripId: number) => void;
+};
 
-function AlbumCard({ album }: { album: AlbumDto }) {
-  const router = useRouter();
-
+function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }: AlbumCardProps) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
+  const [isDownloading, setIsDownloading] = React.useState(false);
+  const [progress, setProgress] = React.useState<{ done: number; total: number } | null>(null);
 
   const { mutate: deleteAlbum, isPending: isDeleting } = useDeleteTripAlbum();
 
   const { data } = useQuery<ListMemoriesResponseDto>({
     queryKey: ['album-preview', album.albumId],
-    queryFn: () => getMemoriesInAlbum(album.albumId, { limit: 100 }),
+    queryFn: () =>
+      getMemoriesInAlbum(album.tripId, {
+        limit: 100,
+      }),
   });
 
-  const memories = data?.items ?? [];
-
   const { imageCount, videoCount, coverImage } = React.useMemo(() => {
+    const memories = data?.items ?? [];
+
     let image = 0;
     let video = 0;
     let firstImage: string | null = null;
@@ -155,7 +204,7 @@ function AlbumCard({ album }: { album: AlbumDto }) {
       videoCount: video,
       coverImage: firstImage,
     };
-  }, [memories]);
+  }, [data?.items]);
 
   const handleDelete = () => {
     deleteAlbum(
@@ -166,6 +215,59 @@ function AlbumCard({ album }: { album: AlbumDto }) {
         },
       }
     );
+  };
+
+  // ---------- Album-level signed URLs hook ----------
+  const {
+    data: signedData,
+    refetch: refetchSignedUrls,
+    isFetching: isFetchingSigned,
+  } = useGetAlbumSignedUrls(album.tripId);
+
+  // helper to download blob and save
+  const downloadBlobAndSave = async (url: string, filename: string) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Failed to download ${filename}: ${res.status}`);
+    const blob = await res.blob();
+    const objectUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(objectUrl);
+  };
+
+  // sequential download whole album (called from kebab)
+  const handleDownloadAlbum = async () => {
+    if (isDownloading) return;
+    try {
+      setIsDownloading(true);
+      setProgress({ done: 0, total: signedData?.totalItems ?? 0 });
+
+      // ensure we have signed URLs (refetch if needed)
+      const signed = signedData ?? (await refetchSignedUrls().then((r) => r.data));
+      const items = signed?.items ?? [];
+
+      for (let i = 0; i < items.length; i += 1) {
+        const it = items[i];
+        try {
+          await downloadBlobAndSave(it.signedUrl, it.originalFilename);
+        } catch (err) {
+          console.error('Failed to download item', it.memoryId, err);
+        } finally {
+          setProgress((p) => ({ done: (p?.done ?? 0) + 1, total: items.length }));
+        }
+      }
+    } catch (err) {
+      console.error('Download album failed', err);
+    } finally {
+      setTimeout(() => {
+        setIsDownloading(false);
+        setProgress(null);
+      }, 300);
+    }
   };
 
   return (
@@ -184,7 +286,7 @@ function AlbumCard({ album }: { album: AlbumDto }) {
             transform: 'translateY(-4px)',
           },
         }}
-        onClick={() => router.push(`/memory/${album.albumId}/memories`)}
+        onClick={() => onOpenAlbum(album.tripId)}
       >
         {/* KEBAB */}
         <IconButton
@@ -200,8 +302,13 @@ function AlbumCard({ album }: { album: AlbumDto }) {
             zIndex: 2,
             backgroundColor: 'rgba(255,255,255,0.9)',
           }}
+          disabled={isDownloading || isDeleting || isFetchingSigned}
         >
-          <MoreVertIcon fontSize="small" />
+          {isDownloading ? (
+            <CircularProgress size={18} sx={{ color: 'white' }} />
+          ) : (
+            <MoreVertIcon fontSize="small" />
+          )}
         </IconButton>
 
         <Menu
@@ -213,6 +320,8 @@ function AlbumCard({ album }: { album: AlbumDto }) {
           <MenuItem
             onClick={() => {
               setAnchorEl(null);
+              // open upload dialog for this album's trip
+              onOpenUpload(album.tripId);
             }}
           >
             <ListItemIcon>
@@ -222,27 +331,33 @@ function AlbumCard({ album }: { album: AlbumDto }) {
           </MenuItem>
 
           <MenuItem
-            onClick={() => {
+            onClick={async () => {
               setAnchorEl(null);
-              console.log('download album');
+              await handleDownloadAlbum();
             }}
           >
             <ListItemIcon>
-              <DownloadIcon fontSize="small" />
+              {isDownloading ? (
+                <CircularProgress size={18} sx={{ color: 'white' }} />
+              ) : (
+                <DownloadIcon fontSize="small" />
+              )}
             </ListItemIcon>
-            <ListItemText>ดาวน์โหลดอัลบั้ม</ListItemText>
+            <ListItemText>
+              ดาวน์โหลดอัลบั้ม
+              {progress ? ` (${progress.done}/${progress.total})` : ''}
+            </ListItemText>
           </MenuItem>
 
-          {album.isOwner && (
+          {isOwner && (
             <MenuItem
               onClick={() => {
                 setAnchorEl(null);
                 setOpenDeleteDialog(true);
               }}
-              sx={{ color: 'error.main' }}
             >
               <ListItemIcon>
-                <DeleteIcon fontSize="small" color="error" />
+                <DeleteIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText>ลบอัลบั้ม</ListItemText>
             </MenuItem>
@@ -278,7 +393,7 @@ function AlbumCard({ album }: { album: AlbumDto }) {
         {/* INFO */}
         <Box sx={{ p: 1.2 }}>
           <Typography fontWeight={600} noWrap>
-            {album.albumName}
+            {album.tripName}
           </Typography>
 
           <Typography variant="caption" color="text.secondary">
@@ -296,9 +411,7 @@ function AlbumCard({ album }: { album: AlbumDto }) {
         cancelLabel="cancel"
         confirmLoading={isDeleting}
         color="error"
-        content={
-          <Typography>คุณต้องการลบอัลบั้มนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้</Typography>
-        }
+        content={<Typography>คุณต้องการลบอัลบั้มนี้ใช่หรือไม่?</Typography>}
       />
     </>
   );

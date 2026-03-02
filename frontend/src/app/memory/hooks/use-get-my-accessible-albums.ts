@@ -11,5 +11,9 @@ export const useGetMyAccessibleAlbums = ({ limit, cursor }: UseGetMyAccessibleAl
   return useQuery<ListAlbumsResponseDto, Error>({
     queryKey: ['my-accessible-albums', limit, cursor],
     queryFn: () => getMyAccessibleAlbums(limit, cursor),
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 };

@@ -18,17 +18,20 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { AlbumDto } from '@/api/memory/type';
 import { useDeleteTripAlbum } from '../hooks/use-delete-trip-album';
 import type { Route } from 'next';
+import { useAppSelector } from '@/store';
 interface Props {
   album: AlbumDto;
 }
 
 export default function AlbumCard({ album }: Props) {
   const router = useRouter();
+  const me = useAppSelector((s) => s.profile.currentUser);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const deleteMutation = useDeleteTripAlbum();
-  const path: Route = `/trips/${album.tripId}/album/memories`;
   const handleDelete = async () => {
-    await deleteMutation.mutateAsync(album.tripId);
+    await deleteMutation.mutateAsync({
+      albumId: album.albumId,
+    });
     setAnchorEl(null);
   };
 
@@ -38,15 +41,17 @@ export default function AlbumCard({ album }: Props) {
   };
 
   const handleCardClick = () => {
-    router.push(path);
+    router.push(`/trips/${album.tripId}/album/memories` as Route);
   };
-
+  const isOwner = album.createdBy?.id === me?.id;
+  console.log('me', me);
+  console.log('album owner', album.createdBy);
   return (
     <Card sx={{ cursor: 'pointer' }} onClick={handleCardClick}>
-      {album.thumbnailUrl ? (
-        <CardMedia component="img" height="160" image={album.thumbnailUrl} />
+      {album.thumbnailMemoryId ? (
+        <CardMedia component="img" height="160" image={album.thumbnailMemoryId} />
       ) : (
-        <CardMedia component="div" height="160" />
+        <CardMedia component="div" sx={{ height: 160, backgroundColor: '#f4f4f4' }} />
       )}
 
       <CardContent>
@@ -78,7 +83,7 @@ export default function AlbumCard({ album }: Props) {
             ดาวน์โหลดอัลบั้ม
           </MenuItem>
 
-          {album.isOwner && (
+          {isOwner && (
             <MenuItem onClick={handleDelete}>
               <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
               ลบอัลบั้ม

@@ -12,10 +12,10 @@ export interface AlbumDto {
   tripName?: string;
   albumName: string;
   memoryCount: number;
-  totalSizeBytes: number; // ใช้คำนวณ limit 3GB
+  totalSizeBytes: number;
+  createdBy: PublicUserInfo;
   createdAt: string;
-  isOwner: boolean; // ใช้ควบคุม rule owner
-  thumbnailMemoryId?: number; // ใช้แสดง thumbnail (รูปแรกที่อัปโหลด)
+  thumbnailMemoryId?: string;
 }
 
 export interface CreateAlbumResponseDto {
@@ -66,4 +66,21 @@ export interface RefreshSignedUrlResponseDto {
   memoryId: number;
   signedUrl: string;
   signedUrlExpiresAt: string;
+}
+
+// ---------------- NEW ----------------
+export interface MemorySignedUrlItem {
+  memoryId: number;
+  originalFilename: string;
+  fileExtension: SupportedFileExtension;
+  signedUrl: string;
+  signedUrlExpiresAt: string;
+}
+
+export interface AlbumSignedUrlsResponseDto {
+  albumId: number;
+  tripId: number;
+  albumName: string;
+  totalItems: number;
+  items: MemorySignedUrlItem[];
 }
