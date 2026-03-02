@@ -7,6 +7,7 @@ import {
   ListMemoriesResponseDto,
   RefreshSignedUrlResponseDto,
   SupportedFileExtension,
+  AlbumSignedUrlsResponseDto,
 } from './type';
 
 // ================= CREATE ALBUM =================
@@ -97,7 +98,6 @@ export const getMemoriesInAlbum = async (
 };
 
 // ================= REFRESH SIGNED URL =================
-
 export const refreshMemorySignedUrl = async (
   tripId: number,
   memoryId: number,
@@ -112,6 +112,15 @@ export const refreshMemorySignedUrl = async (
         },
       }
     );
+
+  return response.data;
+};
+
+// ================= GET ALBUM SIGNED URLS =================
+
+export const getAlbumSignedUrls = async (tripId: number): Promise<AlbumSignedUrlsResponseDto> => {
+  const response: AxiosResponse<AlbumSignedUrlsResponseDto> =
+    await apiClient.get<AlbumSignedUrlsResponseDto>(`/trips/${tripId}/album/signed-urls`);
 
   return response.data;
 };
