@@ -38,6 +38,10 @@ public class UserService {
         return userRepository.findById(userId).orElseThrow(() -> new NotFoundException(USER_404_KEY));
     }
 
+    public PublicUserInfo getPublicUserInfoById(final Integer userId) {
+        return userMapper.userToPublicUserInfo(getUserOrThrow(userId));
+    }
+
     public UserDto toDto(User user) {
         return userMapper.userToUserDto(user);
     }
