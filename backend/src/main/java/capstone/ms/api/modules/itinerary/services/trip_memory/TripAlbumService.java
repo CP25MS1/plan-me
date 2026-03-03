@@ -1,15 +1,7 @@
 package capstone.ms.api.modules.itinerary.services.trip_memory;
 
-import capstone.ms.api.common.exceptions.BadRequestException;
-import capstone.ms.api.common.exceptions.ConflictException;
-import capstone.ms.api.common.exceptions.MainException;
-import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.common.exceptions.ServerErrorException;
-import capstone.ms.api.modules.itinerary.dto.album.CreateTripAlbumResponse;
-import capstone.ms.api.modules.itinerary.dto.album.TripAlbumListItemDto;
-import capstone.ms.api.modules.itinerary.dto.album.TripAlbumListResponse;
-import capstone.ms.api.modules.itinerary.dto.album.TripAlbumSignedUrlItemDto;
-import capstone.ms.api.modules.itinerary.dto.album.TripAlbumSignedUrlsResponse;
+import capstone.ms.api.common.exceptions.*;
+import capstone.ms.api.modules.itinerary.dto.album.*;
 import capstone.ms.api.modules.itinerary.dto.memory.TripMemoryDto;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.memory.TripAlbum;
@@ -21,6 +13,7 @@ import capstone.ms.api.modules.itinerary.repositories.TripMemoryRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.services.TripAccessService;
 import capstone.ms.api.modules.user.entities.User;
+import capstone.ms.api.modules.user.services.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -44,6 +37,7 @@ public class TripAlbumService {
     private final TripMemoryPolicyService tripMemoryPolicyService;
     private final TripAlbumCursorService tripAlbumCursorService;
     private final TripMemoryStorageService tripMemoryStorageService;
+    private final UserService userService;
 
     @Transactional
     public CreateTripAlbumResponse createAlbum(
@@ -203,6 +197,7 @@ public class TripAlbumService {
                 .memoryCount(projection.getMemoryCount() == null ? 0L : projection.getMemoryCount())
                 .totalSizeBytes(projection.getTotalSizeBytes() == null ? 0L : projection.getTotalSizeBytes())
                 .createdAt(projection.getCreatedAt())
+                .createdBy(userService.getPublicUserInfoById(projection.getCreatedByUserId()))
                 .build();
     }
 
