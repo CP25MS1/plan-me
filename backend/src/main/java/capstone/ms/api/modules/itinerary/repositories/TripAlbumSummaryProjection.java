@@ -16,4 +16,6 @@ public interface TripAlbumSummaryProjection {
     Long getTotalSizeBytes();
 
     Instant getCreatedAt();
+
+    Integer getCreatedByUserId();
 }

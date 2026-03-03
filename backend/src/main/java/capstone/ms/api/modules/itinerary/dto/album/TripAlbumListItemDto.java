@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.dto.album;
 
+import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,4 +20,5 @@ public class TripAlbumListItemDto {
     private Long memoryCount;
     private Long totalSizeBytes;
     private Instant createdAt;
+    private PublicUserInfo createdBy;
 }

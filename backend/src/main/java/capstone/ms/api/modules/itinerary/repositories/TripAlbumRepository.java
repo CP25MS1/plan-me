@@ -29,7 +29,8 @@ public interface TripAlbumRepository extends JpaRepository<TripAlbum, Integer> {
                 ta.name AS albumName,
                 COALESCE(COUNT(tm.id), 0) AS memoryCount,
                 COALESCE(SUM(tm.sizeBytes), 0) AS totalSizeBytes,
-                ta.createdAt AS createdAt
+                ta.createdAt AS createdAt,
+                ta.createdByUser.id AS createdByUserId
             FROM TripAlbum ta
             JOIN ta.trip t
             LEFT JOIN ta.memories tm
@@ -40,7 +41,7 @@ public interface TripAlbumRepository extends JpaRepository<TripAlbum, Integer> {
                        WHERE tmate.trip.id = t.id
                          AND tmate.user.id = :userId
                    ))
-            GROUP BY ta.id, t.id, t.name, ta.name, ta.createdAt
+            GROUP BY ta.id, t.id, t.name, ta.name, ta.createdAt, ta.createdByUser.id
             ORDER BY ta.createdAt DESC, ta.id DESC
             """)
     List<TripAlbumSummaryProjection> findAccessiblePageWithoutCursor(
@@ -56,7 +57,8 @@ public interface TripAlbumRepository extends JpaRepository<TripAlbum, Integer> {
                 ta.name AS albumName,
                 COALESCE(COUNT(tm.id), 0) AS memoryCount,
                 COALESCE(SUM(tm.sizeBytes), 0) AS totalSizeBytes,
-                ta.createdAt AS createdAt
+                ta.createdAt AS createdAt,
+                ta.createdByUser.id AS createdByUserId
             FROM TripAlbum ta
             JOIN ta.trip t
             LEFT JOIN ta.memories tm
@@ -69,7 +71,7 @@ public interface TripAlbumRepository extends JpaRepository<TripAlbum, Integer> {
                    ))
               AND (ta.createdAt < :cursorCreatedAt
                    OR (ta.createdAt = :cursorCreatedAt AND ta.id < :cursorAlbumId))
-            GROUP BY ta.id, t.id, t.name, ta.name, ta.createdAt
+            GROUP BY ta.id, t.id, t.name, ta.name, ta.createdAt, ta.createdByUser.id
             ORDER BY ta.createdAt DESC, ta.id DESC
             """)
     List<TripAlbumSummaryProjection> findAccessiblePageWithCursor(
