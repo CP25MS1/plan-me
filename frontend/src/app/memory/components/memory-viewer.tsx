@@ -34,7 +34,6 @@ interface Props {
 }
 
 export default function MemoryViewer({ memories, currentIndex, tripName, tripId, onClose }: Props) {
-  // 1) เริ่ม index เป็น currentIndex เลย
   const [index, setIndex] = useState<number>(currentIndex);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
@@ -45,77 +44,111 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
   const { mutateAsync: refreshSignedUrl, isPending: isRefreshing } = useRefreshMemorySignedUrl();
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-
-  // flag เพื่อปิด onScroll ชั่วคราว ขณะกำลัง initial scroll
   const initializingRef = useRef<boolean>(false);
+  const wheelLockRef = useRef<boolean>(false);
 
-  // เมื่อ parent เปลี่ยน currentIndex (เช่น ผู้ใช้คลิกรูปอื่น) ให้ตั้ง index และ scroll ไปตำแหน่งนั้น 1 ครั้ง
   useEffect(() => {
     setIndex(currentIndex);
 
-    // ถ้าไม่มี container ให้รอจน DOM พร้อม
     initializingRef.current = true;
 
     const tryScroll = () => {
       const container = containerRef.current;
       if (!container) {
-        // ถ้ายังไม่พร้อม ให้ลองอีกเฟรม
         requestAnimationFrame(tryScroll);
         return;
       }
 
       const height = container.clientHeight || window.innerHeight;
-      // ตั้ง scrollTop โดยตรง (ไม่ trigger loop)
+
       container.scrollTop = currentIndex * height;
 
-      // ปล่อยให้ browser settle แล้วปิด initializing flag
-      // small timeout to ensure scroll event finished
-      window.setTimeout(() => {
+      setTimeout(() => {
         initializingRef.current = false;
       }, 60);
     };
 
     requestAnimationFrame(tryScroll);
-
-    // cleanup not needed for requestAnimationFrame here
   }, [currentIndex]);
 
-  // currentMemory ปลอดภัยเพราะ index ถูกตั้งจาก currentIndex ตอน mount
+  // ===== Mouse wheel scroll ทีละหน้า =====
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (wheelLockRef.current) {
+        e.preventDefault();
+        return;
+      }
+
+      e.preventDefault();
+      wheelLockRef.current = true;
+
+      let nextIndex = index;
+
+      if (e.deltaY > 0) {
+        nextIndex = Math.min(index + 1, memories.length - 1);
+      } else {
+        nextIndex = Math.max(index - 1, 0);
+      }
+
+      if (nextIndex !== index) {
+        const height = el.clientHeight || window.innerHeight;
+
+        el.scrollTo({
+          top: nextIndex * height,
+          behavior: 'smooth',
+        });
+
+        setIndex(nextIndex);
+      }
+
+      setTimeout(() => {
+        wheelLockRef.current = false;
+      }, 400);
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      el.removeEventListener('wheel', handleWheel);
+    };
+  }, [index, memories.length]);
+
   const currentMemory = memories[index];
   if (!currentMemory) return null;
 
   const disableActions = isDownloading || isRefreshing || isDeleting;
   const isDownloadLoading = isDownloading || isRefreshing;
 
-  // ===== Scroll Switch =====
+  // ===== Sync index with scroll =====
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    // ถ้าอยู่ช่วง initializing ให้ ignore event เพื่อลด flicker / race
     if (initializingRef.current) return;
 
     const el = e.currentTarget;
     const scrollTop = el.scrollTop;
     const height = el.clientHeight || window.innerHeight;
 
-    // คำนวณ index จากตำแหน่ง scroll และอัพเดตเฉพาะเมื่อเปลี่ยน
     const newIndex = Math.round(scrollTop / height);
+
     if (newIndex !== index && newIndex >= 0 && newIndex < memories.length) {
       setIndex(newIndex);
     }
   };
 
-  // ===== Check Expire =====
   const needsRefresh = (expiresAt?: string | null): boolean => {
     if (!expiresAt) return true;
+
     const expiresMs = new Date(expiresAt).getTime();
-    return expiresMs - Date.now() < 60_000;
+
+    return expiresMs - Date.now() < 60000;
   };
 
-  // ===== Download Helper =====
   const downloadBlobAndSave = async (url: string, filename: string) => {
     const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('Download failed');
-    }
+
+    if (!response.ok) throw new Error('Download failed');
 
     const blob = await response.blob();
     const objectUrl = window.URL.createObjectURL(blob);
@@ -123,6 +156,7 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
     const link = document.createElement('a');
     link.href = objectUrl;
     link.download = filename;
+
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -130,7 +164,6 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
     window.URL.revokeObjectURL(objectUrl);
   };
 
-  // ===== Download Action =====
   const handleDownload = async () => {
     if (disableActions) return;
 
@@ -157,7 +190,6 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
     }
   };
 
-  // ===== Delete =====
   const handleDelete = () => {
     deleteMemory(
       { tripId, memoryIds: [currentMemory.id] },
@@ -166,9 +198,6 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
           setOpenDelete(false);
           onClose();
         },
-        onError: (err) => {
-          console.error('Delete failed:', err);
-        },
       }
     );
   };
@@ -176,6 +205,7 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
   const formatFileSize = (bytes: number) => {
     const kb = bytes / 1024;
     const mb = kb / 1024;
+
     if (mb >= 1) return `${mb.toFixed(2)} MB`;
     return `${kb.toFixed(2)} KB`;
   };
@@ -204,7 +234,7 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton onClick={onClose} disabled={disableActions} sx={{ color: 'white' }}>
+              <IconButton onClick={onClose} sx={{ color: 'white' }}>
                 <ArrowBackIcon />
               </IconButton>
 
@@ -220,20 +250,16 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
               <IconButton
                 onClick={handleDownload}
                 disabled={disableActions}
-                sx={{ color: 'white', width: 40, height: 40 }}
+                sx={{ color: 'white' }}
               >
                 {isDownloadLoading ? (
-                  <CircularProgress size={20} thickness={5} sx={{ color: '#fff' }} />
+                  <CircularProgress size={20} sx={{ color: '#fff' }} />
                 ) : (
                   <DownloadIcon />
                 )}
               </IconButton>
 
-              <IconButton
-                onClick={(e) => setAnchorEl(e.currentTarget)}
-                disabled={disableActions}
-                sx={{ color: 'white' }}
-              >
+              <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: 'white' }}>
                 <MoreVertIcon />
               </IconButton>
             </Box>
@@ -246,7 +272,13 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
             sx={{
               height: '100vh',
               overflowY: 'auto',
+
               scrollSnapType: 'y mandatory',
+
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehaviorY: 'contain',
+
+              touchAction: 'pan-y',
             }}
           >
             {memories.map((memory) => (
@@ -254,7 +286,11 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
                 key={memory.id}
                 sx={{
                   height: '100vh',
+                  minHeight: '100vh',
+
                   scrollSnapAlign: 'start',
+                  scrollSnapStop: 'always',
+
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -264,10 +300,19 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
                   <video
                     src={memory.signedUrl}
                     controls
-                    style={{ maxHeight: '100%', maxWidth: '100%' }}
+                    style={{
+                      maxHeight: '100%',
+                      maxWidth: '100%',
+                    }}
                   />
                 ) : (
-                  <Box sx={{ position: 'relative', height: '100vh', width: '100%' }}>
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      height: '100vh',
+                      width: '100%',
+                    }}
+                  >
                     <Image
                       src={memory.signedUrl}
                       alt={memory.originalFilename}
@@ -322,7 +367,7 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
         </DialogActions>
       </Dialog>
 
-      {/* DELETE CONFIRM */}
+      {/* DELETE */}
       <ConfirmDialog
         open={openDelete}
         onClose={() => !isDeleting && setOpenDelete(false)}
