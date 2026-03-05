@@ -293,7 +293,11 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
               minWidth: 120,
             }}
           >
-            {isPending ? <CircularProgress size={22} color="inherit" /> : 'อัปโหลด'}
+            {isPending ? (
+              <CircularProgress size={20} thickness={5} sx={{ color: '#fff' }} />
+            ) : (
+              'อัปโหลด'
+            )}
           </Button>
         </DialogActions>
       </Dialog>
