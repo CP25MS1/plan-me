@@ -49,6 +49,7 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
       getMemoriesInAlbum(album.tripId, {
         limit: 100,
       }),
+    staleTime: 0,
   });
 
   const { imageCount, videoCount, coverImage } = React.useMemo(() => {
