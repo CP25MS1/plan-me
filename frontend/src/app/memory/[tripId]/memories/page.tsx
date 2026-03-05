@@ -21,7 +21,7 @@ import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
-
+import { getMemoryCount } from '../../utils/memory-count';
 import { useGetMemoriesInAlbum } from '../../hooks/use-get-memories-in-album';
 import { useGetMyAccessibleAlbums } from '../../hooks/use-get-my-accessible-albums';
 import { useGetAlbumSignedUrls } from '../../hooks/use-get-album-signed-urls';
@@ -29,7 +29,6 @@ import { useDeleteTripAlbum } from '../../hooks/use-delete-trip-album';
 import MemoryViewer from '../../components/memory-viewer';
 import UploadMemoryDialog from '../../components/upload-memory-dialog';
 import { useAppSelector } from '@/store';
-
 export default function AlbumMemoriesPage() {
   const router = useRouter();
   const params = useParams();
@@ -46,7 +45,6 @@ export default function AlbumMemoriesPage() {
     tripId,
   });
 
-  // hook to fetch signed urls for whole album
   const {
     data: albumSignedData,
     isFetching: isFetchingSignedUrls,
@@ -76,9 +74,11 @@ export default function AlbumMemoriesPage() {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [memoriesData]);
 
-  const existingTotalBytes = memories.reduce((sum, m) => sum + (m.sizeBytes ?? 0), 0);
+  const { imageCount, videoCount } = React.useMemo(() => {
+    return getMemoryCount(memories);
+  }, [memories]);
 
-  const lastUpdated = memories[0]?.createdAt;
+  const existingTotalBytes = memories.reduce((sum, m) => sum + (m.sizeBytes ?? 0), 0);
 
   const me = useAppSelector((s) => s.profile.currentUser);
 
@@ -104,7 +104,7 @@ export default function AlbumMemoriesPage() {
   if (albumsLoading || memoriesLoading) {
     return (
       <Box display="flex" justifyContent="center" py={10}>
-        <CircularProgress />
+        <CircularProgress size={20} thickness={5} sx={{ color: 'white' }} />
       </Box>
     );
   }
@@ -113,7 +113,6 @@ export default function AlbumMemoriesPage() {
     return <Typography color="error">โหลดไม่สำเร็จ</Typography>;
   }
 
-  // helper: download single blob and save
   const downloadBlobAndSave = async (url: string, filename: string) => {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Failed to download ${filename}: ${res.status}`);
@@ -128,7 +127,6 @@ export default function AlbumMemoriesPage() {
     window.URL.revokeObjectURL(objectUrl);
   };
 
-  // download whole album (sequential)
   const handleDownloadAlbum = async () => {
     if (loadingAny) return;
 
@@ -136,16 +134,12 @@ export default function AlbumMemoriesPage() {
       setIsDownloadingAlbum(true);
       setDownloadProgress({ done: 0, total: albumSignedData?.totalItems ?? 0 });
 
-      // ensure we have latest signed urls
       const signed = albumSignedData ?? (await refetchAlbumSignedUrls().then((r) => r.data));
       const items = signed?.items ?? [];
 
-      // iterate sequentially to avoid hammering network and allow progress
       for (let i = 0; i < items.length; i += 1) {
         const it = items[i];
         try {
-          // fetch and save
-          // If signedUrl may expire, optionally refresh per-file here (not implemented for album bulk)
           await downloadBlobAndSave(it.signedUrl, it.originalFilename);
         } catch (err) {
           console.error('Failed to download item', it.memoryId, err);
@@ -261,9 +255,9 @@ export default function AlbumMemoriesPage() {
       </Box>
 
       {/* Metadata */}
-      <Typography variant="body2" color="text.secondary" mb={3}>
-        {memories.length} รายการ • อัปเดตล่าสุด{' '}
-        {lastUpdated ? new Date(lastUpdated).toLocaleString() : '-'}
+      <Typography variant="body2" color="text.secondary" mb={2}>
+        {imageCount > 0 && `${imageCount} รูป `}
+        {videoCount > 0 && `${videoCount} วิดีโอ`}
       </Typography>
 
       {/* Empty */}
@@ -282,7 +276,7 @@ export default function AlbumMemoriesPage() {
           gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 2,
           opacity: loadingAny ? 0.6 : 1,
-          pointerEvents: loadingAny ? 'none' : 'auto', // disable interactions while loading
+          pointerEvents: loadingAny ? 'none' : 'auto',
         }}
       >
         {memories.map((memory, index) => {
@@ -374,7 +368,7 @@ export default function AlbumMemoriesPage() {
       {/* Viewer */}
       {viewerIndex !== null && (
         <MemoryViewer
-          key={viewerIndex} // ensure viewer starts at selected image
+          key={viewerIndex}
           memories={memories}
           currentIndex={viewerIndex}
           tripName={tripName}
@@ -402,9 +396,7 @@ export default function AlbumMemoriesPage() {
   );
 }
 
-/**
- * Small confirm dialog component for deleting album (kept local to this file)
- */
+/* Small confirm dialog component for deleting album (kept local to this file) */
 function ConfirmDeleteAlbumDialog({
   open,
   loading,

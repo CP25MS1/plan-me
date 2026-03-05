@@ -34,18 +34,13 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
 
   const [selectedTripId, setSelectedTripId] = React.useState<number | ''>('');
 
-  // ✅ ใช้ custom hook แทน
   const { data: trips, isLoading: isTripsLoading } = useGetAllTrips();
-
-  // ✅ ดึง album ที่มีอยู่แล้ว
   const { data: albumsData, isLoading: isAlbumsLoading } = useQuery<ListAlbumsResponseDto>({
     queryKey: ['my-accessible-albums'],
     queryFn: () => getMyAccessibleAlbums(100),
   });
-
   const { mutate: createAlbum, isPending } = useCreateTripAlbum();
 
-  // ✅ กรองเฉพาะทริปที่เราเป็น owner และยังไม่มี album
   const availableTrips = React.useMemo(() => {
     if (!trips) return [];
 
@@ -64,7 +59,10 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
   const handleCreate = () => {
     if (!selectedTripId) return;
 
+    const selectedTrip = availableTrips.find((t) => t.id === selectedTripId);
+
     const formData = new FormData();
+    formData.append('name', selectedTrip?.name ?? 'Album');
 
     createAlbum(
       { tripId: Number(selectedTripId), formData },
@@ -81,7 +79,7 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
 
   return (
     <Dialog open={open} onClose={isPending ? undefined : onClose} fullWidth maxWidth="xs">
-      <DialogTitle fontWeight={700}>กรุณาเลือกทริปที่ต้องการสร้าง Album</DialogTitle>
+      <DialogTitle fontWeight={700}>กรุณาเลือกทริปที่ต้องการสร้างอัลบั้ม</DialogTitle>
 
       <DialogContent>
         {isLoading ? (
@@ -91,7 +89,9 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
         ) : (
           <>
             {availableTrips.length === 0 ? (
-              <Typography color="text.secondary">ไม่มีทริปที่สามารถสร้าง Album ได้</Typography>
+              <Typography color="text.secondary" justifyContent="center">
+                ไม่มีทริปที่สามารถสร้างอัลบั้มได้
+              </Typography>
             ) : (
               <FormControl fullWidth sx={{ mt: 2 }}>
                 <InputLabel>เลือกทริป</InputLabel>
