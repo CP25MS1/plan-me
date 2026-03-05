@@ -117,7 +117,7 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
 
       setFiles([]);
       onClose();
-    } catch (err) {
+    } catch {
       setSnackbar({
         open: true,
         message: 'อัปโหลดไม่สำเร็จ',
