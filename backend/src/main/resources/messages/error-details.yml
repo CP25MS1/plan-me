@@ -17,6 +17,7 @@ trip:
     badgeColor:
       null: "Objective badge color cannot be null."
       format: "Color format is invalid."
+    invalidVisibility: "The visibility must be PUBLIC or PRIVATE."
 
 reservation:
   400:

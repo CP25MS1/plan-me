@@ -60,4 +60,8 @@ public class Trip {
     @NotNull
     @Column(name = "invitation_code", nullable = false, length = Integer.MAX_VALUE)
     private String invitationCode;
+
+    @NotNull
+    @Column(name = "is_public", nullable = false)
+    private Boolean isPublic = false;
 }
