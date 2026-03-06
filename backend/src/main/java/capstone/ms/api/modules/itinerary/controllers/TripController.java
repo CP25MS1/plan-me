@@ -4,6 +4,8 @@ import capstone.ms.api.modules.itinerary.dto.*;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.CreateScheduledPlaceRequest;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.ScheduledPlaceDto;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.UpdateScheduledPlaceRequest;
+import capstone.ms.api.modules.itinerary.dto.visibility.UpdateTripVisibilityRequest;
+import capstone.ms.api.modules.itinerary.dto.visibility.UpdateTripVisibilityResponse;
 import capstone.ms.api.modules.itinerary.services.TripService;
 import capstone.ms.api.modules.itinerary.services.daily_plan.DailyPlanService;
 import capstone.ms.api.modules.user.entities.User;
@@ -59,6 +61,16 @@ public class TripController {
             @Valid @RequestBody final UpsertTripDto tripInfo
     ) {
         return ResponseEntity.ok(tripService.updateTripOverview(currentUser, tripId, tripInfo));
+    }
+
+    @PatchMapping("/{tripId}/visibility")
+    public ResponseEntity<UpdateTripVisibilityResponse> updateTripVisibility(
+            @PathVariable Integer tripId,
+            @Valid @RequestBody UpdateTripVisibilityRequest request,
+            @AuthenticationPrincipal User currentUser
+    ) {
+        UpdateTripVisibilityResponse response = tripService.updateTripVisibility(currentUser, tripId, request.getVisibility());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{tripId}/wishlist-places")
