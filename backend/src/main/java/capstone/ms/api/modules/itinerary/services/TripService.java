@@ -7,7 +7,9 @@ import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import capstone.ms.api.modules.google_maps.repositories.GoogleMapPlaceRepository;
 import capstone.ms.api.modules.itinerary.dto.*;
+import capstone.ms.api.modules.itinerary.dto.visibility.UpdateTripVisibilityResponse;
 import capstone.ms.api.modules.itinerary.entities.Trip;
+import capstone.ms.api.modules.itinerary.entities.TripVisibility;
 import capstone.ms.api.modules.itinerary.entities.WishlistPlace;
 import capstone.ms.api.modules.itinerary.mappers.ObjectiveMapper;
 import capstone.ms.api.modules.itinerary.mappers.TripMapper;
@@ -102,6 +104,30 @@ public class TripService {
         syncDailyPlans(saved);
 
         return tripMapper.tripToTripOverviewDto(saved);
+    }
+
+    @Transactional
+    public UpdateTripVisibilityResponse updateTripVisibility(final User currentUser, final Integer tripId, final String visibility) {
+        if (visibility == null) {
+            throw new BadRequestException("400", "trip.400.invalidVisibility");
+        }
+
+        final TripVisibility parsed;
+        try {
+            parsed = TripVisibility.valueOf(visibility);
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestException("400", "trip.400.invalidVisibility");
+        }
+
+        final Trip existing = loadTripOrThrow(tripId);
+        ensureOwnerOrThrow(currentUser, existing);
+
+        existing.setIsPublic(parsed == TripVisibility.PUBLIC);
+        final Trip saved = tripRepository.save(existing);
+        
+        String responseVisibility = saved.getIsPublic() ? TripVisibility.PUBLIC.name() : TripVisibility.PRIVATE.name();
+
+        return new UpdateTripVisibilityResponse(saved.getId(), responseVisibility);
     }
 
     private void syncDailyPlans(Trip saved) {
