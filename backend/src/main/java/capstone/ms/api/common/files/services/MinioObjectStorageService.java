@@ -98,8 +98,8 @@ public class MinioObjectStorageService implements ObjectStorageService {
         URI publicBase = URI.create(mediaStorageProperties.getPublicBaseUrl());
 
         return UriComponentsBuilder.fromUri(publicBase)
-                .replacePath(original.getPath())
-                .replaceQuery(original.getQuery())
+                .path(original.getPath())
+                .query(original.getQuery())
                 .build(true)
                 .toUriString();
     }
