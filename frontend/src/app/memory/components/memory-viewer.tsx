@@ -28,6 +28,7 @@ import { formatFileSize } from '../utils/format-file-size';
 import { needsRefresh } from '../utils/refresh';
 import { useWheelPageScroll } from '../hooks/use-wheel-page-scroll';
 import { downloadBlobAndSave } from '../utils/download-blob';
+import { useTouchPageScroll } from '../hooks/use-touch-page-scroll';
 
 interface Props {
   memories: MemoryItemDto[];
@@ -81,6 +82,13 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
     setIndex,
     length: memories.length,
     wheelLockRef,
+  });
+
+  useTouchPageScroll({
+    containerRef,
+    index,
+    setIndex,
+    length: memories.length,
   });
 
   const currentMemory = memories[index];
