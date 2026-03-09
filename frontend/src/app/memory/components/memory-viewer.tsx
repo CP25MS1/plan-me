@@ -24,6 +24,10 @@ import { useDeleteMemories } from '../hooks/use-delete-memories';
 import { useRefreshMemorySignedUrl } from '../hooks/use-refresh-memory-signed-url';
 import { MemoryItemDto } from '@/api/memory/type';
 import Image from 'next/image';
+import { formatFileSize } from '../utils/format-file-size';
+import { needsRefresh } from '../utils/refresh';
+import { useWheelPageScroll } from '../hooks/use-wheel-page-scroll';
+import { downloadBlobAndSave } from '../utils/download-blob';
 
 interface Props {
   memories: MemoryItemDto[];
@@ -71,50 +75,13 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
     requestAnimationFrame(tryScroll);
   }, [currentIndex]);
 
-  // ===== Mouse wheel scroll ทีละหน้า =====
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      if (wheelLockRef.current) {
-        e.preventDefault();
-        return;
-      }
-
-      e.preventDefault();
-      wheelLockRef.current = true;
-
-      let nextIndex = index;
-
-      if (e.deltaY > 0) {
-        nextIndex = Math.min(index + 1, memories.length - 1);
-      } else {
-        nextIndex = Math.max(index - 1, 0);
-      }
-
-      if (nextIndex !== index) {
-        const height = el.clientHeight || window.innerHeight;
-
-        el.scrollTo({
-          top: nextIndex * height,
-          behavior: 'smooth',
-        });
-
-        setIndex(nextIndex);
-      }
-
-      setTimeout(() => {
-        wheelLockRef.current = false;
-      }, 400);
-    };
-
-    el.addEventListener('wheel', handleWheel, { passive: false });
-
-    return () => {
-      el.removeEventListener('wheel', handleWheel);
-    };
-  }, [index, memories.length]);
+  useWheelPageScroll({
+    containerRef,
+    index,
+    setIndex,
+    length: memories.length,
+    wheelLockRef,
+  });
 
   const currentMemory = memories[index];
   if (!currentMemory) return null;
@@ -135,33 +102,6 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
     if (newIndex !== index && newIndex >= 0 && newIndex < memories.length) {
       setIndex(newIndex);
     }
-  };
-
-  const needsRefresh = (expiresAt?: string | null): boolean => {
-    if (!expiresAt) return true;
-
-    const expiresMs = new Date(expiresAt).getTime();
-
-    return expiresMs - Date.now() < 60000;
-  };
-
-  const downloadBlobAndSave = async (url: string, filename: string) => {
-    const response = await fetch(url);
-
-    if (!response.ok) throw new Error('Download failed');
-
-    const blob = await response.blob();
-    const objectUrl = window.URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = objectUrl;
-    link.download = filename;
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    window.URL.revokeObjectURL(objectUrl);
   };
 
   const handleDownload = async () => {
@@ -200,14 +140,6 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
         },
       }
     );
-  };
-
-  const formatFileSize = (bytes: number) => {
-    const kb = bytes / 1024;
-    const mb = kb / 1024;
-
-    if (mb >= 1) return `${mb.toFixed(2)} MB`;
-    return `${kb.toFixed(2)} KB`;
   };
 
   return (

@@ -25,6 +25,7 @@ import { AlbumDto, ListMemoriesResponseDto } from '@/api/memory/type';
 import { useDeleteTripAlbum } from '../hooks/use-delete-trip-album';
 import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
 import { getMemoryCount } from '../utils/memory-count';
+import { downloadBlobAndSave } from '../utils/download-blob';
 
 type AlbumCardProps = {
   album: AlbumDto;
@@ -72,21 +73,6 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
     refetch: refetchSignedUrls,
     isFetching: isFetchingSigned,
   } = useGetAlbumSignedUrls(album.tripId);
-
-  const downloadBlobAndSave = async (url: string, filename: string) => {
-    const res = await fetch(url);
-    const blob = await res.blob();
-    const objectUrl = window.URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = objectUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    window.URL.revokeObjectURL(objectUrl);
-  };
 
   const handleDownloadAlbum = async () => {
     if (isDownloading) return;
