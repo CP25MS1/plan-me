@@ -71,6 +71,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_SERVER_URL: https://bscit.sit.kmutt.ac.th/capstone25/cp25ms1/media
     command: server /data --console-address ":${MINIO_CONSOLE_PORT:-9001}"
     ports:
       - "${MINIO_HOST_PORT:-9000}:9000"
@@ -80,6 +81,7 @@ services:
     restart: always
     networks:
       - database-network
+      - app-network
 
   backend:
     image: cp25ms1/backend:prod-latest
@@ -118,4 +120,3 @@ services:
       - ./certificates:/etc/nginx/certificates:ro
     networks:
       - app-network
-      - database-network
