@@ -3,11 +3,13 @@ package capstone.ms.api.modules.itinerary.mappers;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.modules.itinerary.dto.MergedObjective;
 import capstone.ms.api.modules.itinerary.dto.ObjectiveInputDto;
+import capstone.ms.api.modules.itinerary.dto.TemplateObjectiveDto;
 import capstone.ms.api.modules.itinerary.entities.BasicObjective;
 import capstone.ms.api.modules.itinerary.entities.Objective;
 import capstone.ms.api.modules.itinerary.repositories.BasicObjectiveRepository;
 import org.mapstruct.*;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -82,5 +84,21 @@ public interface ObjectiveMapper {
         return objectives.stream()
                 .map(this::objectiveToMerged)
                 .collect(Collectors.toSet());
+    }
+
+    // New: map to template objective (only name and badgeColor)
+    default TemplateObjectiveDto objectiveToTemplate(Objective o) {
+        if (o == null) return null;
+        return TemplateObjectiveDto.builder()
+                .name(o.getName())
+                .badgeColor(o.getBadgeColor())
+                .build();
+    }
+
+    default List<TemplateObjectiveDto> toTemplateList(Set<Objective> objectives) {
+        if (objectives == null) return List.of();
+        return objectives.stream()
+                .map(this::objectiveToTemplate)
+                .collect(Collectors.toList());
     }
 }
