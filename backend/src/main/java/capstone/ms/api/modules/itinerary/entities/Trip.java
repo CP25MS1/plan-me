@@ -64,4 +64,8 @@ public class Trip {
     @NotNull
     @Column(name = "is_public", nullable = false)
     private Boolean isPublic = false;
+
+    // Reference to the template trip this trip was copied from (nullable)
+    @Column(name = "copied_from_trip_id")
+    private Integer copiedFromTripId;
 }
