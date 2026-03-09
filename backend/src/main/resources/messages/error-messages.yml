@@ -163,3 +163,8 @@ tripChecklist:
   completeForbidden:
     th: "เฉพาะคนที่ได้รับมอบหมายเท่านั้นที่สามารถเปลี่ยนสถานะได้"
     en: "Only the assigned user can mark this checklist item as completed."
+
+tripTemplate:
+  404:
+    th: "ไม่พบเทมเพลตของทริปนี้ในระบบ"
+    en: "This trip template is not found in the system."

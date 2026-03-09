@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.LinkedHashMap;
@@ -169,5 +170,25 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(status)
                 .body(ErrorResponse.of(status, message.getTh(), message.getEn(), path, details));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException exception, WebRequest request) {
+        String path = ((ServletWebRequest) request).getRequest().getRequestURI();
+
+        LocalizedText message = LocalizedText.builder()
+                .th("ข้อมูลไม่ถูกต้อง")
+                .en("Invalid input")
+                .build();
+
+        Map<String, String> details = new LinkedHashMap<>();
+        details.put("parameter", exception.getName());
+        details.put("value", exception.getValue() != null ? exception.getValue().toString() : "null");
+        details.put("expectedType", exception.getRequiredType() != null ? exception.getRequiredType().getSimpleName() : "unknown");
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.of(HttpStatus.BAD_REQUEST, message.getTh(), message.getEn(), path, details));
     }
 }
