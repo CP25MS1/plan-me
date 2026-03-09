@@ -69,3 +69,10 @@ travelSegment:
   400:
     samePlaces: "Unable to create route as the starting and ending place are the same."
     unsupportedMode: "An unsupported mode was provided."
+
+tripTemplate:
+  400:
+    cursor:
+      invalid: "The pagination cursor is invalid."
+    limit:
+      invalid: "The requested page size is out of allowed range."
