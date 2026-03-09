@@ -29,6 +29,7 @@ import { useDeleteTripAlbum } from '../../hooks/use-delete-trip-album';
 import MemoryViewer from '../../components/memory-viewer';
 import UploadMemoryDialog from '../../components/upload-memory-dialog';
 import { useAppSelector } from '@/store';
+import { downloadBlobAndSave } from '../../utils/download-blob';
 export default function AlbumMemoriesPage() {
   const router = useRouter();
   const params = useParams();
@@ -112,20 +113,6 @@ export default function AlbumMemoriesPage() {
   if (isError) {
     return <Typography color="error">โหลดไม่สำเร็จ</Typography>;
   }
-
-  const downloadBlobAndSave = async (url: string, filename: string) => {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Failed to download ${filename}: ${res.status}`);
-    const blob = await res.blob();
-    const objectUrl = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = objectUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(objectUrl);
-  };
 
   const handleDownloadAlbum = async () => {
     if (loadingAny) return;
