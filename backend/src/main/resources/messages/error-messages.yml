@@ -168,3 +168,6 @@ tripTemplate:
   404:
     th: "ไม่พบเทมเพลตของทริปนี้ในระบบ"
     en: "This trip template is not found in the system."
+  409:
+    th: "ช่วงวันที่ต้องสอดคล้องกับโครงสร้างวันของเทมเพลต"
+    en: "Date range must match the template’s day structure."
