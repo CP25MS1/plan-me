@@ -6,6 +6,7 @@ import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.dto.WishlistPlaceDto;
 import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import capstone.ms.api.modules.itinerary.entities.Trip;
+import capstone.ms.api.modules.itinerary.entities.TripChecklist;
 import capstone.ms.api.modules.itinerary.entities.WishlistPlace;
 import capstone.ms.api.modules.itinerary.entities.tripmate.Tripmate;
 import capstone.ms.api.modules.itinerary.repositories.BasicObjectiveRepository;
@@ -15,7 +16,7 @@ import org.mapstruct.*;
 
 import java.util.Set;
 
-@Mapper(componentModel = "spring", uses = {ObjectiveMapper.class, ReservationMapper.class, TripmateMapper.class})
+@Mapper(componentModel = "spring", uses = {ObjectiveMapper.class, ReservationMapper.class, TripmateMapper.class, ChecklistMapper.class})
 public interface TripMapper {
 
     @Mapping(source = "owner", target = "owner", qualifiedByName = "userToPublicUserInfo")
@@ -24,6 +25,7 @@ public interface TripMapper {
     @Mapping(source = "reservations", target = "reservations")
     @Mapping(source = "wishlistPlaces", target = "wishlistPlaces")
     @Mapping(source = "dailyPlans", target = "dailyPlans")
+    @Mapping(source = "checklists", target = "checklist")
     TripOverviewDto tripToTripOverviewDto(Trip trip);
 
     @Mapping(target = "objectives", ignore = true)
@@ -106,4 +108,15 @@ public interface TripMapper {
     @Mapping(source = "objectives", target = "objectives")
     TripDto tripToTripDto(Trip trip);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "trip", source = "trip")
+    @Mapping(target = "notes", ignore = true)
+    WishlistPlace cloneWishlistPlace(WishlistPlace source, Trip trip);
+
+    default Set<String> mapChecklistNames(Set<TripChecklist> checklist) {
+        if (checklist == null) return null;
+        return checklist.stream()
+                .map(TripChecklist::getName)
+                .collect(java.util.stream.Collectors.toSet());
+    }
 }

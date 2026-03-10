@@ -86,7 +86,6 @@ public interface ObjectiveMapper {
                 .collect(Collectors.toSet());
     }
 
-    // New: map to template objective (only name and badgeColor)
     default TemplateObjectiveDto objectiveToTemplate(Objective o) {
         if (o == null) return null;
         return TemplateObjectiveDto.builder()
@@ -100,5 +99,15 @@ public interface ObjectiveMapper {
         return objectives.stream()
                 .map(this::objectiveToTemplate)
                 .collect(Collectors.toList());
+    }
+
+    default Objective cloneToNew(Objective source, capstone.ms.api.modules.itinerary.entities.Trip targetTrip) {
+        if (source == null) return null;
+        Objective copy = new Objective();
+        copy.setTrip(targetTrip);
+        copy.setName(source.getName());
+        copy.setBadgeColor(source.getBadgeColor());
+        copy.setBo(source.getBo());
+        return copy;
     }
 }
