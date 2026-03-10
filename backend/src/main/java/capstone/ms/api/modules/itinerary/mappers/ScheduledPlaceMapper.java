@@ -18,8 +18,6 @@ public interface ScheduledPlaceMapper {
     @Mapping(target = "placeDetail", source = "ggmp")
     ScheduledPlaceDto toDto(ScheduledPlace entity);
 
-    List<ScheduledPlaceDto> toDtoList(List<ScheduledPlace> entities);
-
     default ScheduledPlace cloneToNew(ScheduledPlace source, DailyPlan newPlan) {
         if (source == null) return null;
         ScheduledPlace p = new ScheduledPlace();
