@@ -98,7 +98,7 @@ public interface ObjectiveMapper {
         if (objectives == null) return List.of();
         return objectives.stream()
                 .map(this::objectiveToTemplate)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     default Objective cloneToNew(Objective source, capstone.ms.api.modules.itinerary.entities.Trip targetTrip) {

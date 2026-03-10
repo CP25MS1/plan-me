@@ -60,43 +60,16 @@ public class TripTemplateService {
     private static final int MAX_LIMIT = 100;
 
     public TripTemplateListResponse listPublicTemplates(Integer limit, String cursor) {
-        int pageSize = limit == null ? DEFAULT_LIMIT : limit;
-        if (pageSize < 1 || pageSize > MAX_LIMIT) {
-            throw new BadRequestException("400", "tripTemplate.400.limit.invalid");
-        }
-
+        int pageSize = validateAndGetPageSize(limit);
         int fetchSize = Math.min(pageSize + 1, MAX_LIMIT + 1);
         Pageable pageable = PageRequest.of(0, fetchSize);
-        List<Trip> fetched;
 
-        if (cursor == null || cursor.isBlank()) {
-            fetched = tripRepository.findPublicOrderByStartDateDesc(pageable);
-        } else {
-            var parsed = templateCursorService.decodeCursor(cursor);
-            if (parsed == null || parsed.publishedAt() == null || parsed.tripId() == null) {
-                throw new BadRequestException("400", "tripTemplate.400.cursor.invalid");
-            }
-            LocalDate publishedLocal = parsed.publishedAt().atZone(ZoneOffset.UTC).toLocalDate();
-            fetched = tripRepository.findPublicBefore(publishedLocal, parsed.tripId(), pageable);
-        }
-
+        List<Trip> fetched = fetchPublicTemplates(cursor, pageable);
         boolean hasNext = fetched.size() > pageSize;
         List<Trip> pageTrips = hasNext ? fetched.subList(0, pageSize) : fetched;
 
         List<TripTemplateItemDto> items = pageTrips.stream().map(this::toItemDto).toList();
-
-        String nextCursor = null;
-        if (hasNext) {
-            Trip lastReturned = pageTrips.get(pageTrips.size() - 1);
-            LocalDate published = lastReturned.getStartDate();
-            if (published != null) {
-                Instant publishedInstant = published.atStartOfDay(ZoneOffset.UTC).toInstant();
-                ObjectNode node = objectMapper.createObjectNode();
-                node.put("publishedAt", publishedInstant.toString());
-                node.put("tripId", lastReturned.getId());
-                nextCursor = templateCursorService.encodeCursor(node.toString());
-            }
-        }
+        String nextCursor = hasNext ? generateNextCursor(pageTrips.getLast()) : null;
 
         return TripTemplateListResponse.builder()
                 .items(items)
@@ -104,13 +77,43 @@ public class TripTemplateService {
                 .build();
     }
 
-    private TripTemplateItemDto toItemDto(Trip t) {
-        int dayCount = 0;
-        if (t.getStartDate() != null && t.getEndDate() != null) {
-            dayCount = (int) ChronoUnit.DAYS.between(t.getStartDate(), t.getEndDate()) + 1;
-        } else if (t.getDailyPlans() != null) {
-            dayCount = t.getDailyPlans().size();
+    private int validateAndGetPageSize(Integer limit) {
+        int pageSize = limit == null ? DEFAULT_LIMIT : limit;
+        if (pageSize < 1 || pageSize > MAX_LIMIT) {
+            throw new BadRequestException("400", "tripTemplate.400.limit.invalid");
         }
+        return pageSize;
+    }
+
+    private List<Trip> fetchPublicTemplates(String cursor, Pageable pageable) {
+        if (cursor == null || cursor.isBlank()) {
+            return tripRepository.findPublicOrderByStartDateDesc(pageable);
+        }
+
+        var parsed = templateCursorService.decodeCursor(cursor);
+        if (parsed == null || parsed.publishedAt() == null || parsed.tripId() == null) {
+            throw new BadRequestException("400", "tripTemplate.400.cursor.invalid");
+        }
+
+        LocalDate publishedLocal = parsed.publishedAt().atZone(ZoneOffset.UTC).toLocalDate();
+        return tripRepository.findPublicBefore(publishedLocal, parsed.tripId(), pageable);
+    }
+
+    private String generateNextCursor(Trip lastTrip) {
+        LocalDate published = lastTrip.getStartDate();
+        if (published == null) {
+            return null;
+        }
+
+        Instant publishedInstant = published.atStartOfDay(ZoneOffset.UTC).toInstant();
+        ObjectNode node = objectMapper.createObjectNode();
+        node.put("publishedAt", publishedInstant.toString());
+        node.put("tripId", lastTrip.getId());
+        return templateCursorService.encodeCursor(node.toString());
+    }
+
+    private TripTemplateItemDto toItemDto(Trip t) {
+        int dayCount = calculateTemplateDayCount(t);
 
         return TripTemplateItemDto.builder()
                 .templateTripId(t.getId())
@@ -137,66 +140,87 @@ public class TripTemplateService {
     @Transactional
     public TripOverviewDto createTripFromPublicTemplate(Integer templateTripId, UpsertTripDto tripInfo, User currentUser) {
         if (templateTripId == null) throw new BadRequestException("400");
+
+        Trip template = loadPublicTemplateWithDetails(templateTripId);
+
+        int templateDayCount = calculateTemplateDayCount(template);
+
+        validateTripDates(tripInfo);
+        validateRequestedDaysCanAccommodateTemplate(tripInfo, templateDayCount);
+
+        Trip createdTrip = createAndInitializeTrip(tripInfo, template, currentUser);
+
+        copyTemplateData(template, createdTrip, currentUser);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        createdTrip = tripRepository.findTemplateWithDetails(createdTrip.getId())
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+
+        return tripMapper.tripToTripOverviewDto(createdTrip);
+    }
+
+    private Trip loadPublicTemplateWithDetails(Integer templateTripId) {
         Trip template = tripRepository.findTemplateWithDetails(templateTripId)
                 .orElseThrow(() -> new NotFoundException("tripTemplate.404"));
-
         if (template.getIsPublic() == null || !template.getIsPublic()) {
             throw new NotFoundException("tripTemplate.404");
         }
+        return template;
+    }
 
-        int templateDayCount = 0;
+    private int calculateTemplateDayCount(Trip template) {
         if (template.getStartDate() != null && template.getEndDate() != null) {
-            templateDayCount = (int) ChronoUnit.DAYS.between(template.getStartDate(), template.getEndDate()) + 1;
-        } else if (template.getDailyPlans() != null && !template.getDailyPlans().isEmpty()) {
-            templateDayCount = template.getDailyPlans().size();
+            return (int) ChronoUnit.DAYS.between(template.getStartDate(), template.getEndDate()) + 1;
         }
-
-        LocalDate templateBase = template.getStartDate();
-        if (templateBase == null && template.getDailyPlans() != null && !template.getDailyPlans().isEmpty()) {
-            Optional<LocalDate> min = template.getDailyPlans().stream()
-                    .map(DailyPlan::getDate)
-                    .filter(Objects::nonNull)
-                    .min(LocalDate::compareTo);
-            if (min.isPresent()) templateBase = min.get();
+        if (template.getDailyPlans() != null && !template.getDailyPlans().isEmpty()) {
+            return template.getDailyPlans().size();
         }
+        return 0;
+    }
 
+    private void validateTripDates(UpsertTripDto tripInfo) {
         if (tripInfo.getStartDate() != null && tripInfo.getEndDate() != null &&
                 tripInfo.getEndDate().isBefore(tripInfo.getStartDate())) {
             throw new BadRequestException("400", "trip.400.endDate.conflict");
         }
+    }
 
+    private void validateRequestedDaysCanAccommodateTemplate(UpsertTripDto tripInfo, int templateDayCount) {
         if (tripInfo.getStartDate() != null && tripInfo.getEndDate() != null && templateDayCount > 0) {
             int requestedDays = (int) ChronoUnit.DAYS.between(tripInfo.getStartDate(), tripInfo.getEndDate()) + 1;
             if (requestedDays < templateDayCount) {
                 throw new ConflictException("tripTemplate.409");
             }
         }
+    }
 
+    private Trip createAndInitializeTrip(UpsertTripDto tripInfo, Trip template, User currentUser) {
         UpsertTripDto toCreate = new UpsertTripDto();
         toCreate.setStartDate(tripInfo.getStartDate());
         toCreate.setEndDate(tripInfo.getEndDate());
         toCreate.setName(tripInfo.getName() != null ? tripInfo.getName() : template.getName());
-
         var createdOverview = tripService.createTrip(toCreate, currentUser);
-        Trip createdTrip = tripRepository.findById(createdOverview.getId()).orElseThrow(() -> new NotFoundException("trip.404"));
-
+        Trip createdTrip = tripRepository.findById(createdOverview.getId())
+                .orElseThrow(() -> new NotFoundException("trip.404"));
         createdTrip.setCopiedFromTripId(template.getId());
         createdTrip.setIsPublic(false);
         tripRepository.save(createdTrip);
+        return createdTrip;
+    }
 
+    private void copyTemplateData(Trip template, Trip createdTrip, User currentUser) {
         copyWishlistPlaces(template, createdTrip);
         copyObjectives(template, createdTrip);
+        copyScheduledPlaces(template, createdTrip);
+        copyChecklistItems(template, createdTrip, currentUser);
+    }
+
+    private void copyScheduledPlaces(Trip template, Trip createdTrip) {
         List<DailyPlan> createdPlans = dailyPlanRepository.findAllByTripId(createdTrip.getId());
         List<ScheduledPlace> clones = templateSchedulePlanner.copyScheduledPlaces(template, createdTrip, createdPlans);
         scheduledPlaceRepository.saveAll(clones);
-        entityManager.flush();
-        entityManager.clear();
-        createdTrip = tripRepository.findTemplateWithDetails(createdTrip.getId())
-                .orElseThrow(() -> new NotFoundException("trip.404"));
-
-        copyChecklistItems(template, createdTrip, currentUser);
-
-        return tripMapper.tripToTripOverviewDto(createdTrip);
     }
 
     private void copyWishlistPlaces(Trip template, Trip createdTrip) {
