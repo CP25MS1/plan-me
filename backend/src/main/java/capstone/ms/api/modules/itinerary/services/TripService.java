@@ -199,6 +199,15 @@ public class TripService {
         wishlistPlaceRepository.delete(wp);
     }
 
+    @Transactional
+    public void deleteTrip(final User currentUser, final Integer tripId) {
+        final Trip existing = loadTripOrThrow(tripId);
+        if (!existing.getOwner().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("trip.403.delete");
+        }
+        tripRepository.deleteById(existing.getId());
+    }
+
     public List<TripDto> getTripsByUser(User user) {
         List<Trip> accessibleTrips = tripRepository.findAccessibleTrips(user.getId());
 

@@ -126,4 +126,11 @@ public class TripController {
         dailyPlanService.deleteScheduledPlace(currentUser, tripId, placeId);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{tripId}")
+    public ResponseEntity<Void> deleteTrip(@AuthenticationPrincipal final User currentUser,
+                                           @PathVariable final Integer tripId) {
+        tripService.deleteTrip(currentUser, tripId);
+        return ResponseEntity.noContent().build();
+    }
 }
