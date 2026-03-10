@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.IntStream;
 
 @Component
 public class TripTemplateMapper {
@@ -22,48 +23,55 @@ public class TripTemplateMapper {
     }
 
     public TripTemplateDetailDto toDetailDto(Trip trip, List<TripTemplateDetailDto.ChecklistItem> checklistItems) {
-        TripTemplateDetailDto.TripTemplateDetailDtoBuilder builder = TripTemplateDetailDto.builder()
-                .templateTripId(trip.getId())
-                .tripName(trip.getName())
-                .objectives(objectiveMapper.toTemplateList(trip.getObjectives()));
-
-        var wishlist = trip.getWishlistPlaces() == null ? List.<TripTemplateDetailDto.WishlistPlace>of() : trip.getWishlistPlaces().stream()
+        var wishlist = trip.getWishlistPlaces() == null
+                ? List.<TripTemplateDetailDto.WishlistPlace>of()
+                : trip.getWishlistPlaces().stream()
                 .map(wp -> TripTemplateDetailDto.WishlistPlace.builder()
                         .placeId(wp.getId())
                         .place(placeMapper.toGoogleMapPlaceDto(wp.getPlace()))
                         .build())
                 .toList();
-        builder.wishlistPlaces(wishlist);
 
-        List<TripTemplateDetailDto.DailyPlan> dailyPlans = new ArrayList<>();
-        List<DailyPlan> plans = trip.getDailyPlans() == null ? List.of() : trip.getDailyPlans().stream()
+        List<DailyPlan> plans = trip.getDailyPlans() == null
+                ? List.of()
+                : trip.getDailyPlans().stream()
                 .sorted(Comparator.comparing(DailyPlan::getDate, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
 
-        if (!plans.isEmpty()) {
-            LocalDate start = trip.getStartDate();
-            for (int i = 0; i < plans.size(); i++) {
-                DailyPlan p = plans.get(i);
-                int dayIndex = (start != null && p.getDate() != null) ? (int) (ChronoUnit.DAYS.between(start, p.getDate()) + 1) : i + 1;
+        LocalDate start = trip.getStartDate();
 
-                List<ScheduledPlace> spList = p.getScheduledPlaces() == null ? new ArrayList<>() : new ArrayList<>(p.getScheduledPlaces());
-                spList.sort(Comparator.comparing(ScheduledPlace::getOrder, Comparator.nullsLast(Short::compareTo)));
+        var dailyPlans = IntStream.range(0, plans.size())
+                .mapToObj(i -> {
+                    DailyPlan p = plans.get(i);
 
-                List<TripTemplateDetailDto.ScheduledPlace> sched = spList.stream().map(sp -> TripTemplateDetailDto.ScheduledPlace.builder()
-                                .order(sp.getOrder())
-                                .place(placeMapper.toGoogleMapPlaceDto(sp.getGgmp()))
-                                .build())
-                        .toList();
+                    int dayIndex = (start != null && p.getDate() != null)
+                            ? (int) (ChronoUnit.DAYS.between(start, p.getDate()) + 1)
+                            : i + 1;
 
-                dailyPlans.add(TripTemplateDetailDto.DailyPlan.builder()
-                        .dayIndex(dayIndex)
-                        .scheduledPlaces(sched)
-                        .build());
-            }
-        }
-        builder.dailyPlans(dailyPlans);
-        builder.checklistItems(checklistItems == null ? List.of() : checklistItems);
+                    var scheduledPlaces = p.getScheduledPlaces() == null
+                            ? List.<TripTemplateDetailDto.ScheduledPlace>of()
+                            : p.getScheduledPlaces().stream()
+                            .sorted(Comparator.comparing(ScheduledPlace::getOrder, Comparator.nullsLast(Short::compareTo)))
+                            .map(sp -> TripTemplateDetailDto.ScheduledPlace.builder()
+                                    .order(sp.getOrder())
+                                    .place(placeMapper.toGoogleMapPlaceDto(sp.getGgmp()))
+                                    .build())
+                            .toList();
 
-        return builder.build();
+                    return TripTemplateDetailDto.DailyPlan.builder()
+                            .dayIndex(dayIndex)
+                            .scheduledPlaces(scheduledPlaces)
+                            .build();
+                })
+                .toList();
+
+        return TripTemplateDetailDto.builder()
+                .templateTripId(trip.getId())
+                .tripName(trip.getName())
+                .objectives(objectiveMapper.toTemplateList(trip.getObjectives()))
+                .wishlistPlaces(wishlist)
+                .dailyPlans(dailyPlans)
+                .checklistItems(checklistItems == null ? List.of() : checklistItems)
+                .build();
     }
 }
