@@ -3,6 +3,7 @@ package capstone.ms.api.modules.itinerary.mappers;
 import capstone.ms.api.modules.google_maps.mappers.PlaceMapper;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.ScheduledPlaceDto;
 import capstone.ms.api.modules.itinerary.entities.ScheduledPlace;
+import capstone.ms.api.modules.itinerary.entities.DailyPlan;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -18,5 +19,14 @@ public interface ScheduledPlaceMapper {
     ScheduledPlaceDto toDto(ScheduledPlace entity);
 
     List<ScheduledPlaceDto> toDtoList(List<ScheduledPlace> entities);
-}
 
+    default ScheduledPlace cloneToNew(ScheduledPlace source, DailyPlan newPlan) {
+        if (source == null) return null;
+        ScheduledPlace p = new ScheduledPlace();
+        p.setPlan(newPlan);
+        p.setGgmp(source.getGgmp());
+        p.setNotes(null);
+        p.setOrder(source.getOrder());
+        return p;
+    }
+}
