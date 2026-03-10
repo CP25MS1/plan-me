@@ -15,6 +15,7 @@ import capstone.ms.api.modules.user.entities.User;
 import org.mapstruct.*;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", uses = {ObjectiveMapper.class, ReservationMapper.class, TripmateMapper.class, ChecklistMapper.class})
 public interface TripMapper {
@@ -117,6 +118,6 @@ public interface TripMapper {
         if (checklist == null) return null;
         return checklist.stream()
                 .map(TripChecklist::getName)
-                .collect(java.util.stream.Collectors.toSet());
+                .collect(Collectors.toSet());
     }
 }
