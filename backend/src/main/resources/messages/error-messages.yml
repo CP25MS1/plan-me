@@ -47,6 +47,9 @@ trip:
   403:
     th: "คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้"
     en: "You do not have permission to view this trip."
+    delete:
+      th: "คุณไม่มีสิทธิ์ในการลบข้อมูลของทริปนี้"
+      en: "You do not have permission to delete this trip."
   404:
     th: "ไม่พบทริปนี้ในระบบ"
     en: "This trip is not found in the system."
@@ -134,11 +137,11 @@ tripmate:
         en: "Only the trip owner can invite friends to join the trip."
     409:
       alreadyInvited:
-          th: "คุณได้เชิญเพื่อนคนนี้เข้าทริปแล้ว"
-          en: "You have already invited this friend to the trip."
+        th: "คุณได้เชิญเพื่อนคนนี้เข้าทริปแล้ว"
+        en: "You have already invited this friend to the trip."
       alreadyJoined:
-          th: "เพื่อนคนนี้เป็นสมาชิกของทริปอยู่แล้ว"
-          en: "This friend is already a member of the trip."
+        th: "เพื่อนคนนี้เป็นสมาชิกของทริปอยู่แล้ว"
+        en: "This friend is already a member of the trip."
   inviteAction:
     400:
       invalidInvite:
@@ -154,10 +157,10 @@ tripmate:
         en: "You have already joined this trip."
 
 notification:
-    404:
-      notFoundOrNoPermission:
-        th: "ไม่พบการแจ้งเตือนที่นี้ในระบบ"
-        en: "The notification was not found in system."
+  404:
+    notFoundOrNoPermission:
+      th: "ไม่พบการแจ้งเตือนที่นี้ในระบบ"
+      en: "The notification was not found in system."
 
 tripChecklist:
   completeForbidden:
