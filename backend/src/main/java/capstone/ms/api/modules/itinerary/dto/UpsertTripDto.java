@@ -19,7 +19,7 @@ public class UpsertTripDto {
     private LocalDate endDate;
 
     @Valid
-    @Size(max = 3, message = "Objectives cannot exceed 3 item.")
+    @Size(max = 3, message = "Objectives cannot exceed 3 items.")
     private Set<ObjectiveInputDto> objectives;
 
     public void setName(String name) {
