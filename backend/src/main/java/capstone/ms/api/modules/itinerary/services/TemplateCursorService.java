@@ -42,7 +42,7 @@ public class TemplateCursorService {
         }
     }
 
-    public static record Cursor(Instant publishedAt, Integer tripId) {
+    public record Cursor(Instant publishedAt, Integer tripId) {
     }
 }
 
