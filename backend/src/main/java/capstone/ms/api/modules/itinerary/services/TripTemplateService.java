@@ -21,6 +21,7 @@ import capstone.ms.api.modules.itinerary.mappers.TripMapper;
 import capstone.ms.api.modules.itinerary.mappers.TripTemplateMapper;
 import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.user.entities.User;
+import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityManager;
@@ -120,6 +121,8 @@ public class TripTemplateService {
                 .tripName(t.getName())
                 .objectives(objectiveMapper.toTemplateList(t.getObjectives()))
                 .dayCount(dayCount)
+                .coverImageUrl(extractCoverImageUrl(t))
+                .owner(mapOwner(t.getOwner()))
                 .build();
     }
 
@@ -251,5 +254,37 @@ public class TripTemplateService {
                     .filter(Objects::nonNull)
                     .forEach(tripChecklistRepository::save);
         }
+    }
+
+    private String extractCoverImageUrl(Trip trip) {
+        if (trip == null) return null;
+
+        var plans = trip.getDailyPlans();
+        if (plans == null || plans.isEmpty()) return null;
+
+        DailyPlan firstPlan = trip.getDailyPlans().stream()
+                .filter(Objects::nonNull).min(Comparator.comparing(DailyPlan::getDate, Comparator.nullsLast(LocalDate::compareTo)))
+                .orElse(null);
+
+        if (firstPlan == null || firstPlan.getScheduledPlaces() == null || firstPlan.getScheduledPlaces().isEmpty())
+            return null;
+
+        ScheduledPlace firstPlace = firstPlan.getScheduledPlaces().stream()
+                .filter(Objects::nonNull).min(Comparator.comparing(ScheduledPlace::getOrder, Comparator.nullsLast(Short::compareTo)))
+                .orElse(null);
+
+        if (firstPlace == null || firstPlace.getGgmp() == null) return null;
+
+        return firstPlace.getGgmp().getDefaultPicUrl();
+    }
+
+    private PublicUserInfo mapOwner(User user) {
+        if (user == null) return null;
+        return PublicUserInfo.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .profilePicUrl(user.getProfilePicUrl())
+                .build();
     }
 }
