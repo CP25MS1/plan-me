@@ -15,8 +15,6 @@ import java.util.Optional;
 
 @Repository
 public interface TripRepository extends JpaRepository<Trip, Integer> {
-    List<Trip> findByOwnerId(Integer ownerId);
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM Trip t WHERE t.id = :tripId")
     Optional<Trip> findByIdForUpdate(@Param("tripId") Integer tripId);

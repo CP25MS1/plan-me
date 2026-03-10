@@ -1,6 +1,5 @@
 package capstone.ms.api.modules.itinerary.dto;
 
-import capstone.ms.api.modules.itinerary.dto.checklist.TripChecklistDto;
 import capstone.ms.api.modules.itinerary.dto.reservation.ReservationDto;
 import capstone.ms.api.modules.itinerary.entities.DailyPlan;
 import capstone.ms.api.modules.user.dto.PublicUserInfo;
