@@ -44,6 +44,10 @@ trip:
     create:
       th: "ไม่สามารถสร้างทริปได้ โปรดตรวจสอบข้อมูลอีกครั้ง"
       en: "Unable to create trip. Please check your input and try again."
+    public:
+      requiresScheduledPlace:
+        th: "กรุณาเพิ่มสถานที่ในแผนรายวันก่อนเปลี่ยนเป็นสาธารณะ"
+        en: "Add at least one scheduled place before making this public."
   403:
     th: "คุณไม่มีสิทธิ์ในการดูข้อมูลของทริปนี้"
     en: "You do not have permission to view this trip."
