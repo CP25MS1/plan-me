@@ -13,10 +13,7 @@ import capstone.ms.api.modules.itinerary.entities.TripVisibility;
 import capstone.ms.api.modules.itinerary.entities.WishlistPlace;
 import capstone.ms.api.modules.itinerary.mappers.ObjectiveMapper;
 import capstone.ms.api.modules.itinerary.mappers.TripMapper;
-import capstone.ms.api.modules.itinerary.repositories.BasicObjectiveRepository;
-import capstone.ms.api.modules.itinerary.repositories.DailyPlanRepository;
-import capstone.ms.api.modules.itinerary.repositories.TripRepository;
-import capstone.ms.api.modules.itinerary.repositories.WishlistPlaceRepository;
+import capstone.ms.api.modules.itinerary.repositories.*;
 import capstone.ms.api.modules.itinerary.services.daily_plan.DailyPlanService;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.transaction.Transactional;
@@ -41,6 +38,7 @@ public class TripService {
     private final WishlistPlaceRepository wishlistPlaceRepository;
     private final GoogleMapPlaceRepository googleMapPlaceRepository;
     private final DailyPlanRepository dailyPlanRepository;
+    private final ScheduledPlaceRepository scheduledPlaceRepository;
 
     private final TripAccessService tripAccessService;
 
@@ -121,6 +119,14 @@ public class TripService {
 
         final Trip existing = loadTripOrThrow(tripId);
         ensureOwnerOrThrow(currentUser, existing);
+
+        if (parsed == TripVisibility.PUBLIC) {
+            boolean hasScheduledPlace = scheduledPlaceRepository.existsByPlanTripId(existing.getId());
+
+            if (!hasScheduledPlace) {
+                throw new BadRequestException("trip.400.public.requiresScheduledPlace");
+            }
+        }
 
         existing.setIsPublic(parsed == TripVisibility.PUBLIC);
         final Trip saved = tripRepository.save(existing);
