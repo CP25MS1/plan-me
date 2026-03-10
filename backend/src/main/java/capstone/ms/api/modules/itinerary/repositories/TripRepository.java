@@ -30,10 +30,20 @@ public interface TripRepository extends JpaRepository<Trip, Integer> {
             """)
     List<Trip> findAccessibleTrips(@Param("userId") Integer userId);
 
-    // Public templates ordered by startDate desc, then id desc (publishedAt mapped to startDate)
     @Query("SELECT t FROM Trip t WHERE t.isPublic = true ORDER BY t.startDate DESC, t.id DESC")
     List<Trip> findPublicOrderByStartDateDesc(Pageable pageable);
 
     @Query("SELECT t FROM Trip t WHERE t.isPublic = true AND (t.startDate < :publishedAt OR (t.startDate = :publishedAt AND t.id < :tripId)) ORDER BY t.startDate DESC, t.id DESC")
     List<Trip> findPublicBefore(@Param("publishedAt") LocalDate publishedAt, @Param("tripId") Integer tripId, Pageable pageable);
+
+    @Query("""
+            SELECT t FROM Trip t
+            LEFT JOIN FETCH t.dailyPlans dp
+            LEFT JOIN FETCH dp.scheduledPlaces sp
+            LEFT JOIN FETCH sp.ggmp
+            LEFT JOIN FETCH t.wishlistPlaces
+            LEFT JOIN FETCH t.objectives
+            WHERE t.id = :tripId
+            """)
+    Optional<Trip> findTemplateWithDetails(Integer tripId);
 }

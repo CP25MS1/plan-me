@@ -64,11 +64,9 @@ public class TripController {
     }
 
     @PatchMapping("/{tripId}/visibility")
-    public ResponseEntity<UpdateTripVisibilityResponse> updateTripVisibility(
-            @PathVariable Integer tripId,
-            @Valid @RequestBody UpdateTripVisibilityRequest request,
-            @AuthenticationPrincipal User currentUser
-    ) {
+    public ResponseEntity<UpdateTripVisibilityResponse> updateTripVisibility(@PathVariable Integer tripId,
+                                                                             @Valid @RequestBody UpdateTripVisibilityRequest request,
+                                                                             @AuthenticationPrincipal User currentUser) {
         UpdateTripVisibilityResponse response = tripService.updateTripVisibility(currentUser, tripId, request.getVisibility());
         return ResponseEntity.ok(response);
     }
