@@ -61,8 +61,8 @@ public class TripBudgetService {
         return buildSummary(tripId, saved.getTotalBudget());
     }
 
-    private String formatDecimal(BigDecimal value) {
-        return Objects.requireNonNullElse(value, BigDecimal.ZERO).setScale(MONEY_SCALE, RoundingMode.HALF_UP).toPlainString();
+    private BigDecimal formatDecimal(BigDecimal value) {
+        return Objects.requireNonNullElse(value, BigDecimal.ZERO).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
     }
 
     private TripBudgetSummaryDto buildSummary(Integer tripId, BigDecimal totalBudget) {
