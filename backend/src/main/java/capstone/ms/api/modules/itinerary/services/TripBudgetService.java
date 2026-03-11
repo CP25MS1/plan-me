@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Objects;
 
 import jakarta.transaction.Transactional;
 
@@ -43,7 +42,7 @@ public class TripBudgetService {
         Trip trip = tripResourceService.getTripOrThrow(tripId);
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
-        BigDecimal totalBudget = new BigDecimal(request.getTotalBudget()).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+        BigDecimal totalBudget = request.getTotalBudget().setScale(MONEY_SCALE, RoundingMode.HALF_UP);
         if (totalBudget.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("400", "tripBudget.400.negativeBudget");
         }
@@ -62,7 +61,7 @@ public class TripBudgetService {
     }
 
     private BigDecimal formatDecimal(BigDecimal value) {
-        return Objects.requireNonNullElse(value, BigDecimal.ZERO).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+        return value.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
     }
 
     private TripBudgetSummaryDto buildSummary(Integer tripId, BigDecimal totalBudget) {
