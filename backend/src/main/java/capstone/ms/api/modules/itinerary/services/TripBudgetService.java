@@ -44,7 +44,7 @@ public class TripBudgetService {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
         BigDecimal totalBudget = new BigDecimal(request.getTotalBudget()).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
-        if (totalBudget.compareTo(BigDecimal.ZERO) < 0) {
+        if (totalBudget.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("400", "tripBudget.400.negativeBudget");
         }
 
