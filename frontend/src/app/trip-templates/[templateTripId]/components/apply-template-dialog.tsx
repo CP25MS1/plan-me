@@ -79,12 +79,12 @@ const ApplyTemplateDialog = ({
 
   const validateDate = (range: DateRange) => {
     const [start, end] = range;
-    if (!start || !end) return t('template.apply.errors.dateRequired');
+    if (!start) return t('template.apply.errors.dateRequired');
 
     if (dayCount > 0) {
-      const requestedDays = end.diff(start, 'day') + 1;
-      if (requestedDays !== dayCount) {
-        return t('template.apply.errors.dayCountMismatch', { dayCount });
+      const requestedDays = (end ?? start).diff(start, 'day') + 1;
+      if (requestedDays < dayCount) {
+        return t('template.apply.errors.dayCountTooShort', { dayCount });
       }
     }
     return null;
@@ -188,14 +188,13 @@ const ApplyTemplateDialog = ({
               placeholder={t('template.apply.placeholders.name')}
               error={!!nameError}
               helperText={nameError ?? ' '}
-              inputProps={{ maxLength: NAME_MAX_LENGTH }}
               disabled={isPending}
             />
           </FormControl>
 
           <FormControl fullWidth sx={{ mt: 2 }}>
             <DateRangePicker
-              label={t('template.apply.fields.date')}
+              label={t('template.apply.fields.date', { dayCount })}
               required={false}
               value={dateRange}
               onChange={handleDateChange}
@@ -204,7 +203,7 @@ const ApplyTemplateDialog = ({
             <Typography
               variant="caption"
               color={dateError ? 'error' : 'text.secondary'}
-              sx={{ mt: 1, display: 'block', minHeight: 18 }}
+              sx={{ margin: '3px 14px 0px', display: 'block', minHeight: 18 }}
             >
               {dateError ?? ' '}
             </Typography>
