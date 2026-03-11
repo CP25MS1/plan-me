@@ -18,9 +18,10 @@ type PlaceBottomSheetProps = {
   planId: number | null;
   place: ScheduledPlace | null;
   onClose: () => void;
+  readOnly?: boolean;
 };
 
-const PlaceBottomSheet = ({ planId, place, onClose }: PlaceBottomSheetProps) => {
+const PlaceBottomSheet = ({ planId, place, onClose, readOnly = false }: PlaceBottomSheetProps) => {
   const dispatch = useDispatch();
   const { t } = useTranslation('trip_overview');
   const params = useParams<{ tripId: string }>();
@@ -111,28 +112,32 @@ const PlaceBottomSheet = ({ planId, place, onClose }: PlaceBottomSheetProps) => 
               />
             </Box>
 
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<Trash size={14} />}
-              sx={{ marginY: 2 }}
-              onClick={() => setIsRemoveDialogOpened(true)}
-            >
-              ลบสถานที่
-            </Button>
+            {!readOnly && (
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<Trash size={14} />}
+                sx={{ marginY: 2 }}
+                onClick={() => setIsRemoveDialogOpened(true)}
+              >
+                ลบสถานที่
+              </Button>
+            )}
           </Box>
         )}
       </SwipeableDrawer>
 
-      <ConfirmDialog
-        open={isRemoveDialogOpened}
-        onClose={() => setIsRemoveDialogOpened(false)}
-        onConfirm={confirmRemove}
-        content={<Typography>{t('sectionCard.dailyPlan.remove.confirm_message')}</Typography>}
-        confirmLabel={t('sectionCard.dailyPlan.remove.confirm_label')}
-        confirmLoading={isRemoving}
-        color="error"
-      />
+      {!readOnly && (
+        <ConfirmDialog
+          open={isRemoveDialogOpened}
+          onClose={() => setIsRemoveDialogOpened(false)}
+          onConfirm={confirmRemove}
+          content={<Typography>{t('sectionCard.dailyPlan.remove.confirm_message')}</Typography>}
+          confirmLabel={t('sectionCard.dailyPlan.remove.confirm_label')}
+          confirmLoading={isRemoving}
+          color="error"
+        />
+      )}
     </>
   );
 };

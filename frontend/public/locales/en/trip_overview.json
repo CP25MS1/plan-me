@@ -63,5 +63,52 @@
       "CarRental": "CarRental"
     },
     "Button": "preview"
+  },
+  "template": {
+    "header": {
+      "objectives": {
+        "empty": "No objectives for this trip"
+      }
+    },
+    "apply": {
+      "title": "Create a trip from this template",
+      "fields": {
+        "name": "Trip name",
+        "date": "Trip date range"
+      },
+      "placeholders": {
+        "name": "e.g. Chiang Mai #2 😍"
+      },
+      "actions": {
+        "open": "Apply template",
+        "cancel": "Cancel",
+        "submit": "Create trip"
+      },
+      "errors": {
+        "nameRequired": "Please enter a trip name",
+        "nameTooLong": "Trip name must be at most 50 characters",
+        "dateRequired": "Please select a date range",
+        "dayCountMismatch": "Day count must equal {{dayCount}} days",
+        "generic": "Unable to create trip from template. Please try again.",
+        "albumFailed": "Album creation failed. Please try again."
+      }
+    },
+    "empty": {
+      "wishlist": "No wishlist places in this template yet",
+      "daily": {
+        "title": "No daily plan yet",
+        "body": "This template does not have daily plans yet."
+      },
+      "dailyItem": "No places for this day yet",
+      "checklist": {
+        "title": "No checklist yet",
+        "body": "This template does not have a checklist yet."
+      }
+    },
+    "error": {
+      "title": "Template not found",
+      "description": "This template may have been removed or set to private.",
+      "cta": "Back to Home"
+    }
   }
 }
