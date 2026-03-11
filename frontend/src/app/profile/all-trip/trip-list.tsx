@@ -195,7 +195,7 @@ export const TripList: React.FC<TripListProps> = ({
         }}
       >
         <Typography variant="h5" fontWeight={600}>
-          {t?.('noTrip') ?? 'คุณยังไม่มีทริป'}
+          คุณยังไม่มีทริป
         </Typography>
 
         <Typography variant="body2" color="text.secondary" mt={1}>

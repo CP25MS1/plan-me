@@ -74,7 +74,7 @@
       "title": "Create a trip from this template",
       "fields": {
         "name": "Trip name",
-        "date": "Trip date range"
+        "date": "Trip date range ({{dayCount}} days)"
       },
       "placeholders": {
         "name": "e.g. Chiang Mai #2 😍"
@@ -88,7 +88,7 @@
         "nameRequired": "Please enter a trip name",
         "nameTooLong": "Trip name must be at most 50 characters",
         "dateRequired": "Please select a date range",
-        "dayCountMismatch": "Day count must equal {{dayCount}} days",
+        "dayCountTooShort": "Day count must be at least {{dayCount}} days",
         "generic": "Unable to create trip from template. Please try again.",
         "albumFailed": "Album creation failed. Please try again."
       }

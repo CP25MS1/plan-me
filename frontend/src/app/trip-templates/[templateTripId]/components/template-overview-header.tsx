@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { BackButton } from '@/components/button';
 import { PublicTemplateObjective } from '@/api/trip-templates';
 import ApplyTemplateDialog from './apply-template-dialog';
+import { useRouter } from 'next/navigation';
 
 type TemplateOverviewHeaderProps = {
   templateTripId: number;
@@ -21,6 +22,7 @@ const TemplateOverviewHeader = ({
   objectives,
   dayCount,
 }: TemplateOverviewHeaderProps) => {
+  const router = useRouter();
   const { t } = useTranslation('trip_overview');
   const [openApply, setOpenApply] = useState(false);
 
@@ -29,16 +31,10 @@ const TemplateOverviewHeader = ({
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
-        <BackButton />
+        <BackButton onBack={() => router.push('/home')} />
 
         <Box sx={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
-          <Typography
-            variant="h5"
-            fontWeight={700}
-            noWrap
-            title={displayName}
-            sx={{ px: 1 }}
-          >
+          <Typography variant="h5" fontWeight={700} noWrap title={displayName} sx={{ px: 1 }}>
             {displayName}
           </Typography>
         </Box>

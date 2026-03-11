@@ -9,7 +9,7 @@ interface UseGetMyAccessibleAlbumsParams {
 
 export const useGetMyAccessibleAlbums = ({ limit, cursor }: UseGetMyAccessibleAlbumsParams) => {
   return useQuery<ListAlbumsResponseDto, Error>({
-    queryKey: ['my-accessible-albums', limit, cursor],
+    queryKey: ['my-accessible-albums'],
     queryFn: () => getMyAccessibleAlbums(limit, cursor),
     staleTime: 0,
     gcTime: 0,
