@@ -107,7 +107,13 @@ public interface TripMapper {
     @Mapping(source = "startDate", target = "startDate")
     @Mapping(source = "endDate", target = "endDate")
     @Mapping(source = "objectives", target = "objectives")
+    @Mapping(source = "isPublic", target = "visibility", qualifiedByName = "mapVisibility")
     TripDto tripToTripDto(Trip trip);
+
+    @Named("mapVisibility")
+    default String mapVisibility(Boolean isPublic) {
+        return Boolean.TRUE.equals(isPublic) ? "PUBLIC" : "PRIVATE";
+    }
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "trip", source = "trip")
