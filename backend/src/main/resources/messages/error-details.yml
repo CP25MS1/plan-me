@@ -76,3 +76,7 @@ tripTemplate:
       invalid: "The pagination cursor is invalid."
     limit:
       invalid: "The requested page size is out of allowed range."
+
+tripBudget:
+  400:
+    negativeBudget: "Budget must be more than or equal to 0."
