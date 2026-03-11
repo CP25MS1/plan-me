@@ -79,4 +79,4 @@ tripTemplate:
 
 tripBudget:
   400:
-    negativeBudget: "Budget must be more than or equal to 0."
+    negativeBudget: "Trip budget must be more than 0."
