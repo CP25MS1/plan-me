@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -12,10 +14,10 @@ import lombok.Data;
 public class TripBudgetSummaryDto {
     private Integer tripId;
     private Boolean budgetConfigured;
-    private String totalBudget;
-    private String totalExpense;
-    private String remainingBudget;
-    private String usagePercentage;
+    private BigDecimal totalBudget;
+    private BigDecimal totalExpense;
+    private BigDecimal remainingBudget;
+    private BigDecimal usagePercentage;
     private Boolean isOverBudget;
-    private String overBudgetAmount;
+    private BigDecimal overBudgetAmount;
 }
