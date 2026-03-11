@@ -11,6 +11,6 @@ import lombok.Data;
 @ErrorMessage(messageKey = "400")
 public class UpsertTripBudgetRequest {
     @NotNull(message = "Trip budget cannot be null.")
-    @Pattern(regexp = "^-?\\d+(\\.\\d{1,2})?$", message = "Budget must be a decimal number with up to 2 decimal places.")
+    @Pattern(regexp = "^-?\\d+(\\.\\d{1,2})?$", message = "Trip budget must be a decimal number with up to 2 decimal places.")
     private final String totalBudget;
 }
