@@ -14,13 +14,16 @@ import {
 } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { EllipsisVertical, Globe, Lock, Share2, Trash2 } from 'lucide-react';
+import { AxiosError } from 'axios';
 
 import { TripSummary } from '@/api/all';
 import { TripVisibility } from '@/api/trips';
 import { TruncatedTooltip } from '@/components/atoms';
 import { ConfirmDialog } from '@/components/common/dialog';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { useDeleteTrip, useToggleTripVisibility } from '@/app/hooks';
 import { useAppSelector } from '@/store';
+import { Locale } from '@/store/i18n-slice';
 
 interface TripListProps {
   trips?: TripSummary[];
@@ -54,6 +57,7 @@ export const TripList: React.FC<TripListProps> = ({
   currentUserId,
 }) => {
   const tripVisibilityById = useAppSelector((s) => s.tripDetail.tripVisibilityById);
+  const locale = useAppSelector((s) => s.i18n.locale);
   const { mutate: mutateVisibility, isPending: isUpdatingVisibility } = useToggleTripVisibility();
   const { mutate: mutateDeleteTrip, isPending: isDeletingTrip } = useDeleteTrip();
 
@@ -61,6 +65,15 @@ export const TripList: React.FC<TripListProps> = ({
   const [selectedTrip, setSelectedTrip] = React.useState<TripSummary | null>(null);
   const [openShareConfirm, setOpenShareConfirm] = React.useState(false);
   const [openDeleteConfirm, setOpenDeleteConfirm] = React.useState(false);
+  const [snackbar, setSnackbar] = React.useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
+    open: false,
+    message: '',
+    severity: 'error',
+  });
 
   const resolveVisibility = React.useCallback(
     (trip: TripSummary): TripVisibility =>
@@ -69,6 +82,38 @@ export const TripList: React.FC<TripListProps> = ({
   );
 
   const translate = React.useCallback((key: string) => t?.(key) ?? key, [t]);
+
+  const getLocalizedErrorMessage = React.useCallback(
+    (error: unknown): string => {
+      const defaultMessage = locale === 'en' ? 'Something went wrong' : 'เกิดข้อผิดพลาดบางอย่าง';
+
+      if (!(error instanceof AxiosError)) return defaultMessage;
+
+      const data = error.response?.data as
+        | {
+            message?: string | Record<string, string>;
+            error?: string;
+          }
+        | undefined;
+
+      const rawMessage = data?.message;
+      if (typeof rawMessage === 'string' && rawMessage.trim()) {
+        return rawMessage;
+      }
+
+      if (rawMessage && typeof rawMessage === 'object') {
+        const key = locale === 'en' ? 'EN' : 'TH';
+        const fallbackKey = locale === 'en' ? 'en' : 'th';
+        const localized =
+          (rawMessage as Record<string, string>)[key] ??
+          (rawMessage as Record<string, string>)[fallbackKey];
+        if (localized) return localized;
+      }
+
+      return data?.error || error.message || defaultMessage;
+    },
+    [locale]
+  );
 
   const selectedTripVisibility: TripVisibility = selectedTrip
     ? resolveVisibility(selectedTrip)
@@ -107,6 +152,13 @@ export const TripList: React.FC<TripListProps> = ({
       {
         onSuccess: () => {
           setOpenShareConfirm(false);
+        },
+        onError: (error) => {
+          setSnackbar({
+            open: true,
+            message: getLocalizedErrorMessage(error),
+            severity: 'error',
+          });
         },
       }
     );
@@ -406,6 +458,13 @@ export const TripList: React.FC<TripListProps> = ({
             </Box>
           </Stack>
         }
+      />
+
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       />
     </Box>
   );
