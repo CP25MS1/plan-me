@@ -60,6 +60,9 @@ public class Trip {
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<TripChecklist> checklists = new LinkedHashSet<>();
 
+    @OneToOne(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private TripBudget budget;
+
     @NotNull
     @Column(name = "invitation_code", nullable = false, length = Integer.MAX_VALUE)
     private String invitationCode;
