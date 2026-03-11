@@ -73,6 +73,17 @@ public class AuthService {
         return userDto;
     }
 
+    public void logout(final HttpServletResponse response) {
+        final ResponseCookie cookie = ResponseCookie.from(cookieProps.getName(), "")
+                .path(cookieProps.getPath())
+                .httpOnly(cookieProps.getHttpOnly())
+                .secure(cookieProps.getSecure())
+                .maxAge(0)
+                .sameSite(cookieProps.getSameSite())
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
     private void setJwtCookie(final HttpServletResponse response, final String jwt) {
         final ResponseCookie cookie = ResponseCookie.from(cookieProps.getName(), jwt)
                 .path(cookieProps.getPath())
