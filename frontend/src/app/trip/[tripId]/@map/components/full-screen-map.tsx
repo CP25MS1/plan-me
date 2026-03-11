@@ -18,9 +18,16 @@ type FullScreenMapProps = {
   dailyPlans: DailyPlan[];
   selectedDay: 'ALL' | number;
   focusedPlaceId?: number;
+  readOnly?: boolean;
 };
 
-const FullScreenMap = ({ header, dailyPlans, selectedDay, focusedPlaceId }: FullScreenMapProps) => {
+const FullScreenMap = ({
+  header,
+  dailyPlans,
+  selectedDay,
+  focusedPlaceId,
+  readOnly = false,
+}: FullScreenMapProps) => {
   const plans = useVisiblePlans(dailyPlans, selectedDay);
 
   const computedCenter = useMapCenter(dailyPlans, selectedDay);
@@ -71,6 +78,7 @@ const FullScreenMap = ({ header, dailyPlans, selectedDay, focusedPlaceId }: Full
         planId={selectedPlanId}
         place={selectedPlace}
         onClose={() => setSelectedPlace(null)}
+        readOnly={readOnly}
       />
 
       {selectedDay !== 'ALL' && (

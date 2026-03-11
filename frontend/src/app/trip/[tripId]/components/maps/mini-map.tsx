@@ -3,6 +3,7 @@
 import { GoogleMap, LoadScript } from '@react-google-maps/api';
 import { Box } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { DailyPlan } from '@/api/trips';
 
 import PlaceMarker from '@/app/trip/[tripId]/@map/components/place-marker';
 import { useMapCenter } from '@/lib/google-maps';
@@ -12,17 +13,20 @@ import { useDailyPlansSelector } from '@/store/selectors';
 type MapComponentProps = {
   selectedDay?: 'ALL' | number;
   viewOnly?: boolean;
+  dailyPlans?: DailyPlan[];
 };
 
-const MiniMap = ({ selectedDay = 'ALL', viewOnly = false }: MapComponentProps) => {
-  const dailyPlans = useDailyPlansSelector();
-  const mapCenter = useMapCenter(dailyPlans, selectedDay);
+const MiniMap = ({ selectedDay = 'ALL', viewOnly = false, dailyPlans }: MapComponentProps) => {
+  const storeDailyPlans = useDailyPlansSelector();
+  const resolvedDailyPlans = dailyPlans ?? storeDailyPlans;
+  const mapCenter = useMapCenter(resolvedDailyPlans, selectedDay);
   const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
 
   const visiblePlans = useMemo(() => {
-    if (selectedDay === 'ALL') return dailyPlans;
-    return sortByDateAsc([dailyPlans[selectedDay]]);
-  }, [dailyPlans, selectedDay]);
+    if (selectedDay === 'ALL') return resolvedDailyPlans;
+    const plan = resolvedDailyPlans[selectedDay];
+    return plan ? sortByDateAsc([plan]) : [];
+  }, [resolvedDailyPlans, selectedDay]);
 
   return (
     <Box sx={{ width: '100%', height: 350 }}>
