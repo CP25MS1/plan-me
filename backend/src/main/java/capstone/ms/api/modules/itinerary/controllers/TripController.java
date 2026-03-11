@@ -10,6 +10,7 @@ import capstone.ms.api.modules.itinerary.services.TripService;
 import capstone.ms.api.modules.itinerary.services.daily_plan.DailyPlanService;
 import capstone.ms.api.modules.itinerary.services.TripBudgetService;
 import capstone.ms.api.modules.itinerary.dto.TripBudgetSummaryDto;
+import capstone.ms.api.modules.itinerary.dto.UpsertTripBudgetRequest;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -141,6 +142,14 @@ public class TripController {
     public ResponseEntity<TripBudgetSummaryDto> getTripBudget(@PathVariable Integer tripId,
                                                              @AuthenticationPrincipal User currentUser) {
         TripBudgetSummaryDto dto = tripBudgetService.getTripBudgetSummary(tripId, currentUser);
+        return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping("/{tripId}/budget")
+    public ResponseEntity<TripBudgetSummaryDto> upsertTripBudget(@PathVariable Integer tripId,
+                                                                 @Valid @RequestBody UpsertTripBudgetRequest request,
+                                                                 @AuthenticationPrincipal User currentUser) {
+        TripBudgetSummaryDto dto = tripBudgetService.upsertTripBudget(tripId, request, currentUser);
         return ResponseEntity.ok(dto);
     }
 }
