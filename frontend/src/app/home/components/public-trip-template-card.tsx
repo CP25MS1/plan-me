@@ -15,7 +15,7 @@ const PublicTripTemplateCard = ({ template }: Props) => {
     template.tripName.length > 30 ? template.tripName.slice(0, 30) + '...' : template.tripName;
   return (
     <Card
-      onClick={() => router.push('/home')}
+      onClick={() => router.push(`/trip-templates/${template.templateTripId}`)}
       sx={{
         width: '100%',
         height: 170,
@@ -124,30 +124,7 @@ const PublicTripTemplateCard = ({ template }: Props) => {
             justifyContent: 'space-between',
           }}
         >
-          <Typography variant="body2">เเชร์โดย {template.owner?.username ?? 'Unknown'}</Typography>
-          <Button
-            size="small"
-            sx={{
-              color: 'black',
-              fontWeight: 800,
-              textTransform: 'none',
-              bgcolor: 'rgba(255,255,255,0.60)',
-              height: 28,
-              fontSize: 12,
-              px: 1.5,
-              borderRadius: 4,
-              minWidth: 0,
-              '&:hover': {
-                bgcolor: 'rgba(255,255,255,0.60)',
-              },
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              router.push('/home');
-            }}
-          >
-            สำรวจทริป
-          </Button>
+          <Typography variant="body2">แชร์โดย {template.owner?.username ?? 'Unknown'}</Typography>
         </Box>
       </Box>
     </Card>

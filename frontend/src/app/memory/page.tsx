@@ -27,6 +27,10 @@ export default function MemoryPage() {
   const { data, isLoading, isError, error } = useQuery<ListAlbumsResponseDto>({
     queryKey: ['my-accessible-albums'],
     queryFn: () => getMyAccessibleAlbums(100),
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
   });
 
   const sortedAlbums = React.useMemo(() => {
