@@ -1,4 +1,5 @@
 import { GoogleMapPlace } from '@/api/places';
+import { PublicUserInfo } from '../users';
 
 export interface PublicTemplateObjective {
   name: string;
@@ -10,8 +11,9 @@ export interface PublicTripTemplateListItem {
   tripName: string;
   objectives: PublicTemplateObjective[];
   dayCount: number;
+  coverImageUrl: string;
+  owner: PublicUserInfo;
 }
-
 export interface ListPublicTemplatesParams {
   limit?: number;
   cursor?: string;
