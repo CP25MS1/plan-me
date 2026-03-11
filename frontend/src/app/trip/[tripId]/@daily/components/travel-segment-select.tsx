@@ -46,9 +46,10 @@ const formatDuration = (seconds: number) => {
 interface Props {
   start: string;
   end: string;
+  readOnly?: boolean;
 }
 
-export default function TravelSegmentSelect({ start, end }: Props) {
+export default function TravelSegmentSelect({ start, end, readOnly = false }: Props) {
   const [mode, setMode] = useState<TravelMode>('CAR');
   const [hasError, setHasError] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -89,6 +90,31 @@ export default function TravelSegmentSelect({ start, end }: Props) {
     );
   }, [start, end, mode, mutate]);
 
+  const modeButton = (
+    <Button
+      size="small"
+      variant="outlined"
+      startIcon={ModeSegment[mode].icon}
+      sx={{
+        minWidth: 'auto',
+        px: 1,
+        py: 0.25,
+        textTransform: 'none',
+        fontSize: 13,
+        borderRadius: 2,
+        borderColor: tokens.color.primary,
+        color: tokens.color.primary,
+        cursor: readOnly ? 'default' : 'pointer',
+        '&:hover': {
+          backgroundColor: readOnly ? 'transparent' : tokens.color.primaryDark,
+          borderColor: tokens.color.primary,
+        },
+      }}
+    >
+      {ModeSegment[mode].label}
+    </Button>
+  );
+
   return (
     <Box
       sx={{
@@ -100,46 +126,26 @@ export default function TravelSegmentSelect({ start, end }: Props) {
       }}
     >
       {/* MODE BUTTON */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={ModeSegment[mode].icon}
-            sx={{
-              minWidth: 'auto',
-              px: 1,
-              py: 0.25,
-              textTransform: 'none',
-              fontSize: 13,
-              borderRadius: 2,
+      {readOnly ? (
+        modeButton
+      ) : (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>{modeButton}</DropdownMenuTrigger>
 
-              borderColor: tokens.color.primary,
-              color: tokens.color.primary,
-
-              '&:hover': {
-                backgroundColor: tokens.color.primaryDark,
-                borderColor: tokens.color.primary,
-              },
-            }}
-          >
-            {ModeSegment[mode].label}
-          </Button>
-        </DropdownMenuTrigger>
-
-        <DropdownMenuContent align="start">
-          {(Object.keys(ModeSegment) as TravelMode[]).map((m) => (
-            <DropdownMenuItem
-              key={m}
-              onClick={() => setMode(m)}
-              className="flex items-center gap-2"
-            >
-              {ModeSegment[m].icon}
-              {ModeSegment[m].label}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <DropdownMenuContent align="start">
+            {(Object.keys(ModeSegment) as TravelMode[]).map((m) => (
+              <DropdownMenuItem
+                key={m}
+                onClick={() => setMode(m)}
+                className="flex items-center gap-2"
+              >
+                {ModeSegment[m].icon}
+                {ModeSegment[m].label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
       {/* RESULT TEXT */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
