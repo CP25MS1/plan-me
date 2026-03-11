@@ -8,6 +8,8 @@ import capstone.ms.api.modules.itinerary.dto.visibility.UpdateTripVisibilityRequ
 import capstone.ms.api.modules.itinerary.dto.visibility.UpdateTripVisibilityResponse;
 import capstone.ms.api.modules.itinerary.services.TripService;
 import capstone.ms.api.modules.itinerary.services.daily_plan.DailyPlanService;
+import capstone.ms.api.modules.itinerary.services.TripBudgetService;
+import capstone.ms.api.modules.itinerary.dto.TripBudgetSummaryDto;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -25,6 +27,7 @@ import java.util.Set;
 public class TripController {
     private final TripService tripService;
     private final DailyPlanService dailyPlanService;
+    private final TripBudgetService tripBudgetService;
 
     @PostMapping
     public ResponseEntity<TripOverviewDto> createTrip(
@@ -132,5 +135,12 @@ public class TripController {
                                            @PathVariable final Integer tripId) {
         tripService.deleteTrip(currentUser, tripId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{tripId}/budget")
+    public ResponseEntity<TripBudgetSummaryDto> getTripBudget(@PathVariable Integer tripId,
+                                                             @AuthenticationPrincipal User currentUser) {
+        TripBudgetSummaryDto dto = tripBudgetService.getTripBudgetSummary(tripId, currentUser);
+        return ResponseEntity.ok(dto);
     }
 }
