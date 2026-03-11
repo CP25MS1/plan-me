@@ -27,4 +27,10 @@ public class AuthController {
     public ResponseEntity<UserDto> registerUser(@Valid @RequestBody final UserDto userDto, final HttpServletResponse response) {
         return ResponseEntity.status(HttpStatus.CREATED).body(authService.createUser(userDto, response));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(final HttpServletResponse response) {
+        authService.logout(response);
+        return ResponseEntity.noContent().build();
+    }
 }
