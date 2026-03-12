@@ -80,3 +80,12 @@ tripTemplate:
 tripBudget:
   400:
     negativeBudget: "Trip budget must be more than 0."
+
+tripExpense:
+  400:
+    typeInvalid: "Expense type is invalid."
+    amountInvalid: "Split amount must be more than 0."
+    splitsEmpty: "At least one split participant is required."
+    duplicateParticipant: "Duplicate split participants are not allowed."
+    userNotInTrip: "User must be a member of the trip."
+    spentAtImmutable: "Spent date cannot be updated."
