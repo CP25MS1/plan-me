@@ -42,6 +42,10 @@ public class UserService {
         return userMapper.userToPublicUserInfo(getUserOrThrow(userId));
     }
 
+    public PublicUserInfo toPublicUserInfo(final User user) {
+        return userMapper.userToPublicUserInfo(user);
+    }
+
     public UserDto toDto(User user) {
         return userMapper.userToUserDto(user);
     }

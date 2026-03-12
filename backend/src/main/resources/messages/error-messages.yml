@@ -171,6 +171,18 @@ tripChecklist:
     th: "เฉพาะคนที่ได้รับมอบหมายเท่านั้นที่สามารถเปลี่ยนสถานะได้"
     en: "Only the assigned user can mark this checklist item as completed."
 
+tripExpense:
+  400:
+    th: "โปรดตรวจสอบข้อมูลรายการใช้จ่ายอีกครั้ง"
+    en: "Please check trip expense input and try again."
+  403:
+    creatorOnly:
+      th: "เฉพาะผู้สร้างรายการเท่านั้นที่สามารถแก้ไขหรือลบรายการนี้ได้"
+      en: "Only the creator can update or delete this expense."
+  404:
+    th: "ไม่พบรายการใช้จ่ายนี้ในระบบ"
+    en: "This expense was not found in the system."
+
 tripTemplate:
   404:
     th: "ไม่พบเทมเพลตของทริปนี้ในระบบ"
