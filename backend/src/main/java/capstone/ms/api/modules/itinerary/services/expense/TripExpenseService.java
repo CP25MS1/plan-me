@@ -125,6 +125,7 @@ public class TripExpenseService {
         }
 
         tripExpenseRepository.delete(expense);
+        tripExpenseRepository.flush();
     }
 
     private Trip getTripForUpdate(Integer tripId) {

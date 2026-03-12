@@ -9,6 +9,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -44,4 +46,7 @@ public class TripExpense {
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "created_by_user_id", nullable = false)
     private User createdBy;
+
+    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TripExpenseSplit> splits = new ArrayList<>();
 }
