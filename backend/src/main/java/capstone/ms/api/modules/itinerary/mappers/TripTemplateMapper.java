@@ -5,19 +5,19 @@ import capstone.ms.api.modules.itinerary.dto.TripTemplateDetailDto;
 import capstone.ms.api.modules.itinerary.entities.DailyPlan;
 import capstone.ms.api.modules.itinerary.entities.ScheduledPlace;
 import capstone.ms.api.modules.itinerary.entities.Trip;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.IntStream;
 
-@Component
-public class TripTemplateMapper {
-    private final PlaceMapper placeMapper;
-    private final ObjectiveMapper objectiveMapper;
+@Mapper(componentModel = "spring", uses = {PlaceMapper.class, ObjectiveMapper.class})
+public abstract class TripTemplateMapper {
+    protected final PlaceMapper placeMapper;
+    protected final ObjectiveMapper objectiveMapper;
 
-    public TripTemplateMapper(PlaceMapper placeMapper, ObjectiveMapper objectiveMapper) {
+    protected TripTemplateMapper(PlaceMapper placeMapper, ObjectiveMapper objectiveMapper) {
         this.placeMapper = placeMapper;
         this.objectiveMapper = objectiveMapper;
     }
