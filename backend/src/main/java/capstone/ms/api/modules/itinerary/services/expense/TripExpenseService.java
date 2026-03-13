@@ -128,6 +128,29 @@ public class TripExpenseService {
         tripExpenseRepository.flush();
     }
 
+    public List<TripExpenseDto> getTripExpenses(Integer tripId, User currentUser) {
+        tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+
+        List<TripExpense> expenses = tripExpenseRepository.findByTripIdOrderBySpentAtDesc(tripId);
+        List<TripExpenseDto> results = new ArrayList<>();
+        for (TripExpense expense : expenses) {
+            List<TripExpenseSplit> splits = tripExpenseSplitRepository.findByExpenseIdWithParticipant(expense.getId());
+            results.add(mapExpenseWithSplitsToDto(expense, splits));
+        }
+        return results;
+    }
+
+    private TripExpenseDto mapExpenseWithSplitsToDto(TripExpense expense, List<TripExpenseSplit> splits) {
+        User payer = expense.getPayer();
+        User createdBy = expense.getCreatedBy();
+
+        List<SplitInput> splitInputs = splits.stream()
+                .map(s -> new SplitInput(s.getParticipant(), s.getAmount()))
+                .toList();
+
+        return toDto(expense, payer, createdBy, splitInputs);
+    }
+
     private Trip getTripForUpdate(Integer tripId) {
         return tripRepository.findByIdForUpdate(tripId)
                 .orElseThrow(() -> new NotFoundException("trip.404"));
