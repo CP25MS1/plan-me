@@ -9,6 +9,7 @@ import capstone.ms.api.modules.itinerary.dto.visibility.UpdateTripVisibilityResp
 import capstone.ms.api.modules.itinerary.services.TripService;
 import capstone.ms.api.modules.itinerary.services.daily_plan.DailyPlanService;
 import capstone.ms.api.modules.itinerary.services.TripBudgetService;
+import capstone.ms.api.modules.itinerary.services.TripDebtService;
 import capstone.ms.api.modules.itinerary.dto.TripBudgetSummaryDto;
 import capstone.ms.api.modules.itinerary.dto.UpsertTripBudgetRequest;
 import capstone.ms.api.modules.user.entities.User;
@@ -29,6 +30,7 @@ public class TripController {
     private final TripService tripService;
     private final DailyPlanService dailyPlanService;
     private final TripBudgetService tripBudgetService;
+    private final TripDebtService tripDebtService;
 
     @PostMapping
     public ResponseEntity<TripOverviewDto> createTrip(
@@ -151,5 +153,12 @@ public class TripController {
                                                                  @AuthenticationPrincipal User currentUser) {
         TripBudgetSummaryDto dto = tripBudgetService.upsertTripBudget(tripId, request, currentUser);
         return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/{tripId}/debts/me")
+    public ResponseEntity<MyDebtSummaryResponse> getMyDebtSummary(@PathVariable Integer tripId,
+                                                                  @AuthenticationPrincipal User currentUser) {
+        MyDebtSummaryResponse response = tripDebtService.getMyDebtSummary(tripId, currentUser);
+        return ResponseEntity.ok(response);
     }
 }
