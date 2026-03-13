@@ -6,6 +6,7 @@ import capstone.ms.api.modules.itinerary.entities.DailyPlan;
 import capstone.ms.api.modules.itinerary.entities.ScheduledPlace;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import org.mapstruct.Mapper;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -14,13 +15,12 @@ import java.util.stream.IntStream;
 
 @Mapper(componentModel = "spring", uses = {PlaceMapper.class, ObjectiveMapper.class})
 public abstract class TripTemplateMapper {
-    protected final PlaceMapper placeMapper;
-    protected final ObjectiveMapper objectiveMapper;
+    @Autowired
+    protected PlaceMapper placeMapper;
 
-    protected TripTemplateMapper(PlaceMapper placeMapper, ObjectiveMapper objectiveMapper) {
-        this.placeMapper = placeMapper;
-        this.objectiveMapper = objectiveMapper;
-    }
+    @Autowired
+    protected ObjectiveMapper objectiveMapper;
+
 
     public TripTemplateDetailDto toDetailDto(Trip trip, List<TripTemplateDetailDto.ChecklistItem> checklistItems) {
         var wishlist = trip.getWishlistPlaces() == null
