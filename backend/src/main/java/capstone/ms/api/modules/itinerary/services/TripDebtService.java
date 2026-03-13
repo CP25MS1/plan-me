@@ -85,7 +85,7 @@ public class TripDebtService {
 
         DebtSummarySection full = DebtSummarySection.builder()
                 .owedToMe(fullOwedToMe)
-                .iOwe(fullIOwe)
+                .iOwed(fullIOwe)
                 .build();
 
         // Calculate net
@@ -125,7 +125,7 @@ public class TripDebtService {
 
         DebtSummarySection net = DebtSummarySection.builder()
                 .owedToMe(netOwedToMeList)
-                .iOwe(netIOweList)
+                .iOwed(netIOweList)
                 .build();
 
         return MyDebtSummaryResponse.builder()
