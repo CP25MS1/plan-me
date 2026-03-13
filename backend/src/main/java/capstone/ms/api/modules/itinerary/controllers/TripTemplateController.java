@@ -2,7 +2,7 @@ package capstone.ms.api.modules.itinerary.controllers;
 
 import capstone.ms.api.modules.itinerary.dto.TripTemplateDetailDto;
 import capstone.ms.api.modules.itinerary.dto.TripTemplateListResponse;
-import capstone.ms.api.modules.itinerary.services.TripTemplateService;
+import capstone.ms.api.modules.itinerary.services.trip_template.TripTemplateService;
 import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.user.entities.User;

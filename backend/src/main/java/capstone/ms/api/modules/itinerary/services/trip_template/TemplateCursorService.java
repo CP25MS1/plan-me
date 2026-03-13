@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.services;
+package capstone.ms.api.modules.itinerary.services.trip_template;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
