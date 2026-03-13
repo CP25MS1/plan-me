@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.services;
+package capstone.ms.api.modules.itinerary.services.trip_template;
 
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ConflictException;
@@ -20,6 +20,7 @@ import capstone.ms.api.modules.itinerary.repositories.DailyPlanRepository;
 import capstone.ms.api.modules.itinerary.mappers.TripMapper;
 import capstone.ms.api.modules.itinerary.mappers.TripTemplateMapper;
 import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
+import capstone.ms.api.modules.itinerary.services.TripService;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-package capstone.ms.api.modules.itinerary.services;
+package capstone.ms.api.modules.itinerary.services.trip_template;
 
 import capstone.ms.api.modules.itinerary.entities.DailyPlan;
 import capstone.ms.api.modules.itinerary.entities.ScheduledPlace;
