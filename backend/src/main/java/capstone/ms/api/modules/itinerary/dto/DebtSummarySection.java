@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,12 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DebtSummarySection {
     private List<DebtItem> owedToMe;
-    private List<DebtItem> iOwe;
+    @JsonProperty("iOwed")
+    private List<DebtItem> iOwed;
+
+    @JsonProperty("iOwed")
+    public List<DebtItem> getIOwed() {
+        return iOwed;
+    }
 }
 
