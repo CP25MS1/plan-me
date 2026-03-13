@@ -70,15 +70,14 @@ public class TripDebtService {
         }
 
         List<DebtItem> fullOwedToMe = owedToMeMap.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
+                .sorted(Map.Entry.comparingByKey())
                 .map(e -> new DebtItem(
                         userService.toPublicUserInfo(userMap.get(e.getKey())),
                         scaleMoney(e.getValue())))
                 .toList();
 
         List<DebtItem> fullIOwe = iOweMap.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> new DebtItem(
+                .sorted(Map.Entry.comparingByKey()).map(e -> new DebtItem(
                         userService.toPublicUserInfo(userMap.get(e.getKey())),
                         scaleMoney(e.getValue())))
                 .toList();
@@ -110,15 +109,13 @@ public class TripDebtService {
         }
 
         List<DebtItem> netOwedToMeList = netOwedToMe.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> new DebtItem(
+                .sorted(Map.Entry.comparingByKey()).map(e -> new DebtItem(
                         userService.toPublicUserInfo(userMap.get(e.getKey())),
                         scaleMoney(e.getValue())))
                 .toList();
 
         List<DebtItem> netIOweList = netIOwe.entrySet().stream()
-                .sorted(Comparator.comparing(Map.Entry::getKey))
-                .map(e -> new DebtItem(
+                .sorted(Map.Entry.comparingByKey()).map(e -> new DebtItem(
                         userService.toPublicUserInfo(userMap.get(e.getKey())),
                         scaleMoney(e.getValue())))
                 .toList();
