@@ -12,11 +12,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @AllArgsConstructor
 @RequestMapping("/trips/{tripId}/expenses")
 public class TripExpenseController {
     private final TripExpenseService tripExpenseService;
+
+    @GetMapping
+    public ResponseEntity<List<TripExpenseDto>> getTripExpenses(@PathVariable Integer tripId,
+                                                                @AuthenticationPrincipal User currentUser) {
+        List<TripExpenseDto> expenses = tripExpenseService.getTripExpenses(tripId, currentUser);
+        return ResponseEntity.ok(expenses);
+    }
 
     @PostMapping
     public ResponseEntity<TripExpenseDto> createExpense(
