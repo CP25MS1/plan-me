@@ -1,0 +1,17 @@
+{
+  "name": "cp25ms1-websocket",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts"
+  },
+  "dependencies": {
+    "elysia": "^1.1.25",
+    "jose": "^5.9.6"
+  },
+  "devDependencies": {
+    "bun-types": "^1.1.30"
+  }
+}

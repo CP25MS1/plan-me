@@ -38,7 +38,7 @@ jobs:
         id: targets
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.build_all }}" = "true" ]; then
-            TARGET_DIRS="backend frontend infrastructure/nginx"
+            TARGET_DIRS="backend frontend websocket infrastructure/nginx"
             echo "Running MANUAL prod build for all services: $TARGET_DIRS"
           else
             TARGET_DIRS="${{ steps.changes.outputs.dirs }}"
@@ -49,21 +49,20 @@ jobs:
       - name: Build & Push Docker Images (prod)
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
-          
           for dir in ${{ steps.targets.outputs.dirs }}; do
             if [ -f "$dir/Dockerfile" ]; then
               SERVICE_NAME=$(basename $dir)
-          
+
               if [ "$SERVICE_NAME" = "nginx" ]; then
                 IMAGE_NAME="cp25ms1/nginx:latest"
                 docker build -t $IMAGE_NAME ./$dir
                 docker push $IMAGE_NAME
                 continue
               fi
-          
+
               IMAGE_SHA_TAG="cp25ms1/$SERVICE_NAME:prod-$SHORT_SHA"
               IMAGE_LATEST_TAG="cp25ms1/$SERVICE_NAME:prod-latest"
-          
+
               if [ "$SERVICE_NAME" = "frontend" ]; then
                 docker build \
                   --build-arg NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }} \
@@ -76,7 +75,7 @@ jobs:
               else
                 docker build -t $IMAGE_SHA_TAG ./$dir
               fi
-          
+
               docker tag $IMAGE_SHA_TAG $IMAGE_LATEST_TAG
               docker push $IMAGE_SHA_TAG
               docker push $IMAGE_LATEST_TAG
