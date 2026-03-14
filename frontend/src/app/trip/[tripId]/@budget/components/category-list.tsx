@@ -36,8 +36,8 @@ type ExpenseDto = {
   expenseId: number;
   tripId: number;
   name: string;
-  type: 'TRANSPORT' | 'ACCOMMODATION' | 'FOOD' | 'ACTIVITY' | 'SHOPPING' | 'OTHER';
-  splitType: 'SPLIT' | 'FULL';
+  type: 'TRAVEL' | 'LODGING' | 'FOOD' | 'ACTIVITY' | 'SHOPPING' | 'OTHER';
+  splitType: 'SPLIT' | 'NO_SPLIT';
   payer: PublicUserInfo;
   createdBy: PublicUserInfo;
   spentAt: string;
@@ -57,9 +57,9 @@ const IconByType = ({ type }: { type: ExpenseDto['type'] }) => {
   const style = { fontSize: 20, color: tokens.color.primary };
 
   switch (type) {
-    case 'TRANSPORT':
+    case 'TRAVEL':
       return <DirectionsCarIcon sx={style} />;
-    case 'ACCOMMODATION':
+    case 'LODGING':
       return <HotelIcon sx={style} />;
     case 'FOOD':
       return <LocalDiningIcon sx={style} />;
@@ -110,14 +110,14 @@ const mockCategories: Category[] = [
   {
     id: 'transport',
     title: 'การเดินทาง',
-    type: 'TRANSPORT',
+    type: 'TRAVEL',
     items: [
       {
         expenseId: 3,
         tripId: 1,
         name: 'เติมน้ำมัน',
-        type: 'TRANSPORT',
-        splitType: 'FULL',
+        type: 'TRAVEL',
+        splitType: 'NO_SPLIT',
         payer: { id: 3, username: 'Owner' },
         createdBy: { id: 3, username: 'Owner' },
         spentAt: '2026-03-12T08:00:00.000Z',
@@ -128,13 +128,13 @@ const mockCategories: Category[] = [
   {
     id: 'hotel',
     title: 'ที่พัก',
-    type: 'ACCOMMODATION',
+    type: 'LODGING',
     items: [
       {
         expenseId: 4,
         tripId: 1,
         name: 'โรงแรมเชียงใหม่',
-        type: 'ACCOMMODATION',
+        type: 'LODGING',
         splitType: 'SPLIT',
         payer: { id: 1, username: 'ปุ๊' },
         createdBy: { id: 1, username: 'ปุ๊' },
@@ -177,7 +177,7 @@ const mockCategories: Category[] = [
         tripId: 1,
         name: 'ของฝาก',
         type: 'SHOPPING',
-        splitType: 'FULL',
+        splitType: 'NO_SPLIT',
         payer: { id: 1, username: 'ปุ๊' },
         createdBy: { id: 1, username: 'ปุ๊' },
         spentAt: '2026-03-13T18:00:00.000Z',
