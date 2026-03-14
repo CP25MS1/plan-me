@@ -2,6 +2,7 @@ package capstone.ms.api.modules.itinerary.controllers;
 
 import capstone.ms.api.modules.itinerary.dto.expense.CreateTripExpenseRequest;
 import capstone.ms.api.modules.itinerary.dto.expense.TripExpenseDto;
+import capstone.ms.api.modules.itinerary.dto.expense.TripExpenseListDto;
 import capstone.ms.api.modules.itinerary.dto.expense.UpdateTripExpenseRequest;
 import capstone.ms.api.modules.itinerary.services.expense.TripExpenseService;
 import capstone.ms.api.modules.user.entities.User;
@@ -12,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @AllArgsConstructor
 @RequestMapping("/trips/{tripId}/expenses")
@@ -21,9 +20,9 @@ public class TripExpenseController {
     private final TripExpenseService tripExpenseService;
 
     @GetMapping
-    public ResponseEntity<List<TripExpenseDto>> getTripExpenses(@PathVariable Integer tripId,
-                                                                @AuthenticationPrincipal User currentUser) {
-        List<TripExpenseDto> expenses = tripExpenseService.getTripExpenses(tripId, currentUser);
+    public ResponseEntity<TripExpenseListDto> getTripExpenses(@PathVariable Integer tripId,
+                                                              @AuthenticationPrincipal User currentUser) {
+        TripExpenseListDto expenses = tripExpenseService.getTripExpenses(tripId, currentUser);
         return ResponseEntity.ok(expenses);
     }
 

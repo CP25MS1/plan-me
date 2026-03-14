@@ -4,11 +4,7 @@ import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.common.exceptions.ServerErrorException;
-import capstone.ms.api.modules.itinerary.dto.expense.CreateTripExpenseRequest;
-import capstone.ms.api.modules.itinerary.dto.expense.TripExpenseDto;
-import capstone.ms.api.modules.itinerary.dto.expense.TripExpenseSplitDto;
-import capstone.ms.api.modules.itinerary.dto.expense.TripExpenseSplitRequest;
-import capstone.ms.api.modules.itinerary.dto.expense.UpdateTripExpenseRequest;
+import capstone.ms.api.modules.itinerary.dto.expense.*;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.expense.*;
 import capstone.ms.api.modules.itinerary.repositories.TripDebtBalanceRepository;
@@ -128,16 +124,30 @@ public class TripExpenseService {
         tripExpenseRepository.flush();
     }
 
-    public List<TripExpenseDto> getTripExpenses(Integer tripId, User currentUser) {
+    public TripExpenseListDto getTripExpenses(Integer tripId, User currentUser) {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
         List<TripExpense> expenses = tripExpenseRepository.findByTripIdOrderBySpentAtDesc(tripId);
-        List<TripExpenseDto> results = new ArrayList<>();
+
+        List<TripExpenseDto> split = new ArrayList<>();
+        List<TripExpenseDto> noSplit = new ArrayList<>();
+
         for (TripExpense expense : expenses) {
             List<TripExpenseSplit> splits = tripExpenseSplitRepository.findByExpenseIdWithParticipant(expense.getId());
-            results.add(mapExpenseWithSplitsToDto(expense, splits));
+
+            TripExpenseDto dto = mapExpenseWithSplitsToDto(expense, splits);
+
+            if ("NO_SPLIT".equals(dto.getSplitType())) {
+                noSplit.add(dto);
+            } else {
+                split.add(dto);
+            }
         }
-        return results;
+
+        return TripExpenseListDto.builder()
+                .split(split)
+                .noSplit(noSplit)
+                .build();
     }
 
     private TripExpenseDto mapExpenseWithSplitsToDto(TripExpense expense, List<TripExpenseSplit> splits) {
