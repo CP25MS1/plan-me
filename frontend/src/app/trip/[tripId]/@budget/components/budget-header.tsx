@@ -129,12 +129,8 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
               ยังไม่ได้ตั้งงบประมาณสำหรับทริปนี้
             </Typography>
 
-            {isOwner ? (
+            {isOwner && (
               <Button variant="contained" onClick={onOpenSetBudget} sx={{ borderRadius: 28 }}>
-                กำหนดงบประมาณ
-              </Button>
-            ) : (
-              <Button variant="contained" disabled sx={{ borderRadius: 28 }}>
                 กำหนดงบประมาณ
               </Button>
             )}
