@@ -20,10 +20,10 @@ type Props = {
   isOwner: boolean;
 };
 
-const budgetRegex = /^\d+(\.\d{1,2})?$/;
+const budgetformat = /^\d+(\.\d{1,2})?$/;
 
 export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current, isOwner }) => {
-  const [value, setValue] = useState<string>('');
+  const [budget, setBudget] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   const { mutate, isPending } = useUpsertTripBudget(tripId);
@@ -32,15 +32,15 @@ export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current
 
   useEffect(() => {
     if (!open) {
-      setValue('');
+      setBudget('');
       setError(null);
       return;
     }
 
     if (current?.budgetConfigured && current.totalBudget != null) {
-      setValue(current.totalBudget.toFixed(2));
+      setBudget(current.totalBudget.toFixed(2));
     } else {
-      setValue('');
+      setBudget('');
     }
 
     setError(null);
@@ -57,30 +57,30 @@ export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current
   }
 
   const handleSave = () => {
-    if (!value) {
+    if (!budget) {
       setError('โปรดระบุจำนวนเงิน');
       return;
     }
 
-    if (!budgetRegex.test(value)) {
+    if (!budgetformat.test(budget)) {
       setError('รูปแบบต้องเป็นตัวเลข มีได้สูงสุด 2 ตำแหน่งทศนิยม เช่น 12000.00');
       return;
     }
 
-    const digitsLength = value.replace('.', '').length;
+    const digitsLength = budget.replace('.', '').length;
 
     if (digitsLength > 12) {
       setError('โปรดระบุจำนวนเงินไม่เกิน 12 หลักรวมทศนิยม');
       return;
     }
 
-    if (Number(value) <= 0) {
+    if (Number(budget) <= 0) {
       setError('จำนวนเงินต้องมากกว่า 0');
       return;
     }
 
     mutate(
-      { totalBudget: value },
+      { totalBudget: budget },
       {
         onSuccess: () => {
           onClose();
@@ -130,11 +130,11 @@ export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current
 
           <TextField
             autoFocus
-            value={value}
+            value={budget}
             onChange={(e) => {
               const v = e.target.value;
               if (/^\d*\.?\d{0,2}$/.test(v) || v === '') {
-                setValue(v);
+                setBudget(v);
                 setError(null);
               }
             }}

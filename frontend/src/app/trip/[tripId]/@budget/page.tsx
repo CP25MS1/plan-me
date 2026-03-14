@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { Container, Box, Typography, CircularProgress } from '@mui/material';
 
 import { useAppSelector } from '@/store';
-import { isTripOwner } from './utils/is-trip-owner';
+import { isTripOwner } from '../../utils/is-trip-owner';
 
 import { useGetTripOverview } from '../hooks/use-get-trip-overview';
 import { useGetTripBudget } from './hooks/use-get-trip-budget';
