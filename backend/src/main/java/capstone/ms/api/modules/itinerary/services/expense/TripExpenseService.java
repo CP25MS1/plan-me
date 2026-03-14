@@ -329,7 +329,7 @@ public class TripExpenseService {
     }
 
     private boolean isNoSplit(Integer payerId, List<SplitInput> splits) {
-        return splits.size() == 1 && splits.get(0).participant().getId().equals(payerId);
+        return splits.size() == 1 && splits.getFirst().participant().getId().equals(payerId);
     }
 
     private BigDecimal scaleMoney(BigDecimal value) {
