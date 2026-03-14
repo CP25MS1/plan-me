@@ -61,11 +61,16 @@ const buildWebSocketUrl = () => {
   }
 
   const explicitUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
+  const isSecurePage = window.location.protocol === 'https:';
+
   if (explicitUrl) {
+    if (isSecurePage && explicitUrl.startsWith('ws://')) {
+      return explicitUrl.replace('ws://', 'wss://');
+    }
     return explicitUrl;
   }
 
-  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const protocol = isSecurePage ? 'wss' : 'ws';
   const { hostname, port, host } = window.location;
 
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
