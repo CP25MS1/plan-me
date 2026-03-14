@@ -13,6 +13,7 @@ import {
 import { Pencil } from 'lucide-react';
 import { TripBudgetDto } from '@/api/budget/type';
 import { formatCurrencyTH } from '../utils/format-number';
+import { tokens } from '@/providers/theme/design-tokens';
 
 type Props = {
   data?: TripBudgetDto | null;
@@ -26,30 +27,29 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
   const totalExpense = data?.totalExpense ?? 0;
   const remainingBudget = data?.remainingBudget ?? 0;
   const usagePercentage = data?.usagePercentage ?? 0;
+  const totalBudget = data?.totalBudget ?? 0;
   const isOver = data?.isOverBudget ?? false;
 
-  // progress shown always; when no budget configured, show 0%
   const progressPct = budgetConfigured ? Math.min(100, usagePercentage) : 0;
 
   return (
     <Card sx={{ mb: 2 }}>
       <CardContent>
-        {/* top row: title + pencil */}
+        {/* title + percent */}
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">งบประมาณรวม</Typography>
+          <Typography variant="h6">สรุปงบประมาณ</Typography>
 
           <Stack direction="row" alignItems="center" spacing={1}>
-            {/* percentage */}
             <Typography
               fontWeight={700}
               color={budgetConfigured ? (isOver ? 'error.main' : 'success.main') : 'text.secondary'}
             >
-              {budgetConfigured ? `${Math.round(usagePercentage)}%` : '- %'}
+              {budgetConfigured ? `${Math.round(usagePercentage)}%` : '0%'}
             </Typography>
 
             {budgetConfigured && isOwner && (
               <Tooltip title="แก้ไขงบประมาณ">
-                <IconButton aria-label="edit budget" onClick={onEdit}>
+                <IconButton onClick={onEdit}>
                   <Pencil size={18} />
                 </IconButton>
               </Tooltip>
@@ -57,8 +57,8 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
           </Stack>
         </Stack>
 
-        {/* progress bar (show always) */}
-        <Box sx={{ mt: 2, width: '100%' }}>
+        {/* progress */}
+        <Box sx={{ mt: 2 }}>
           <LinearProgress
             variant="determinate"
             value={progressPct}
@@ -73,39 +73,98 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
           />
         </Box>
 
-        {/* summary row: left = used, right = remaining */}
-        <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              งบประมาณที่ใช้ไป
+        {/* usage text */}
+        <Box sx={{ mt: 1 }}>
+          {budgetConfigured ? (
+            <Typography variant="body2" sx={{ color: tokens.color.textSecondary }}>
+              ใช้ไปแล้ว {formatCurrencyTH(totalExpense)} จากงบทั้งหมด{' '}
+              {formatCurrencyTH(totalBudget)}
+            </Typography>
+          ) : (
+            <Typography variant="body2" sx={{ color: tokens.color.textSecondary }}>
+              {isOwner ? 'ยังไม่ได้ตั้งงบประมาณสำหรับทริปนี้' : 'เจ้าของทริปยังไม่ได้กำหนดงบประมาณ'}
+            </Typography>
+          )}
+        </Box>
+
+        {/* total budget card */}
+        <Box
+          sx={{
+            mt: 1,
+            p: 2,
+            borderRadius: 3,
+            border: `1px solid ${tokens.color.primary}`,
+            backgroundColor: 'rgba(34,197,94,0.12)',
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              mb: 1,
+              color: tokens.color.textSecondary,
+            }}
+          >
+            งบประมาณรวม
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: 24,
+              fontWeight: 550,
+            }}
+          >
+            {budgetConfigured ? formatCurrencyTH(totalBudget) : '-'}
+          </Typography>
+        </Box>
+
+        {/* summary row */}
+        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+          {/* total expense */}
+          <Box
+            sx={{
+              flex: 1,
+              p: 2,
+              borderRadius: 3,
+              border: `1px solid ${tokens.color.textplaceholder}`,
+              backgroundColor: '#f3f4f6',
+            }}
+          >
+            <Typography variant="body2" sx={{ color: tokens.color.textSecondary }}>
+              ค่าใช้จ่ายรวม
             </Typography>
 
             <Typography
-              variant="h6"
-              color={isOver ? 'error.main' : 'text.primary'}
-              sx={{ mt: 0.5 }}
+              sx={{
+                mt: 0.5,
+                fontSize: 22,
+                fontWeight: 550,
+              }}
             >
               {formatCurrencyTH(totalExpense)}
             </Typography>
           </Box>
 
-          <Box textAlign="right">
-            <Typography variant="body2" color="text.secondary">
+          {/* remaining */}
+          <Box
+            sx={{
+              flex: 1,
+              p: 2,
+              borderRadius: 3,
+              border: `1px solid ${tokens.color.textplaceholder}`,
+              backgroundColor: '#f3f4f6',
+              textAlign: 'left',
+            }}
+          >
+            <Typography variant="body2" sx={{ color: tokens.color.textSecondary }}>
               งบประมาณคงเหลือ
             </Typography>
 
             <Typography
-              variant="h6"
-              color={
-                budgetConfigured
-                  ? remainingBudget < 0
-                    ? 'error.main'
-                    : 'success.main'
-                  : 'text.secondary'
-              }
               sx={{
                 mt: 0.5,
-                textAlign: budgetConfigured ? 'right' : 'center',
+                fontSize: 22,
+                fontWeight: 550,
+                color: tokens.color.primary,
               }}
             >
               {budgetConfigured ? formatCurrencyTH(remainingBudget) : '-'}
@@ -113,22 +172,20 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
           </Box>
         </Stack>
 
-        {/* center message + button when no budget configured */}
+        {/* button when no budget */}
         {!budgetConfigured && (
           <Box
             sx={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              textAlign: 'center',
               mt: 2,
               gap: 1.5,
             }}
           >
             <Typography variant="body2" color="text.secondary">
-              ยังไม่ได้ตั้งงบประมาณสำหรับทริปนี้
+              {isOwner ? 'ยังไม่ได้ตั้งงบประมาณสำหรับทริปนี้' : 'เจ้าของทริปยังไม่ได้กำหนดงบประมาณ'}
             </Typography>
-
             {isOwner && (
               <Button variant="contained" onClick={onOpenSetBudget} sx={{ borderRadius: 28 }}>
                 กำหนดงบประมาณ
