@@ -70,6 +70,7 @@ jobs:
                   --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }} \
                   --build-arg NEXT_PUBLIC_GEOCODING_URL=${{ secrets.NEXT_PUBLIC_GEOCODING_URL }} \
                   --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} \
+                  --build-arg NEXT_PUBLIC_WEBSOCKET_URL=${{ secrets.NEXT_PUBLIC_WEBSOCKET_URL }} \
                   --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
                   -t $IMAGE_SHA_TAG ./$dir
               else
