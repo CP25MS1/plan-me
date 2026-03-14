@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import jakarta.transaction.Transactional;
@@ -72,44 +73,34 @@ public class TripBudgetService {
     }
 
     private boolean isPersonalExpense(TripExpense expense, List<TripExpenseSplit> splits) {
-        if (splits.size() != 1 || expense.getPayer() == null) {
+        if (splits.size() != 1 && expense.getPayer() == null) {
             return false;
         }
 
-        TripExpenseSplit only = splits.get(0);
+        TripExpenseSplit firstSplit = splits.getFirst();
 
-        return only.getParticipant() != null
-                && only.getParticipant().getId().equals(expense.getPayer().getId());
+        return firstSplit.getParticipant() != null && firstSplit.getParticipant().getId().equals(expense.getPayer().getId());
     }
 
     private TripBudgetSummaryDto buildSummary(Integer tripId, BigDecimal totalBudget) {
+        BigDecimal zero = BigDecimal.ZERO.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
         List<TripExpenseSplit> allSplits = tripExpenseSplitRepository.findByTripIdWithExpenseAndParticipant(tripId);
 
         Map<TripExpense, List<TripExpenseSplit>> splitsByExpense =
                 allSplits.stream()
                         .collect(Collectors.groupingBy(TripExpenseSplit::getExpense));
 
-        BigDecimal totalExpense = BigDecimal.ZERO.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+        BigDecimal totalExpense = splitsByExpense.entrySet().stream()
+                .filter(entry -> !isPersonalExpense(entry.getKey(), entry.getValue()))
+                .flatMap(entry -> entry.getValue().stream())
+                .map(TripExpenseSplit::getAmount)
+                .filter(Objects::nonNull)
+                .reduce(zero, BigDecimal::add)
+                .setScale(MONEY_SCALE, RoundingMode.HALF_UP);
 
-        for (Map.Entry<TripExpense, List<TripExpenseSplit>> entry : splitsByExpense.entrySet()) {
-            TripExpense expense = entry.getKey();
-            List<TripExpenseSplit> splits = entry.getValue();
-
-            if (isPersonalExpense(expense, splits)) {
-                continue;
-            }
-
-            for (TripExpenseSplit split : splits) {
-                if (split.getAmount() != null) {
-                    totalExpense = totalExpense.add(split.getAmount());
-                }
-            }
-        }
-
-        totalExpense = totalExpense.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
         BigDecimal remainingBudget = totalBudget.subtract(totalExpense).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
 
-        BigDecimal usagePercentage = BigDecimal.ZERO.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
+        BigDecimal usagePercentage = zero;
         if (totalBudget.compareTo(BigDecimal.ZERO) > 0) {
             usagePercentage = totalExpense
                     .divide(totalBudget, 6, RoundingMode.HALF_UP)
@@ -118,13 +109,10 @@ public class TripBudgetService {
         }
 
         boolean isOverBudget = totalExpense.compareTo(totalBudget) > 0;
-        BigDecimal overBudgetAmount = BigDecimal.ZERO.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
-        if (isOverBudget) {
-            overBudgetAmount = totalExpense.subtract(totalBudget).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
-            if (overBudgetAmount.compareTo(BigDecimal.ZERO) < 0) {
-                overBudgetAmount = BigDecimal.ZERO.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
-            }
-        }
+
+        BigDecimal overBudgetAmount = isOverBudget
+                ? totalExpense.subtract(totalBudget).max(zero).setScale(MONEY_SCALE, RoundingMode.HALF_UP)
+                : zero;
 
         return TripBudgetSummaryDto.builder()
                 .tripId(tripId)
