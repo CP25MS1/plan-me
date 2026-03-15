@@ -1,10 +1,6 @@
-export type ExpenseType =
-  | 'FOOD'
-  | 'TRANSPORT'
-  | 'ACCOMMODATION'
-  | 'ACTIVITY'
-  | 'SHOPPING'
-  | 'OTHER';
+import { PublicUserInfo } from '@/api/users';
+
+export type ExpenseType = 'TRAVEL' | 'LODGING' | 'FOOD' | 'ACTIVITY' | 'SHOPPING' | 'OTHER';
 
 export type ExpenseSplitType = 'SPLIT' | 'NO_SPLIT';
 
@@ -51,10 +47,4 @@ export interface TripExpenseDto {
   createdBy: PublicUserInfo;
   spentAt: string;
   splits: ExpenseSplitDto[];
-}
-
-export interface PublicUserInfo {
-  userId: number;
-  username: string;
-  profileImageUrl?: string;
 }

@@ -15,215 +15,70 @@ import {
   Select,
   SelectChangeEvent,
   Typography,
-  Checkbox,
-  FormControlLabel,
-  Avatar,
-  Box,
   Divider,
+  Grid,
+  Chip,
+  Box,
+  Avatar,
+  InputAdornment,
+  Paper,
+  IconButton,
+  CircularProgress,
 } from '@mui/material';
 
 import dayjs from '@/lib/dayjs';
 import type { Dayjs } from 'dayjs';
-
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { useGetTripMembers } from '@/app/hooks/use-get-trip-members';
 import { useCreateTripExpense } from '../hooks/use-create-trip-expense';
-import { CreateTripExpenseRequest, ExpenseType } from '@/api/budget/type';
-
-type PublicUserInfo = {
-  id: number;
-  username: string;
-  profilePicUrl?: string | null;
-};
+import { useGetTripMembers } from '@/app/hooks/use-get-trip-members';
+import { CreateTripExpenseRequest } from '@/api/budget/type';
+import { PublicUserInfo } from '@/api/users/type';
+import { MemberPickerModal } from './member-picker-modal';
+import { EXPENSE_TYPE_OPTIONS } from './expense-type-options';
+import { ParticipantsSplitEditor } from './participants-split-editor';
+import { computeEqualSplitAmounts } from '../utils/split-utils';
+import { X } from 'lucide-react';
+import { ExpenseType, ExpenseSplitType } from '@/api/budget/type';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 
 type Props = {
   open: boolean;
   onClose: () => void;
   tripId: number;
-  members: PublicUserInfo[];
   currentUserId: number;
 };
 
-type SplitMode = 'ALL' | 'SELECTED' | 'NO_SPLIT';
+type SplitEntry = { participantUserId: number; amount: number };
 
 export const AddExpenseModal: React.FC<Props> = ({ open, onClose, tripId, currentUserId }) => {
-  const [name, setName] = React.useState<string>('');
-  const [type, setType] = React.useState<ExpenseType>('FOOD');
-  const [amountStr, setAmountStr] = React.useState<string>('');
-  const [spentAt, setSpentAt] = React.useState<Dayjs | null>(() => dayjs());
-  const [payerId, setPayerId] = React.useState<number>(currentUserId);
-  const [splitMode, setSplitMode] = React.useState<SplitMode>('ALL');
   const members = useGetTripMembers(tripId);
+  const { mutate, isPending } = useCreateTripExpense(tripId);
+
+  const [name, setName] = React.useState('');
+  const [type, setType] = React.useState<ExpenseType | ''>('');
+  const [amountStr, setAmountStr] = React.useState('');
+  const [spentAt, setSpentAt] = React.useState<Dayjs | null>(dayjs());
+  const [payerId, setPayerId] = React.useState<number>(currentUserId);
+  const [splitMode, setSplitMode] = React.useState<ExpenseSplitType>('NO_SPLIT');
   const [selectedParticipantIds, setSelectedParticipantIds] = React.useState<number[]>([]);
-
-  const [customSplits, setCustomSplits] = React.useState<Record<number, string>>({});
-  const [submitting, setSubmitting] = React.useState<boolean>(false);
-
-  const { mutateAsync } = useCreateTripExpense(tripId);
-
-  const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [memberPickerOpen, setMemberPickerOpen] = React.useState(false);
+  const [customSplitsNumeric, setCustomSplitsNumeric] = React.useState<Record<number, number>>({});
+  const [errors, setErrors] = React.useState<Record<string, string | null>>({});
 
   React.useEffect(() => {
-    setSelectedParticipantIds(members.map((m) => m.id));
-  }, [members]);
-
-  const validate = (): boolean => {
-    const err: Record<string, string> = {};
-
-    if (!name.trim()) err.name = 'โปรดระบุชื่อค่าใช้จ่าย';
-    if (!amountStr.trim()) {
-      err.amount = 'โปรดระบุจำนวนเงิน';
-    } else {
-      const norm = amountStr.replace(',', '');
-      if (!/^\d+(\.\d{1,2})?$/.test(norm)) {
-        err.amount = 'รูปแบบจำนวนเงินไม่ถูกต้อง (ใช้ตัวเลข และทศนิยมสูงสุด 2 ตำแหน่ง)';
-      } else if (Number(norm) <= 0) {
-        err.amount = 'จำนวนเงินต้องมากกว่า 0';
-      }
-    }
-
-    if (!type) err.type = 'โปรดเลือกประเภท';
-    if (!spentAt) err.spentAt = 'โปรดระบุวันที่';
-
-    if (!members.find((m) => m.id === payerId)) {
-      err.payer = 'ผู้จ่ายต้องเป็นสมาชิกของทริป';
-    }
-
-    if (splitMode === 'NO_SPLIT') {
-      // ok
-    } else {
-      if (!selectedParticipantIds || selectedParticipantIds.length === 0) {
-        err.splits = 'ต้องมีผู้ร่วมจ่ายอย่างน้อย 1 คน';
-      } else {
-        if (Object.keys(customSplits).length > 0) {
-          let sum = 0;
-          for (const pid of selectedParticipantIds) {
-            const raw = customSplits[pid] ?? '';
-            const v = raw.replace(',', '');
-            if (v === '') {
-              err.splits = 'โปรดระบุจำนวนเงินสำหรับผู้ร่วมจ่ายทุกคน หรือล้างค่าในช่องกำหนดเอง';
-              break;
-            }
-            if (!/^\d+(\.\d{1,2})?$/.test(v)) {
-              err.splits = 'รูปแบบจำนวนเงินผู้ร่วมจ่ายไม่ถูกต้อง';
-              break;
-            }
-            const n = Number(v);
-            if (n <= 0) {
-              err.splits = 'จำนวนเงินผู้ร่วมจ่ายต้องมากกว่า 0';
-              break;
-            }
-            sum += n;
-          }
-          const total = Number(amountStr.replace(',', ''));
-          if (!err.splits && Math.abs(sum - total) > 0.01) {
-            err.splits = `ผลรวมการแบ่ง (${sum.toFixed(2)}) ต้องเท่ากับยอดรวม ${total.toFixed(2)}`;
-          }
-        }
-      }
-    }
-
-    setErrors(err);
-    return Object.keys(err).length === 0;
-  };
-
-  const handleToggleParticipant = (id: number) => {
-    setSelectedParticipantIds((prev) => {
-      if (prev.includes(id)) return prev.filter((p) => p !== id);
-      return [...prev, id];
-    });
-    setCustomSplits((prev) => {
-      const copy = { ...prev };
-      delete copy[id];
-      return copy;
-    });
-  };
-
-  const computeEqualSplits = (): Record<number, number> => {
-    const total = Number(amountStr.replace(',', '')) || 0;
-    const people = selectedParticipantIds.length || 1;
-    const baseRaw = total / people;
-    const base = Math.floor(baseRaw * 100) / 100;
-    const parts: number[] = new Array(people).fill(base);
-    const assigned = base * people;
-    let remainder = Math.round((total - assigned) * 100); // in satang
-    for (let i = 0; i < people && remainder > 0; i++) {
-      parts[i] = +(parts[i] + 0.01).toFixed(2);
-      remainder--;
-    }
-    const map: Record<number, number> = {};
-    selectedParticipantIds.forEach((id, idx) => {
-      map[id] = parts[idx];
-    });
-    return map;
-  };
-
-  const handleSubmit = async () => {
-    if (!validate()) return;
-
-    setSubmitting(true);
-
-    try {
-      const total = Number(amountStr.replace(',', ''));
-      let splitsPayload: { participantUserId: number; amount: number }[] = [];
-
-      if (splitMode === 'NO_SPLIT') {
-        splitsPayload = [{ participantUserId: payerId, amount: total }];
-      } else {
-        if (Object.keys(customSplits).length > 0) {
-          splitsPayload = selectedParticipantIds.map((pid) => ({
-            participantUserId: pid,
-            amount: Number((customSplits[pid] ?? '0').replace(',', '')),
-          }));
-        } else {
-          const equal = computeEqualSplits();
-          splitsPayload = selectedParticipantIds.map((pid) => ({
-            participantUserId: pid,
-            amount: equal[pid],
-          }));
-        }
-      }
-
-      const payload: CreateTripExpenseRequest = {
-        name: name.trim(),
-        type,
-        payerUserId: payerId,
-        // dayjs -> ISO string
-        spentAt: spentAt ? spentAt.toISOString() : dayjs().toISOString(),
-        splits: splitsPayload,
-      };
-
-      await mutateAsync(payload);
-
-      setName('');
-      setType('FOOD');
-      setAmountStr('');
-      setSpentAt(dayjs());
-      setPayerId(currentUserId);
-      setSplitMode('ALL');
-      setSelectedParticipantIds(members.map((m) => m.id));
-      setCustomSplits({});
-      onClose();
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setErrors({ form: err.message });
-      } else {
-        try {
-          setErrors({ form: String(err) });
-        } catch {
-          setErrors({ form: 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ' });
-        }
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const onCustomSplitChange = (participantId: number, value: string) => {
-    setCustomSplits((prev) => ({ ...prev, [participantId]: value }));
-  };
+    if (!open) return;
+    setSelectedParticipantIds([]);
+    setPayerId(currentUserId);
+    setAmountStr('');
+    setName('');
+    setSpentAt(dayjs());
+    setCustomSplitsNumeric({});
+    setSplitMode('NO_SPLIT');
+    setType('');
+    setErrors({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const memberById = React.useMemo(() => {
     const map = new Map<number, PublicUserInfo>();
@@ -231,221 +86,348 @@ export const AddExpenseModal: React.FC<Props> = ({ open, onClose, tripId, curren
     return map;
   }, [members]);
 
-  const equalPreview = React.useMemo(() => {
-    if (!amountStr || selectedParticipantIds.length === 0) return {};
-    return computeEqualSplits();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amountStr, selectedParticipantIds.join(',')]);
+  const participantsOrdered: PublicUserInfo[] = selectedParticipantIds.map((id) => {
+    const m = memberById.get(id);
+    return (
+      m ?? {
+        id,
+        username: 'Unknown',
+        email: '',
+        profilePicUrl: '',
+      }
+    );
+  });
+
+  const totalAmount = Number(amountStr.replace(/,/g, '')) || 0;
+
+  const splitSum = React.useMemo(() => {
+    if (splitMode === 'NO_SPLIT') return totalAmount;
+
+    const hasCustom = Object.keys(customSplitsNumeric).length > 0;
+
+    if (hasCustom) {
+      return selectedParticipantIds.reduce((sum, id) => sum + (customSplitsNumeric[id] ?? 0), 0);
+    }
+
+    const equal = computeEqualSplitAmounts(totalAmount, selectedParticipantIds);
+    return selectedParticipantIds.reduce((sum, id) => sum + (equal[id] ?? 0), 0);
+  }, [splitMode, totalAmount, customSplitsNumeric, selectedParticipantIds]);
+
+  const splitComplete = splitSum === totalAmount;
+
+  const validate = (): boolean => {
+    const e: Record<string, string | null> = {};
+    if (!name.trim()) e.name = 'โปรดระบุชื่อ';
+    if (!type) e.type = 'โปรดเลือกประเภท';
+    if (!amountStr.trim()) e.amount = 'โปรดระบุจำนวนเงิน';
+    if (!spentAt) e.spentAt = 'โปรดระบุวันที่';
+    if (!members.find((m) => m.id === payerId)) e.payer = 'ผู้จ่ายต้องเป็นสมาชิก';
+    if (splitMode === 'SPLIT' && selectedParticipantIds.length === 0)
+      e.splits = 'โปรดเลือกผู้ร่วมจ่าย';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const buildSplitsPayload = (): SplitEntry[] => {
+    if (splitMode === 'NO_SPLIT') {
+      return [{ participantUserId: payerId, amount: totalAmount }];
+    }
+
+    const hasCustom = Object.keys(customSplitsNumeric).length > 0;
+    if (hasCustom) {
+      return selectedParticipantIds.map((id) => ({
+        participantUserId: id,
+        amount: customSplitsNumeric[id] ?? 0,
+      }));
+    }
+
+    const equal = computeEqualSplitAmounts(totalAmount, selectedParticipantIds);
+    return selectedParticipantIds.map((id) => ({ participantUserId: id, amount: equal[id] ?? 0 }));
+  };
+
+  const handleSplitsChange = React.useCallback((map: Record<number, number>) => {
+    setCustomSplitsNumeric((prev) => {
+      const prevKeys = Object.keys(prev).map(Number).sort();
+      const nextKeys = Object.keys(map).map(Number).sort();
+      if (prevKeys.length !== nextKeys.length) return map;
+      for (const k of prevKeys) {
+        if ((prev[k] ?? null) !== (map[k] ?? null)) return map;
+      }
+      return prev;
+    });
+  }, []);
+
+  const handleSubmit = () => {
+    if (!validate()) return;
+    if (!spentAt) return;
+    if (splitMode === 'SPLIT' && !splitComplete) {
+      setErrors((s) => ({ ...s, form: 'จำนวนเงินยังไม่ครบ' }));
+      return;
+    }
+    if (!type) {
+      setErrors((s) => ({ ...s, type: 'โปรดเลือกประเภท' }));
+      return;
+    }
+    const payload: CreateTripExpenseRequest = {
+      name,
+      type,
+      payerUserId: payerId,
+      spentAt: spentAt.toISOString(),
+      splits: buildSplitsPayload(),
+    };
+    mutate(payload, {
+      onSuccess: () => onClose(),
+      onError: () => setErrors({ form: 'เกิดข้อผิดพลาดในการบันทึก' }),
+    });
+  };
+  const amountValid = amountStr.trim() !== '';
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>เพิ่มค่าใช้จ่าย</DialogTitle>
+    <>
+      <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <DialogTitle
+          sx={{
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          เพิ่มค่าใช้จ่าย
+          <IconButton size="small" onClick={onClose}>
+            <X size={18} />
+          </IconButton>
+        </DialogTitle>
 
-      <DialogContent>
-        <Stack spacing={2} mt={1}>
-          <TextField
-            label="ชื่อการใช้จ่าย"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            error={!!errors.name}
-            helperText={errors.name}
-            fullWidth
-          />
-
-          <Stack direction="row" spacing={2}>
-            <FormControl fullWidth>
-              <InputLabel>ประเภท</InputLabel>
-              <Select
-                value={type}
-                label="ประเภท"
-                onChange={(e: SelectChangeEvent<string>) => setType(e.target.value as ExpenseType)}
-                error={!!errors.type}
-              >
-                <MenuItem value={'TRANSPORT'}>การเดินทาง</MenuItem>
-                <MenuItem value={'ACCOMMODATION'}>ที่พัก</MenuItem>
-                <MenuItem value={'FOOD' as ExpenseType}>อาหาร</MenuItem>
-                <MenuItem value={'ACTIVITY' as ExpenseType}>กิจกรรม</MenuItem>
-                <MenuItem value={'SHOPPING' as ExpenseType}>ช็อปปิ้ง</MenuItem>
-                <MenuItem value={'OTHER' as ExpenseType}>อื่น ๆ</MenuItem>
-              </Select>
-              {errors.type && (
-                <Typography color="error" variant="caption">
-                  {errors.type}
-                </Typography>
-              )}
-            </FormControl>
-
+        <DialogContent>
+          <Stack spacing={2} mt={1}>
             <TextField
-              label="จำนวนเงิน (฿)"
-              value={amountStr}
-              onChange={(e) => setAmountStr(e.target.value)}
-              error={!!errors.amount}
-              helperText={errors.amount ?? 'ใส่จำนวนเต็มหรือทศนิยมไม่เกิน 2 ตำแหน่ง'}
-              fullWidth
-            />
-          </Stack>
-
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateTimePicker
-              label="วันที่ใช้จ่าย"
-              value={spentAt}
-              onChange={(newVal) => setSpentAt(newVal)}
-              slotProps={{
-                textField: {
-                  fullWidth: true,
-                  error: !!errors.spentAt,
-                  helperText: errors.spentAt,
-                },
+              label="ชื่อการใช้จ่าย"
+              placeholder="e.g. หมูกระทะ"
+              InputLabelProps={{ shrink: true }}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errors.name) setErrors((s) => ({ ...s, name: null }));
               }}
+              error={!!errors.name}
+              helperText={errors.name ?? ''}
+              size="small"
             />
-          </LocalizationProvider>
 
-          <FormControl fullWidth>
-            <InputLabel>ผู้จ่าย</InputLabel>
-            <Select
-              value={String(payerId)}
-              label="ผู้จ่าย"
-              onChange={(e: SelectChangeEvent<string>) => setPayerId(Number(e.target.value))}
-              error={!!errors.payer}
-            >
-              {members.map((m) => (
-                <MenuItem key={m.id} value={m.id}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Avatar
-                      src={m.profilePicUrl ?? undefined}
-                      sx={{ width: 24, height: 24, fontSize: 12 }}
-                    >
-                      {m.username[0]}
-                    </Avatar>
-                    <Typography>{m.username}</Typography>
-                  </Stack>
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.payer && (
-              <Typography color="error" variant="caption">
-                {errors.payer}
-              </Typography>
-            )}
-          </FormControl>
+            <Grid container spacing={2}>
+              <Grid size={7}>
+                <FormControl fullWidth error={!!errors.type} size="small">
+                  <InputLabel shrink>ประเภท</InputLabel>
 
-          <Divider />
+                  <Select
+                    value={type}
+                    label="ประเภท"
+                    displayEmpty
+                    onChange={(e: SelectChangeEvent) => {
+                      setType(e.target.value as ExpenseType);
+                      if (errors.type) setErrors((s) => ({ ...s, type: null }));
+                    }}
+                  >
+                    <MenuItem value="" disabled>
+                      <Typography color="text.secondary">โปรดเลือกประเภท</Typography>
+                    </MenuItem>
 
-          <Stack spacing={1}>
-            <Typography fontWeight={600}>วิธีการแบ่งจ่าย</Typography>
+                    {EXPENSE_TYPE_OPTIONS.map((opt) => (
+                      <MenuItem key={opt.value} value={opt.value}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          {opt.icon}
+                          <Typography>{opt.label}</Typography>
+                        </Stack>
+                      </MenuItem>
+                    ))}
+                  </Select>
 
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant={splitMode === 'ALL' ? 'contained' : 'outlined'}
-                onClick={() => setSplitMode('ALL')}
-              >
-                หาร (ทุกคนที่ถูกเลือก)
-              </Button>
+                  {errors.type && (
+                    <Typography variant="caption" color="error">
+                      {errors.type}
+                    </Typography>
+                  )}
+                </FormControl>
+              </Grid>
 
-              <Button
-                variant={splitMode === 'SELECTED' ? 'contained' : 'outlined'}
-                onClick={() => setSplitMode('SELECTED')}
-              >
-                รายคน (เลือกสมาชิก)
-              </Button>
+              <Grid size={5}>
+                <TextField
+                  label="จำนวนเงิน"
+                  placeholder="e.g. 500"
+                  InputLabelProps={{ shrink: true }}
+                  value={amountStr}
+                  onChange={(e) => {
+                    const onlyNumber = e.target.value.replace(/[^0-9]/g, '');
+                    setAmountStr(onlyNumber);
 
-              <Button
-                variant={splitMode === 'NO_SPLIT' ? 'contained' : 'outlined'}
-                onClick={() => setSplitMode('NO_SPLIT')}
-              >
-                ไม่หาร
-              </Button>
-            </Stack>
+                    if (errors.amount) setErrors((s) => ({ ...s, amount: null }));
+                  }}
+                  error={!!errors.amount}
+                  helperText={errors.amount ?? ''}
+                  size="small"
+                  inputProps={{
+                    inputMode: 'numeric',
+                    pattern: '[0-9]*',
+                  }}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">฿</InputAdornment>,
+                  }}
+                />
+              </Grid>
+            </Grid>
 
-            {splitMode !== 'NO_SPLIT' && (
-              <>
-                <Typography variant="body2">เลือกผู้ร่วมจ่าย</Typography>
+            <Grid container spacing={2}>
+              <Grid size={12}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>จ่ายโดย</InputLabel>
+                  <Select
+                    value={payerId}
+                    label="จ่ายโดย"
+                    onChange={(e: SelectChangeEvent<number>) => setPayerId(Number(e.target.value))}
+                  >
+                    {members.map((m) => (
+                      <MenuItem key={m.id} value={m.id}>
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                          <Avatar src={m.profilePicUrl ?? undefined} sx={{ width: 24, height: 24 }}>
+                            {m.username[0]}
+                          </Avatar>
 
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                  {members.map((m) => {
-                    const checked = selectedParticipantIds.includes(m.id);
-                    return (
-                      <FormControlLabel
-                        key={m.id}
-                        control={
-                          <Checkbox
-                            checked={checked}
-                            onChange={() => handleToggleParticipant(m.id)}
-                          />
-                        }
-                        label={
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <Avatar
-                              src={m.profilePicUrl ?? undefined}
-                              sx={{ width: 24, height: 24, fontSize: 12 }}
-                            >
-                              {m.username[0]}
-                            </Avatar>
-                            <Typography>{m.username}</Typography>
-                            {customSplits[m.id] ? (
-                              <Typography>฿{customSplits[m.id]}</Typography>
-                            ) : null}
-                          </Stack>
-                        }
-                      />
-                    );
-                  })}
-                </Box>
+                          <Typography>{m.username}</Typography>
 
-                <Typography variant="body2" color="text.secondary">
-                  คุณสามารถกำหนดจำนวนเงินแบบกำหนดเองได้ (ถ้าว่างจะใช้หารเท่า)
-                </Typography>
+                          {m.id === currentUserId && (
+                            <Typography variant="caption" color="text.secondary">
+                              (ฉัน)
+                            </Typography>
+                          )}
+                        </Stack>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {errors.payer && (
+                  <Typography variant="caption" color="error">
+                    {errors.payer}
+                  </Typography>
+                )}
+              </Grid>
+            </Grid>
 
-                <Stack spacing={1}>
-                  {selectedParticipantIds.map((pid) => {
-                    const m = memberById.get(pid)!;
-                    const val = customSplits[pid] ?? '';
-                    return (
-                      <Stack key={pid} direction="row" spacing={1} alignItems="center">
-                        <Avatar
-                          src={m.profilePicUrl ?? undefined}
-                          sx={{ width: 28, height: 28, fontSize: 12 }}
-                        >
-                          {m.username[0]}
-                        </Avatar>
-                        <Typography sx={{ width: 120 }}>{m.username}</Typography>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Grid container spacing={2}>
+                <Grid size={12}>
+                  <DateTimePicker
+                    enableAccessibleFieldDOMStructure={false}
+                    label="วันที่และเวลา"
+                    ampm={false}
+                    value={spentAt}
+                    onChange={(val) => {
+                      setSpentAt(val);
+                    }}
+                    format="DD/MM/YYYY HH:mm"
+                    slots={{ textField: TextField }}
+                    slotProps={{
+                      textField: {
+                        fullWidth: true,
+                        size: 'small',
+                        placeholder: 'e.g. 20/03/2026 18:30',
+                      },
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </LocalizationProvider>
 
-                        <TextField
-                          placeholder={equalPreview[pid] ? `${equalPreview[pid].toFixed(2)}` : ''}
-                          value={val}
-                          onChange={(e) => onCustomSplitChange(pid, e.target.value)}
-                          size="small"
-                          sx={{ width: 160 }}
-                          InputProps={{ startAdornment: <Typography sx={{ mr: 1 }}>฿</Typography> }}
-                        />
-                      </Stack>
-                    );
-                  })}
+            <Divider />
+
+            <Box>
+              <Typography sx={{ mb: 1 }}>วิธีการแบ่งจ่าย</Typography>
+
+              <Stack direction="row" alignItems="center">
+                <Stack direction="row" spacing={1}>
+                  <Chip
+                    label="ไม่หาร"
+                    clickable
+                    color={splitMode === 'NO_SPLIT' ? 'success' : 'default'}
+                    onClick={() => setSplitMode('NO_SPLIT')}
+                  />
+
+                  <Chip
+                    label="หาร"
+                    clickable
+                    color={splitMode === 'SPLIT' ? 'success' : 'default'}
+                    onClick={() => setSplitMode('SPLIT')}
+                  />
                 </Stack>
 
-                {errors.splits && <Typography color="error">{errors.splits}</Typography>}
-              </>
-            )}
+                <Box sx={{ flexGrow: 1 }} />
 
-            {splitMode === 'NO_SPLIT' && (
-              <Typography variant="body2" color="text.secondary">
-                ค่าใช้จ่ายจะถูกเก็บโดยไม่สร้งหนี้ระหว่างสมาชิก (แสดงเฉพาะผู้สร้าง).
-              </Typography>
-            )}
+                {splitMode === 'SPLIT' && (
+                  <Button size="small" variant="outlined" onClick={() => setMemberPickerOpen(true)}>
+                    เลือกคนที่หาร ({selectedParticipantIds.length})
+                  </Button>
+                )}
+              </Stack>
+
+              {splitMode === 'NO_SPLIT' && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  align="center"
+                  sx={{
+                    mt: 2,
+                    px: 3,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  รายการค่าใช้จ่ายนี้จะไม่รวมในงบประมาณของทริป และไม่แสดงให้ผู้ร่วมทริปคนอื่นเห็น
+                </Typography>
+              )}
+
+              {splitMode === 'SPLIT' && (
+                <Paper sx={{ p: 1, mt: 1 }}>
+                  <ParticipantsSplitEditor
+                    totalAmount={Number(amountStr.replace(/,/g, '')) || 0}
+                    participants={participantsOrdered}
+                    payerId={payerId}
+                    onChange={handleSplitsChange}
+                    error={errors.splits ?? null}
+                  />
+                </Paper>
+              )}
+            </Box>
+
+            {errors.form && <Typography color="error">{errors.form}</Typography>}
           </Stack>
+        </DialogContent>
 
-          {errors.form && <Typography color="error">{errors.form}</Typography>}
-        </Stack>
-      </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>ยกเลิก</Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            color="success"
+            disabled={isPending || !amountValid || (splitMode === 'SPLIT' && !splitComplete)}
+            startIcon={isPending ? <CircularProgress size={16} color="inherit" /> : undefined}
+          >
+            {isPending ? 'กำลังบันทึก' : 'บันทึก'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      <DialogActions>
-        <Button onClick={onClose} disabled={submitting}>
-          ยกเลิก
-        </Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={submitting}>
-          บันทึก
-        </Button>
-      </DialogActions>
-    </Dialog>
+      <MemberPickerModal
+        open={memberPickerOpen}
+        onClose={() => setMemberPickerOpen(false)}
+        members={members}
+        payerId={payerId}
+        selectedIds={selectedParticipantIds}
+        onConfirm={(ids) => {
+          setSelectedParticipantIds(ids);
+          setMemberPickerOpen(false);
+        }}
+      />
+    </>
   );
 };
+
+export default AddExpenseModal;
