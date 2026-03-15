@@ -7,8 +7,8 @@ export type MyDebtSummaryResponse = {
 };
 
 export type DebtSummarySection = {
-  owedToMe: DebtItem;
-  iOwed: DebtItem;
+  owedToMe: DebtItem[];
+  iOwed: DebtItem[];
 };
 
 export type DebtItem = {
