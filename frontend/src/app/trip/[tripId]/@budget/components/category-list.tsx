@@ -33,9 +33,9 @@ const IconByType = ({ type }: { type: ExpenseType }) => {
   const style = { fontSize: 20, color: tokens.color.primary };
 
   switch (type) {
-    case 'TRANSPORT':
+    case 'TRAVEL':
       return <DirectionsCarIcon sx={style} />;
-    case 'ACCOMMODATION':
+    case 'LODGING':
       return <HotelIcon sx={style} />;
     case 'FOOD':
       return <LocalDiningIcon sx={style} />;
@@ -86,11 +86,7 @@ const ExpenseCard: React.FC<{ e: TripExpenseDto }> = ({ e }) => {
 
         <AvatarGroup max={4}>
           {participants.map((p) => (
-            <Avatar
-              key={p.userId}
-              src={p.profileImageUrl}
-              sx={{ width: 24, height: 24, fontSize: 12 }}
-            >
+            <Avatar key={p.id} src={p.profilePicUrl} sx={{ width: 24, height: 24, fontSize: 12 }}>
               {p.username[0]}
             </Avatar>
           ))}
@@ -122,8 +118,8 @@ export const CategoryList: React.FC<{ tripId: number }> = ({ tripId }) => {
   const categories = React.useMemo(() => {
     const map: Record<ExpenseType, TripExpenseDto[]> = {
       FOOD: [],
-      TRANSPORT: [],
-      ACCOMMODATION: [],
+      TRAVEL: [],
+      LODGING: [],
       ACTIVITY: [],
       SHOPPING: [],
       OTHER: [],
@@ -139,13 +135,13 @@ export const CategoryList: React.FC<{ tripId: number }> = ({ tripId }) => {
         id: 'transport',
         title: 'การเดินทาง',
         type: 'TRANSPORT' as ExpenseType,
-        items: map.TRANSPORT,
+        items: map.TRAVEL,
       },
       {
         id: 'hotel',
         title: 'ที่พัก',
         type: 'ACCOMMODATION' as ExpenseType,
-        items: map.ACCOMMODATION,
+        items: map.LODGING,
       },
       { id: 'activity', title: 'กิจกรรม', type: 'ACTIVITY' as ExpenseType, items: map.ACTIVITY },
       { id: 'shopping', title: 'ช็อปปิ้ง', type: 'SHOPPING' as ExpenseType, items: map.SHOPPING },

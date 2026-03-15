@@ -31,7 +31,6 @@ export default function BudgetPage() {
 
   const isOwner = isTripOwner(me, tripOverview);
   const [openAddExpense, setOpenAddExpense] = useState(false);
-  const members = tripOverview?.tripmates ?? [];
 
   if (!tripId || Number.isNaN(tripId)) {
     return <Typography color="error">TripId ไม่ถูกต้อง</Typography>;
@@ -76,7 +75,6 @@ export default function BudgetPage() {
         open={openAddExpense}
         onClose={() => setOpenAddExpense(false)}
         tripId={tripId}
-        members={members}
         currentUserId={me?.id}
       />
 

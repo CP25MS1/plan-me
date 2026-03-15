@@ -27,16 +27,3 @@ export const createTripExpense = async (
   return data;
 };
 
-type WrappedResponse = {
-  data: TripExpenseDto[];
-};
-
-export const getTripExpenses = async (tripId: number): Promise<TripExpenseDto[]> => {
-  const { data } = await apiClient.get<TripExpenseDto[] | WrappedResponse>(
-    `/trips/${tripId}/expenses`
-  );
-  if (Array.isArray(data)) {
-    return data;
-  }
-  return data.data;
-};
