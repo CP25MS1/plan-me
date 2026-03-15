@@ -86,6 +86,13 @@ export default function DebtSummaryPage() {
 
   const { data, isLoading, isError, error } = useGetMyDebtSummary(tripId);
 
+  const section = tab === 'full' ? data?.full : data?.net;
+  const owedToMe = section?.owedToMe ?? [];
+  const iOwed = section?.iOwed ?? [];
+
+  const totalOwedToMe = useMemo(() => sumAmounts(owedToMe), [owedToMe]);
+  const totalIOwed = useMemo(() => sumAmounts(iOwed), [iOwed]);
+
   if (!tripId || Number.isNaN(tripId)) {
     return (
       <Container maxWidth="sm" sx={{ py: 3 }}>
@@ -111,13 +118,6 @@ export default function DebtSummaryPage() {
       </Container>
     );
   }
-
-  const section = tab === 'full' ? data?.full : data?.net;
-  const owedToMe = section?.owedToMe ?? [];
-  const iOwed = section?.iOwed ?? [];
-
-  const totalOwedToMe = useMemo(() => sumAmounts(owedToMe), [owedToMe]);
-  const totalIOwed = useMemo(() => sumAmounts(iOwed), [iOwed]);
 
   return (
     <Container maxWidth="sm" sx={{ py: 3 }}>
