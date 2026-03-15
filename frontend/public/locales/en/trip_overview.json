@@ -110,5 +110,16 @@
       "description": "This template may have been removed or set to private.",
       "cta": "Back to Home"
     }
+  },
+  "debtSummary": {
+    "title": "Debt Summary",
+    "tabFull": "Full",
+    "tabNet": "Net",
+    "owedToMeTitle": "People who owe me",
+    "iOwedTitle": "I owe",
+    "empty": "No items yet",
+    "backAria": "Back to budget",
+    "invalidTripId": "Invalid tripId",
+    "error": "Failed to load debt summary"
   }
 }
