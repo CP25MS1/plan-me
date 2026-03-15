@@ -1,3 +1,13 @@
+export type ExpenseType =
+  | 'FOOD'
+  | 'TRANSPORT'
+  | 'ACCOMMODATION'
+  | 'ACTIVITY'
+  | 'SHOPPING'
+  | 'OTHER';
+
+export type ExpenseSplitType = 'SPLIT' | 'NO_SPLIT';
+
 export interface TripBudgetDto {
   tripId: number;
   budgetConfigured: boolean;
@@ -11,4 +21,40 @@ export interface TripBudgetDto {
 
 export interface UpdateTripBudgetRequest {
   totalBudget: string;
+}
+
+export interface CreateTripExpenseRequest {
+  name: string;
+  type: ExpenseType;
+  payerUserId: number;
+  spentAt: string;
+  splits: CreateExpenseSplitRequest[];
+}
+
+export interface CreateExpenseSplitRequest {
+  participantUserId: number;
+  amount: number;
+}
+
+export interface ExpenseSplitDto {
+  participant: PublicUserInfo;
+  amount: number;
+}
+
+export interface TripExpenseDto {
+  expenseId: number;
+  tripId: number;
+  name: string;
+  type: ExpenseType;
+  splitType: ExpenseSplitType;
+  payer: PublicUserInfo;
+  createdBy: PublicUserInfo;
+  spentAt: string;
+  splits: ExpenseSplitDto[];
+}
+
+export interface PublicUserInfo {
+  userId: number;
+  username: string;
+  profileImageUrl?: string;
 }

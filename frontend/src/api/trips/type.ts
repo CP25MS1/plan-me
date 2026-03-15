@@ -36,7 +36,7 @@ export interface TripOverview {
   visibility?: TripVisibility;
   owner: PublicUserInfo;
   objectives: Objective[];
-  tripmates: PublicUserInfo[]; // NOTE: ตอนนี้ backend ให้มาเป็น { userId, ... }
+  tripmates: PublicUserInfo[];
   reservations: ReservationDto[];
   wishlistPlaces: WishlistPlace[];
   dailyPlans: DailyPlan[];

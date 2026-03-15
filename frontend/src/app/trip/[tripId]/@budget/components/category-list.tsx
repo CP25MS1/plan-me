@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   Typography,
@@ -9,6 +11,7 @@ import {
   IconButton,
   Collapse,
 } from '@mui/material';
+
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import HotelIcon from '@mui/icons-material/Hotel';
@@ -21,45 +24,18 @@ import { tokens } from '@/providers/theme/design-tokens';
 import { formatCurrencyTH } from '../utils/format-number';
 import { formatDate } from '../utils/format-date';
 
-type PublicUserInfo = {
-  id: number;
-  username: string;
-  profilePicUrl?: string | null;
-};
-// MOCK DATA //
-type SplitDto = {
-  participant: PublicUserInfo;
-  amount: number;
-};
-// MOCK DATA //
-type ExpenseDto = {
-  expenseId: number;
-  tripId: number;
-  name: string;
-  type: 'TRAVEL' | 'LODGING' | 'FOOD' | 'ACTIVITY' | 'SHOPPING' | 'OTHER';
-  splitType: 'SPLIT' | 'NO_SPLIT';
-  payer: PublicUserInfo;
-  createdBy: PublicUserInfo;
-  spentAt: string;
-  splits: SplitDto[];
-};
-// MOCK DATA //
-type Category = {
-  id: string;
-  title: string;
-  type: ExpenseDto['type'];
-  items: ExpenseDto[];
-};
+import { useGetTripExpenses } from '../hooks/use-get-trip-expenses';
+import { TripExpenseDto, ExpenseType } from '@/api/budget/type';
 
 /* ---------------- ICON ---------------- */
 
-const IconByType = ({ type }: { type: ExpenseDto['type'] }) => {
+const IconByType = ({ type }: { type: ExpenseType }) => {
   const style = { fontSize: 20, color: tokens.color.primary };
 
   switch (type) {
-    case 'TRAVEL':
+    case 'TRANSPORT':
       return <DirectionsCarIcon sx={style} />;
-    case 'LODGING':
+    case 'ACCOMMODATION':
       return <HotelIcon sx={style} />;
     case 'FOOD':
       return <LocalDiningIcon sx={style} />;
@@ -72,124 +48,9 @@ const IconByType = ({ type }: { type: ExpenseDto['type'] }) => {
   }
 };
 
-/* ---------------- MOCK DATA ---------------- */
-const ENABLE_MOCK = false;
-const mockCategories: Category[] = [
-  {
-    id: 'food',
-    title: 'อาหารและเครื่องดื่ม',
-    type: 'FOOD',
-    items: [
-      {
-        expenseId: 1,
-        tripId: 1,
-        name: 'ข้าวกลางวัน',
-        type: 'FOOD',
-        splitType: 'SPLIT',
-        payer: { id: 1, username: 'ปุ๊' },
-        createdBy: { id: 1, username: 'ปุ๊' },
-        spentAt: '2026-03-13T09:02:22.325Z',
-        splits: [
-          { participant: { id: 1, username: 'ปุ๊' }, amount: 170 },
-          { participant: { id: 2, username: 'บี' }, amount: 170 },
-        ],
-      },
-      {
-        expenseId: 2,
-        tripId: 1,
-        name: 'ขนมหวาน',
-        type: 'FOOD',
-        splitType: 'SPLIT',
-        payer: { id: 2, username: 'บี' },
-        createdBy: { id: 2, username: 'บี' },
-        spentAt: '2026-03-13T11:00:00.000Z',
-        splits: [{ participant: { id: 2, username: 'บี' }, amount: 80 }],
-      },
-    ],
-  },
-  {
-    id: 'transport',
-    title: 'การเดินทาง',
-    type: 'TRAVEL',
-    items: [
-      {
-        expenseId: 3,
-        tripId: 1,
-        name: 'เติมน้ำมัน',
-        type: 'TRAVEL',
-        splitType: 'NO_SPLIT',
-        payer: { id: 3, username: 'Owner' },
-        createdBy: { id: 3, username: 'Owner' },
-        spentAt: '2026-03-12T08:00:00.000Z',
-        splits: [{ participant: { id: 3, username: 'Owner' }, amount: 600 }],
-      },
-    ],
-  },
-  {
-    id: 'hotel',
-    title: 'ที่พัก',
-    type: 'LODGING',
-    items: [
-      {
-        expenseId: 4,
-        tripId: 1,
-        name: 'โรงแรมเชียงใหม่',
-        type: 'LODGING',
-        splitType: 'SPLIT',
-        payer: { id: 1, username: 'ปุ๊' },
-        createdBy: { id: 1, username: 'ปุ๊' },
-        spentAt: '2026-03-11T15:00:00.000Z',
-        splits: [
-          { participant: { id: 1, username: 'ปุ๊' }, amount: 500 },
-          { participant: { id: 2, username: 'บี' }, amount: 500 },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'activity',
-    title: 'กิจกรรม',
-    type: 'ACTIVITY',
-    items: [
-      {
-        expenseId: 5,
-        tripId: 1,
-        name: 'ค่าเข้าดอยอินทนนท์',
-        type: 'ACTIVITY',
-        splitType: 'SPLIT',
-        payer: { id: 2, username: 'บี' },
-        createdBy: { id: 2, username: 'บี' },
-        spentAt: '2026-03-12T10:00:00.000Z',
-        splits: [
-          { participant: { id: 1, username: 'ปุ๊' }, amount: 50 },
-          { participant: { id: 2, username: 'บี' }, amount: 50 },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'shopping',
-    title: 'ช็อปปิ้ง',
-    type: 'SHOPPING',
-    items: [
-      {
-        expenseId: 6,
-        tripId: 1,
-        name: 'ของฝาก',
-        type: 'SHOPPING',
-        splitType: 'NO_SPLIT',
-        payer: { id: 1, username: 'ปุ๊' },
-        createdBy: { id: 1, username: 'ปุ๊' },
-        spentAt: '2026-03-13T18:00:00.000Z',
-        splits: [{ participant: { id: 1, username: 'ปุ๊' }, amount: 300 }],
-      },
-    ],
-  },
-];
-
 /* ---------------- CARD ---------------- */
 
-const ExpenseCard: React.FC<{ e: ExpenseDto }> = ({ e }) => {
+const ExpenseCard: React.FC<{ e: TripExpenseDto }> = ({ e }) => {
   const participants = e.splits.map((s) => s.participant);
   const total = e.splits.reduce((s, it) => s + it.amount, 0);
 
@@ -226,8 +87,8 @@ const ExpenseCard: React.FC<{ e: ExpenseDto }> = ({ e }) => {
         <AvatarGroup max={4}>
           {participants.map((p) => (
             <Avatar
-              key={p.id}
-              src={p.profilePicUrl ?? undefined}
+              key={p.userId}
+              src={p.profileImageUrl}
               sx={{ width: 24, height: 24, fontSize: 12 }}
             >
               {p.username[0]}
@@ -241,8 +102,9 @@ const ExpenseCard: React.FC<{ e: ExpenseDto }> = ({ e }) => {
 
 /* ---------------- CATEGORY LIST ---------------- */
 
-export const CategoryList: React.FC<{ categories?: Category[] }> = ({ categories }) => {
-  const data = categories?.length ? categories : ENABLE_MOCK ? mockCategories : [];
+export const CategoryList: React.FC<{ tripId: number }> = ({ tripId }) => {
+  const { data: expenses = [] } = useGetTripExpenses(tripId);
+
   const [open, setOpen] = React.useState<Record<string, boolean>>({});
 
   const toggle = (id: string) => {
@@ -252,9 +114,48 @@ export const CategoryList: React.FC<{ categories?: Category[] }> = ({ categories
     }));
   };
 
+  const { data: expensesRaw } = useGetTripExpenses(tripId);
+  React.useEffect(() => {
+    console.log('tripExpenses raw ->', expensesRaw);
+  }, [expensesRaw]);
+
+  const categories = React.useMemo(() => {
+    const map: Record<ExpenseType, TripExpenseDto[]> = {
+      FOOD: [],
+      TRANSPORT: [],
+      ACCOMMODATION: [],
+      ACTIVITY: [],
+      SHOPPING: [],
+      OTHER: [],
+    };
+
+    expenses.forEach((e) => {
+      map[e.type].push(e);
+    });
+
+    return [
+      { id: 'food', title: 'อาหารและเครื่องดื่ม', type: 'FOOD' as ExpenseType, items: map.FOOD },
+      {
+        id: 'transport',
+        title: 'การเดินทาง',
+        type: 'TRANSPORT' as ExpenseType,
+        items: map.TRANSPORT,
+      },
+      {
+        id: 'hotel',
+        title: 'ที่พัก',
+        type: 'ACCOMMODATION' as ExpenseType,
+        items: map.ACCOMMODATION,
+      },
+      { id: 'activity', title: 'กิจกรรม', type: 'ACTIVITY' as ExpenseType, items: map.ACTIVITY },
+      { id: 'shopping', title: 'ช็อปปิ้ง', type: 'SHOPPING' as ExpenseType, items: map.SHOPPING },
+      { id: 'other', title: 'อื่น ๆ', type: 'OTHER' as ExpenseType, items: map.OTHER },
+    ].filter((c) => c.items.length > 0);
+  }, [expenses]);
+
   return (
     <>
-      {data.map((cat) => {
+      {categories.map((cat) => {
         const isOpen = open[cat.id] ?? true;
 
         const total = cat.items.reduce(
