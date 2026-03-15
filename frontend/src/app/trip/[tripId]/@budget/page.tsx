@@ -9,7 +9,7 @@ import { isTripOwner } from '../../utils/is-trip-owner';
 
 import { useGetTripOverview } from '../hooks/use-get-trip-overview';
 import { useGetTripBudget } from './hooks/use-get-trip-budget';
-
+import { AddExpenseModal } from './components/add-expense-modal';
 import { BudgetHeader } from './components/budget-header';
 import { BudgetTabs } from './components/budget-tabs';
 import { CategoryList } from './components/category-list';
@@ -30,12 +30,22 @@ export default function BudgetPage() {
   const [openModal, setOpenModal] = useState(false);
 
   const isOwner = isTripOwner(me, tripOverview);
+  const [openAddExpense, setOpenAddExpense] = useState(false);
+  const members = tripOverview?.tripmates ?? [];
 
   if (!tripId || Number.isNaN(tripId)) {
     return <Typography color="error">TripId ไม่ถูกต้อง</Typography>;
   }
 
   if (tripLoading || budgetLoading) {
+    return (
+      <Box display="flex" justifyContent="center" py={10}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!me) {
     return (
       <Box display="flex" justifyContent="center" py={10}>
         <CircularProgress />
@@ -58,9 +68,17 @@ export default function BudgetPage() {
 
       <BudgetTabs value={tab} onChange={setTab} />
 
-      <CategoryList />
+      <CategoryList tripId={tripId} />
 
-      <FloatingAddButton onClick={() => console.log('add expense')} />
+      <FloatingAddButton onClick={() => setOpenAddExpense(true)} />
+
+      <AddExpenseModal
+        open={openAddExpense}
+        onClose={() => setOpenAddExpense(false)}
+        tripId={tripId}
+        members={members}
+        currentUserId={me?.id}
+      />
 
       <SetBudgetModal
         open={openModal}
