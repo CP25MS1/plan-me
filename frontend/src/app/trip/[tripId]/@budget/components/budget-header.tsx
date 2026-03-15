@@ -25,7 +25,8 @@ type Props = {
 export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, isOwner }) => {
   const budgetConfigured = data?.budgetConfigured ?? false;
   const totalExpense = data?.totalExpense ?? 0;
-  const remainingBudget = data?.remainingBudget ?? 0;
+  const remainingBudgetRaw = data?.remainingBudget ?? 0;
+  const remainingBudget = Math.max(0, remainingBudgetRaw);
   const usagePercentage = data?.usagePercentage ?? 0;
   const totalBudget = data?.totalBudget ?? 0;
   const isOver = data?.isOverBudget ?? false;
