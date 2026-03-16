@@ -3,13 +3,18 @@
 import React from 'react';
 import { Stack, Avatar, Typography, TextField, Box, Chip } from '@mui/material';
 import { PublicUserInfo } from '@/api/users/type';
+import { useTranslation } from 'react-i18next';
+import { useI18nSelector } from '@/store/selectors';
 import { computeEqualSplitAmounts } from '../utils/split-utils';
+import { formatCurrency } from '../utils/format-number';
 
 type Props = {
   totalAmount: number;
   participants: PublicUserInfo[];
   payerId: number;
   onChange: (splits: Record<number, number>) => void;
+  initialSplits?: Record<number, number>;
+  disabled?: boolean;
   error?: string | null;
 };
 
@@ -18,7 +23,12 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
   participants,
   payerId,
   onChange,
+  initialSplits,
+  disabled = false,
 }) => {
+  const { t } = useTranslation('trip_overview');
+  const { locale } = useI18nSelector();
+
   const ids = React.useMemo(() => participants.map((p) => p.id), [participants]);
 
   const equalMap = React.useMemo(
@@ -54,10 +64,13 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
   React.useEffect(() => {
     setCustomMap((prev) => {
       const next: Record<number, string> = {};
-      for (const id of ids) next[id] = prev[id] ?? '';
+      for (const id of ids) {
+        const init = initialSplits?.[id];
+        next[id] = init != null ? Number(init).toFixed(2) : (prev[id] ?? '');
+      }
       return next;
     });
-  }, [ids]);
+  }, [ids, initialSplits]);
 
   const handleChange = (id: number, value: string) => {
     const cleaned = value.replace(/[^\d.,]/g, '');
@@ -80,7 +93,7 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
     return (
       <Box sx={{ p: 2 }}>
         <Typography variant="body2" color="text.secondary" textAlign="center">
-          ยังไม่ได้เลือกคนที่หาร
+          {t('budget.splitEditor.empty')}
         </Typography>
       </Box>
     );
@@ -105,7 +118,12 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
                 <Typography variant="body2">{displayName(p.username)}</Typography>
 
                 {p.id === payerId && (
-                  <Chip label="เป็นคนจ่าย" size="small" color="success" variant="outlined" />
+                  <Chip
+                    label={t('budget.splitEditor.payerChip')}
+                    size="small"
+                    color="success"
+                    variant="outlined"
+                  />
                 )}
               </Stack>
             </Box>
@@ -116,6 +134,7 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
               onChange={(e) => handleChange(id, e.target.value)}
               sx={{ width: 90 }}
               inputProps={{ style: { textAlign: 'right' } }}
+              disabled={disabled}
             />
           </Stack>
         );
@@ -124,12 +143,17 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
       {/* total summary */}
       <Box sx={{ pt: 1, textAlign: 'right' }}>
         <Typography variant="body2">
-          จำนวนเงินรวม {totalAmount.toFixed(0)} / {totalEntered.toFixed(0)}
+          {t('budget.splitEditor.totalSummary', {
+            total: formatCurrency(totalAmount, locale),
+            entered: formatCurrency(totalEntered, locale),
+          })}
         </Typography>
 
         {diff !== 0 && (
           <Typography variant="caption" color="error">
-            จำนวนเงินยังไม่ครบ ขาดอีก {Math.abs(diff).toFixed(0)}
+            {t('budget.splitEditor.diff', {
+              amount: formatCurrency(Math.abs(diff), locale),
+            })}
           </Typography>
         )}
       </Box>
