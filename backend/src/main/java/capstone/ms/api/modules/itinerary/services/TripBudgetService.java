@@ -73,7 +73,7 @@ public class TripBudgetService {
     }
 
     private boolean isPersonalExpense(TripExpense expense, List<TripExpenseSplit> splits) {
-        if (splits.size() != 1 && expense.getPayer() == null) {
+        if (splits.size() != 1 || expense.getPayer() == null) {
             return false;
         }
 
