@@ -4,7 +4,7 @@ export type ExpenseType = 'TRAVEL' | 'LODGING' | 'FOOD' | 'ACTIVITY' | 'SHOPPING
 
 export type ExpenseSplitType = 'SPLIT' | 'NO_SPLIT';
 
-export interface TripBudgetDto {
+export type TripBudgetDto = {
   tripId: number;
   budgetConfigured: boolean;
   totalBudget?: number;
@@ -13,31 +13,38 @@ export interface TripBudgetDto {
   usagePercentage?: number;
   isOverBudget?: boolean;
   overBudgetAmount?: number;
-}
+};
 
-export interface UpdateTripBudgetRequest {
+export type UpdateTripBudgetRequest = {
   totalBudget: string;
-}
+};
 
-export interface CreateTripExpenseRequest {
+export type TripExpenseSplitRequest = {
+  participantUserId: number;
+  amount: number;
+};
+
+export type CreateTripExpenseRequest = {
   name: string;
   type: ExpenseType;
   payerUserId: number;
   spentAt: string;
-  splits: CreateExpenseSplitRequest[];
-}
+  splits: TripExpenseSplitRequest[];
+};
 
-export interface CreateExpenseSplitRequest {
-  participantUserId: number;
-  amount: number;
-}
+export type UpdateTripExpenseRequest = {
+  name: string;
+  type: ExpenseType;
+  payerUserId: number;
+  splits: TripExpenseSplitRequest[];
+};
 
-export interface ExpenseSplitDto {
+export type ExpenseSplitDto = {
   participant: PublicUserInfo;
   amount: number;
-}
+};
 
-export interface TripExpenseDto {
+export type TripExpenseDto = {
   expenseId: number;
   tripId: number;
   name: string;
@@ -47,4 +54,9 @@ export interface TripExpenseDto {
   createdBy: PublicUserInfo;
   spentAt: string;
   splits: ExpenseSplitDto[];
-}
+};
+
+export type TripExpenseListDto = {
+  split: TripExpenseDto[];
+  noSplit: TripExpenseDto[];
+};
