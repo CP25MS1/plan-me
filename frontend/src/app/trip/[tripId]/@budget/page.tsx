@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams } from 'next/navigation';
-import { Container, Box, Typography, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Container, Typography } from '@mui/material';
 
 import { useAppSelector } from '@/store';
 import { isTripOwner } from '../../utils/is-trip-owner';
@@ -16,9 +16,16 @@ import { CategoryList } from './components/category-list';
 import { FloatingAddButton } from './components/floating-add-button';
 import { SetBudgetModal } from './components/set-budget-modal';
 
+const Loading = () => (
+  <Box display="flex" justifyContent="center" py={10}>
+    <CircularProgress />
+  </Box>
+);
+
 export default function BudgetPage() {
   const params = useParams();
-  const tripId = Number(params.tripId);
+  const tripIdParam = params?.tripId;
+  const tripId = Number(Array.isArray(tripIdParam) ? tripIdParam[0] : tripIdParam);
 
   const me = useAppSelector((s) => s.profile.currentUser);
 
@@ -26,43 +33,29 @@ export default function BudgetPage() {
 
   const { data: budgetData, isLoading: budgetLoading, isError, error } = useGetTripBudget(tripId);
 
-  const [tab, setTab] = useState<'category' | 'day'>('category');
-  const [openModal, setOpenModal] = useState(false);
+  const [tab, setTab] = React.useState<'category' | 'day'>('category');
+  const [openSetBudget, setOpenSetBudget] = React.useState(false);
+  const [openAddExpense, setOpenAddExpense] = React.useState(false);
 
-  const isOwner = isTripOwner(me, tripOverview);
-  const [openAddExpense, setOpenAddExpense] = useState(false);
-
-  if (!tripId || Number.isNaN(tripId)) {
+  if (!Number.isFinite(tripId) || tripId <= 0) {
     return <Typography color="error">TripId ไม่ถูกต้อง</Typography>;
   }
 
-  if (tripLoading || budgetLoading) {
-    return (
-      <Box display="flex" justifyContent="center" py={10}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (!me) {
-    return (
-      <Box display="flex" justifyContent="center" py={10}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  if (tripLoading || budgetLoading || !me) return <Loading />;
 
   if (isError) {
     return <Typography color="error">{(error as Error)?.message}</Typography>;
   }
+
+  const isOwner = isTripOwner(me, tripOverview);
 
   return (
     <Container maxWidth="md">
       <BudgetHeader
         data={budgetData ?? null}
         isOwner={isOwner}
-        onOpenSetBudget={() => setOpenModal(true)}
-        onEdit={() => setOpenModal(true)}
+        onOpenSetBudget={() => setOpenSetBudget(true)}
+        onEdit={() => setOpenSetBudget(true)}
       />
 
       <BudgetTabs value={tab} onChange={setTab} />
@@ -75,12 +68,12 @@ export default function BudgetPage() {
         open={openAddExpense}
         onClose={() => setOpenAddExpense(false)}
         tripId={tripId}
-        currentUserId={me?.id}
+        currentUserId={me.id}
       />
 
       <SetBudgetModal
-        open={openModal}
-        onClose={() => setOpenModal(false)}
+        open={openSetBudget}
+        onClose={() => setOpenSetBudget(false)}
         tripId={tripId}
         current={budgetData ?? null}
         isOwner={isOwner}
