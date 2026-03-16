@@ -18,6 +18,10 @@ export const useCreateTripExpense = (tripId: number) => {
       queryClient.invalidateQueries({
         queryKey: ['tripBudget', tripId],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ['tripDebtSummary', tripId],
+      });
     },
   });
 };

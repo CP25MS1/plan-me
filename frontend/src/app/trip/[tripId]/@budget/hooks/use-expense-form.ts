@@ -23,12 +23,14 @@ export const useExpenseForm = ({
   currentUserId,
   members,
   initialExpense,
+  defaultSplitMode,
 }: {
   open: boolean;
   mode: Mode;
   currentUserId: number;
   members: PublicUserInfo[];
   initialExpense?: TripExpenseDto | null;
+  defaultSplitMode?: ExpenseSplitType;
 }) => {
   const [name, setName] = React.useState('');
   const [type, setType] = React.useState<ExpenseType | ''>('');
@@ -49,13 +51,13 @@ export const useExpenseForm = ({
     });
   }, []);
 
-  const resetForm = React.useCallback((userId: number) => {
+  const resetForm = React.useCallback((userId: number, nextSplitMode: ExpenseSplitType) => {
     setName('');
     setType('');
     setAmountStr('');
     setSpentAt(dayjs());
     setPayerId(userId);
-    setSplitMode('SPLIT');
+    setSplitMode(nextSplitMode);
     setSelectedParticipantIds([]);
     setSplitMap({});
     setErrors({});
@@ -79,8 +81,8 @@ export const useExpenseForm = ({
       setErrors({});
       return;
     }
-    resetForm(currentUserId);
-  }, [currentUserId, initialExpense, mode, open, resetForm]);
+    resetForm(currentUserId, defaultSplitMode ?? 'SPLIT');
+  }, [currentUserId, defaultSplitMode, initialExpense, mode, open, resetForm]);
 
   const memberById = React.useMemo(() => new Map(members.map((m) => [m.id, m] as const)), [members]);
   const participantsOrdered = React.useMemo<PublicUserInfo[]>(
