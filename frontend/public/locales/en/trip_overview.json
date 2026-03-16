@@ -111,6 +111,134 @@
       "cta": "Back to Home"
     }
   },
+  "budget": {
+    "errors": {
+      "invalidTripId": "Invalid tripId",
+      "loadBudget": "Failed to load budget"
+    },
+    "aria": {
+      "addExpense": "Add expense",
+      "deleteExpense": "Delete expense",
+      "toggleSection": "Toggle section"
+    },
+    "dayTitle": "Day {{day}}: {{date}}",
+    "meSuffix": "(Me)",
+    "tabs": {
+      "byCategory": "By category",
+      "byDay": "By day"
+    },
+    "summary": {
+      "title": "Budget summary",
+      "editBudgetTooltip": "Edit budget",
+      "usedFromTotal": "Spent {{spent}} of {{total}}",
+      "notConfiguredOwner": "You haven't set a budget for this trip yet",
+      "notConfiguredGuest": "Trip owner hasn't set the budget yet",
+      "totalBudget": "Total budget",
+      "totalExpense": "Total expenses",
+      "remainingBudget": "Remaining budget",
+      "setBudgetCta": "Set budget"
+    },
+    "setBudget": {
+      "noPermission": "You don't have permission to edit this trip budget.",
+      "titleCreate": "Set trip budget",
+      "titleEdit": "Edit trip budget",
+      "help": "Trip members will be able to see the budget you set.",
+      "amountLabel": "Amount (THB)",
+      "placeholder": "12000.00",
+      "errors": {
+        "required": "Please enter an amount.",
+        "invalidFormat": "Please enter a number with up to 2 decimal places (e.g. 12000.00).",
+        "maxDigits": "Please enter no more than 12 digits (including decimals).",
+        "mustBePositive": "Amount must be greater than 0.",
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "expenseType": {
+      "travel": "Travel",
+      "lodging": "Lodging",
+      "food": "Food",
+      "activity": "Activity",
+      "shopping": "Shopping",
+      "other": "Other"
+    },
+    "expenseList": {
+      "title": "Expenses",
+      "mineOnly": "Only expenses I'm splitting",
+      "error": "Failed to load expenses",
+      "deleteConfirm": "Delete this expense?",
+      "empty": {
+        "title": "No expenses yet",
+        "body": "Add your first expense to start tracking the trip budget.",
+        "cta": "Add expense"
+      },
+      "emptyFilter": {
+        "title": "No expenses match the filter",
+        "body": "Try turning off the filter to see all expenses.",
+        "cta": "Show all"
+      }
+    },
+    "expenseForm": {
+      "createTitle": "Add expense",
+      "editTitle": "Edit expense",
+      "permissions": {
+        "readOnlyHint": "Only the creator can edit this expense."
+      },
+      "fields": {
+        "name": {
+          "label": "Expense name",
+          "placeholder": "e.g. BBQ"
+        },
+        "type": {
+          "label": "Category",
+          "placeholder": "Select a category"
+        },
+        "amount": {
+          "label": "Amount",
+          "placeholder": "e.g. 500"
+        },
+        "payer": {
+          "label": "Paid by"
+        },
+        "date": {
+          "label": "Date & time",
+          "placeholder": "e.g. 20/03/2026 18:30"
+        }
+      },
+      "split": {
+        "title": "Split method",
+        "noSplit": "No split",
+        "split": "Split",
+        "pickMembersCta": "Select participants ({{count}})"
+      },
+      "noSplitNote": "This expense won't be included in the trip budget and won't be visible to other members.",
+      "actions": {
+        "save": "Save",
+        "saving": "Saving..."
+      },
+      "errors": {
+        "requiredName": "Please enter a name.",
+        "requiredType": "Please choose a category.",
+        "requiredAmount": "Please enter an amount.",
+        "requiredDate": "Please choose a date.",
+        "invalidPayer": "Payer must be a trip member.",
+        "selectParticipants": "Please select participants.",
+        "amountMismatch": "Split amounts don't add up yet.",
+        "generic": "Unable to save expense. Please try again."
+      }
+    },
+    "memberPicker": {
+      "title": "Select participants",
+      "searchPlaceholder": "Search members",
+      "selectAll": "Select all",
+      "payerChip": "Payer"
+    },
+    "splitEditor": {
+      "empty": "No participants selected",
+      "payerChip": "Payer",
+      "totalSummary": "Total {{total}} / {{entered}}",
+      "diff": "Amounts don't add up. Remaining {{amount}}"
+    }
+  },
   "debtSummary": {
     "title": "Debt Summary",
     "tabFull": "Full",

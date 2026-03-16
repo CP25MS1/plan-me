@@ -1,12 +1,15 @@
 import React from 'react';
 import { Fab } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { useTranslation } from 'react-i18next';
 
 export const FloatingAddButton: React.FC<{ onClick?: () => void }> = ({ onClick }) => {
+  const { t } = useTranslation('trip_overview');
+
   return (
     <Fab
       color="primary"
-      aria-label="add-expense"
+      aria-label={t('budget.aria.addExpense')}
       onClick={onClick}
       sx={{
         position: 'fixed',
