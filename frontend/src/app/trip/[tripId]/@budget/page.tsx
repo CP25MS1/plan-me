@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { Box, CircularProgress, Container, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 import { useAppSelector } from '@/store';
 import { isTripOwner } from '../../utils/is-trip-owner';
@@ -12,6 +13,7 @@ import { useGetTripBudget } from './hooks/use-get-trip-budget';
 import { AddExpenseModal } from './components/add-expense-modal';
 import { BudgetHeader } from './components/budget-header';
 import { BudgetTabs } from './components/budget-tabs';
+import { BudgetExpenseSection } from './components/budget-expense-section';
 import { FloatingAddButton } from './components/floating-add-button';
 import { SetBudgetModal } from './components/set-budget-modal';
 
@@ -22,6 +24,7 @@ const Loading = () => (
 );
 
 export default function BudgetPage() {
+  const { t } = useTranslation('trip_overview');
   const params = useParams();
   const tripIdParam = params?.tripId;
   const tripId = Number(Array.isArray(tripIdParam) ? tripIdParam[0] : tripIdParam);
@@ -37,19 +40,23 @@ export default function BudgetPage() {
   const [openAddExpense, setOpenAddExpense] = React.useState(false);
 
   if (!Number.isFinite(tripId) || tripId <= 0) {
-    return <Typography color="error">TripId ไม่ถูกต้อง</Typography>;
+    return <Typography color="error">{t('budget.errors.invalidTripId')}</Typography>;
   }
 
-  if (tripLoading || budgetLoading || !me) return <Loading />;
+  if (tripLoading || budgetLoading || !me || !tripOverview) return <Loading />;
 
   if (isError) {
-    return <Typography color="error">{(error as Error)?.message}</Typography>;
+    return (
+      <Typography color="error">
+        {t('budget.errors.loadBudget')} {error instanceof Error ? `(${error.message})` : ''}
+      </Typography>
+    );
   }
 
   const isOwner = isTripOwner(me, tripOverview);
 
   return (
-    <Container maxWidth="md">
+    <Box>
       <BudgetHeader
         data={budgetData ?? null}
         isOwner={isOwner}
@@ -58,6 +65,14 @@ export default function BudgetPage() {
       />
 
       <BudgetTabs value={tab} onChange={setTab} />
+
+      <BudgetExpenseSection
+        tripId={tripId}
+        currentUserId={me.id}
+        tripOverview={tripOverview}
+        tab={tab}
+        onOpenAddExpense={() => setOpenAddExpense(true)}
+      />
 
       <FloatingAddButton onClick={() => setOpenAddExpense(true)} />
 
@@ -75,6 +90,6 @@ export default function BudgetPage() {
         current={budgetData ?? null}
         isOwner={isOwner}
       />
-    </Container>
+    </Box>
   );
 }
