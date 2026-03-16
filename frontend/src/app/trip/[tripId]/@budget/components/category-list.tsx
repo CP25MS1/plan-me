@@ -110,11 +110,6 @@ export const CategoryList: React.FC<{ tripId: number }> = ({ tripId }) => {
     }));
   };
 
-  const { data: expensesRaw } = useGetTripExpenses(tripId);
-  React.useEffect(() => {
-    console.log('tripExpenses raw ->', expensesRaw);
-  }, [expensesRaw]);
-
   const categories = React.useMemo(() => {
     const map: Record<ExpenseType, TripExpenseDto[]> = {
       FOOD: [],
