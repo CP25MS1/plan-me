@@ -177,6 +177,49 @@
         "cta": "Show all"
       }
     },
+    "quickActions": {
+      "count": "{{count}} items",
+      "count_one": "{{count}} item",
+      "count_other": "{{count}} items",
+      "personal": {
+        "title": "Personal expenses",
+        "subtitle": "Not split with anyone",
+        "aria": "Open personal expenses"
+      },
+      "debt": {
+        "title": "Debt summary",
+        "subtitle": "See who owes who",
+        "aria": "Open debt summary"
+      }
+    },
+    "paidSummary": {
+      "title": "Spent by you",
+      "split": "Split",
+      "personal": "Personal",
+      "total": "Total",
+      "tooltip": "Shows your share from splits (not necessarily what you paid).",
+      "aria": "What does spent by you mean?",
+      "popoverTitle": "About this number",
+      "popoverBody": "This is your total share across expenses. For split expenses, it's your split amount. For personal expenses, it's the full amount."
+    },
+    "personalDialog": {
+      "title": "Personal expenses",
+      "backAria": "Close personal expenses",
+      "debtTooltip": "View debt summary",
+      "debtAria": "Open debt summary"
+    },
+    "personalExpenses": {
+      "error": "Failed to load personal expenses",
+      "empty": {
+        "title": "No personal expenses yet",
+        "body": "Personal expenses are for things you pay for yourself and don't split with anyone.",
+        "cta": "Add personal expense"
+      }
+    },
+    "snackbar": {
+      "noSplitCreated": "Personal expense added",
+      "viewPersonal": "View"
+    },
     "expenseForm": {
       "createTitle": "Add expense",
       "editTitle": "Edit expense",

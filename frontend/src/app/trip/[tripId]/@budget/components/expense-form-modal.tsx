@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import type {
   CreateTripExpenseRequest,
+  ExpenseSplitType,
   TripExpenseDto,
   UpdateTripExpenseRequest,
 } from '@/api/budget/type';
@@ -30,6 +31,8 @@ type Props = {
   mode: Mode;
   initialExpense?: TripExpenseDto | null;
   readOnly?: boolean;
+  defaultSplitMode?: ExpenseSplitType;
+  onCreated?: (expense: TripExpenseDto) => void;
 };
 
 export const ExpenseFormModal: React.FC<Props> = ({
@@ -40,6 +43,8 @@ export const ExpenseFormModal: React.FC<Props> = ({
   mode,
   initialExpense,
   readOnly = false,
+  defaultSplitMode,
+  onCreated,
 }) => {
   const { t } = useTranslation('trip_overview');
   const { locale } = useI18nSelector();
@@ -54,6 +59,7 @@ export const ExpenseFormModal: React.FC<Props> = ({
     currentUserId,
     members,
     initialExpense,
+    defaultSplitMode,
   });
 
   const [memberPickerOpen, setMemberPickerOpen] = React.useState(false);
@@ -88,7 +94,10 @@ export const ExpenseFormModal: React.FC<Props> = ({
       if (!payload) return;
 
       createMutation.mutate(payload as CreateTripExpenseRequest, {
-        onSuccess: () => onClose(),
+        onSuccess: (data) => {
+          onCreated?.(data);
+          onClose();
+        },
         onError: () => form.setErrors({ form: 'budget.expenseForm.errors.generic' }),
       });
       return;

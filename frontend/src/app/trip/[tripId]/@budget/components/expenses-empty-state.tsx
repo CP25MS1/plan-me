@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { Box, Button, Paper, Stack, Typography } from '@mui/material';
-import { FilterX, Plus, Receipt } from 'lucide-react';
+import { FilterX, Plus, Receipt, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { tokens } from '@/providers/theme/design-tokens';
 
-type Variant = 'noExpenses' | 'filteredEmpty';
+type Variant = 'noExpenses' | 'filteredEmpty' | 'noPersonalExpenses';
 
 type Props = {
   variant: Variant;
@@ -23,12 +23,29 @@ export const ExpensesEmptyState: React.FC<Props> = ({
   const { t } = useTranslation('trip_overview');
 
   const isFiltered = variant === 'filteredEmpty';
+  const isPersonal = variant === 'noPersonalExpenses';
 
-  const title = t(isFiltered ? 'budget.expenseList.emptyFilter.title' : 'budget.expenseList.empty.title');
-  const body = t(isFiltered ? 'budget.expenseList.emptyFilter.body' : 'budget.expenseList.empty.body');
+  const title = t(
+    isFiltered
+      ? 'budget.expenseList.emptyFilter.title'
+      : isPersonal
+        ? 'budget.personalExpenses.empty.title'
+        : 'budget.expenseList.empty.title'
+  );
+  const body = t(
+    isFiltered
+      ? 'budget.expenseList.emptyFilter.body'
+      : isPersonal
+        ? 'budget.personalExpenses.empty.body'
+        : 'budget.expenseList.empty.body'
+  );
 
   const primaryLabel = t(
-    isFiltered ? 'budget.expenseList.emptyFilter.cta' : 'budget.expenseList.empty.cta'
+    isFiltered
+      ? 'budget.expenseList.emptyFilter.cta'
+      : isPersonal
+        ? 'budget.personalExpenses.empty.cta'
+        : 'budget.expenseList.empty.cta'
   );
 
   return (
@@ -58,6 +75,8 @@ export const ExpensesEmptyState: React.FC<Props> = ({
       >
         {isFiltered ? (
           <FilterX size={24} color={tokens.color.primaryDark} />
+        ) : isPersonal ? (
+          <Wallet size={24} color={tokens.color.primaryDark} />
         ) : (
           <Receipt size={24} color={tokens.color.primaryDark} />
         )}
@@ -97,4 +116,3 @@ export const ExpensesEmptyState: React.FC<Props> = ({
 };
 
 export default ExpensesEmptyState;
-

@@ -75,7 +75,7 @@ export const useExpenseGroups = ({ expenses, tab, showMineOnly, currentUserId }:
       byDay.set(dayKey, list);
     }
 
-    const dayKeys = [...byDay.keys()].toSorted((a, b) => dayjs(a).valueOf() - dayjs(b).valueOf());
+    const dayKeys = [...byDay.keys()].toSorted((a, b) => dayjs(b).valueOf() - dayjs(a).valueOf());
     for (const dayKey of dayKeys) {
       const list = (byDay.get(dayKey) ?? []).toSorted(
         (a, b) => dayjs(b.spentAt).valueOf() - dayjs(a.spentAt).valueOf()

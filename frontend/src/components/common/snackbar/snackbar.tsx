@@ -7,6 +7,7 @@ import Slide from '@mui/material/Slide';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import { TransitionProps } from '@mui/material/transitions';
 
 interface AppSnackbarProps {
@@ -15,6 +16,8 @@ interface AppSnackbarProps {
   severity?: AlertColor;
   onClose: () => void;
   duration?: number; // default 4000 ms
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
 /**
@@ -52,6 +55,8 @@ export const AppSnackbar: React.FC<AppSnackbarProps> = ({
   severity = 'success',
   onClose,
   duration = 4000,
+  actionLabel,
+  onAction,
 }) => {
   const [progress, setProgress] = React.useState(100);
 
@@ -107,9 +112,25 @@ export const AppSnackbar: React.FC<AppSnackbarProps> = ({
           },
         }}
         action={
-          <IconButton size="small" aria-label="close" color="inherit" onClick={onClose}>
-            <CloseIcon fontSize="small" />
-          </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {actionLabel && onAction && (
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => {
+                  onAction();
+                  onClose();
+                }}
+                sx={{ fontWeight: 700, textTransform: 'none' }}
+              >
+                {actionLabel}
+              </Button>
+            )}
+
+            <IconButton size="small" aria-label="close" color="inherit" onClick={onClose}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
         }
       >
         {message}
