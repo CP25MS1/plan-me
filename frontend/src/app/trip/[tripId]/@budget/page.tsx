@@ -12,7 +12,6 @@ import { useGetTripBudget } from './hooks/use-get-trip-budget';
 import { AddExpenseModal } from './components/add-expense-modal';
 import { BudgetHeader } from './components/budget-header';
 import { BudgetTabs } from './components/budget-tabs';
-import { CategoryList } from './components/category-list';
 import { FloatingAddButton } from './components/floating-add-button';
 import { SetBudgetModal } from './components/set-budget-modal';
 
@@ -59,8 +58,6 @@ export default function BudgetPage() {
       />
 
       <BudgetTabs value={tab} onChange={setTab} />
-
-      <CategoryList tripId={tripId} />
 
       <FloatingAddButton onClick={() => setOpenAddExpense(true)} />
 

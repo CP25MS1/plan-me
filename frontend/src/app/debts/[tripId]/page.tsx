@@ -19,7 +19,8 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-import { DebtItem, useGetMyDebtSummary } from '@/api/debt';
+import { DebtItem } from '@/api/debt';
+import { useGetMyDebtSummary } from './hooks/use-get-my-debt-summary';
 import { tokens } from '@/providers/theme/design-tokens';
 import { formatCurrencyTH } from '../utils/format-number';
 

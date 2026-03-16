@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getMyDebtSummary } from './api';
-import { MyDebtSummaryResponse } from './type';
+import { getMyDebtSummary, MyDebtSummaryResponse } from '@/api/debt';
 
 export const useGetMyDebtSummary = (tripId: number) => {
   return useQuery<MyDebtSummaryResponse>({
