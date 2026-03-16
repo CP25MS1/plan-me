@@ -137,6 +137,134 @@
       "cta": "กลับไปหน้า Home"
     }
   },
+  "budget": {
+    "errors": {
+      "invalidTripId": "TripId ไม่ถูกต้อง",
+      "loadBudget": "เกิดข้อผิดพลาดในการโหลดข้อมูลงบประมาณ"
+    },
+    "aria": {
+      "addExpense": "เพิ่มค่าใช้จ่าย",
+      "deleteExpense": "ลบค่าใช้จ่าย",
+      "toggleSection": "หุบ/ขยายส่วนนี้"
+    },
+    "dayTitle": "วันที่ {{day}}: {{date}}",
+    "meSuffix": "(ฉัน)",
+    "tabs": {
+      "byCategory": "ตามประเภท",
+      "byDay": "ตามวัน"
+    },
+    "summary": {
+      "title": "สรุปงบประมาณ",
+      "editBudgetTooltip": "แก้ไขงบประมาณ",
+      "usedFromTotal": "ใช้ไปแล้ว {{spent}} จากงบทั้งหมด {{total}}",
+      "notConfiguredOwner": "ยังไม่ได้ตั้งงบประมาณสำหรับทริปนี้",
+      "notConfiguredGuest": "เจ้าของทริปยังไม่ได้กำหนดงบประมาณ",
+      "totalBudget": "งบประมาณรวม",
+      "totalExpense": "ค่าใช้จ่ายรวม",
+      "remainingBudget": "งบประมาณคงเหลือ",
+      "setBudgetCta": "กำหนดงบประมาณ"
+    },
+    "setBudget": {
+      "noPermission": "คุณไม่มีสิทธิ์แก้ไขงบประมาณของทริปนี้",
+      "titleCreate": "กำหนดงบประมาณของทริป",
+      "titleEdit": "แก้ไขงบประมาณของทริป",
+      "help": "สมาชิกในทริปของคุณจะเห็นงบประมาณที่คุณตั้งไว้",
+      "amountLabel": "จำนวนเงิน (บาท)",
+      "placeholder": "12000.00",
+      "errors": {
+        "required": "โปรดระบุจำนวนเงิน",
+        "invalidFormat": "รูปแบบต้องเป็นตัวเลข มีได้สูงสุด 2 ตำแหน่งทศนิยม เช่น 12000.00",
+        "maxDigits": "โปรดระบุจำนวนเงินไม่เกิน 12 หลักรวมทศนิยม",
+        "mustBePositive": "จำนวนเงินต้องมากกว่า 0",
+        "generic": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
+      }
+    },
+    "expenseType": {
+      "travel": "การเดินทาง",
+      "lodging": "ที่พัก",
+      "food": "อาหาร",
+      "activity": "กิจกรรม",
+      "shopping": "ช็อปปิ้ง",
+      "other": "อื่น ๆ"
+    },
+    "expenseList": {
+      "title": "รายการค่าใช้จ่าย",
+      "mineOnly": "เฉพาะรายการที่ฉันร่วมหาร",
+      "error": "เกิดข้อผิดพลาดในการโหลดรายการค่าใช้จ่าย",
+      "deleteConfirm": "ลบรายการค่าใช้จ่ายนี้ใช่หรือไม่?",
+      "empty": {
+        "title": "ยังไม่มีรายการค่าใช้จ่าย",
+        "body": "เพิ่มค่าใช้จ่ายเพื่อเริ่มติดตามงบประมาณของทริป",
+        "cta": "เพิ่มค่าใช้จ่าย"
+      },
+      "emptyFilter": {
+        "title": "ไม่พบรายการที่ตรงกับตัวกรอง",
+        "body": "ลองปิดตัวกรองเพื่อดูรายการทั้งหมด",
+        "cta": "ดูทั้งหมด"
+      }
+    },
+    "expenseForm": {
+      "createTitle": "เพิ่มค่าใช้จ่าย",
+      "editTitle": "แก้ไขค่าใช้จ่าย",
+      "permissions": {
+        "readOnlyHint": "แก้ไขได้เฉพาะผู้สร้างรายการเท่านั้น"
+      },
+      "fields": {
+        "name": {
+          "label": "ชื่อการใช้จ่าย",
+          "placeholder": "e.g. หมูกระทะ"
+        },
+        "type": {
+          "label": "ประเภท",
+          "placeholder": "โปรดเลือกประเภท"
+        },
+        "amount": {
+          "label": "จำนวนเงิน",
+          "placeholder": "e.g. 500"
+        },
+        "payer": {
+          "label": "จ่ายโดย"
+        },
+        "date": {
+          "label": "วันที่และเวลา",
+          "placeholder": "e.g. 20/03/2026 18:30"
+        }
+      },
+      "split": {
+        "title": "วิธีการแบ่งจ่าย",
+        "noSplit": "ไม่หาร",
+        "split": "หาร",
+        "pickMembersCta": "เลือกคนที่หาร ({{count}})"
+      },
+      "noSplitNote": "รายการค่าใช้จ่ายนี้จะไม่รวมในงบประมาณของทริป และไม่แสดงให้ผู้ร่วมทริปคนอื่นเห็น",
+      "actions": {
+        "save": "บันทึก",
+        "saving": "กำลังบันทึก"
+      },
+      "errors": {
+        "requiredName": "โปรดระบุชื่อ",
+        "requiredType": "โปรดเลือกประเภท",
+        "requiredAmount": "โปรดระบุจำนวนเงิน",
+        "requiredDate": "โปรดระบุวันที่",
+        "invalidPayer": "ผู้จ่ายต้องเป็นสมาชิก",
+        "selectParticipants": "โปรดเลือกผู้ร่วมจ่าย",
+        "amountMismatch": "จำนวนเงินยังไม่ครบ",
+        "generic": "เกิดข้อผิดพลาดในการบันทึก"
+      }
+    },
+    "memberPicker": {
+      "title": "เลือกผู้ร่วมจ่าย",
+      "searchPlaceholder": "ค้นหาสมาชิก",
+      "selectAll": "เลือกทั้งหมด",
+      "payerChip": "เป็นคนจ่าย"
+    },
+    "splitEditor": {
+      "empty": "ยังไม่ได้เลือกคนที่หาร",
+      "payerChip": "เป็นคนจ่าย",
+      "totalSummary": "จำนวนเงินรวม {{total}} / {{entered}}",
+      "diff": "จำนวนเงินยังไม่ครบ ขาดอีก {{amount}}"
+    }
+  },
   "debtSummary": {
     "title": "สรุปหนี้",
     "tabFull": "เต็ม",

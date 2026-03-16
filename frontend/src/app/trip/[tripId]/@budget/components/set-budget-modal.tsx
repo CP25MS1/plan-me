@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
   TextField,
   Typography,
   Box,
+  DialogTitle,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { useUpsertTripBudget } from '../hooks/use-update-trip-budget';
 import { TripBudgetDto } from '@/api/budget/type';
 
@@ -23,8 +24,11 @@ type Props = {
 const budgetformat = /^\d+(\.\d{1,2})?$/;
 
 export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current, isOwner }) => {
+  const { t } = useTranslation('trip_overview');
+  const { t: tCommon } = useTranslation('common');
+
   const [budget, setBudget] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState<string | null>(null);
 
   const { mutate, isPending } = useUpsertTripBudget(tripId);
 
@@ -33,7 +37,7 @@ export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current
   useEffect(() => {
     if (!open) {
       setBudget('');
-      setError(null);
+      setErrorKey(null);
       return;
     }
 
@@ -43,14 +47,14 @@ export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current
       setBudget('');
     }
 
-    setError(null);
+    setErrorKey(null);
   }, [current, open]);
 
   if (!isOwner) {
     return (
       <Dialog open={open} onClose={onClose}>
         <Box p={3}>
-          <Typography>คุณไม่มีสิทธิ์แก้ไขงบประมาณของทริปนี้</Typography>
+          <Typography>{t('budget.setBudget.noPermission')}</Typography>
         </Box>
       </Dialog>
     );
@@ -58,24 +62,24 @@ export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current
 
   const handleSave = () => {
     if (!budget) {
-      setError('โปรดระบุจำนวนเงิน');
+      setErrorKey('budget.setBudget.errors.required');
       return;
     }
 
     if (!budgetformat.test(budget)) {
-      setError('รูปแบบต้องเป็นตัวเลข มีได้สูงสุด 2 ตำแหน่งทศนิยม เช่น 12000.00');
+      setErrorKey('budget.setBudget.errors.invalidFormat');
       return;
     }
 
     const digitsLength = budget.replace('.', '').length;
 
     if (digitsLength > 12) {
-      setError('โปรดระบุจำนวนเงินไม่เกิน 12 หลักรวมทศนิยม');
+      setErrorKey('budget.setBudget.errors.maxDigits');
       return;
     }
 
     if (Number(budget) <= 0) {
-      setError('จำนวนเงินต้องมากกว่า 0');
+      setErrorKey('budget.setBudget.errors.mustBePositive');
       return;
     }
 
@@ -87,7 +91,7 @@ export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current
         },
         onError: (err: unknown) => {
           if (err instanceof Error) {
-            setError('เกิดข้อผิดพลาด');
+            setErrorKey('budget.setBudget.errors.generic');
           }
         },
       }
@@ -114,18 +118,18 @@ export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current
           px: 3,
         }}
       >
-        {isEdit ? 'แก้ไขงบประมาณของทริป' : 'กำหนดงบประมาณของทริป'}
+        {isEdit ? t('budget.setBudget.titleEdit') : t('budget.setBudget.titleCreate')}
       </DialogTitle>
 
       <DialogContent sx={{ pt: 1 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          สมาชิกในทริปของคุณจะเห็นงบประมาณที่คุณตั้งไว้
+          {t('budget.setBudget.help')}
         </Typography>
 
         <Box>
           {/* label แยกบรรทัด */}
           <Typography variant="body2" sx={{ mb: 1 }}>
-            จำนวนเงิน (บาท)
+            {t('budget.setBudget.amountLabel')}
           </Typography>
 
           <TextField
@@ -135,13 +139,13 @@ export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current
               const v = e.target.value;
               if (/^\d*\.?\d{0,2}$/.test(v) || v === '') {
                 setBudget(v);
-                setError(null);
+                setErrorKey(null);
               }
             }}
             fullWidth
-            placeholder="12000.00"
-            error={!!error}
-            helperText={error ?? ''}
+            placeholder={t('budget.setBudget.placeholder')}
+            error={!!errorKey}
+            helperText={errorKey ? t(errorKey) : ''}
             inputMode="decimal"
             inputProps={{
               pattern: '[0-9]*',
@@ -152,11 +156,11 @@ export const SetBudgetModal: React.FC<Props> = ({ open, onClose, tripId, current
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} disabled={isPending}>
-          ยกเลิก
+          {tCommon('cancel')}
         </Button>
 
         <Button variant="contained" onClick={handleSave} disabled={isPending}>
-          ยืนยัน
+          {tCommon('confirm')}
         </Button>
       </DialogActions>
     </Dialog>

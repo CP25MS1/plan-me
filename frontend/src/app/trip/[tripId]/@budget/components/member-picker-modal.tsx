@@ -22,6 +22,7 @@ import {
   Box,
 } from '@mui/material';
 import { Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { PublicUserInfo } from '@/api/users/type';
 
 type Props = {
@@ -41,6 +42,9 @@ export const MemberPickerModal: React.FC<Props> = ({
   selectedIds,
   onConfirm,
 }) => {
+  const { t } = useTranslation('trip_overview');
+  const { t: tCommon } = useTranslation('common');
+
   const [localSelected, setLocalSelected] = React.useState<number[]>([]);
   const [search, setSearch] = React.useState('');
 
@@ -71,14 +75,14 @@ export const MemberPickerModal: React.FC<Props> = ({
   const showSelectAll = search.trim() === '';
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>เลือกผู้ร่วมจ่าย</DialogTitle>
+      <DialogTitle>{t('budget.memberPicker.title')}</DialogTitle>
 
       <DialogContent>
         {/* SEARCH */}
         <TextField
           fullWidth
           size="small"
-          placeholder="ค้นหาสมาชิก"
+          placeholder={t('budget.memberPicker.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{ mb: 2 }}
@@ -99,13 +103,13 @@ export const MemberPickerModal: React.FC<Props> = ({
                   <Checkbox checked={allChecked} tabIndex={-1} disableRipple sx={{ mr: 1 }} />
 
                   <ListItemAvatar>
-                    <Avatar>All</Avatar>
+                    <Avatar>#</Avatar>
                   </ListItemAvatar>
 
                   <ListItemText
                     primary={
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography fontWeight={600}>เลือกทั้งหมด</Typography>
+                        <Typography fontWeight={600}>{t('budget.memberPicker.selectAll')}</Typography>
 
                         <Typography variant="body2" color="text.secondary">
                           ({members.length})
@@ -140,7 +144,7 @@ export const MemberPickerModal: React.FC<Props> = ({
                         {m.id === payerId && (
                           <Chip
                             size="small"
-                            label="เป็นคนจ่าย"
+                            label={t('budget.memberPicker.payerChip')}
                             color="success"
                             variant="outlined"
                           />
@@ -156,10 +160,10 @@ export const MemberPickerModal: React.FC<Props> = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>ยกเลิก</Button>
+        <Button onClick={onClose}>{tCommon('cancel')}</Button>
 
         <Button variant="contained" onClick={() => onConfirm(localSelected)}>
-          ตกลง
+          {tCommon('confirm')}
         </Button>
       </DialogActions>
     </Dialog>

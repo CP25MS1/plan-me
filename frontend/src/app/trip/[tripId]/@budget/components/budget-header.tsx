@@ -11,9 +11,11 @@ import {
   Tooltip,
 } from '@mui/material';
 import { Pencil } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { TripBudgetDto } from '@/api/budget/type';
-import { formatCurrencyTH } from '../utils/format-number';
+import { formatCurrency } from '../utils/format-number';
 import { tokens } from '@/providers/theme/design-tokens';
+import { useI18nSelector } from '@/store/selectors';
 
 type Props = {
   data?: TripBudgetDto | null;
@@ -23,6 +25,9 @@ type Props = {
 };
 
 export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, isOwner }) => {
+  const { t } = useTranslation('trip_overview');
+  const { locale } = useI18nSelector();
+
   const budgetConfigured = data?.budgetConfigured ?? false;
   const totalExpense = data?.totalExpense ?? 0;
   const remainingBudgetRaw = data?.remainingBudget ?? 0;
@@ -38,7 +43,7 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
       <CardContent>
         {/* title + percent */}
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">สรุปงบประมาณ</Typography>
+          <Typography variant="h6">{t('budget.summary.title')}</Typography>
 
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography
@@ -49,7 +54,7 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
             </Typography>
 
             {budgetConfigured && isOwner && (
-              <Tooltip title="แก้ไขงบประมาณ">
+              <Tooltip title={t('budget.summary.editBudgetTooltip')}>
                 <IconButton onClick={onEdit}>
                   <Pencil size={18} />
                 </IconButton>
@@ -78,12 +83,14 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
         <Box sx={{ mt: 1 }}>
           {budgetConfigured ? (
             <Typography variant="body2" sx={{ color: tokens.color.textSecondary }}>
-              ใช้ไปแล้ว {formatCurrencyTH(totalExpense)} จากงบทั้งหมด{' '}
-              {formatCurrencyTH(totalBudget)}
+              {t('budget.summary.usedFromTotal', {
+                spent: formatCurrency(totalExpense, locale),
+                total: formatCurrency(totalBudget, locale),
+              })}
             </Typography>
           ) : (
             <Typography variant="body2" sx={{ color: tokens.color.textSecondary }}>
-              {isOwner ? 'ยังไม่ได้ตั้งงบประมาณสำหรับทริปนี้' : 'เจ้าของทริปยังไม่ได้กำหนดงบประมาณ'}
+              {isOwner ? t('budget.summary.notConfiguredOwner') : t('budget.summary.notConfiguredGuest')}
             </Typography>
           )}
         </Box>
@@ -105,7 +112,7 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
               color: tokens.color.textSecondary,
             }}
           >
-            งบประมาณรวม
+            {t('budget.summary.totalBudget')}
           </Typography>
 
           <Typography
@@ -114,7 +121,7 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
               fontWeight: 550,
             }}
           >
-            {budgetConfigured ? formatCurrencyTH(totalBudget) : '-'}
+            {budgetConfigured ? formatCurrency(totalBudget, locale) : '-'}
           </Typography>
         </Box>
 
@@ -131,7 +138,7 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
             }}
           >
             <Typography variant="body2" sx={{ color: tokens.color.textSecondary }}>
-              ค่าใช้จ่ายรวม
+              {t('budget.summary.totalExpense')}
             </Typography>
 
             <Typography
@@ -141,7 +148,7 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
                 fontWeight: 550,
               }}
             >
-              {formatCurrencyTH(totalExpense)}
+              {formatCurrency(totalExpense, locale)}
             </Typography>
           </Box>
 
@@ -157,7 +164,7 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
             }}
           >
             <Typography variant="body2" sx={{ color: tokens.color.textSecondary }}>
-              งบประมาณคงเหลือ
+              {t('budget.summary.remainingBudget')}
             </Typography>
 
             <Typography
@@ -168,7 +175,7 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
                 color: tokens.color.primary,
               }}
             >
-              {budgetConfigured ? formatCurrencyTH(remainingBudget) : '-'}
+              {budgetConfigured ? formatCurrency(remainingBudget, locale) : '-'}
             </Typography>
           </Box>
         </Stack>
@@ -185,11 +192,11 @@ export const BudgetHeader: React.FC<Props> = ({ data, onOpenSetBudget, onEdit, i
             }}
           >
             <Typography variant="body2" color="text.secondary">
-              {isOwner ? 'ยังไม่ได้ตั้งงบประมาณสำหรับทริปนี้' : 'เจ้าของทริปยังไม่ได้กำหนดงบประมาณ'}
+              {isOwner ? t('budget.summary.notConfiguredOwner') : t('budget.summary.notConfiguredGuest')}
             </Typography>
             {isOwner && (
               <Button variant="contained" onClick={onOpenSetBudget} sx={{ borderRadius: 28 }}>
-                กำหนดงบประมาณ
+                {t('budget.summary.setBudgetCta')}
               </Button>
             )}
           </Box>
