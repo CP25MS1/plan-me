@@ -23,6 +23,8 @@ import { MemberPickerModal } from './member-picker-modal';
 
 type Mode = 'create' | 'edit';
 
+export type ExpenseFormContext = 'default' | 'personal';
+
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -33,6 +35,7 @@ type Props = {
   readOnly?: boolean;
   defaultSplitMode?: ExpenseSplitType;
   onCreated?: (expense: TripExpenseDto) => void;
+  formContext?: ExpenseFormContext;
 };
 
 export const ExpenseFormModal: React.FC<Props> = ({
@@ -45,6 +48,7 @@ export const ExpenseFormModal: React.FC<Props> = ({
   readOnly = false,
   defaultSplitMode,
   onCreated,
+  formContext = 'default',
 }) => {
   const { t } = useTranslation('trip_overview');
   const { locale } = useI18nSelector();
@@ -60,6 +64,7 @@ export const ExpenseFormModal: React.FC<Props> = ({
     members,
     initialExpense,
     defaultSplitMode,
+    formContext,
   });
 
   const [memberPickerOpen, setMemberPickerOpen] = React.useState(false);
@@ -69,7 +74,7 @@ export const ExpenseFormModal: React.FC<Props> = ({
 
   const isEdit = mode === 'edit';
   const disableAll = isEdit ? readOnly : false;
-  const disablePayer = disableAll || isEdit;
+  const disablePayer = disableAll || isEdit || (mode === 'create' && form.splitMode === 'NO_SPLIT');
   const disableSplitMode = disableAll || isEdit;
   const disableSpentAt = disableAll || isEdit;
 
@@ -154,6 +159,7 @@ export const ExpenseFormModal: React.FC<Props> = ({
           totalAmount={Number(form.amountStr || 0)}
           initialExpense={initialExpense}
           initialSplits={initialSplits}
+          hideSplitModeToggle={formContext === 'personal'}
         />
 
         {form.errors.form && (

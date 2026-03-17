@@ -17,6 +17,7 @@ type Props = {
   totalAmount: number;
   initialExpense?: TripExpenseDto | null;
   initialSplits?: Record<number, number>;
+  hideSplitModeToggle: boolean;
 };
 
 export const ExpenseFormSplitFields: React.FC<Props> = ({
@@ -27,66 +28,74 @@ export const ExpenseFormSplitFields: React.FC<Props> = ({
   totalAmount,
   initialExpense,
   initialSplits,
+  hideSplitModeToggle,
 }) => {
   const { t } = useTranslation('trip_overview');
 
   const isEdit = !!initialExpense;
+  const initialTotalAmount = React.useMemo(() => {
+    if (!isEdit || !initialSplits) return undefined;
+    const sum = Object.values(initialSplits).reduce((acc, v) => acc + Number(v ?? 0), 0);
+    return +sum.toFixed(2);
+  }, [initialSplits, isEdit]);
 
   return (
     <>
-      <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 2.5 }} />
 
       <Box>
         <Typography sx={{ mb: 1 }}>{t('budget.expenseForm.split.title')}</Typography>
 
-        <Stack direction="row" alignItems="center">
-          <Stack direction="row" spacing={1}>
-            <Chip
-              label={t('budget.expenseForm.split.noSplit')}
-              color={!form.isSplit ? 'success' : 'default'}
-              clickable={!disableSplitMode}
-              onClick={
-                disableSplitMode
-                  ? undefined
-                  : () => {
-                      form.setSplitMode('NO_SPLIT');
-                      form.clearError('splits');
-                      form.clearError('form');
-                    }
-              }
-            />
+        {!hideSplitModeToggle && (
+          <Stack direction="row" alignItems="center">
+            <Stack direction="row" spacing={1}>
+              <Chip
+                label={t('budget.expenseForm.split.noSplit')}
+                color={!form.isSplit ? 'success' : 'default'}
+                clickable={!disableSplitMode}
+                onClick={
+                  disableSplitMode
+                    ? undefined
+                    : () => {
+                        form.setSplitMode('NO_SPLIT');
+                        form.clearError('splits');
+                        form.clearError('form');
+                      }
+                }
+              />
 
-            <Chip
-              label={t('budget.expenseForm.split.split')}
-              color={form.isSplit ? 'success' : 'default'}
-              clickable={!disableSplitMode}
-              onClick={
-                disableSplitMode
-                  ? undefined
-                  : () => {
-                      form.setSplitMode('SPLIT');
-                      form.clearError('splits');
-                      form.clearError('form');
-                    }
-              }
-            />
+              <Chip
+                label={t('budget.expenseForm.split.split')}
+                color={form.isSplit ? 'success' : 'default'}
+                clickable={!disableSplitMode}
+                onClick={
+                  disableSplitMode
+                    ? undefined
+                    : () => {
+                        form.setSplitMode('SPLIT');
+                        form.clearError('splits');
+                        form.clearError('form');
+                      }
+                }
+              />
+            </Stack>
+
+            <Box sx={{ flexGrow: 1 }} />
+
+            {form.isSplit && (
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={disableAll}
+                onClick={onOpenMemberPicker}
+              >
+                {t('budget.expenseForm.split.pickMembersCta', {
+                  count: form.selectedParticipantIds.length,
+                })}
+              </Button>
+            )}
           </Stack>
-
-          <Box sx={{ flexGrow: 1 }} />
-
-          {form.isSplit && (
-            <Button
-              size="small"
-              variant="outlined"
-              disabled={disableAll}
-              onClick={onOpenMemberPicker}
-            >
-              {t('budget.expenseForm.split.pickMembersCta', {
-                count: form.selectedParticipantIds.length,
-              })}
-            </Button>
-          )}
-        </Stack>
+        )}
 
         {form.isSplit && form.errors.splits && (
           <Typography variant="caption" color="error">
@@ -106,7 +115,7 @@ export const ExpenseFormSplitFields: React.FC<Props> = ({
         )}
 
         {form.isSplit && (
-          <Paper sx={{ p: 1, mt: 1 }}>
+          <Paper variant="outlined" sx={{ p: 2, mt: 1.5, borderRadius: 3 }}>
             <ParticipantsSplitEditor
               totalAmount={totalAmount}
               participants={form.participantsOrdered}
@@ -118,8 +127,10 @@ export const ExpenseFormSplitFields: React.FC<Props> = ({
                 form.clearError('form');
               }}
               initialSplits={isEdit ? initialSplits : undefined}
+              initialTotalAmount={initialTotalAmount}
               disabled={disableAll}
               error={form.errors.splits ?? null}
+              autoEqualizeOnTotalChange={isEdit}
             />
           </Paper>
         )}

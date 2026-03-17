@@ -69,7 +69,7 @@ export const ExpenseFormBasicFields: React.FC<Props> = ({
         </Paper>
       )}
 
-      <Stack spacing={2} mt={1}>
+      <Stack spacing={2.5} mt={0.5}>
         <TextField
           label={t('budget.expenseForm.fields.name.label')}
           placeholder={t('budget.expenseForm.fields.name.placeholder')}
@@ -214,4 +214,3 @@ export const ExpenseFormBasicFields: React.FC<Props> = ({
 };
 
 export default ExpenseFormBasicFields;
-
