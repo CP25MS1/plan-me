@@ -60,7 +60,7 @@ export const ExpenseFormDialog: React.FC<Props> = ({
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ px: 3, pt: 0.5, pb: 2 }}>{children}</DialogContent>
+      <DialogContent sx={{ px: 3, pt: 1.5, pb: 2 }}>{children}</DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} disabled={isPending}>
