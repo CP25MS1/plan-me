@@ -14,8 +14,10 @@ type Props = {
   payerId: number;
   onChange: (splits: Record<number, number>) => void;
   initialSplits?: Record<number, number>;
+  initialTotalAmount?: number;
   disabled?: boolean;
   error?: string | null;
+  autoEqualizeOnTotalChange?: boolean;
 };
 
 export const ParticipantsSplitEditor: React.FC<Props> = ({
@@ -24,7 +26,9 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
   payerId,
   onChange,
   initialSplits,
+  initialTotalAmount,
   disabled = false,
+  autoEqualizeOnTotalChange = false,
 }) => {
   const { t } = useTranslation('trip_overview');
   const { locale } = useI18nSelector();
@@ -39,6 +43,37 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
   const [customMap, setCustomMap] = React.useState<Record<number, string>>({});
 
   const lastEmittedRef = React.useRef<string>('');
+
+  const prevTotalAmountRef = React.useRef<number | null>(null);
+  const didInitFromInitialTotalRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!autoEqualizeOnTotalChange) return;
+
+    const isInitialTotal =
+      initialTotalAmount != null &&
+      Math.round(totalAmount * 100) === Math.round(initialTotalAmount * 100);
+    if (!didInitFromInitialTotalRef.current && isInitialTotal) {
+      prevTotalAmountRef.current = totalAmount;
+      didInitFromInitialTotalRef.current = true;
+      return;
+    }
+
+    if (prevTotalAmountRef.current == null) {
+      prevTotalAmountRef.current = totalAmount;
+      return;
+    }
+
+    if (prevTotalAmountRef.current === totalAmount) return;
+    prevTotalAmountRef.current = totalAmount;
+
+    setCustomMap(() => {
+      const next: Record<number, string> = {};
+      for (const id of ids) next[id] = '';
+      return next;
+    });
+    lastEmittedRef.current = '';
+  }, [autoEqualizeOnTotalChange, ids, initialTotalAmount, totalAmount]);
 
   React.useEffect(() => {
     const out: Record<number, number> = {};
@@ -108,14 +143,37 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
         const value = enteredStr === '' ? (equalMap[id] ?? 0).toFixed(2) : enteredStr;
 
         return (
-          <Stack key={id} direction="row" alignItems="center" spacing={2} sx={{ px: 1, py: 0.5 }}>
-            <Avatar src={p.profilePicUrl ?? undefined} sx={{ width: 36, height: 36 }}>
+          <Stack key={id} direction="row" alignItems="center" spacing={2} sx={{ px: 1, py: 1 }}>
+            <Avatar
+              src={p.profilePicUrl ?? undefined}
+              sx={{ width: 36, height: 36, flexShrink: 0 }}
+            >
               {p.username[0]}
             </Avatar>
 
-            <Box sx={{ flex: 1 }}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="body2">{displayName(p.username)}</Typography>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  columnGap: 1,
+                  rowGap: 0.5,
+                  minWidth: 0,
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    minWidth: 0,
+                    flex: '1 1 auto',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {displayName(p.username)}
+                </Typography>
 
                 {p.id === payerId && (
                   <Chip
@@ -123,16 +181,17 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
                     size="small"
                     color="success"
                     variant="outlined"
+                    sx={{ flexShrink: 0 }}
                   />
                 )}
-              </Stack>
+              </Box>
             </Box>
 
             <TextField
               size="small"
               value={value}
               onChange={(e) => handleChange(id, e.target.value)}
-              sx={{ width: 90 }}
+              sx={{ width: 120, flexShrink: 0 }}
               inputProps={{ style: { textAlign: 'right' } }}
               disabled={disabled}
             />
@@ -151,7 +210,7 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
 
         {diff !== 0 && (
           <Typography variant="caption" color="error">
-            {t('budget.splitEditor.diff', {
+            {t(diff > 0 ? 'budget.splitEditor.diffUnder' : 'budget.splitEditor.diffOver', {
               amount: formatCurrency(Math.abs(diff), locale),
             })}
           </Typography>

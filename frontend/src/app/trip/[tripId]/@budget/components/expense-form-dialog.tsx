@@ -37,10 +37,18 @@ export const ExpenseFormDialog: React.FC<Props> = ({
   const { t } = useTranslation('common');
 
   return (
-    <Dialog open={open} onClose={() => !isPending && onClose()} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={() => !isPending && onClose()}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{ paper: { sx: { borderRadius: 4 } } }}
+    >
       <DialogTitle
         sx={{
           fontWeight: 800,
+          px: 3,
+          py: 1.5,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -52,9 +60,9 @@ export const ExpenseFormDialog: React.FC<Props> = ({
         </IconButton>
       </DialogTitle>
 
-      <DialogContent>{children}</DialogContent>
+      <DialogContent sx={{ px: 3, pt: 0.5, pb: 2 }}>{children}</DialogContent>
 
-      <DialogActions>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} disabled={isPending}>
           {t('cancel')}
         </Button>
@@ -73,4 +81,3 @@ export const ExpenseFormDialog: React.FC<Props> = ({
 };
 
 export default ExpenseFormDialog;
-

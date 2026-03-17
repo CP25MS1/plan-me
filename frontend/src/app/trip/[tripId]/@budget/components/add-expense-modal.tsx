@@ -4,7 +4,7 @@ import React from 'react';
 
 import type { ExpenseSplitType, TripExpenseDto } from '@/api/budget/type';
 
-import ExpenseFormModal from './expense-form-modal';
+import ExpenseFormModal, { type ExpenseFormContext } from './expense-form-modal';
 
 type Props = {
   open: boolean;
@@ -13,6 +13,7 @@ type Props = {
   currentUserId: number;
   defaultSplitMode?: ExpenseSplitType;
   onCreated?: (expense: TripExpenseDto) => void;
+  formContext?: ExpenseFormContext;
 };
 
 export const AddExpenseModal: React.FC<Props> = ({
@@ -22,6 +23,7 @@ export const AddExpenseModal: React.FC<Props> = ({
   currentUserId,
   defaultSplitMode,
   onCreated,
+  formContext = 'default',
 }) => {
   return (
     <ExpenseFormModal
@@ -32,6 +34,7 @@ export const AddExpenseModal: React.FC<Props> = ({
       mode="create"
       defaultSplitMode={defaultSplitMode}
       onCreated={onCreated}
+      formContext={formContext}
     />
   );
 };

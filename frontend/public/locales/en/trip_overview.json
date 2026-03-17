@@ -278,8 +278,9 @@
     "splitEditor": {
       "empty": "No participants selected",
       "payerChip": "Payer",
-      "totalSummary": "Total {{total}} / {{entered}}",
-      "diff": "Amounts don't add up. Remaining {{amount}}"
+      "totalSummary": "Total {{entered}}  / {{total}}",
+      "diffUnder": "Amounts don't add up. Remaining {{amount}}",
+      "diffOver": "Amounts don't add up. Over by {{amount}}"
     }
   },
   "debtSummary": {
