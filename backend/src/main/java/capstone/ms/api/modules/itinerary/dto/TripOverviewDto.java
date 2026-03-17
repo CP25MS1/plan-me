@@ -25,4 +25,5 @@ public class TripOverviewDto {
     private final Set<WishlistPlaceDto> wishlistPlaces;
     private final Set<DailyPlan> dailyPlans;
     private final Set<String> checklist;
+    private final String visibility;
 }
