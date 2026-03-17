@@ -302,8 +302,9 @@
     "splitEditor": {
       "empty": "ยังไม่ได้เลือกคนที่หาร",
       "payerChip": "เป็นคนจ่าย",
-      "totalSummary": "จำนวนเงินรวม {{total}} / {{entered}}",
-      "diff": "จำนวนเงินยังไม่ครบ ขาดอีก {{amount}}"
+      "totalSummary": "จำนวนเงินรวม {{entered}}  / {{total}}",
+      "diffUnder": "จำนวนเงินยังไม่ครบ ขาดอีก {{amount}}",
+      "diffOver": "จำนวนเงินเกินมา {{amount}}"
     }
   },
   "debtSummary": {

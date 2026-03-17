@@ -24,6 +24,7 @@ export const useExpenseForm = ({
   members,
   initialExpense,
   defaultSplitMode,
+  formContext = 'default',
 }: {
   open: boolean;
   mode: Mode;
@@ -31,23 +32,33 @@ export const useExpenseForm = ({
   members: PublicUserInfo[];
   initialExpense?: TripExpenseDto | null;
   defaultSplitMode?: ExpenseSplitType;
+  formContext?: 'default' | 'personal';
 }) => {
   const [name, setName] = React.useState('');
   const [type, setType] = React.useState<ExpenseType | ''>('');
   const [amountStr, setAmountStr] = React.useState('');
   const [spentAt, setSpentAt] = React.useState<Dayjs | null>(dayjs());
-  const [payerId, setPayerId] = React.useState(currentUserId);
-  const [splitMode, setSplitMode] = React.useState<ExpenseSplitType>('SPLIT');
+  const [payerId, setPayerIdState] = React.useState(currentUserId);
+  const [splitMode, setSplitModeState] = React.useState<ExpenseSplitType>('SPLIT');
   const [selectedParticipantIds, setSelectedParticipantIds] = React.useState<number[]>([]);
   const [splitMap, setSplitMap] = React.useState<SplitMap>({});
   const [errors, setErrors] = React.useState<FormErrors>({});
+  const setPayerId = React.useCallback((next: number) => {
+    if (mode === 'create' && splitMode === 'NO_SPLIT') setPayerIdState(currentUserId);
+    else setPayerIdState(next);
+  }, [currentUserId, mode, splitMode]);
+  const setSplitMode = React.useCallback((next: ExpenseSplitType) => {
+    if (mode === 'edit') return;
+    if (mode === 'create' && formContext === 'personal') return;
+    setSplitModeState(next);
+    if (mode === 'create' && next === 'NO_SPLIT') setPayerIdState(currentUserId);
+  }, [currentUserId, formContext, mode]);
 
   const clearError = React.useCallback((key: ErrorKey) => {
     setErrors((prev) => {
       if (!prev[key]) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
+      const { [key]: _removed, ...rest } = prev;
+      return rest;
     });
   }, []);
 
@@ -56,8 +67,8 @@ export const useExpenseForm = ({
     setType('');
     setAmountStr('');
     setSpentAt(dayjs());
-    setPayerId(userId);
-    setSplitMode(nextSplitMode);
+    setPayerIdState(userId);
+    setSplitModeState(nextSplitMode);
     setSelectedParticipantIds([]);
     setSplitMap({});
     setErrors({});
@@ -68,9 +79,9 @@ export const useExpenseForm = ({
     if (mode === 'edit' && initialExpense) {
       setName(initialExpense.name ?? '');
       setType(initialExpense.type ?? '');
-      setPayerId(initialExpense.payer.id);
+      setPayerIdState(initialExpense.payer.id);
       setSpentAt(dayjs(initialExpense.spentAt));
-      setSplitMode(initialExpense.splitType);
+      setSplitModeState(initialExpense.splitType);
       const ids = initialExpense.splits.map((s) => s.participant.id);
       setSelectedParticipantIds(ids);
       const initTotal = getExpenseTotal(initialExpense);
@@ -81,13 +92,20 @@ export const useExpenseForm = ({
       setErrors({});
       return;
     }
-    resetForm(currentUserId, defaultSplitMode ?? 'SPLIT');
-  }, [currentUserId, defaultSplitMode, initialExpense, mode, open, resetForm]);
+    const nextMode: ExpenseSplitType = mode === 'create' && formContext === 'personal' ? 'NO_SPLIT' : (defaultSplitMode ?? 'SPLIT');
+    resetForm(currentUserId, nextMode);
+  }, [currentUserId, defaultSplitMode, formContext, initialExpense, mode, open, resetForm]);
+
+  React.useEffect(() => {
+    if (mode !== 'create') return;
+    if (splitMode !== 'NO_SPLIT') return;
+    if (payerId === currentUserId) return;
+    setPayerIdState(currentUserId);
+  }, [currentUserId, mode, payerId, splitMode]);
 
   const memberById = React.useMemo(() => new Map(members.map((m) => [m.id, m] as const)), [members]);
   const participantsOrdered = React.useMemo<PublicUserInfo[]>(
-    () =>
-      selectedParticipantIds.map((id) => memberById.get(id) ?? { id, username: '', email: '', profilePicUrl: '' }),
+    () => selectedParticipantIds.map((id) => memberById.get(id) ?? { id, username: '', email: '', profilePicUrl: '' }),
     [memberById, selectedParticipantIds]
   );
 
@@ -111,30 +129,18 @@ export const useExpenseForm = ({
     buildUpdatePayload({ name, type, payerId, splitMode, selectedParticipantIds, totalAmount, effectiveSplitMap });
 
   return {
-    name,
-    setName,
-    type,
-    setType,
-    amountStr,
-    setAmountStr,
-    spentAt,
-    setSpentAt,
-    payerId,
-    setPayerId,
-    splitMode,
-    setSplitMode,
-    selectedParticipantIds,
-    setSelectedParticipantIds,
-    splitMap,
-    setSplitMap,
-    effectiveSplitMap,
-    participantsOrdered,
-    isSplit,
-    splitComplete,
-    errors,
-    setErrors,
-    clearError,
-    validateForm,
+    name, setName,
+    type, setType,
+    amountStr, setAmountStr,
+    spentAt, setSpentAt,
+    payerId, setPayerId,
+    splitMode, setSplitMode,
+    selectedParticipantIds, setSelectedParticipantIds,
+    splitMap, setSplitMap,
+    effectiveSplitMap, participantsOrdered,
+    isSplit, splitComplete,
+    errors, setErrors,
+    clearError, validateForm,
     buildCreatePayload: buildCreate,
     buildUpdatePayload: buildUpdate,
   };

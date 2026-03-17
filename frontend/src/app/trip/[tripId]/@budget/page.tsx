@@ -47,6 +47,7 @@ export default function BudgetPage() {
   const [addDefaultSplitMode, setAddDefaultSplitMode] = React.useState<ExpenseSplitType | undefined>(
     undefined
   );
+  const [addFormContext, setAddFormContext] = React.useState<'default' | 'personal'>('default');
   const [hasNewNoSplit, setHasNewNoSplit] = React.useState(false);
   const [noSplitCreatedSnackbarOpen, setNoSplitCreatedSnackbarOpen] = React.useState(false);
   const [pendingOpenNoSplitCreate, setPendingOpenNoSplitCreate] = React.useState(false);
@@ -56,6 +57,7 @@ export default function BudgetPage() {
 
   React.useEffect(() => {
     if (!noSplitDialogOpen && pendingOpenNoSplitCreate) {
+      setAddFormContext('personal');
       setAddDefaultSplitMode('NO_SPLIT');
       setOpenAddExpense(true);
       setPendingOpenNoSplitCreate(false);
@@ -93,6 +95,7 @@ export default function BudgetPage() {
   };
 
   const openAddSplitExpense = () => {
+    setAddFormContext('default');
     setAddDefaultSplitMode(undefined);
     setOpenAddExpense(true);
   };
@@ -138,10 +141,12 @@ export default function BudgetPage() {
         onClose={() => {
           setOpenAddExpense(false);
           setAddDefaultSplitMode(undefined);
+          setAddFormContext('default');
         }}
         tripId={tripId}
         currentUserId={me.id}
         defaultSplitMode={addDefaultSplitMode}
+        formContext={addFormContext}
         onCreated={onExpenseCreated}
       />
 
@@ -151,7 +156,6 @@ export default function BudgetPage() {
         tripId={tripId}
         currentUserId={me.id}
         tripOverview={tripOverview}
-        onOpenDebtSummary={() => router.push(`/debts/${tripId}`)}
         onRequestAddNoSplit={() => {
           setPendingOpenNoSplitCreate(true);
           closeNoSplitDialog();
