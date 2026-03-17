@@ -60,3 +60,7 @@ export const searchUsers = async (q: string, page: number): Promise<Page<PublicU
   );
   return data;
 };
+
+export const logout = async (): Promise<void> => {
+  await apiClient.post('/auth/logout');
+};
