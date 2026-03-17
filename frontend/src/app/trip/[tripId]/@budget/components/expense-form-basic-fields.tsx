@@ -69,7 +69,7 @@ export const ExpenseFormBasicFields: React.FC<Props> = ({
         </Paper>
       )}
 
-      <Stack spacing={2.5} mt={0.5}>
+      <Stack spacing={2.5} mt={1}>
         <TextField
           label={t('budget.expenseForm.fields.name.label')}
           placeholder={t('budget.expenseForm.fields.name.placeholder')}
