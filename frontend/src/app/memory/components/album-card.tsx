@@ -247,8 +247,8 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
         onConfirm={handleDelete}
-        confirmLabel="delete"
-        cancelLabel="cancel"
+        confirmLabel="ยืนยัน"
+        cancelLabel="ยกเลิก"
         confirmLoading={isDeleting}
         color="error"
         content={<Typography>คุณต้องการลบอัลบั้มนี้ใช่หรือไม่?</Typography>}

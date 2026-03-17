@@ -313,8 +313,8 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
         onClose={() => !isDeleting && setOpenDelete(false)}
         onConfirm={handleDelete}
         confirmLoading={isDeleting}
-        confirmLabel="delete"
-        cancelLabel="cancel"
+        confirmLabel="ยืนยัน"
+        cancelLabel="ยกเลิก"
         color="error"
         content={<Typography>คุณต้องการลบไฟล์นี้ใช่หรือไม่?</Typography>}
       />

@@ -33,6 +33,11 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
   const me = useAppSelector((s) => s.profile.currentUser);
 
   const [selectedTripId, setSelectedTripId] = React.useState<number | ''>('');
+  React.useEffect(() => {
+    if (open) {
+      setSelectedTripId('');
+    }
+  }, [open]);
 
   const { data: trips, isLoading: isTripsLoading } = useGetAllTrips();
   const { data: albumsData, isLoading: isAlbumsLoading } = useQuery<ListAlbumsResponseDto>({
@@ -78,7 +83,17 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
   const isLoading = isTripsLoading || isAlbumsLoading;
 
   return (
-    <Dialog open={open} onClose={isPending ? undefined : onClose} fullWidth maxWidth="xs">
+    <Dialog
+      open={open}
+      onClose={(event, reason) => {
+        if (isPending) return;
+        if (reason === 'backdropClick') return;
+
+        onClose();
+      }}
+      fullWidth
+      maxWidth="xs"
+    >
       <DialogTitle fontWeight={700}>กรุณาเลือกทริปที่ต้องการสร้างอัลบั้ม</DialogTitle>
 
       <DialogContent>
@@ -89,9 +104,9 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
         ) : (
           <>
             {availableTrips.length === 0 ? (
-              <Typography color="text.secondary" justifyContent="center">
-                ไม่มีทริปที่สามารถสร้างอัลบั้มได้
-              </Typography>
+              <Box display="flex" justifyContent="center" alignItems="center">
+                <Typography color="text.secondary">ไม่มีทริปที่สามารถสร้างอัลบั้มได้</Typography>
+              </Box>
             ) : (
               <FormControl fullWidth sx={{ mt: 2 }}>
                 <InputLabel>เลือกทริป</InputLabel>
@@ -114,7 +129,7 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
 
       <DialogActions sx={{ px: 3, pb: 3 }}>
         <Button onClick={onClose} disabled={isPending}>
-          ปิด
+          ยกเลิก
         </Button>
 
         <Button variant="contained" onClick={handleCreate} disabled={!selectedTripId || isPending}>
