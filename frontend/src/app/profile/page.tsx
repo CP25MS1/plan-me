@@ -4,16 +4,19 @@ import Image from 'next/image';
 import Link from 'next/link';
 import FullPageLoading from '@/components/full-page-loading';
 import { LangSwitcher } from '@/components/profile';
-import { TruncatedTooltip } from '@/components/atoms';
 import { useAppSelector } from '@/store';
 import { useTranslation } from 'react-i18next';
 import { TripList } from '@/app/profile/all-trip/trip-list';
 import { useGetAllTrips } from '@/app/profile/all-trip/hooks/use-get-all-trips';
 import { useRouter } from 'next/navigation';
 import { useGetProfile } from '@/app/profile/hooks';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { setCurrentUser } from '@/store/profile-slice';
 import { useDispatch } from 'react-redux';
+
+import { LogOut } from 'lucide-react';
+import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
+import { Typography, IconButton } from '@mui/material';
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
@@ -33,20 +36,40 @@ export default function ProfilePage() {
     dispatch(setCurrentUser(fetchedCurrentUser ?? currentUser));
   }, [currentUser, dispatch, fetchedCurrentUser]);
 
+  const [openLogoutDialog, setOpenLogoutDialog] = useState(false);
+
   if (!currentUser) {
     return <FullPageLoading />;
   }
 
+  const handleLogout = () => {
+    console.log('logout...');
+  };
+
   return (
     <div className="relative flex flex-col px-6 min-h-[calc(100vh-64px)] overflow-y-auto pb-7">
       {' '}
-      <button className="absolute top-4 right-4 flex items-center rounded-full shadow-sm z-10">
-        <LangSwitcher />
-      </button>
+      <div className="absolute top-4 right-4 flex flex-col items-center gap-4 z-10">
+        <div className="rounded-full shadow-sm">
+          <LangSwitcher />
+        </div>
+
+        <IconButton
+          onClick={() => setOpenLogoutDialog(true)}
+          sx={{
+            backgroundColor: '#fff',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+            '&:hover': {
+              backgroundColor: '#f5f5f5',
+            },
+            alignSelf: 'flex-end',
+          }}
+        >
+          <LogOut size={24} />
+        </IconButton>
+      </div>
       <div className="flex flex-col items-center pt-5 shrink-0">
-        <h1 className="text-xl font-semibold text-black mb-8">
-          <TruncatedTooltip className="max-w-1/2" text={currentUser?.username || 'User'} />
-        </h1>
+        <div className="mb-8 h-7" />
 
         <div className="relative w-28 h-28 mb-3">
           <Image
@@ -89,6 +112,15 @@ export default function ProfilePage() {
           currentUserId={currentUser?.id}
         />
       </div>
+      <ConfirmDialog
+        open={openLogoutDialog}
+        onClose={() => setOpenLogoutDialog(false)}
+        onConfirm={handleLogout}
+        confirmLabel="ยืนยัน"
+        cancelLabel="ยกเลิก"
+        color="error"
+        content={<Typography>คุณต้องการออกจากบัญชีนี้ใช่หรือไม่ ?</Typography>}
+      />
     </div>
   );
 }
