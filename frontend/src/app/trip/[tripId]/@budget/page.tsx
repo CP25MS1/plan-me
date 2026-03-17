@@ -100,6 +100,12 @@ export default function BudgetPage() {
     setOpenAddExpense(true);
   };
 
+  const openAddNoSplitExpense = () => {
+    setAddFormContext('personal');
+    setAddDefaultSplitMode('NO_SPLIT');
+    setOpenAddExpense(true);
+  };
+
   const onExpenseCreated = (expense: TripExpenseDto) => {
     if (expense.splitType === 'NO_SPLIT') {
       setHasNewNoSplit(true);
@@ -134,7 +140,7 @@ export default function BudgetPage() {
         onOpenAddExpense={openAddSplitExpense}
       />
 
-      <FloatingAddButton onClick={openAddSplitExpense} />
+      <FloatingAddButton onClick={noSplitDialogOpen ? openAddNoSplitExpense : openAddSplitExpense} />
 
       <AddExpenseModal
         open={openAddExpense}
