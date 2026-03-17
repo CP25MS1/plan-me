@@ -27,6 +27,7 @@ public interface TripMapper {
     @Mapping(source = "wishlistPlaces", target = "wishlistPlaces")
     @Mapping(source = "dailyPlans", target = "dailyPlans")
     @Mapping(source = "checklists", target = "checklist")
+    @Mapping(source = "isPublic", target = "visibility", qualifiedByName = "mapVisibility")
     TripOverviewDto tripToTripOverviewDto(Trip trip);
 
     @Mapping(target = "objectives", ignore = true)
