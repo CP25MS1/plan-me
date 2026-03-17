@@ -17,13 +17,16 @@ import { useDispatch } from 'react-redux';
 import { LogOut } from 'lucide-react';
 import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
 import { Typography, IconButton } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
+import { useLogout } from './hooks/use-logout';
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const currentUser = useAppSelector((s) => s.profile.currentUser);
   const { t } = useTranslation('common');
   const router = useRouter();
-
+  const { mutate: logoutMutate, isPending } = useLogout();
   const { data: trips, isLoading, isError } = useGetAllTrips();
 
   const handleTripClick = (tripId: number) => {
@@ -43,7 +46,13 @@ export default function ProfilePage() {
   }
 
   const handleLogout = () => {
-    console.log('logout...');
+    logoutMutate(undefined, {
+      onSettled: () => {
+        dispatch(setCurrentUser(null));
+        queryClient.clear();
+        router.replace('/login');
+      },
+    });
   };
 
   return (
@@ -119,6 +128,7 @@ export default function ProfilePage() {
         confirmLabel="ยืนยัน"
         cancelLabel="ยกเลิก"
         color="error"
+        confirmLoading={isPending}
         content={<Typography>คุณต้องการออกจากบัญชีนี้ใช่หรือไม่ ?</Typography>}
       />
     </div>
