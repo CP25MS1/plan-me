@@ -4,7 +4,7 @@ import React from 'react';
 
 import type { TripExpenseDto } from '@/api/budget/type';
 
-import ExpenseFormModal from './expense-form-modal';
+import ExpenseFormModal, { type ExpenseFormContext } from './expense-form-modal';
 
 type Props = {
   open: boolean;
@@ -12,6 +12,7 @@ type Props = {
   tripId: number;
   currentUserId: number;
   expense: TripExpenseDto;
+  formContext?: ExpenseFormContext;
 };
 
 export const EditExpenseModal: React.FC<Props> = ({
@@ -20,6 +21,7 @@ export const EditExpenseModal: React.FC<Props> = ({
   tripId,
   currentUserId,
   expense,
+  formContext = 'default',
 }) => {
   const readOnly = expense.createdBy.id !== currentUserId;
 
@@ -32,9 +34,9 @@ export const EditExpenseModal: React.FC<Props> = ({
       mode="edit"
       initialExpense={expense}
       readOnly={readOnly}
+      formContext={formContext}
     />
   );
 };
 
 export default EditExpenseModal;
-

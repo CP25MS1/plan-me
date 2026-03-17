@@ -168,6 +168,7 @@ export const NoSplitExpenseSection: React.FC<Props> = ({
           tripId={tripId}
           currentUserId={currentUserId}
           expense={editingExpense}
+          formContext="personal"
         />
       )}
 
@@ -184,4 +185,3 @@ export const NoSplitExpenseSection: React.FC<Props> = ({
 };
 
 export default NoSplitExpenseSection;
-

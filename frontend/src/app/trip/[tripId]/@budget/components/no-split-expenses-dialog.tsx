@@ -16,7 +16,6 @@ type Props = {
   currentUserId: number;
   tripOverview: TripOverview;
   onClose: () => void;
-  onOpenDebtSummary: () => void;
   onRequestAddNoSplit: () => void;
 };
 
@@ -26,7 +25,6 @@ export const NoSplitExpensesDialog: React.FC<Props> = ({
   currentUserId,
   tripOverview,
   onClose,
-  onOpenDebtSummary,
   onRequestAddNoSplit,
 }) => {
   const { t } = useTranslation('trip_overview');
