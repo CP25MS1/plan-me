@@ -20,7 +20,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { useTranslation } from 'react-i18next';
 
-import type { ExpenseType } from '@/api/budget/type';
+import type { ExpenseType, ExpenseSplitType } from '@/api/budget/type';
 import type { PublicUserInfo } from '@/api/users/type';
 
 import type { ExpenseFormApi } from '../hooks/use-expense-form';
@@ -32,6 +32,7 @@ const amountFormat = /^\d*\.?\d{0,2}$/;
 type Props = {
   form: ExpenseFormApi;
   members: PublicUserInfo[];
+  defaultSplitMode?: ExpenseSplitType;
   currentUserId: number;
   locale: SupportedLocale;
   disableAll: boolean;
@@ -45,6 +46,7 @@ export const ExpenseFormBasicFields: React.FC<Props> = ({
   currentUserId,
   locale,
   disableAll,
+  defaultSplitMode,
   disablePayer,
   disableSpentAt,
 }) => {
@@ -158,7 +160,11 @@ export const ExpenseFormBasicFields: React.FC<Props> = ({
             }}
           >
             {members.map((m) => (
-              <MenuItem key={m.id} value={m.id}>
+              <MenuItem
+                key={m.id}
+                value={m.id}
+                disabled={defaultSplitMode === 'NO_SPLIT' && m.id !== currentUserId}
+              >
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <Avatar src={m.profilePicUrl ?? undefined} sx={{ width: 24, height: 24 }}>
                     {m.username?.[0]}
