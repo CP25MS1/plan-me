@@ -32,10 +32,10 @@ interface CreateTripAlbumModalProps {
 export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumModalProps) {
   const me = useAppSelector((s) => s.profile.currentUser);
 
-  const [selectedTripId, setSelectedTripId] = React.useState<number | ''>('');
+  const [selectedTripId, setSelectedTripId] = React.useState<number | null>(null);
   React.useEffect(() => {
     if (open) {
-      setSelectedTripId('');
+      setSelectedTripId(null);
     }
   }, [open]);
 
@@ -73,7 +73,7 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
       { tripId: Number(selectedTripId), formData },
       {
         onSuccess: () => {
-          setSelectedTripId('');
+          setSelectedTripId(null);
           onClose();
         },
       }
