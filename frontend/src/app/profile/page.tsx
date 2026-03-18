@@ -58,7 +58,7 @@ export default function ProfilePage() {
   return (
     <div className="relative flex flex-col px-6 min-h-[calc(100vh-64px)] overflow-y-auto pb-7">
       {' '}
-      <div className="absolute top-4 right-4 flex flex-col items-center gap-4 z-10">
+      <div className="absolute top-4 right-4 flex items-center gap-3 z-10">
         <div className="rounded-full shadow-sm">
           <LangSwitcher />
         </div>
@@ -71,7 +71,6 @@ export default function ProfilePage() {
             '&:hover': {
               backgroundColor: '#f5f5f5',
             },
-            alignSelf: 'flex-end',
           }}
         >
           <LogOut size={24} />
