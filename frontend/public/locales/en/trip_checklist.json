@@ -1,0 +1,17 @@
+{
+  "title": "Checklist",
+  "actions": {
+    "add": "Add checklist"
+  },
+  "fields": {
+    "namePlaceholder": "e.g. trash bags, winter clothes, tissues"
+  },
+  "tooltips": {
+    "assign": "Assign",
+    "changeAssignee": "Change assignee",
+    "delete": "Delete"
+  },
+  "hints": {
+    "completedLocked": "Uncheck to edit/delete"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "title": "เช็กลิสต์",
+  "actions": {
+    "add": "เพิ่มเช็กลิสต์"
+  },
+  "fields": {
+    "namePlaceholder": "เช่น ถุงขยะ, ชุดกันหนาว, ทิชชู่"
+  },
+  "tooltips": {
+    "assign": "มอบหมาย",
+    "changeAssignee": "เปลี่ยนผู้รับผิดชอบ",
+    "delete": "ลบ"
+  },
+  "hints": {
+    "completedLocked": "ต้อง uncheck ก่อนจึงจะแก้ไข/ลบได้"
+  }
+}

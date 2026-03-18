@@ -5,7 +5,7 @@ export default {
     locales: ['en', 'th'],
     localeDetection: false,
   },
-  ns: ['common', 'trip_create', 'profile', 'trip_overview', 'search'],
+  ns: ['common', 'trip_create', 'profile', 'trip_overview', 'trip_checklist', 'search'],
   defaultNS: 'common',
   localPath: '/capstone25/cp25ms1/locales',
   // localePath: './public/locales',
