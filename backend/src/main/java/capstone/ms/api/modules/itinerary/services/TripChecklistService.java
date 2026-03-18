@@ -1,5 +1,6 @@
 package capstone.ms.api.modules.itinerary.services;
 
+import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.checklist.CreateTripChecklistRequest;
@@ -20,6 +21,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TripChecklistService {
     private static final String TRIP_FORBIDDEN_KEY = "trip.403";
+    private static final String CHECKLIST_COMPLETED_LOCKED_KEY = "tripChecklist.completedLocked";
     private final TripChecklistRepository repository;
     private final ChecklistMapper mapper;
     private final TripAccessService tripAccessService;
@@ -61,7 +63,25 @@ public class TripChecklistService {
     ) {
         assertTripmateAccess(user, tripId);
 
-        final TripChecklist checklist = repository.findById(itemId).orElseThrow(() -> new NotFoundException("404"));
+        final TripChecklist checklist = repository
+                .findByIdAndTripId(itemId, tripId)
+                .orElseThrow(() -> new NotFoundException("404"));
+
+        if (Boolean.TRUE.equals(checklist.getCompleted())) {
+            final boolean isUncheckOnly =
+                    Boolean.FALSE.equals(request.getCompleted())
+                            && request.getName() == null
+                            && !request.isAssigneePresent();
+
+            if (!isUncheckOnly) {
+                throw new ConflictException(CHECKLIST_COMPLETED_LOCKED_KEY);
+            }
+
+            assertCanUpdateCompleted(checklist, user);
+            checklist.setCompleted(false);
+            final TripChecklist updatedChecklistItem = repository.save(checklist);
+            return mapper.toDto(updatedChecklistItem);
+        }
 
         if (request.getName() != null) {
             checklist.setName(request.getName());
@@ -83,7 +103,16 @@ public class TripChecklistService {
     @Transactional
     public void deleteTripChecklist(final Integer tripId, final User user, final Integer itemId) {
         assertTripmateAccess(user, tripId);
-        repository.deleteById(itemId);
+
+        final TripChecklist checklist = repository
+                .findByIdAndTripId(itemId, tripId)
+                .orElseThrow(() -> new NotFoundException("404"));
+
+        if (Boolean.TRUE.equals(checklist.getCompleted())) {
+            throw new ConflictException(CHECKLIST_COMPLETED_LOCKED_KEY);
+        }
+
+        repository.delete(checklist);
     }
 
     private void assertTripmateAccess(User user, Integer tripId) {

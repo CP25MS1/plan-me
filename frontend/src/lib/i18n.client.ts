@@ -13,7 +13,7 @@ if (!isInitialized) {
       fallbackLng: 'th',
       supportedLngs: ['en', 'th'],
       defaultNS: 'common',
-      ns: ['common', 'trip_create', 'profile', 'trip_overview', 'search'],
+      ns: ['common', 'trip_create', 'profile', 'trip_overview', 'trip_checklist', 'search'],
       backend: {
         // loadPath: '/locales/{{lng}}/{{ns}}.json',
         loadPath: '/capstone25/cp25ms1/locales/{{lng}}/{{ns}}.json',

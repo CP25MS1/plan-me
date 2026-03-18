@@ -170,6 +170,9 @@ tripChecklist:
   completeForbidden:
     th: "เฉพาะคนที่ได้รับมอบหมายเท่านั้นที่สามารถเปลี่ยนสถานะได้"
     en: "Only the assigned user can mark this checklist item as completed."
+  completedLocked:
+    th: "รายการนี้ถูกทำเป็นเสร็จแล้ว ต้อง uncheck ก่อนจึงจะแก้ไขหรือลบได้"
+    en: "This checklist item is completed. Uncheck it before updating or deleting."
 
 tripExpense:
   400:
