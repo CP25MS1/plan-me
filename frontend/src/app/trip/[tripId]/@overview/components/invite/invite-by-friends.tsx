@@ -19,7 +19,7 @@ export default function InviteByFriends({ tripId }: { tripId: number }) {
   const { data } = useGetFriends();
   const { data: tripmates, refetch: refetchTripmates } = useGetTripmates(tripId);
   const { mutate, isPending } = useInviteTrip(tripId);
-  const [keyword, setKeyword] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
   const [selected, setSelected] = useState<number[]>([]);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
@@ -32,19 +32,19 @@ export default function InviteByFriends({ tripId }: { tripId: number }) {
   });
 
   useEffect(() => {
-    setKeyword('');
+    setSearchKeyword('');
     setSelected([]);
     refetchTripmates();
   }, [refetchTripmates]);
 
   const filteredFriends = useMemo(() => {
     if (!data) return [];
-    if (!keyword.trim()) return data;
-    const lower = keyword.toLowerCase();
+    if (!searchKeyword.trim()) return data;
+    const lower = searchKeyword.toLowerCase();
     return data.filter(
       (f) => f.username?.toLowerCase().includes(lower) || f.email?.toLowerCase().includes(lower)
     );
-  }, [data, keyword]);
+  }, [data, searchKeyword]);
 
   const statusMap = useMemo(() => {
     if (!tripmates) return new Map<number, 'JOINED' | 'PENDING'>();
@@ -97,8 +97,8 @@ export default function InviteByFriends({ tripId }: { tripId: number }) {
         <TextField
           fullWidth
           placeholder="ค้นหาด้วยชื่อหรืออีเมล"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
+          value={searchKeyword}
+          onChange={(e) => setSearchKeyword(e.target.value)}
           size="small"
           sx={{
             '& .MuiOutlinedInput-root': {
