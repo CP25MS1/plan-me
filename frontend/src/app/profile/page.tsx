@@ -26,7 +26,7 @@ export default function ProfilePage() {
   const currentUser = useAppSelector((s) => s.profile.currentUser);
   const { t } = useTranslation('common');
   const router = useRouter();
-  const { mutate: logoutMutate, isPending } = useLogout();
+  const { mutate: logoutMutate, isPending: isLogoutPending } = useLogout();
   const { data: trips, isLoading, isError } = useGetAllTrips();
 
   const handleTripClick = (tripId: number) => {
@@ -128,7 +128,7 @@ export default function ProfilePage() {
         confirmLabel="ยืนยัน"
         cancelLabel="ยกเลิก"
         color="error"
-        confirmLoading={isPending}
+        confirmLoading={isLogoutPending}
         content={<Typography>คุณต้องการออกจากบัญชีนี้ใช่หรือไม่ ?</Typography>}
       />
     </div>
