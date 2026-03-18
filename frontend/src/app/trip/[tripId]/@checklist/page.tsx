@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 import {
   Box,
@@ -32,7 +33,6 @@ import { useDeleteTripChecklist } from '@/app/trip/[tripId]/@checklist/hooks/use
 import { useUpdateTripChecklist } from '@/app/trip/[tripId]/@checklist/hooks/use-update-trip-checklist';
 
 import { useAppSelector } from '@/store';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { useGetTripMembers } from '@/app/hooks/use-get-trip-members';
 import TripmateModal from '@/app/trip/[tripId]/@checklist/components/tripmate-modal';
 import { tokens } from '@/providers/theme/design-tokens';
@@ -40,9 +40,11 @@ import { tokens } from '@/providers/theme/design-tokens';
 export default function ChecklistPage() {
   const params = useParams();
   const tripId = Number(params.tripId);
+  const { t } = useTranslation('trip_checklist');
 
   const me = useAppSelector((s) => s.profile.currentUser);
   const tripmates = useGetTripMembers(tripId);
+  const completedLockedTooltip = t('hints.completedLocked');
 
   /* ===== checklist hooks ===== */
   const { data: items = [], isLoading } = useGetTripChecklist(tripId);
@@ -63,16 +65,6 @@ export default function ChecklistPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
 
-  const [snack, setSnack] = useState<{
-    open: boolean;
-    message: string;
-    severity?: 'success' | 'error';
-  }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
-
   if (!tripId || Number.isNaN(tripId)) return null;
 
   const handleInlineAdd = () => {
@@ -81,15 +73,6 @@ export default function ChecklistPage() {
     if (!name) {
       setIsAdding(false);
       setAddingName('');
-      return;
-    }
-
-    if (name.length > 30) {
-      setSnack({
-        open: true,
-        message: 'ชื่อยาวเกิน 30 ตัว',
-        severity: 'error',
-      });
       return;
     }
 
@@ -102,19 +85,16 @@ export default function ChecklistPage() {
   };
 
   const handleInlineUpdate = (id: number) => {
-    const name = editingName.trim();
-
-    if (!name) {
+    const currentItem = items.find((x) => x.id === id);
+    if (currentItem?.completed) {
       setEditingId(null);
       return;
     }
 
-    if (name.length > 30) {
-      setSnack({
-        open: true,
-        message: 'ชื่อยาวเกิน 30 ตัว',
-        severity: 'error',
-      });
+    const name = editingName.trim();
+
+    if (!name) {
+      setEditingId(null);
       return;
     }
 
@@ -127,12 +107,7 @@ export default function ChecklistPage() {
   };
 
   const handleToggleComplete = (item: TripChecklistDto) => {
-    if (item.assignee && (!me || me.id !== item.assignee.id))
-      return setSnack({
-        open: true,
-        message: 'เฉพาะผู้รับผิดชอบเท่านั้นที่เช็คได้',
-        severity: 'error',
-      });
+    if (item.assignee && (!me || me.id !== item.assignee.id)) return;
 
     updateMut.mutate({
       itemId: item.id,
@@ -141,6 +116,13 @@ export default function ChecklistPage() {
   };
 
   const handleAssign = (item: TripChecklistDto, assigneeId: number | null) => {
+    const currentItem = items.find((x) => x.id === item.id);
+    if (currentItem?.completed) {
+      setAssignAnchor(null);
+      setAssignTarget(null);
+      return;
+    }
+
     updateMut.mutate({
       itemId: item.id,
       payload: { assigneeId },
@@ -151,6 +133,11 @@ export default function ChecklistPage() {
   };
 
   const handleDelete = (id: number) => {
+    const currentItem = items.find((x) => x.id === id);
+    if (currentItem?.completed) {
+      return;
+    }
+
     deleteMut.mutate(id);
   };
 
@@ -159,7 +146,7 @@ export default function ChecklistPage() {
   return (
     <Box sx={{ width: '100%', p: 2 }}>
       {openSection && (
-        <SectionCard title="เช็กลิสต์" asEmpty={!isLoading && items.length === 0 && !isAdding}>
+        <SectionCard title={t('title')} asEmpty={!isLoading && items.length === 0 && !isAdding}>
           {/* ===== List ===== */}
           {isLoading ? (
             [1, 2, 3].map((i) => (
@@ -199,7 +186,7 @@ export default function ChecklistPage() {
                     fullWidth
                     size="small"
                     autoFocus
-                    placeholder="eg. ถุงขยะ, ชุดกันหนาว, ทิชชู่"
+                    placeholder={t('fields.namePlaceholder')}
                     value={addingName}
                     onChange={(e) => setAddingName(e.target.value)}
                     onBlur={handleInlineAdd}
@@ -222,7 +209,7 @@ export default function ChecklistPage() {
                   />
                 </Box>
               ) : (
-                <AddItemButton label="เพิ่มเช็กลิสต์" onClick={() => setIsAdding(true)} />
+                <AddItemButton label={t('actions.add')} onClick={() => setIsAdding(true)} />
               )}
             </Box>
           ) : (
@@ -236,6 +223,7 @@ export default function ChecklistPage() {
               })
               .map((it) => {
                 const canToggle = !it.assignee || (me && it.assignee && me.id === it.assignee.id);
+                const isLocked = it.completed === true;
 
                 return (
                   <Box
@@ -291,7 +279,7 @@ export default function ChecklistPage() {
                         <Typography
                           sx={{
                             textDecoration: it.completed ? 'line-through' : 'none',
-                            cursor: 'pointer',
+                            cursor: isLocked ? 'default' : 'pointer',
                             flex: 1,
                             textAlign: 'left',
                             wordBreak: 'break-word',
@@ -299,6 +287,7 @@ export default function ChecklistPage() {
                             lineHeight: 1.5,
                           }}
                           onClick={() => {
+                            if (isLocked) return;
                             setEditingId(it.id);
                             setEditingName(it.name);
                           }}
@@ -339,6 +328,7 @@ export default function ChecklistPage() {
                                   e.stopPropagation();
                                   handleAssign(it, null);
                                 }}
+                                disabled={isLocked}
                                 sx={{
                                   bgcolor: '#fff',
                                   boxShadow: 1,
@@ -351,33 +341,53 @@ export default function ChecklistPage() {
                               </IconButton>
                             }
                           >
-                            <Avatar
-                              src={it.assignee.profilePicUrl}
-                              sx={{ width: 32, height: 32, cursor: 'pointer' }}
+                            <Tooltip
+                              title={
+                                isLocked ? completedLockedTooltip : t('tooltips.changeAssignee')
+                              }
+                            >
+                              <Avatar
+                                src={it.assignee.profilePicUrl}
+                                sx={{
+                                  width: 32,
+                                  height: 32,
+                                  cursor: isLocked ? 'not-allowed' : 'pointer',
+                                  opacity: isLocked ? 0.7 : 1,
+                                }}
+                                onClick={(e) => {
+                                  if (isLocked) return;
+
+                                  setAssignTarget(it);
+                                  setAssignAnchor(e.currentTarget);
+                                }}
+                              />
+                            </Tooltip>
+                          </Badge>
+                        </Box>
+                      ) : (
+                        <Tooltip title={isLocked ? completedLockedTooltip : t('tooltips.assign')}>
+                          <span>
+                            <IconButton
+                              disabled={isLocked}
                               onClick={(e) => {
                                 setAssignTarget(it);
                                 setAssignAnchor(e.currentTarget);
                               }}
-                            />
-                          </Badge>
-                        </Box>
-                      ) : (
-                        <Tooltip title="Assign">
-                          <IconButton
-                            onClick={(e) => {
-                              setAssignTarget(it);
-                              setAssignAnchor(e.currentTarget);
-                            }}
-                          >
-                            <UserPen size={18} />
-                          </IconButton>
+                            >
+                              <UserPen size={18} />
+                            </IconButton>
+                          </span>
                         </Tooltip>
                       )}
 
                       {/* Delete */}
-                      <IconButton onClick={() => handleDelete(it.id)}>
-                        <Trash2 size={18} />
-                      </IconButton>
+                      <Tooltip title={isLocked ? completedLockedTooltip : t('tooltips.delete')}>
+                        <span>
+                          <IconButton disabled={isLocked} onClick={() => handleDelete(it.id)}>
+                            <Trash2 size={18} />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
                     </Stack>
                   </Box>
                 );
@@ -400,7 +410,7 @@ export default function ChecklistPage() {
                     fullWidth
                     size="small"
                     autoFocus
-                    placeholder="eg. ถุงขยะ, ชุดกันหนาว, ทิชชู่"
+                    placeholder={t('fields.namePlaceholder')}
                     value={addingName}
                     onChange={(e) => setAddingName(e.target.value)}
                     onBlur={handleInlineAdd}
@@ -425,7 +435,7 @@ export default function ChecklistPage() {
               ) : (
                 <Box textAlign="center">
                   <Button startIcon={<Add />} variant="contained" onClick={() => setIsAdding(true)}>
-                    เพิ่มเช็กลิสต์
+                    {t('actions.add')}
                   </Button>
                 </Box>
               )}
@@ -445,13 +455,6 @@ export default function ChecklistPage() {
         onAssign={(userId) => {
           if (assignTarget) handleAssign(assignTarget, userId);
         }}
-      />
-
-      <AppSnackbar
-        open={snack.open}
-        message={snack.message}
-        severity={snack.severity}
-        onClose={() => setSnack((s) => ({ ...s, open: false }))}
       />
     </Box>
   );
