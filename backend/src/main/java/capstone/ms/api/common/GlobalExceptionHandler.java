@@ -5,6 +5,7 @@ import capstone.ms.api.common.exceptions.*;
 import capstone.ms.api.common.models.ErrorResponse;
 import capstone.ms.api.common.models.LocalizedText;
 import capstone.ms.api.common.services.YamlMessageService;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeLockDto;
 import lombok.AllArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -109,6 +110,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseEntity<ErrorResponse> handleConflictException(ConflictException exception, WebRequest request) {
         return handleMainException(HttpStatus.CONFLICT, exception, request);
+    }
+
+    @ExceptionHandler(TripRealtimeLockConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<TripRealtimeLockDto> handleTripRealtimeLockConflict(TripRealtimeLockConflictException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getLock());
     }
 
     @ExceptionHandler(ServerErrorException.class)

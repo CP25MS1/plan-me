@@ -1,13 +1,15 @@
 import { Fragment, useMemo } from 'react';
 import { List } from '@mui/material';
 import { Heart } from 'lucide-react';
+import { useParams } from 'next/navigation';
 
 import SectionCard from '@/components/trip/overview/section-card';
 import { tokens } from '@/providers/theme/design-tokens';
-import { useI18nSelector, useTripSelector } from '@/store/selectors';
+import { useI18nSelector } from '@/store/selectors';
 import { createCustomTitle } from '../helpers/create-custom-title-for-search-section';
 import AddibleWishlistCard from './addible-wishlist-card';
 import { filterWishlistPlacesByName } from '@/app/trip/[tripId]/@daily/helpers/search-filter';
+import { useTripWishlistPlaces } from '@/api/trips';
 
 type SectionProps = {
   title: string;
@@ -16,10 +18,12 @@ type SectionProps = {
 
 const SuggestionFromWishlistSection = ({ title, q }: SectionProps) => {
   const { locale } = useI18nSelector();
-  const { tripOverview } = useTripSelector();
+  const params = useParams<{ tripId: string }>();
+  const tripId = Number(params.tripId);
+  const { data: wishlistPlaces = [] } = useTripWishlistPlaces(tripId);
   const searchResult = useMemo(
-    () => filterWishlistPlacesByName(tripOverview?.wishlistPlaces ?? [], q),
-    [q, tripOverview?.wishlistPlaces]
+    () => filterWishlistPlacesByName(wishlistPlaces, q),
+    [q, wishlistPlaces]
   );
   const qty = searchResult.length;
 

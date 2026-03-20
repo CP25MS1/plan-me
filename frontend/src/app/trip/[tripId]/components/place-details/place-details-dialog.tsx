@@ -19,7 +19,9 @@ type PlaceDetailsProps = {
   ggmpId: string;
   notableProps?: {
     notes: string;
-    onSave: (notes: string) => void;
+    onSave: (notes: string) => void | Promise<void>;
+    onBeginEdit?: () => Promise<boolean>;
+    onEndEdit?: () => Promise<void>;
   };
   cta?: ReactNode;
 };
@@ -75,7 +77,12 @@ export const PlaceDetailsDialog = ({
               <Divider sx={{ my: 2 }} />
 
               {notableProps && (
-                <PlaceNoteAction notes={notableProps.notes} onSave={notableProps.onSave} />
+                <PlaceNoteAction
+                  notes={notableProps.notes}
+                  onSave={notableProps.onSave}
+                  onBeginEdit={notableProps.onBeginEdit}
+                  onEndEdit={notableProps.onEndEdit}
+                />
               )}
             </Grid>
           </Grid>

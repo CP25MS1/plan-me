@@ -17,14 +17,13 @@ import {
 } from '@mui/material';
 import { MapPin, PlusIcon, Search } from 'lucide-react';
 import Image from 'next/image';
-import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
 import { BackButton } from '@/components/button';
 import { useAddWishlistPlace, useSearchForPlaces } from '../hooks';
 import { tokens } from '@/providers/theme/design-tokens';
-import { addWishlistPlace } from '@/store/trip-detail-slice';
 import PlaceDetailsDialog from '../../components/place-details/place-details-dialog';
+import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-trip-add-presence';
 
 type SearchAddWishlistPlaceProps = {
   tripId: number;
@@ -32,7 +31,6 @@ type SearchAddWishlistPlaceProps = {
 };
 
 export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishlistPlaceProps) => {
-  const dispatch = useDispatch();
   const [value, setValue] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -51,15 +49,20 @@ export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishl
 
   const { data: places = [], isFetching, isLoading } = useSearchForPlaces(debouncedQ.trim());
 
-  const mutation = useAddWishlistPlace();
+  const mutation = useAddWishlistPlace(tripId);
+
+  useTripAddPresenceEffect({
+    tripId,
+    enabled: true,
+    section: 'OVERVIEW_WISHLIST',
+  });
 
   const handleAdd = (ggmpId: string | null) => {
     if (mutation.isPending || !ggmpId) return;
     mutation.mutate(
-      { tripId, ggmpId },
+      ggmpId,
       {
-        onSuccess: (data) => {
-          dispatch(addWishlistPlace(data));
+        onSuccess: () => {
           onCloseAction();
         },
       }

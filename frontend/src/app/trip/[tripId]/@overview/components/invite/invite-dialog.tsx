@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { X } from 'lucide-react';
 
 import InviteTabs from './invite-tabs';
 
@@ -49,7 +49,7 @@ export default function InviteDialog({ open, onClose, tripId }: Props) {
             top: 12,
           }}
         >
-          <CloseIcon />
+          <X size={18} />
         </IconButton>
       </DialogTitle>
 

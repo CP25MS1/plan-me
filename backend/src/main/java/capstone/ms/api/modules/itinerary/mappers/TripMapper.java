@@ -4,6 +4,7 @@ import capstone.ms.api.modules.itinerary.dto.TripDto;
 import capstone.ms.api.modules.itinerary.dto.UpsertTripDto;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.dto.WishlistPlaceDto;
+import capstone.ms.api.modules.itinerary.dto.header.TripHeaderDto;
 import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.TripChecklist;
@@ -29,6 +30,12 @@ public interface TripMapper {
     @Mapping(source = "checklists", target = "checklist")
     @Mapping(source = "isPublic", target = "visibility", qualifiedByName = "mapVisibility")
     TripOverviewDto tripToTripOverviewDto(Trip trip);
+
+    @Mapping(source = "owner", target = "owner", qualifiedByName = "userToPublicUserInfo")
+    @Mapping(source = "objectives", target = "objectives")
+    @Mapping(source = "tripmates", target = "tripmates")
+    @Mapping(source = "isPublic", target = "visibility", qualifiedByName = "mapVisibility")
+    TripHeaderDto tripToTripHeaderDto(Trip trip);
 
     @Mapping(target = "objectives", ignore = true)
     Trip tripDtoToEntity(UpsertTripDto dto, User owner,

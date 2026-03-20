@@ -15,12 +15,17 @@ import capstone.ms.api.modules.itinerary.mappers.ObjectiveMapper;
 import capstone.ms.api.modules.itinerary.mappers.TripMapper;
 import capstone.ms.api.modules.itinerary.repositories.*;
 import capstone.ms.api.modules.itinerary.services.daily_plan.DailyPlanService;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeResourceType;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeScope;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimeLockGuard;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -41,6 +46,8 @@ public class TripService {
     private final ScheduledPlaceRepository scheduledPlaceRepository;
 
     private final TripAccessService tripAccessService;
+    private final TripRealtimeLockGuard tripRealtimeLockGuard;
+    private final TripRealtimePublisher tripRealtimePublisher;
 
     @Transactional
     public TripOverviewDto createTrip(UpsertTripDto tripInfo, User tripOwner) {
@@ -83,6 +90,9 @@ public class TripService {
         final Trip existing = loadTripOrThrow(tripId);
         ensureOwnerOrThrow(currentUser, existing);
 
+        LocalDate previousStartDate = existing.getStartDate();
+        LocalDate previousEndDate = existing.getEndDate();
+
         validateDates(tripInfo.getStartDate(), tripInfo.getEndDate());
 
         existing.getObjectives().clear();
@@ -100,6 +110,14 @@ public class TripService {
 
         final Trip saved = tripRepository.save(existing);
         syncDailyPlans(saved);
+
+        EnumSet<TripRealtimeScope> scopes = EnumSet.of(TripRealtimeScope.HEADER);
+        boolean dateRangeChanged = !java.util.Objects.equals(previousStartDate, tripInfo.getStartDate())
+                || !java.util.Objects.equals(previousEndDate, tripInfo.getEndDate());
+        if (dateRangeChanged) {
+            scopes.add(TripRealtimeScope.DAILY_PLANS);
+        }
+        tripRealtimePublisher.publishDataChangedAfterCommit(saved.getId(), scopes);
 
         return tripMapper.tripToTripOverviewDto(saved);
     }
@@ -132,6 +150,8 @@ public class TripService {
         final Trip saved = tripRepository.save(existing);
         
         String responseVisibility = saved.getIsPublic() ? TripVisibility.PUBLIC.name() : TripVisibility.PRIVATE.name();
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(saved.getId(), List.of(TripRealtimeScope.HEADER));
 
         return new UpdateTripVisibilityResponse(saved.getId(), responseVisibility);
     }
@@ -177,6 +197,7 @@ public class TripService {
         wp.setNotes(null);
         WishlistPlace saved = wishlistPlaceRepository.save(wp);
 
+        tripRealtimePublisher.publishDataChangedAfterCommit(trip.getId(), List.of(TripRealtimeScope.WISHLIST));
         return tripMapper.mapWishlistPlaceToDto(saved);
     }
 
@@ -187,8 +208,12 @@ public class TripService {
         WishlistPlace wp = wishlistPlaceRepository.findByIdAndTripId(placeId, tripId)
                 .orElseThrow(() -> new NotFoundException("place.404"));
 
+        tripRealtimeLockGuard.assertLockHeld(tripId, TripRealtimeResourceType.WISHLIST_PLACE, placeId, currentUser);
+
         wp.setNotes(newNote.getNotes());
         WishlistPlace saved = wishlistPlaceRepository.save(wp);
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.WISHLIST));
 
         return UpdateWishlistPlaceNoteDto.builder()
                 .notes(saved.getNotes())
@@ -202,7 +227,11 @@ public class TripService {
         WishlistPlace wp = wishlistPlaceRepository.findByIdAndTripId(placeId, tripId)
                 .orElseThrow(() -> new NotFoundException("place.404"));
 
+        tripRealtimeLockGuard.assertLockHeld(tripId, TripRealtimeResourceType.WISHLIST_PLACE, placeId, currentUser);
+
         wishlistPlaceRepository.delete(wp);
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.WISHLIST));
     }
 
     @Transactional

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import type { Route } from 'next';
 import Image from 'next/image';
-import { Box, Button, IconButton, Paper, Typography } from '@mui/material';
+import { Box, Button, IconButton, Paper, Tooltip, Typography } from '@mui/material';
 import { Map, Menu, Star, Trash2 as Trash } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
@@ -18,10 +19,10 @@ import {
   useRemoveScheduledPlace,
   useUpdateScheduledPlace,
 } from '@/app/trip/[tripId]/@daily/hooks/use-scheduled-place-mutation';
-import { useDispatch } from 'react-redux';
-import { removeScheduledPlace, updateScheduledPlace } from '@/store/trip-detail-slice';
 import PlaceDetailsDialog from '@/app/trip/[tripId]/components/place-details/place-details-dialog';
 import { useOpeningDialogContext } from '@/app/trip/[tripId]/@daily/context/opening-dialog-context';
+import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 
 type ScheduledPlaceCardProps = {
   planId: number;
@@ -31,6 +32,8 @@ type ScheduledPlaceCardProps = {
   isDragging: boolean;
   readOnly?: boolean;
   mapBasePath?: string;
+  disabled?: boolean;
+  lockOwnerName?: string;
 };
 
 const ScheduledPlaceCard = ({
@@ -41,13 +44,20 @@ const ScheduledPlaceCard = ({
   isDragging,
   readOnly = false,
   mapBasePath,
+  disabled = false,
+  lockOwnerName,
 }: ScheduledPlaceCardProps) => {
-  const dispatch = useDispatch();
   const router = useRouter();
   const { t } = useTranslation('trip_overview');
   const params = useParams();
   const tripIdParam = (params as { tripId?: string }).tripId;
   const tripId = Number(tripIdParam);
+  const { acquireLease } = useTripLockLease(tripId);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
+
+  const lockLabel = disabled ? `Locked by ${lockOwnerName ?? 'someone'}` : '';
+  const deleteReleaseRef = useRef<null | (() => Promise<void>)>(null);
+  const notesReleaseRef = useRef<null | (() => Promise<void>)>(null);
   const resolvedBasePath =
     mapBasePath ?? (Number.isFinite(tripId) ? `/trip/${tripId}` : '');
   const place = scheduledPlace.ggmp;
@@ -58,39 +68,58 @@ const ScheduledPlaceCard = ({
 
   const { isDetailsDialogOpened, openDetailsDialog, closeDetailsDialog, selectedGgmpId } =
     useOpeningDialogContext();
-  const { mutate: update } = useUpdateScheduledPlace();
-  const handleUpdateNotes = (notes: string) => {
-    if (readOnly) return;
-    update(
-      {
-        tripId,
-        placeId: scheduledPlace.id,
-        payload: {
-          planId,
-          notes,
-          order: scheduledPlace.order,
+  const { mutate: update } = useUpdateScheduledPlace(tripId);
+  const handleUpdateNotes = async (notes: string) => {
+    if (readOnly || disabled) return;
+    await new Promise<void>((resolve, reject) => {
+      update(
+        {
+          placeId: scheduledPlace.id,
+          payload: {
+            planId,
+            notes,
+            order: scheduledPlace.order,
+          },
         },
-      },
-      {
-        onSuccess: (res) => {
-          dispatch(
-            updateScheduledPlace({
-              planId,
-              scheduledPlace: { ...scheduledPlace, notes: res.notes ?? '' },
-            })
-          );
-        },
-      }
-    );
+        {
+          onSuccess: () => resolve(),
+          onError: (e) => reject(e),
+        }
+      );
+    });
   };
 
   const [isRemoveDialogOpened, setIsRemoveDialogOpened] = useState(false);
-  const { mutate: remove, isPending: isRemoving } = useRemoveScheduledPlace();
+  const { mutate: remove, isPending: isRemoving } = useRemoveScheduledPlace(tripId);
 
   const openDeleteDialogButton = (
     <IconButton
       aria-label="delete place"
-      onClick={() => setIsRemoveDialogOpened(true)}
+      onClick={() => {
+        if (disabled) {
+          setSnackbar({ open: true, message: lockLabel });
+          return;
+        }
+
+        void (async () => {
+          const lease = await acquireLease({
+            resourceType: 'SCHEDULED_PLACE',
+            resourceId: scheduledPlace.id,
+            purpose: 'DELETE',
+          });
+
+          if (lease.status === 'conflict') {
+            setSnackbar({
+              open: true,
+              message: `Locked by ${lease.lock.owner.username}`,
+            });
+            return;
+          }
+
+          deleteReleaseRef.current = lease.release;
+          setIsRemoveDialogOpened(true);
+        })();
+      }}
       size="large"
       sx={{ color: 'common.white' }}
     >
@@ -100,10 +129,17 @@ const ScheduledPlaceCard = ({
 
   const confirmRemove = () => {
     remove(
-      { tripId, placeId: scheduledPlace.id },
+      scheduledPlace.id,
       {
         onSuccess: () => {
-          dispatch(removeScheduledPlace({ planId, placeId: scheduledPlace.id }));
+          setIsRemoveDialogOpened(false);
+          void deleteReleaseRef.current?.();
+          deleteReleaseRef.current = null;
+        },
+        onError: () => {
+          setIsRemoveDialogOpened(false);
+          void deleteReleaseRef.current?.();
+          deleteReleaseRef.current = null;
         },
       }
     );
@@ -111,7 +147,13 @@ const ScheduledPlaceCard = ({
 
   const cardContent = (
     <Box
-      onClick={() => openDetailsDialog(scheduledPlace.ggmp.ggmpId)}
+      onClick={() => {
+        if (disabled) {
+          setSnackbar({ open: true, message: lockLabel });
+          return;
+        }
+        openDetailsDialog(scheduledPlace.ggmp.ggmpId);
+      }}
       sx={{
         display: 'flex',
         gap: 1,
@@ -127,10 +169,11 @@ const ScheduledPlaceCard = ({
             display: 'flex',
             alignItems: 'center',
             cursor: isDragging ? 'grabbing' : 'grab',
+            opacity: disabled ? 0.4 : 1,
           }}
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
-          {...dragHandleProps}
+          {...(dragHandleProps ?? {})}
         >
           <Menu size={21} color={tokens.color.textSecondary} />
         </Box>
@@ -187,7 +230,7 @@ const ScheduledPlaceCard = ({
               onClick={(e) => {
                 e.stopPropagation();
                 router.push(
-                  `${resolvedBasePath}?tab=map&selectedPlaceId=${scheduledPlace.id}`
+                  `${resolvedBasePath}?tab=map&selectedPlaceId=${scheduledPlace.id}` as Route
                 );
               }}
               variant="contained"
@@ -236,26 +279,41 @@ const ScheduledPlaceCard = ({
             py: 2,
             pl: 2,
             pr: 0,
+            ...(disabled ? { border: '2px solid', borderColor: 'warning.main' } : {}),
           }}
         >
           {cardContent}
         </Paper>
       ) : (
-        <SwipeReveal
-          actionNode={openDeleteDialogButton}
-          actionWidth={80}
-          actionSide="right"
-          actionSx={{ bgcolor: 'error.main' }}
-          cardSx={{ py: 2, pl: 2, pr: 0 }}
-        >
-          {cardContent}
-        </SwipeReveal>
+        <Tooltip title={disabled ? lockLabel : ''} arrow disableHoverListener={!disabled}>
+          <Box>
+            <SwipeReveal
+              actionNode={openDeleteDialogButton}
+              actionWidth={80}
+              actionSide="right"
+              actionSx={{ bgcolor: 'error.main' }}
+              cardSx={{
+                py: 2,
+                pl: 2,
+                pr: 0,
+                ...(disabled ? { border: '2px solid', borderColor: 'warning.main' } : {}),
+              }}
+              disabled={disabled}
+            >
+              {cardContent}
+            </SwipeReveal>
+          </Box>
+        </Tooltip>
       )}
 
       {selectedGgmpId === place.ggmpId && (
         <PlaceDetailsDialog
           isOpened={isDetailsDialogOpened}
-          onClose={() => closeDetailsDialog()}
+          onClose={() => {
+            closeDetailsDialog();
+            void notesReleaseRef.current?.();
+            notesReleaseRef.current = null;
+          }}
           ggmpId={place.ggmpId}
           notableProps={
             readOnly
@@ -263,6 +321,30 @@ const ScheduledPlaceCard = ({
               : {
                   notes: scheduledPlace.notes,
                   onSave: handleUpdateNotes,
+                  onBeginEdit: async () => {
+                    if (disabled) {
+                      setSnackbar({ open: true, message: lockLabel });
+                      return false;
+                    }
+                    const lease = await acquireLease({
+                      resourceType: 'SCHEDULED_PLACE',
+                      resourceId: scheduledPlace.id,
+                      purpose: 'EDIT',
+                    });
+                    if (lease.status === 'conflict') {
+                      setSnackbar({
+                        open: true,
+                        message: `Locked by ${lease.lock.owner.username}`,
+                      });
+                      return false;
+                    }
+                    notesReleaseRef.current = lease.release;
+                    return true;
+                  },
+                  onEndEdit: async () => {
+                    await notesReleaseRef.current?.();
+                    notesReleaseRef.current = null;
+                  },
                 }
           }
         />
@@ -271,7 +353,11 @@ const ScheduledPlaceCard = ({
       {!readOnly && (
         <ConfirmDialog
           open={isRemoveDialogOpened}
-          onClose={() => setIsRemoveDialogOpened(false)}
+          onClose={() => {
+            setIsRemoveDialogOpened(false);
+            void deleteReleaseRef.current?.();
+            deleteReleaseRef.current = null;
+          }}
           onConfirm={confirmRemove}
           content={<Typography>{t('sectionCard.dailyPlan.remove.confirm_message')}</Typography>}
           confirmLabel={t('sectionCard.dailyPlan.remove.confirm_label')}
@@ -279,6 +365,13 @@ const ScheduledPlaceCard = ({
           color="error"
         />
       )}
+
+      <AppSnackbar
+        open={Boolean(snackbar?.open)}
+        message={snackbar?.message ?? ''}
+        severity="warning"
+        onClose={() => setSnackbar(null)}
+      />
     </>
   );
 };

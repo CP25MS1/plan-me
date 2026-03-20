@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, Paper, SxProps } from '@mui/material';
 
 type SwipeRevealProps = {
@@ -10,6 +10,7 @@ type SwipeRevealProps = {
   children: React.ReactNode;
   actionSx?: SxProps;
   cardSx?: SxProps;
+  disabled?: boolean;
 };
 
 export const SwipeReveal: React.FC<SwipeRevealProps> = ({
@@ -19,11 +20,21 @@ export const SwipeReveal: React.FC<SwipeRevealProps> = ({
   children,
   actionSx,
   cardSx,
+  disabled = false,
 }) => {
   const [translate, setTranslate] = useState(0);
   const startXRef = useRef<number | null>(null);
   const startTranslateRef = useRef(0);
   const draggingRef = useRef(false);
+
+  useEffect(() => {
+    if (disabled) {
+      setTranslate(0);
+      draggingRef.current = false;
+      startXRef.current = null;
+      startTranslateRef.current = 0;
+    }
+  }, [disabled]);
 
   // allowed range depending on side:
   // right action  -> translate in [-actionWidth, 0]
@@ -34,6 +45,7 @@ export const SwipeReveal: React.FC<SwipeRevealProps> = ({
   const clamp = (v: number) => Math.max(minTranslate, Math.min(maxTranslate, v));
 
   const onPointerDown = (e: React.PointerEvent) => {
+    if (disabled) return;
     startXRef.current = e.clientX;
     startTranslateRef.current = translate;
     draggingRef.current = true;
@@ -41,6 +53,7 @@ export const SwipeReveal: React.FC<SwipeRevealProps> = ({
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
+    if (disabled) return;
     if (!draggingRef.current || startXRef.current === null) return;
     const dx = e.clientX - startXRef.current;
     // consider starting translate so we can drag from opened state too
@@ -49,6 +62,7 @@ export const SwipeReveal: React.FC<SwipeRevealProps> = ({
   };
 
   const finishDrag = () => {
+    if (disabled) return;
     draggingRef.current = false;
     startXRef.current = null;
     startTranslateRef.current = 0;
@@ -67,6 +81,7 @@ export const SwipeReveal: React.FC<SwipeRevealProps> = ({
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
+    if (disabled) return;
     try {
       (e.target as Element).releasePointerCapture?.(e.pointerId);
     } catch {}
@@ -82,7 +97,7 @@ export const SwipeReveal: React.FC<SwipeRevealProps> = ({
           top: 1,
           bottom: 0,
           width: actionWidth,
-          display: 'flex',
+          display: disabled ? 'none' : 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: 1,

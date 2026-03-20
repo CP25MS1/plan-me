@@ -1,17 +1,16 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createReservationsBulk } from '@/api/reservations/api';
 import { ReservationDto } from '@/api/reservations/type';
-import { useDispatch } from 'react-redux';
-import { addReservation } from '@/store/trip-detail-slice';
+import { RESERVATIONS } from '@/constants/query-keys';
 
-export const useCreateReservationBulk = () => {
-  const dispatch = useDispatch();
+export const useCreateReservationBulk = (tripId: number) => {
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (reservations: ReservationDto[]) =>
-      createReservationsBulk(reservations),
-    onSuccess: (data) => {
-      data.forEach((rs) => dispatch(addReservation(rs)));
+    mutationFn: (reservations: ReservationDto[]) => createReservationsBulk(reservations),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trip-reservations', tripId] });
+      queryClient.invalidateQueries({ queryKey: [RESERVATIONS.PLACES, tripId] });
     },
   });
 };

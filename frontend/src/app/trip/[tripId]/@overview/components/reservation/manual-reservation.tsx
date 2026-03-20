@@ -13,12 +13,9 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { ElementType, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Building, Bus, Car, Plane, Ship, Train, Utensils } from 'lucide-react';
+import { Building, Bus, Car, Eye, Plane, Ship, Train, Trash2, Utensils, X } from 'lucide-react';
 import CircularProgress from '@mui/material/CircularProgress';
 import LodgingCard from '@/app/trip/[tripId]/@overview/components/cards/lodging';
 import RestaurantCard from '@/app/trip/[tripId]/@overview/components/cards/restaurant';
@@ -38,20 +35,19 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { tokens } from '@/providers/theme/design-tokens';
 
-import { ReservationDto, ReservationType, useCreateReservation } from '@/api/reservations';
+import { ReservationDetails, ReservationDto, ReservationType, useCreateReservation } from '@/api/reservations';
+import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-trip-add-presence';
 
 interface ManualReservationProps {
   open: boolean;
   onClose: () => void;
   tripId: number;
-  onReservationCreated: (reservation: ReservationDto) => void;
 }
 
 export default function ManualReservation({
   open,
   onClose,
   tripId,
-  onReservationCreated,
 }: ManualReservationProps) {
   const { t } = useTranslation('trip_overview');
 
@@ -64,7 +60,13 @@ export default function ManualReservation({
   ]);
 
   const fieldsRef = useRef<Record<string, HTMLDivElement | null>>({});
-  const createReservation = useCreateReservation();
+  const createReservation = useCreateReservation(tripId);
+
+  useTripAddPresenceEffect({
+    tripId,
+    enabled: open,
+    section: 'OVERVIEW_RESERVATIONS',
+  });
 
   /** RESET ทุกครั้งที่เปิด */
   useEffect(() => {
@@ -224,7 +226,7 @@ export default function ManualReservation({
       details: {
         type: typeMap[typeValue],
         ...buildDetails(),
-      },
+      } as ReservationDetails,
     };
 
     createReservation.mutate(payload, {
@@ -235,7 +237,6 @@ export default function ManualReservation({
           severity: 'success',
         });
 
-        onReservationCreated(data);
         setShowPreview(false);
         onClose();
       },
@@ -300,7 +301,7 @@ export default function ManualReservation({
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, pb: 1 }}>
           {t('ManualReservation.title')}
           <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-            <CloseIcon />
+            <X size={18} />
           </IconButton>
         </DialogTitle>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -600,7 +601,7 @@ export default function ManualReservation({
                               disabled={passengers.length === 1}
                               sx={{ mt: 1 }}
                             >
-                              <DeleteIcon />
+                              <Trash2 size={18} />
                             </IconButton>
                           </Box>
                         </Box>
@@ -646,7 +647,7 @@ export default function ManualReservation({
                   bgcolor: typeValue ? '#25CF7A' : '#B0B0B0',
                   pointerEvents: typeValue ? 'auto' : 'none',
                 }}
-                startIcon={<VisibilityIcon />}
+                startIcon={<Eye size={18} />}
                 onClick={handlePreview}
               >
                 {t('ManualReservation.Button')}
@@ -700,7 +701,7 @@ export default function ManualReservation({
                   details: {
                     type: 'FLIGHT',
                     ...buildDetails(),
-                  },
+                  } as ReservationDetails,
                 };
 
                 return <FlightCard key={i} data={previewData} passengerIndex={i} />;
