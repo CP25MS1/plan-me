@@ -14,6 +14,8 @@ import capstone.ms.api.modules.itinerary.mappers.TripmateMapper;
 import capstone.ms.api.modules.itinerary.repositories.PendingTripmateInvitationRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripmateRepository;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeScope;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.mappers.UserMapper;
 import capstone.ms.api.modules.user.repositories.UserRepository;
@@ -34,6 +36,7 @@ public class TripmateService {
     private final NotificationService notificationService;
     private final TripmateMapper tripmateMapper;
     private final UserMapper userMapper;
+    private final TripRealtimePublisher tripRealtimePublisher;
 
     public List<PendingInvitationDto> getReceivedInvitations(final User user) {
         final Integer userId = user.getId();
@@ -103,6 +106,8 @@ public class TripmateService {
                     trip.getOwner(),
                     trip
             );
+
+            tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.HEADER));
         } else if (!wasRejected) {
             notificationService.createNotification(
                     NotificationCode.INVITE_REJECTED.name(),
@@ -207,6 +212,8 @@ public class TripmateService {
                 trip.getOwner(),
                 trip
         );
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.HEADER));
 
         return InviteActionResponseDto.builder()
                 .tripId(tripId)

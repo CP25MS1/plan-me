@@ -14,6 +14,10 @@ import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.reservation.*;
 import capstone.ms.api.modules.itinerary.services.TripAccessService;
 import capstone.ms.api.modules.itinerary.services.TripResourceService;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeScope;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeResourceType;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimeLockGuard;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -41,6 +45,8 @@ public class ReservationService {
     private final PlacesService placesService;
     private final TripResourceService tripResourceService;
     private final TripAccessService tripAccessService;
+    private final TripRealtimeLockGuard tripRealtimeLockGuard;
+    private final TripRealtimePublisher tripRealtimePublisher;
 
     @Transactional
     public ReservationDto createReservation(ReservationDto dto, User currentUser) {
@@ -135,6 +141,8 @@ public class ReservationService {
         }
 
         dto.setId(reservation.getId());
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(trip.getId(), List.of(TripRealtimeScope.RESERVATIONS));
         return dto;
     }
 
@@ -151,9 +159,8 @@ public class ReservationService {
                 .orElseThrow(() -> new NotFoundException("404"));
 
         tripAccessService.assertTripmateLevelAccess(currentUser, reservation.getTrip().getId());
+        tripRealtimeLockGuard.assertLockHeld(reservation.getTrip().getId(), TripRealtimeResourceType.RESERVATION, reservationId, currentUser);
 
-        reservation.setTrip(tripRepository.findById(dto.getTripId())
-                .orElseThrow(() -> new NotFoundException("trip.404")));
         reservation.setBookingRef(dto.getBookingRef());
         reservation.setContactTel(dto.getContactTel());
         reservation.setContactEmail(dto.getContactEmail());
@@ -227,6 +234,7 @@ public class ReservationService {
 
         dto.setId(reservation.getId());
 
+        tripRealtimePublisher.publishDataChangedAfterCommit(reservation.getTrip().getId(), List.of(TripRealtimeScope.RESERVATIONS));
         return dto;
     }
 
@@ -236,6 +244,7 @@ public class ReservationService {
                 .orElseThrow(() -> new NotFoundException("404"));
 
         tripAccessService.assertTripmateLevelAccess(currentUser, reservation.getTrip().getId());
+        tripRealtimeLockGuard.assertLockHeld(reservation.getTrip().getId(), TripRealtimeResourceType.RESERVATION, reservationId, currentUser);
         ReservationType type;
         try {
             type = ReservationType.valueOf(String.valueOf(reservation.getType()));
@@ -277,6 +286,8 @@ public class ReservationService {
         }
 
         reservationRepository.delete(reservation);
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(reservation.getTrip().getId(), List.of(TripRealtimeScope.RESERVATIONS));
     }
 
     public List<EmailInfoDto> checkEmailInfo(Integer tripId, User currentUser) {

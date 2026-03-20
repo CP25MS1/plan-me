@@ -1,40 +1,47 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 
 import FullScreenMap from './components/full-screen-map';
 import SelectDayInTrip from './components/select-day-in-trip';
-import { useDailyPlansSelector, useTripSelector } from '@/store/selectors';
+import { useFullPageLoading } from '@/components/full-page-loading';
+import { useTripDailyPlans, useTripHeader } from '@/api/trips';
 
 type DayFilter = 'ALL' | number;
 
 const TripMapFullScreen = () => {
+  const params = useParams<{ tripId: string }>();
+  const tripId = Number(params.tripId);
   const searchParams = useSearchParams();
-  const { tripOverview } = useTripSelector();
-  const dailyPlans = useDailyPlansSelector();
+  const { FullPageLoading } = useFullPageLoading();
+
+  const { data: tripHeader, isLoading: isTripHeaderLoading } = useTripHeader(tripId);
+  const { data: dailyPlans = [], isLoading: isDailyPlansLoading } = useTripDailyPlans(tripId);
   const selectedPlaceId = searchParams.get('selectedPlaceId')
     ? Number(searchParams.get('selectedPlaceId'))
     : undefined;
 
   const computedDefaultDay: DayFilter = useMemo(() => {
-    const daysWithPlaces = dailyPlans.filter((d) => (d?.scheduledPlaces ?? []).length > 0);
+    const daysWithPlaces = dailyPlans.filter((d) => d.scheduledPlaces.length > 0);
 
     if (daysWithPlaces.length === 0) return 'ALL';
     if (daysWithPlaces.length === 1) {
-      return dailyPlans.findIndex((d) => (d?.scheduledPlaces ?? []).length > 0);
+      return dailyPlans.findIndex((d) => d.scheduledPlaces.length > 0);
     }
 
     return 'ALL';
   }, [dailyPlans]);
 
   const [selectedDay, setSelectedDay] = useState<DayFilter>('ALL');
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (tripOverview) {
-      setSelectedDay(computedDefaultDay);
-    }
-  }, [tripOverview, computedDefaultDay]);
+    if (initializedRef.current) return;
+    if (isTripHeaderLoading || isDailyPlansLoading) return;
+    setSelectedDay(computedDefaultDay);
+    initializedRef.current = true;
+  }, [computedDefaultDay, isDailyPlansLoading, isTripHeaderLoading]);
 
   useEffect(() => {
     if (selectedPlaceId) {
@@ -42,14 +49,13 @@ const TripMapFullScreen = () => {
     }
   }, [selectedPlaceId]);
 
-  if (!tripOverview) {
-    return <></>;
-  }
+  if (isTripHeaderLoading || isDailyPlansLoading) return <FullPageLoading />;
+  if (!tripHeader) return null;
 
   return (
     <FullScreenMap
       header={{
-        title: tripOverview.name,
+        title: tripHeader.name,
         cta: (
           <SelectDayInTrip
             dailyPlans={dailyPlans}

@@ -2,13 +2,16 @@ import { apiClient } from '@/api/client';
 import {
   DefaultObjective,
   UpsertTrip,
+  TripHeader,
   TripOverview,
   WishlistPlace,
   ComputeRouteRequestDto,
   TravelSegmentResponseDto,
   ToggleTripVisibilityRequest,
   ToggleTripVisibilityResponse,
+  DailyPlan,
 } from './type';
+import type { ReservationDto } from '@/api/reservations';
 
 export const getDefaultObjectives = async (): Promise<DefaultObjective[]> => {
   const { data } = await apiClient.get('/trips/objectives');
@@ -22,6 +25,26 @@ export const createTrip = async (tripInfo: UpsertTrip): Promise<TripOverview> =>
 
 export const getTripOverview = async (tripId: number): Promise<TripOverview> => {
   const { data } = await apiClient.get(`/trips/${tripId}/overview`);
+  return data;
+};
+
+export const getTripHeader = async (tripId: number): Promise<TripHeader> => {
+  const { data } = await apiClient.get(`/trips/${tripId}/header`);
+  return data;
+};
+
+export const getTripReservations = async (tripId: number): Promise<ReservationDto[]> => {
+  const { data } = await apiClient.get(`/trips/${tripId}/reservations`);
+  return data;
+};
+
+export const getTripWishlistPlaces = async (tripId: number): Promise<WishlistPlace[]> => {
+  const { data } = await apiClient.get(`/trips/${tripId}/wishlist-places`);
+  return data;
+};
+
+export const getTripDailyPlans = async (tripId: number): Promise<DailyPlan[]> => {
+  const { data } = await apiClient.get(`/trips/${tripId}/daily-plans`);
   return data;
 };
 

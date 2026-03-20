@@ -2,15 +2,23 @@
 
 import { useState, ReactNode } from 'react';
 import { Box, Typography, IconButton, Collapse } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { ChevronDown } from 'lucide-react';
 
 interface SectionCardProps {
   title: ReactNode;
+  titleEndAdornment?: ReactNode;
   children?: ReactNode;
   asEmpty?: boolean;
+  headerEndAdornment?: ReactNode;
 }
 
-const SectionCard = ({ title, children, asEmpty = false }: SectionCardProps) => {
+const SectionCard = ({
+  title,
+  titleEndAdornment,
+  children,
+  asEmpty = false,
+  headerEndAdornment,
+}: SectionCardProps) => {
   const [open, setOpen] = useState(true);
 
   return (
@@ -26,15 +34,36 @@ const SectionCard = ({ title, children, asEmpty = false }: SectionCardProps) => 
         }}
         onClick={() => setOpen(!open)}
       >
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
-          {title}
-        </Typography>
-        <IconButton
-          size="small"
-          sx={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s' }}
-        >
-          <ExpandMoreIcon />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            {title}
+          </Typography>
+          {titleEndAdornment ? (
+            <Box
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              {titleEndAdornment}
+            </Box>
+          ) : null}
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          {headerEndAdornment ? (
+            <Box
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              {headerEndAdornment}
+            </Box>
+          ) : null}
+
+          <IconButton
+            size="small"
+            sx={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s' }}
+          >
+            <ChevronDown size={18} />
+          </IconButton>
+        </Box>
       </Box>
 
       {/* Content */}

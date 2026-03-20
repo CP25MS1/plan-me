@@ -4,6 +4,7 @@ import profileReducer from './profile-slice';
 import i18nReducer from './i18n-slice';
 import constantReducer from './constant-slice';
 import tripOverviewReducer from './trip-detail-slice';
+import tripRealtimeReducer from './trip-realtime-slice';
 import routeReducer from './route-slice';
 import inviteReducer from './invite-slice';
 import notificationsReducer from './notifications-slice'
@@ -14,6 +15,7 @@ export const store = configureStore({
     i18n: i18nReducer,
     constant: constantReducer,
     tripDetail: tripOverviewReducer,
+    tripRealtime: tripRealtimeReducer,
     route: routeReducer,
     invite: inviteReducer,
     notifications: notificationsReducer,

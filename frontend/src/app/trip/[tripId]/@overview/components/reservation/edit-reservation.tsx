@@ -14,18 +14,15 @@ import {
   MenuItem,
   CircularProgress,
 } from '@mui/material';
-import { Plane, Building, Utensils, Train, Ship, Bus, Car } from 'lucide-react';
-import CloseIcon from '@mui/icons-material/Close';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Plane, Building, Utensils, Train, Ship, Bus, Car, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
-import { updateReservation as updateReservationAction } from '@/store/trip-detail-slice';
 import { tokens } from '@/providers/theme/design-tokens';
 
 import {
   FlightDetails,
   FlightPassenger,
+  ReservationDetails,
   ReservationDto,
   ReservationType,
 } from '@/api/reservations/type';
@@ -73,7 +70,7 @@ export default function EditReservation({
   };
 
   const { t } = useTranslation('trip_overview');
-  const updateReservation = useUpdateReservation();
+  const updateReservation = useUpdateReservation(tripId);
   const fieldsRef = useRef<Record<string, HTMLDivElement | null>>({});
   const typeValue = typeUiMap[reservation.type];
 
@@ -82,7 +79,6 @@ export default function EditReservation({
   const [passengers, setPassengers] = useState<{ passengerName: string; seatNo: string }[]>([]);
 
   const originalRef = useRef<string>('');
-  const dispatch = useDispatch();
   useEffect(() => {
     if (!open) return;
 
@@ -119,8 +115,11 @@ export default function EditReservation({
 
   const showErrorSnackbar = (error: unknown) => {
     if (error instanceof AxiosError) {
+      const lockedBy = error.response?.data?.owner?.username;
       const message =
-        error.response?.data?.message || error.response?.data?.error || 'เกิดข้อผิดพลาดบางอย่าง';
+        lockedBy
+          ? `Locked by ${lockedBy}`
+          : error.response?.data?.message || error.response?.data?.error || 'เกิดข้อผิดพลาดบางอย่าง';
 
       setSnackbar({
         open: true,
@@ -219,6 +218,8 @@ export default function EditReservation({
 
     if (!validate()) return;
 
+    if (!reservation.id) return;
+
     const payload = {
       reservationId: reservation.id,
       reservation: {
@@ -232,13 +233,12 @@ export default function EditReservation({
         details: {
           type: reservation.type,
           ...buildDetails(),
-        },
+        } as ReservationDetails,
       },
     };
 
     updateReservation.mutate(payload, {
-      onSuccess: (updatedReservation) => {
-        dispatch(updateReservationAction(updatedReservation));
+      onSuccess: () => {
         onClose();
       },
       onError: (err) => {
@@ -289,7 +289,7 @@ export default function EditReservation({
           disabled={updateReservation.isPending}
           sx={{ position: 'absolute', right: 8, top: 8 }}
         >
-          <CloseIcon />
+          <X size={18} />
         </IconButton>
       </DialogTitle>
 
@@ -549,7 +549,7 @@ export default function EditReservation({
                       disabled={passengers.length === 1}
                       sx={{ mt: 1 }}
                     >
-                      <DeleteIcon />
+                      <Trash2 size={18} />
                     </IconButton>
                   </Box>
                 </Box>

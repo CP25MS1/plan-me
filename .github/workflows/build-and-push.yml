@@ -38,7 +38,7 @@ jobs:
         id: targets
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.build_all }}" = "true" ]; then
-            TARGET_DIRS="backend frontend websocket infrastructure/nginx"
+            TARGET_DIRS="backend frontend infrastructure/nginx"
             echo "Running MANUAL prod build for all services: $TARGET_DIRS"
           else
             TARGET_DIRS="${{ steps.changes.outputs.dirs }}"
@@ -70,7 +70,6 @@ jobs:
                   --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }} \
                   --build-arg NEXT_PUBLIC_GEOCODING_URL=${{ secrets.NEXT_PUBLIC_GEOCODING_URL }} \
                   --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} \
-                  --build-arg NEXT_PUBLIC_WEBSOCKET_URL=${{ secrets.NEXT_PUBLIC_WEBSOCKET_URL }} \
                   --build-arg JWT_SECRET=${{ secrets.JWT_SECRET }} \
                   -t $IMAGE_SHA_TAG ./$dir
               else
