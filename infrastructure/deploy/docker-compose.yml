@@ -108,15 +108,6 @@ services:
     networks:
       - app-network
 
-  websocket:
-    image: cp25ms1/websocket:prod-latest
-    container_name: websocket-prod
-    env_file:
-      - .env
-    restart: always
-    networks:
-      - app-network
-
   reverse-proxy:
     image: cp25ms1/nginx:latest
     container_name: reverse-proxy
