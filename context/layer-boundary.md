@@ -9,7 +9,6 @@ Internet
 Nginx
 ├── NextJS (UI Layer)
 ├── Spring Boot (Core Domain)
-└── ElysiaJS (Realtime Presence Only)
 
 Spring Boot
 ↓
@@ -145,29 +144,7 @@ Redis must NOT:
 - Handle pub/sub for now
 - Be used for distributed coordination
 
----
-
-# 5. ELYSIA BOUNDARY (REALTIME)
-
-Role: Presence Gateway Only
-
-Responsibilities:
-
-- Validate JWT from HTTP-only cookie
-- Maintain in-memory presence map
-- Broadcast trip-related events
-
-Must NOT:
-
-- Access PostgreSQL
-- Access Spring repositories
-- Implement business rules
-- Persist notification
-- Modify domain state
-
----
-
-# 6. FRONTEND BOUNDARY (NEXTJS)
+# 5. FRONTEND BOUNDARY (NEXTJS)
 
 Folder structure remains unchanged.
 
@@ -182,7 +159,7 @@ frontend/src
 
 ---
 
-## 6.1 State Rules
+## 5.1 State Rules
 
 TanStack Query:
 
@@ -204,7 +181,7 @@ Forbidden:
 
 ---
 
-## 6.2 Component Rules
+## 5.2 Component Rules
 
 - Page must not contain business logic
 - API calls must live in api/ or custom hook
@@ -213,7 +190,7 @@ Forbidden:
 
 ---
 
-## 6.3 Media Rendering Boundary
+## 5.3 Media Rendering Boundary
 
 For image/video retrieval:
 
@@ -223,7 +200,7 @@ For image/video retrieval:
 
 ---
 
-## 6.4 Global Components Rule
+## 5.4 Global Components Rule
 
 components/ should contain:
 
@@ -236,7 +213,7 @@ Do NOT add new global components unless reused 3+ times.
 
 ---
 
-# 7. FILE SIZE LIMITS
+# 6. FILE SIZE LIMITS
 
 Service: max 250 LOC
 Controller: max 150 LOC
@@ -247,13 +224,10 @@ Exceeding limit requires refactor before merge.
 
 ---
 
-# 8. ARCHITECTURE SUMMARY
+# 7. ARCHITECTURE SUMMARY
 
 REST:
 NextJS → Spring Boot → PostgreSQL (+ Object Storage for blob files)
-
-Realtime:
-NextJS → Elysia (presence only)
 
 Spring Boot remains the only source of domain truth.
 
@@ -264,7 +238,7 @@ No Redis pub/sub (for now).
 
 ---
 
-# 9. TEAM AGREEMENT
+# 8. TEAM AGREEMENT
 
 This document is enforceable.
 Any violation must be justified in PR discussion.
