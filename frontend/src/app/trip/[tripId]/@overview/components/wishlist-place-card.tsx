@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Typography, Box, IconButton } from '@mui/material';
 import { Map, Star, Trash2 as Trash } from 'lucide-react';
 import Image from 'next/image';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
 import { WishlistPlace } from '@/api/trips';
 import { RootState } from '@/store';
 import { ConfirmDialog } from '@/components/common/dialog';
 import { useRemoveWishlistPlace } from '../hooks';
-import { removeWishlistPlace } from '@/store/trip-detail-slice';
 import { tokens } from '@/providers/theme/design-tokens';
 import { SwipeReveal } from '@/components/common/card';
+import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
+import { useTripRealtimeLocksMap } from '@/store/selectors';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 
 type WishlistPlaceCardProps = {
   tripId: number;
@@ -22,13 +24,21 @@ type WishlistPlaceCardProps = {
 };
 
 export const WishlistPlaceCard = ({ tripId, data, onOpenDetailAction }: WishlistPlaceCardProps) => {
-  const dispatch = useDispatch();
+  const { acquireLease } = useTripLockLease(tripId);
   const locale = useSelector((s: RootState) => s.i18n.locale);
+  const myUserId = useSelector((s: RootState) => s.profile.currentUser?.id);
+  const locksMap = useTripRealtimeLocksMap(tripId);
   const { t } = useTranslation('trip_overview');
   const { t: tCommon } = useTranslation('common');
-  const removeMutation = useRemoveWishlistPlace();
+  const removeMutation = useRemoveWishlistPlace(tripId);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
+
+  const deleteReleaseRef = useRef<null | (() => Promise<void>)>(null);
+
+  const lock = locksMap[`WISHLIST_PLACE:${data.id}`];
+  const lockedByOther = Boolean(lock) && Boolean(myUserId) && lock!.owner.id !== myUserId;
 
   const placeName =
     locale === 'th' ? data.place.th?.name : data.place.en?.name || data.place.th?.name;
@@ -39,10 +49,15 @@ export const WishlistPlaceCard = ({ tripId, data, onOpenDetailAction }: Wishlist
   const onConfirmDelete = () => {
     setConfirmOpen(false);
     removeMutation.mutate(
-      { tripId, placeId: data.id },
+      data.id,
       {
         onSuccess: () => {
-          dispatch(removeWishlistPlace({ wishlistPlaceId: data.id }));
+          void deleteReleaseRef.current?.();
+          deleteReleaseRef.current = null;
+        },
+        onError: () => {
+          void deleteReleaseRef.current?.();
+          deleteReleaseRef.current = null;
         },
       }
     );
@@ -53,7 +68,24 @@ export const WishlistPlaceCard = ({ tripId, data, onOpenDetailAction }: Wishlist
       aria-label="delete place"
       onClick={(e) => {
         e.stopPropagation();
-        setConfirmOpen(true);
+        void (async () => {
+          const lease = await acquireLease({
+            resourceType: 'WISHLIST_PLACE',
+            resourceId: data.id,
+            purpose: 'DELETE',
+          });
+
+          if (lease.status === 'conflict') {
+            setSnackbar({
+              open: true,
+              message: `Locked by ${lease.lock.owner.username}`,
+            });
+            return;
+          }
+
+          deleteReleaseRef.current = lease.release;
+          setConfirmOpen(true);
+        })();
       }}
       size="large"
       sx={{ color: 'common.white' }}
@@ -69,10 +101,25 @@ export const WishlistPlaceCard = ({ tripId, data, onOpenDetailAction }: Wishlist
         actionWidth={80}
         actionSide="right"
         actionSx={{ bgcolor: 'error.main' }}
-        cardSx={{ py: 2, pl: 3, pr: 0 }}
+        disabled={lockedByOther}
+        cardSx={{
+          py: 2,
+          pl: 3,
+          pr: 0,
+          ...(lockedByOther ? { border: '2px solid', borderColor: 'warning.main' } : {}),
+        }}
       >
         <Box
-          onClick={onOpenDetailAction}
+          onClick={() => {
+            if (lockedByOther) {
+              setSnackbar({
+                open: true,
+                message: `Locked by ${lock?.owner.username ?? 'someone'}`,
+              });
+              return;
+            }
+            onOpenDetailAction();
+          }}
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -145,11 +192,22 @@ export const WishlistPlaceCard = ({ tripId, data, onOpenDetailAction }: Wishlist
 
       <ConfirmDialog
         open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
+        onClose={() => {
+          setConfirmOpen(false);
+          void deleteReleaseRef.current?.();
+          deleteReleaseRef.current = null;
+        }}
         onConfirm={onConfirmDelete}
         content={<Typography>{t('sectionCard.wishlistPlace.remove.confirm_message')}</Typography>}
         confirmLoading={removeMutation.isPending}
         color="error"
+      />
+
+      <AppSnackbar
+        open={Boolean(snackbar?.open)}
+        message={snackbar?.message ?? ''}
+        severity="warning"
+        onClose={() => setSnackbar(null)}
       />
     </>
   );

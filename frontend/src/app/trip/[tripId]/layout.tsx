@@ -2,7 +2,6 @@
 
 import { ReactNode, useCallback, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useDispatch } from 'react-redux';
 import { AxiosError } from 'axios';
 
 import { Container } from '@mui/material';
@@ -13,11 +12,10 @@ import OverviewHeader, { OverviewHeaderProps } from '@/components/trip/overview/
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
 
 import { indexToTabKey, mapIndex, tabKeyToIndex } from './tab-panel/trip-tabs';
-import useGetTripOverview from './hooks/use-get-trip-overview';
 import useUpdateTripOverview from './hooks/use-update-trip-overview';
-import { UpsertTrip } from '@/api/trips';
-import { setTripOverview } from '@/store/trip-detail-slice';
+import { UpsertTrip, useTripHeader } from '@/api/trips';
 import TripForbiddenPage from '@/app/trip/[tripId]/components/trip-forbidden-page';
+import useTripRealtimeSse from '@/app/trip/[tripId]/hooks/use-trip-realtime-sse';
 
 type TripLayoutProps = {
   params: Promise<{ tripId: string }>;
@@ -29,7 +27,6 @@ type TripLayoutProps = {
 };
 
 const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLayoutProps) => {
-  const dispatch = useDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -44,21 +41,17 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
   const { tripId } = use(params);
   const tripIdAsNumber = Number(tripId);
 
-  const {
-    overview: tripOverview,
-    isLoading: isTripOverviewLoading,
-    error,
-    isError,
-  } = useGetTripOverview(tripIdAsNumber);
+  useTripRealtimeSse(tripIdAsNumber);
+
+  const { data: tripHeader, isLoading: isTripHeaderLoading, error, isError } =
+    useTripHeader(tripIdAsNumber);
 
   const { mutate: updateTrip } = useUpdateTripOverview(tripIdAsNumber);
   const handleSave = useCallback(
     (updates: UpsertTrip) => {
-      updateTrip(updates, {
-        onSuccess: (data) => dispatch(setTripOverview(data)),
-      });
+      updateTrip(updates);
     },
-    [updateTrip, dispatch]
+    [updateTrip]
   );
 
   const { FullPageLoading } = useFullPageLoading();
@@ -67,18 +60,20 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
     return <TripForbiddenPage />;
   }
 
-  if (isTripOverviewLoading || !tripOverview) return <FullPageLoading />;
+  if (isTripHeaderLoading || !tripHeader) return <FullPageLoading />;
 
   const tripOverviewProps: OverviewHeaderProps['tripOverview'] = {
-    tripName: tripOverview.name,
+    tripName: tripHeader.name,
+    ownerId: tripHeader.owner.id,
+    visibility: tripHeader.visibility,
     members: [
       {
-        id: tripOverview.owner.id,
-        username: tripOverview.owner.username,
-        profilePicUrl: tripOverview.owner.profilePicUrl,
+        id: tripHeader.owner.id,
+        username: tripHeader.owner.username,
+        profilePicUrl: tripHeader.owner.profilePicUrl,
       },
-      ...(tripOverview.tripmates ?? [])
-        .filter((m) => m.id !== tripOverview.owner.id)
+      ...(tripHeader.tripmates ?? [])
+        .filter((m) => m.id !== tripHeader.owner.id)
         .map((m) => ({
           id: m.id,
           username: m.username,
@@ -86,21 +81,34 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
         })),
     ],
 
-    objectives: tripOverview.objectives,
-    startDate: tripOverview.startDate,
-    endDate: tripOverview.endDate,
+    objectives: tripHeader.objectives,
+    startDate: tripHeader.startDate ?? undefined,
+    endDate: tripHeader.endDate ?? undefined,
 
-    onUpdateTripName: (name) => handleSave({ ...tripOverview, name }),
+    onUpdateTripName: (name) =>
+      handleSave({
+        name,
+        startDate: tripHeader.startDate ?? undefined,
+        endDate: tripHeader.endDate ?? undefined,
+        objectives: tripHeader.objectives,
+      }),
 
     onUpdateDates: (start?, end?) => {
       handleSave({
-        ...tripOverview,
+        name: tripHeader.name,
         startDate: start,
         endDate: end,
+        objectives: tripHeader.objectives,
       });
     },
 
-    onUpdateObjectives: (objectives) => handleSave({ ...tripOverview, objectives }),
+    onUpdateObjectives: (objectives) =>
+      handleSave({
+        name: tripHeader.name,
+        startDate: tripHeader.startDate ?? undefined,
+        endDate: tripHeader.endDate ?? undefined,
+        objectives,
+      }),
   };
 
   return (

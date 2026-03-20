@@ -9,14 +9,14 @@ import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { TruncatedTooltip } from '@/components/atoms';
 import { encodeBase64Json } from '@/lib/base64-json';
 import { InvitationByCodeParams } from '@/app/invitations/invitation-by-code-client';
-import { useTripSelector } from '@/store/selectors';
 import { useGetTripInvitationCode } from '@/app/trip/[tripId]/hooks/use-get-trip-invitation-code';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import { useTripHeader } from '@/api/trips';
 
 export default function InviteTripModal({ tripId }: { tripId: number }) {
-  const { tripOverview } = useTripSelector();
   const currentUser = useSelector((s: RootState) => s.profile.currentUser);
+  const { data: tripHeader } = useTripHeader(tripId);
   const { data: invitationCode } = useGetTripInvitationCode(tripId);
 
   const [copied, setCopied] = useState(false);
@@ -25,11 +25,11 @@ export default function InviteTripModal({ tripId }: { tripId: number }) {
     setCopied(true);
   };
 
-  if (!tripOverview || !currentUser || !invitationCode) return null;
+  if (!tripHeader || !currentUser || !invitationCode) return null;
 
   const ref = encodeBase64Json({
     tripId,
-    tripName: tripOverview.name,
+    tripName: tripHeader.name,
     invitationCode,
     inviter: {
       id: currentUser.id,

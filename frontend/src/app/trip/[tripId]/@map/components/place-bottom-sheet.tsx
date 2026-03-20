@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Box, Button, Divider, SwipeableDrawer, Typography } from '@mui/material';
-import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Trash } from 'lucide-react';
 
@@ -10,9 +9,10 @@ import { ScheduledPlace } from '@/api/trips';
 import { PlaceLocationInfo, PlaceOverview } from '@/app/trip/[tripId]/components/place-details';
 import { PLACEHOLDER_IMAGE } from '@/constants/link';
 import { ConfirmDialog } from '@/components/common/dialog';
-import { removeScheduledPlace } from '@/store/trip-detail-slice';
 import { useRemoveScheduledPlace } from '@/app/trip/[tripId]/@daily/hooks/use-scheduled-place-mutation';
 import { useParams } from 'next/navigation';
+import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 
 type PlaceBottomSheetProps = {
   planId: number | null;
@@ -22,23 +22,28 @@ type PlaceBottomSheetProps = {
 };
 
 const PlaceBottomSheet = ({ planId, place, onClose, readOnly = false }: PlaceBottomSheetProps) => {
-  const dispatch = useDispatch();
   const { t } = useTranslation('trip_overview');
   const params = useParams<{ tripId: string }>();
 
   const tripId = Number(params.tripId);
+  const { acquireLease } = useTripLockLease(tripId);
   const { data: ggmp } = useGetPlaceById(place?.ggmp.ggmpId ?? '');
   const [isRemoveDialogOpened, setIsRemoveDialogOpened] = useState(false);
+  const deleteReleaseRef = useRef<null | (() => Promise<void>)>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
 
   const [isDrawerOpened, setIsDrawerOpened] = useState(false);
-  const { mutate: remove, isPending: isRemoving } = useRemoveScheduledPlace();
+  const { mutate: remove, isPending: isRemoving } = useRemoveScheduledPlace(tripId);
   const confirmRemove = () => {
     if (!planId || !place) return;
     remove(
-      { tripId, placeId: place.id },
+      place.id,
       {
+        onSettled: () => {
+          void deleteReleaseRef.current?.();
+          deleteReleaseRef.current = null;
+        },
         onSuccess: () => {
-          dispatch(removeScheduledPlace({ planId, placeId: place.id }));
           setIsRemoveDialogOpened(false);
           setIsDrawerOpened(false);
         },
@@ -118,7 +123,23 @@ const PlaceBottomSheet = ({ planId, place, onClose, readOnly = false }: PlaceBot
                 color="error"
                 startIcon={<Trash size={14} />}
                 sx={{ marginY: 2 }}
-                onClick={() => setIsRemoveDialogOpened(true)}
+                onClick={() => {
+                  if (!place) return;
+                  void (async () => {
+                    const lease = await acquireLease({
+                      resourceType: 'SCHEDULED_PLACE',
+                      resourceId: place.id,
+                      purpose: 'DELETE',
+                    });
+                    if (lease.status === 'conflict') {
+                      setSnackbar({ open: true, message: `Locked by ${lease.lock.owner.username}` });
+                      return;
+                    }
+
+                    deleteReleaseRef.current = lease.release;
+                    setIsRemoveDialogOpened(true);
+                  })();
+                }}
               >
                 ลบสถานที่
               </Button>
@@ -130,7 +151,11 @@ const PlaceBottomSheet = ({ planId, place, onClose, readOnly = false }: PlaceBot
       {!readOnly && (
         <ConfirmDialog
           open={isRemoveDialogOpened}
-          onClose={() => setIsRemoveDialogOpened(false)}
+          onClose={() => {
+            setIsRemoveDialogOpened(false);
+            void deleteReleaseRef.current?.();
+            deleteReleaseRef.current = null;
+          }}
           onConfirm={confirmRemove}
           content={<Typography>{t('sectionCard.dailyPlan.remove.confirm_message')}</Typography>}
           confirmLabel={t('sectionCard.dailyPlan.remove.confirm_label')}
@@ -138,6 +163,13 @@ const PlaceBottomSheet = ({ planId, place, onClose, readOnly = false }: PlaceBot
           color="error"
         />
       )}
+
+      <AppSnackbar
+        open={Boolean(snackbar?.open)}
+        message={snackbar?.message ?? ''}
+        severity="warning"
+        onClose={() => setSnackbar(null)}
+      />
     </>
   );
 };

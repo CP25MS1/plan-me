@@ -2,12 +2,9 @@
 
 import { Button } from '@mui/material';
 import { PlusIcon } from 'lucide-react';
-import { useDispatch } from 'react-redux';
 
 import { useAddScheduledPlace } from '@/app/trip/[tripId]/@daily/hooks/use-scheduled-place-mutation';
-import { CreateScheduledPlaceRequest } from '@/api/daily-plan';
-import { addScheduledPlace } from '@/store/trip-detail-slice';
-import ScheduledPlaceMapper from '@/app/trip/[tripId]/@daily/helpers/scheduled-place-mapper';
+import type { CreateScheduledPlaceRequest } from '@/api/daily-plan';
 
 type AddScheduledPlaceProps = {
   tripId: number;
@@ -16,28 +13,15 @@ type AddScheduledPlaceProps = {
 };
 
 const AddScheduledPlaceBtn = ({ tripId, payload, onSuccess }: AddScheduledPlaceProps) => {
-  const dispatch = useDispatch();
-  const { mutate } = useAddScheduledPlace();
-
-  const handleSave = () => {
-    mutate(
-      { tripId, payload },
-      {
-        onSuccess: (res) => {
-          dispatch(
-            addScheduledPlace({
-              planId: res.planId,
-              scheduledPlace: ScheduledPlaceMapper.mapResponseToState(res),
-            })
-          );
-          onSuccess();
-        },
-      }
-    );
-  };
+  const { mutate, isPending } = useAddScheduledPlace(tripId);
 
   return (
-    <Button variant="contained" startIcon={<PlusIcon />} onClick={() => handleSave()}>
+    <Button
+      variant="contained"
+      startIcon={<PlusIcon />}
+      onClick={() => mutate(payload, { onSuccess })}
+      disabled={isPending}
+    >
       เพิ่มสถานที่
     </Button>
   );

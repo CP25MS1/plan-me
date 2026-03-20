@@ -1,22 +1,22 @@
 'use client';
 
-import { MouseEvent } from 'react';
+import { MouseEvent, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Box, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
 import Image from 'next/image';
 import { Heart } from 'lucide-react';
-import { useDispatch } from 'react-redux';
 
 import { tokens } from '@/providers/theme/design-tokens';
 import { useSearchForProvince } from '@/app/trip/[tripId]/hooks/use-search-for-places';
 import { TruncatedTooltip } from '@/components/atoms';
 import useAddWishlistPlace from '@/app/trip/[tripId]/hooks/use-add-wishlist-place';
 import useRemoveWishlistPlace from '@/app/trip/[tripId]/hooks/use-remove-wishlist-place';
-import { addWishlistPlace, removeWishlistPlace } from '@/store/trip-detail-slice';
 import PlaceDetailsDialog from '@/app/trip/[tripId]/components/place-details/place-details-dialog';
 import AddScheduledPlaceBtn from '@/app/trip/[tripId]/@daily/components/add-scheduled-place-btn';
 import { useDailyPlanContext } from '@/app/trip/[tripId]/@daily/context/daily-plan-context';
 import { useOpeningDialogContext } from '@/app/trip/[tripId]/@daily/context/opening-dialog-context';
+import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 
 type CardProps = {
   ggmpId: string;
@@ -39,33 +39,40 @@ const AddibleWishlistCard = ({
   const tripId = Number(params.tripId);
   const { planId } = useDailyPlanContext();
   const { province } = useSearchForProvince(address);
-  const dispatch = useDispatch();
-  const { mutate: mutateAdd } = useAddWishlistPlace();
-  const { mutate: mutateRemove } = useRemoveWishlistPlace();
+  const { acquireLease } = useTripLockLease(tripId);
+  const addMut = useAddWishlistPlace(tripId);
+  const removeMut = useRemoveWishlistPlace(tripId);
+
+  const deleteReleaseRef = useRef<null | (() => Promise<void>)>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
 
   const wishlistAction = (event: MouseEvent) => {
     event.stopPropagation();
     if (inWishlist && placeId) {
-      mutateRemove(
-        { tripId, placeId },
-        {
-          onSuccess: () => {
-            dispatch(removeWishlistPlace({ wishlistPlaceId: placeId }));
-          },
-        }
-      );
+      void (async () => {
+        const lease = await acquireLease({
+          resourceType: 'WISHLIST_PLACE',
+          resourceId: placeId,
+          purpose: 'DELETE',
+        });
 
+        if (lease.status === 'conflict') {
+          setSnackbar({ open: true, message: `Locked by ${lease.lock.owner.username}` });
+          return;
+        }
+
+        deleteReleaseRef.current = lease.release;
+        removeMut.mutate(placeId, {
+          onSettled: () => {
+            void deleteReleaseRef.current?.();
+            deleteReleaseRef.current = null;
+          },
+        });
+      })();
       return;
     }
 
-    mutateAdd(
-      { tripId, ggmpId },
-      {
-        onSuccess: (wishlistPlace) => {
-          dispatch(addWishlistPlace(wishlistPlace));
-        },
-      }
-    );
+    addMut.mutate(ggmpId);
   };
 
   const {
@@ -131,6 +138,13 @@ const AddibleWishlistCard = ({
           }
         />
       )}
+
+      <AppSnackbar
+        open={Boolean(snackbar?.open)}
+        message={snackbar?.message ?? ''}
+        severity="warning"
+        onClose={() => setSnackbar(null)}
+      />
     </>
   );
 };

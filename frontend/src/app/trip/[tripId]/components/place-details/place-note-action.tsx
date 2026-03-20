@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import {
   MenuButtonBold,
@@ -19,11 +19,14 @@ import { File } from 'lucide-react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { useTranslation } from 'react-i18next';
-import { Editor, useEditor } from '@tiptap/react';
+import { useEditor } from '@tiptap/react';
+import type { Editor } from '@tiptap/react';
 
 type PlaceNoteActionProps = {
   notes: string;
-  onSave: (notes: string) => void;
+  onSave: (notes: string) => void | Promise<void>;
+  onBeginEdit?: () => Promise<boolean>;
+  onEndEdit?: () => Promise<void>;
 };
 
 const EMPTY_CONTENT = '<p></p>';
@@ -31,10 +34,11 @@ const EMPTY_CONTENT = '<p></p>';
 const isEmptyHtml = (html?: string) => !html || !html.trim() || html === EMPTY_CONTENT;
 
 /** Components **/
-export const PlaceNoteAction = ({ notes, onSave }: PlaceNoteActionProps) => {
+export const PlaceNoteAction = ({ notes, onSave, onBeginEdit, onEndEdit }: PlaceNoteActionProps) => {
   const { t } = useTranslation('trip_overview');
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [notesHtml, setNotesHtml] = useState<string>(notes ?? '');
   const isToolbarFocused = useRef(false);
 
@@ -49,22 +53,47 @@ export const PlaceNoteAction = ({ notes, onSave }: PlaceNoteActionProps) => {
     },
   });
 
+  useEffect(() => {
+    return () => {
+      void onEndEdit?.();
+    };
+  }, [onEndEdit]);
+
   /** Handlers **/
-  const enterEditMode = () => setIsEditing(true);
+  const enterEditMode = () => {
+    if (isEditing || isSaving) return;
+    void (async () => {
+      if (onBeginEdit) {
+        const ok = await onBeginEdit();
+        if (!ok) return;
+      }
+      setIsEditing(true);
+    })();
+  };
 
-  const handleSave = useCallback(() => {
-    if (notesHtml === notes) {
+  const handleSave = useCallback(async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      if (notesHtml === notes) {
+        setIsEditing(false);
+        await onEndEdit?.();
+        return;
+      }
+
+      await onSave(notesHtml);
       setIsEditing(false);
-      return;
+      await onEndEdit?.();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSaving(false);
     }
-
-    onSave(notesHtml);
-    setIsEditing(false);
-  }, [notesHtml, notes, onSave]);
+  }, [isSaving, notesHtml, notes, onEndEdit, onSave]);
 
   const handleTextFieldBlur = () => {
     if (!isToolbarFocused.current) {
-      handleSave();
+      void handleSave();
     }
     isToolbarFocused.current = false;
   };

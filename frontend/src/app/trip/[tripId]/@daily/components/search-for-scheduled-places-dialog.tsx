@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Box, InputAdornment, TextField } from '@mui/material';
 import { Search } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'next/navigation';
 
 import useSearchForPlaces from '@/app/trip/[tripId]/hooks/use-search-for-places';
 import SuggestionFromWishlistSection from './suggestion-from-wishlist-section';
@@ -12,6 +13,8 @@ import SuggestionFromReservationSection from './suggestion-from-reservation-sect
 import SearchResultSection from './search-result-section';
 import { BackButton } from '@/components/button';
 import { FullScreenSlideDialog } from '@/components/common/dialog';
+import { useDailyPlanContext } from '@/app/trip/[tripId]/@daily/context/daily-plan-context';
+import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-trip-add-presence';
 
 type DialogProps = {
   isOpened: boolean;
@@ -20,6 +23,9 @@ type DialogProps = {
 
 const SearchForScheduledPlacesDialog = ({ isOpened, onClose }: DialogProps) => {
   const { t } = useTranslation('trip_overview');
+  const params = useParams<{ tripId: string }>();
+  const tripId = Number(params.tripId);
+  const { planId } = useDailyPlanContext();
 
   const [value, setValue] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
@@ -42,6 +48,13 @@ const SearchForScheduledPlacesDialog = ({ isOpened, onClose }: DialogProps) => {
       setDebouncedQ('');
     }
   }, [isOpened]);
+
+  useTripAddPresenceEffect({
+    tripId,
+    enabled: isOpened && planId > 0,
+    section: 'DAILY_PLAN',
+    planId,
+  });
 
   return (
     <FullScreenSlideDialog isOpened={isOpened} onClose={onClose}>

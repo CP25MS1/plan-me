@@ -1,17 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRef, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { Box, Button, IconButton, List, ListItem, Typography } from '@mui/material';
 import { Hand, Mail, Plus, Trash2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import ManualReservation from './components/reservation/manual-reservation';
 import EditReservation from './components/reservation/edit-reservation';
 import UploadReservation from './components/reservation/upload-reservation';
 import EmailReservation from './components/reservation/email-reservation';
-import { addReservation, removeReservation } from '@/store/trip-detail-slice';
 import SectionCard from '@/components/trip/overview/section-card';
 import { useFullPageLoading } from '@/components/full-page-loading';
 import MiniMap from '@/app/trip/[tripId]/components/maps/mini-map';
@@ -44,17 +43,40 @@ import CarRentalCard from './components/cards/carrental';
 import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
 import { SwipeReveal } from '@/components/common/card';
 import { useDeleteReservation } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-delete-reservation';
-import { useTripSelector } from '@/store/selectors';
+import { useTripDailyPlans, useTripReservations, useTripWishlistPlaces } from '@/api/trips';
+import { useTripRealtimeLocksMap, useTripSectionUsers } from '@/store/selectors';
+import { RootState } from '@/store';
+import SectionPresenceGroup from '@/app/trip/[tripId]/realtime/components/section-presence-group';
+import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 
 const TripOverviewPage = () => {
-  const dispatch = useDispatch();
   const router = useRouter();
-  const { tripOverview } = useTripSelector();
-  const { mutate: deleteReservation, isPending } = useDeleteReservation();
+  const params = useParams<{ tripId: string }>();
+  const tripId = Number(params.tripId);
+
+  const currentUserId = useSelector((s: RootState) => s.profile.currentUser?.id);
+
+  const { data: reservations = [], isLoading: isReservationsLoading } = useTripReservations(tripId);
+  const { data: wishlistPlaces = [], isLoading: isWishlistLoading } = useTripWishlistPlaces(tripId);
+  const { data: dailyPlans = [], isLoading: isDailyPlansLoading } = useTripDailyPlans(tripId);
+
+  const locksMap = useTripRealtimeLocksMap(tripId);
+  const reservationUsers = useTripSectionUsers(tripId, 'OVERVIEW_RESERVATIONS');
+  const wishlistUsers = useTripSectionUsers(tripId, 'OVERVIEW_WISHLIST');
+
+  const { acquireLease } = useTripLockLease(tripId);
+
+  const { mutate: deleteReservation, isPending } = useDeleteReservation(tripId);
 
   const { FullPageLoading } = useFullPageLoading();
 
   const { t } = useTranslation('trip_overview');
+
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
+
+  const reservationEditReleaseRef = useRef<null | (() => Promise<void>)>(null);
+  const reservationDeleteReleaseRef = useRef<null | (() => Promise<void>)>(null);
 
   // ===== Dialog states =====
   const [isManualReservationDialogOpen, setManualReservationDialogOpen] = useState(false);
@@ -82,8 +104,25 @@ const TripOverviewPage = () => {
       aria-label="delete reservation"
       onClick={(e) => {
         e.stopPropagation();
-        setPendingDeleteId(reservationId);
-        setConfirmOpen(true);
+        void (async () => {
+          const lease = await acquireLease({
+            resourceType: 'RESERVATION',
+            resourceId: reservationId,
+            purpose: 'DELETE',
+          });
+
+          if (lease.status === 'conflict') {
+            setSnackbar({
+              open: true,
+              message: `Locked by ${lease.lock.owner.username}`,
+            });
+            return;
+          }
+
+          reservationDeleteReleaseRef.current = lease.release;
+          setPendingDeleteId(reservationId);
+          setConfirmOpen(true);
+        })();
       }}
       sx={{ color: 'common.white' }}
     >
@@ -96,9 +135,14 @@ const TripOverviewPage = () => {
 
     deleteReservation(pendingDeleteId, {
       onSuccess: () => {
-        dispatch(removeReservation({ reservationId: pendingDeleteId }));
         setConfirmOpen(false);
         setPendingDeleteId(null);
+        void reservationDeleteReleaseRef.current?.();
+        reservationDeleteReleaseRef.current = null;
+      },
+      onError: () => {
+        void reservationDeleteReleaseRef.current?.();
+        reservationDeleteReleaseRef.current = null;
       },
     });
   };
@@ -111,7 +155,7 @@ const TripOverviewPage = () => {
   } = useFullScreenDialog({
     EntryElement: <AddItemButton label={t('sectionCard.wishlistPlace.button')} />,
     Content: SearchAddWishlistPlace,
-    contentProps: { tripId: tripOverview?.id ?? -1 },
+    contentProps: { tripId },
   });
 
   const { Dialog: WishlistPlaceDetailDialog, openWithProps: openWishlistPlaceDetail } =
@@ -121,36 +165,40 @@ const TripOverviewPage = () => {
       ),
     });
 
-  const handleNewReservation = (reservation: ReservationDto) => {
-    if (!tripOverview) return;
-    dispatch(addReservation(reservation));
-  };
+  if (isReservationsLoading || isWishlistLoading || isDailyPlansLoading) return <FullPageLoading />;
 
-  if (!tripOverview) return <FullPageLoading />;
-
-  const hasReservation = tripOverview.reservations && tripOverview.reservations.length > 0;
+  const hasReservation = reservations.length > 0;
 
   return (
     <>
       <Box sx={{ mt: 2 }}>
         {/* Map */}
         <SectionCard title={t('sectionCard.map')}>
-          <Box onClick={() => router.push(`/trip/${tripOverview.id}?tab=map`)}>
-            <MiniMap selectedDay="ALL" viewOnly />
+          <Box onClick={() => router.push(`/trip/${tripId}?tab=map`)}>
+            <MiniMap selectedDay="ALL" viewOnly dailyPlans={dailyPlans} />
           </Box>
         </SectionCard>
 
         {/* Reservation */}
-        <SectionCard title={t('sectionCard.reservation.title')} asEmpty={!hasReservation}>
+        <SectionCard
+          title={t('sectionCard.reservation.title')}
+          asEmpty={!hasReservation}
+          headerEndAdornment={
+            <SectionPresenceGroup users={reservationUsers} dialogTitle="กำลังใช้งาน: Reservation" />
+          }
+        >
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {hasReservation && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {tripOverview.reservations
+                {reservations
                   .slice()
                   .sort((a, b) => (a?.id ?? 0) - (b?.id ?? 0))
                   .flatMap((res) => {
                     if (res.type === 'FLIGHT') {
                       const flightDetails = res.details as FlightDetails | undefined;
+                      const lock = res.id ? locksMap[`RESERVATION:${res.id}`] : null;
+                      const lockedByOther =
+                        Boolean(lock) && Boolean(currentUserId) && lock!.owner.id !== currentUserId;
 
                       return flightDetails?.passengers?.map(
                         (_, idx) =>
@@ -161,10 +209,34 @@ const TripOverviewPage = () => {
                               actionWidth={80}
                               actionSide="right"
                               actionSx={{ bgcolor: 'error.main' }}
+                              disabled={lockedByOther}
+                              cardSx={{
+                                ...(lockedByOther
+                                  ? { border: '2px solid', borderColor: 'warning.main' }
+                                  : {}),
+                              }}
                             >
                               <Box
                                 onClick={() => {
-                                  setEditingReservation(res);
+                                  if (lockedByOther) return;
+                                  void (async () => {
+                                    const lease = await acquireLease({
+                                      resourceType: 'RESERVATION',
+                                      resourceId: res.id!,
+                                      purpose: 'EDIT',
+                                    });
+
+                                    if (lease.status === 'conflict') {
+                                      setSnackbar({
+                                        open: true,
+                                        message: `Locked by ${lease.lock.owner.username}`,
+                                      });
+                                      return;
+                                    }
+
+                                    reservationEditReleaseRef.current = lease.release;
+                                    setEditingReservation(res);
+                                  })();
                                 }}
                                 sx={{ cursor: 'pointer', width: '100%' }}
                               >
@@ -178,6 +250,10 @@ const TripOverviewPage = () => {
                       );
                     }
 
+                    const lock = res.id ? locksMap[`RESERVATION:${res.id}`] : null;
+                    const lockedByOther =
+                      Boolean(lock) && Boolean(currentUserId) && lock!.owner.id !== currentUserId;
+
                     return (
                       res.id && (
                         <SwipeReveal
@@ -186,10 +262,34 @@ const TripOverviewPage = () => {
                           actionWidth={80}
                           actionSide="right"
                           actionSx={{ bgcolor: 'error.main' }}
+                          disabled={lockedByOther}
+                          cardSx={{
+                            ...(lockedByOther
+                              ? { border: '2px solid', borderColor: 'warning.main' }
+                              : {}),
+                          }}
                         >
                           <Box
                             onClick={() => {
-                              setEditingReservation(res);
+                              if (lockedByOther) return;
+                              void (async () => {
+                                const lease = await acquireLease({
+                                  resourceType: 'RESERVATION',
+                                  resourceId: res.id!,
+                                  purpose: 'EDIT',
+                                });
+
+                                if (lease.status === 'conflict') {
+                                  setSnackbar({
+                                    open: true,
+                                    message: `Locked by ${lease.lock.owner.username}`,
+                                  });
+                                  return;
+                                }
+
+                                reservationEditReleaseRef.current = lease.release;
+                                setEditingReservation(res);
+                              })();
                             }}
                             sx={{ cursor: 'pointer', width: '100%' }}
                           >
@@ -238,15 +338,15 @@ const TripOverviewPage = () => {
                       {t('sectionCard.reservation.dropdown.Email')}
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={openUploadReservationDialog}>
-                      <Upload size={18} />
-                      {t('sectionCard.reservation.dropdown.Upload')}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </Box>
-            )}
-            {!hasReservation && (
+                <DropdownMenuItem onClick={openUploadReservationDialog}>
+                  <Upload size={18} />
+                  {t('sectionCard.reservation.dropdown.Upload')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </Box>
+        )}
+        {!hasReservation && (
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -278,15 +378,18 @@ const TripOverviewPage = () => {
         {/* Wishlist */}
         <SectionCard
           title={t('sectionCard.wishlistPlace.title')}
-          asEmpty={!tripOverview.wishlistPlaces.length}
+          asEmpty={!wishlistPlaces.length}
+          headerEndAdornment={
+            <SectionPresenceGroup users={wishlistUsers} dialogTitle="กำลังใช้งาน: Wishlist" />
+          }
         >
-          {tripOverview.wishlistPlaces.length && !isWishlistPlaceDialogOpened ? (
+          {wishlistPlaces.length && !isWishlistPlaceDialogOpened ? (
             <>
               <List>
-                {tripOverview.wishlistPlaces.map((wp) => (
+                {wishlistPlaces.map((wp) => (
                   <ListItem key={wp.place.ggmpId} sx={{ p: 0, mb: 2 }}>
                     <WishlistPlaceCard
-                      tripId={tripOverview.id}
+                      tripId={tripId}
                       data={wp}
                       onOpenDetailAction={() => openWishlistPlaceDetail({ wishlistItem: wp })}
                     />
@@ -308,15 +411,18 @@ const TripOverviewPage = () => {
       <ManualReservation
         open={isManualReservationDialogOpen}
         onClose={() => setManualReservationDialogOpen(false)}
-        tripId={tripOverview.id}
-        onReservationCreated={handleNewReservation}
+        tripId={tripId}
       />
 
       {editingReservation && (
         <EditReservation
           open={true}
-          onClose={() => setEditingReservation(null)}
-          tripId={tripOverview.id}
+          onClose={() => {
+            setEditingReservation(null);
+            void reservationEditReleaseRef.current?.();
+            reservationEditReleaseRef.current = null;
+          }}
+          tripId={tripId}
           reservation={editingReservation}
         />
       )}
@@ -332,12 +438,21 @@ const TripOverviewPage = () => {
         onClose={() => {
           setConfirmOpen(false);
           setPendingDeleteId(null);
+          void reservationDeleteReleaseRef.current?.();
+          reservationDeleteReleaseRef.current = null;
         }}
         onConfirm={handleConfirmDelete}
         confirmLoading={isPending}
         color="error"
         content={<Typography>คุณต้องการลบข้อมูลการจองนี้ใช่หรือไม่?</Typography>}
         confirmLabel={'ลบข้อมูลการจอง'}
+      />
+
+      <AppSnackbar
+        open={Boolean(snackbar?.open)}
+        message={snackbar?.message ?? ''}
+        severity="warning"
+        onClose={() => setSnackbar(null)}
       />
     </>
   );

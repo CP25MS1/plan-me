@@ -1,13 +1,13 @@
 'use client';
 
 import { Box, Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEffect } from 'react';
 
 import { useGetTripmates } from '@/app/trip/[tripId]/@overview/hooks/invite/use-get-tripmates';
 import TripMembers from './members-list';
-import { useTripSelector } from '@/store/selectors';
+import { useTripHeader } from '@/api/trips';
 
 export default function MembersModal({
   open,
@@ -19,7 +19,7 @@ export default function MembersModal({
   tripId: number;
 }) {
   const { data: tripmate, refetch } = useGetTripmates(tripId);
-  const { tripOverview } = useTripSelector();
+  const { data: tripHeader } = useTripHeader(tripId);
 
   useEffect(() => {
     if (open) {
@@ -27,9 +27,9 @@ export default function MembersModal({
     }
   }, [open, refetch]);
 
-  if (!tripmate || !tripOverview) return null;
+  if (!tripmate || !tripHeader) return null;
 
-  const tripOwner = tripOverview.owner;
+  const tripOwner = tripHeader.owner;
   const joined = [...tripmate.joined.map((t) => t.user), tripOwner];
 
   const pending = tripmate.pending.map((t) => t.user);
@@ -64,7 +64,7 @@ export default function MembersModal({
       >
         สมาชิก
         <IconButton onClick={onCloseAction} sx={{ position: 'absolute', right: 12, top: 12 }}>
-          <CloseIcon />
+          <X size={18} />
         </IconButton>
       </DialogTitle>
 

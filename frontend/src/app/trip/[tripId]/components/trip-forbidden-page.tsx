@@ -1,8 +1,8 @@
 'use client';
 
 import { Box, Button, Stack, Typography } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useRouter } from 'next/navigation';
+import { Lock } from 'lucide-react';
 
 const TripForbiddenPage = () => {
   const router = useRouter();
@@ -26,7 +26,7 @@ const TripForbiddenPage = () => {
           borderRadius="50%"
           color="error.main"
         >
-          <LockOutlinedIcon fontSize="large" />
+          <Lock size={40} />
         </Box>
 
         <Typography variant="h5" fontWeight={600}>

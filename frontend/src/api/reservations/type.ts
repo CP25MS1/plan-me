@@ -30,6 +30,7 @@ export type ReservationDetails =
 
 /** Lodging */
 export interface LodgingDetails {
+  type: 'LODGING';
   lodgingName: string;
   lodgingAddress: string;
   underName: string;
@@ -39,6 +40,7 @@ export interface LodgingDetails {
 
 /** Restaurant */
 export interface RestaurantDetails {
+  type: 'RESTAURANT';
   restaurantName: string;
   restaurantAddress: string;
   underName: string;
@@ -56,6 +58,7 @@ export interface FlightPassenger {
 }
 
 export interface FlightDetails {
+  type: 'FLIGHT';
   airline: string;
   flightNo: string;
   boardingTime?: string;
@@ -70,6 +73,7 @@ export interface FlightDetails {
 
 /** Train */
 export interface TrainDetails {
+  type: 'TRAIN';
   trainNo: string;
   trainClass: string;
   seatClass: string;
@@ -83,6 +87,7 @@ export interface TrainDetails {
 
 /** Bus */
 export interface BusDetails {
+  type: 'BUS';
   transportCompany: string;
   departureStation: string;
   departureTime: string;
@@ -94,6 +99,7 @@ export interface BusDetails {
 
 /** Ferry */
 export interface FerryDetails {
+  type: 'FERRY';
   transportCompany: string;
   passengerName: string;
   departurePort: string;
@@ -105,6 +111,7 @@ export interface FerryDetails {
 
 /** Car Rental */
 export interface CarRentalDetails {
+  type: 'CAR_RENTAL';
   rentalCompany: string;
   carModel: string;
   vrn: string;
