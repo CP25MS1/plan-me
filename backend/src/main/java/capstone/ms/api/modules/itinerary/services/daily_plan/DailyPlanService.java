@@ -11,6 +11,10 @@ import capstone.ms.api.modules.itinerary.repositories.DailyPlanRepository;
 import capstone.ms.api.modules.itinerary.repositories.ScheduledPlaceRepository;
 import capstone.ms.api.modules.itinerary.services.TripAccessService;
 import capstone.ms.api.modules.itinerary.services.TripResourceService;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeResourceType;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeScope;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimeLockGuard;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -33,6 +37,8 @@ public class DailyPlanService {
     private final DailyPlanRepository dailyPlanRepository;
     private final ScheduledPlaceRepository scheduledPlaceRepository;
     private final ScheduledPlaceMapper scheduledPlaceMapper;
+    private final TripRealtimeLockGuard tripRealtimeLockGuard;
+    private final TripRealtimePublisher tripRealtimePublisher;
 
     @Transactional
     public void syncDailyPlansByTripDateRange(
@@ -112,9 +118,10 @@ public class DailyPlanService {
         scheduledPlace.setNotes(request.getNotes());
         scheduledPlace.setOrder(getScheduledPlaceNextOrder(request.getPlanId()));
 
-        return scheduledPlaceMapper.toDto(
-                scheduledPlaceRepository.save(scheduledPlace)
-        );
+        ScheduledPlace saved = scheduledPlaceRepository.save(scheduledPlace);
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.DAILY_PLANS));
+
+        return scheduledPlaceMapper.toDto(saved);
     }
 
     @Transactional
@@ -130,6 +137,12 @@ public class DailyPlanService {
         var targetPlan = tripResourceService.getDailyPlanOrThrow(request.getPlanId());
         var scheduledPlace = tripResourceService.getScheduledPlaceOrThrow(placeId);
 
+        if (!trip.getId().equals(scheduledPlace.getPlan().getTrip().getId())) {
+            throw new ConflictException("dailyPlan.scheduledPlace.nonRelatedTrip");
+        }
+
+        tripRealtimeLockGuard.assertLockHeld(tripId, TripRealtimeResourceType.SCHEDULED_PLACE, placeId, currentUser);
+
         if (!trip.getId().equals(targetPlan.getTrip().getId())) {
             throw new ConflictException("dailyPlan.scheduledPlace.nonRelatedTrip");
         }
@@ -138,13 +151,15 @@ public class DailyPlanService {
             scheduledPlace.setNotes(request.getNotes());
         }
 
-        return scheduledPlaceMapper.toDto(
-                scheduledPlaceOrderService.moveAndReorder(
-                        scheduledPlace,
-                        targetPlan,
-                        request.getOrder()
-                )
+        ScheduledPlace result = scheduledPlaceOrderService.moveAndReorder(
+                scheduledPlace,
+                targetPlan,
+                request.getOrder()
         );
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.DAILY_PLANS));
+
+        return scheduledPlaceMapper.toDto(result);
     }
 
     @Transactional
@@ -158,7 +173,15 @@ public class DailyPlanService {
         ScheduledPlace scheduledPlace =
                 tripResourceService.getScheduledPlaceOrThrow(placeId);
 
+        if (!tripId.equals(scheduledPlace.getPlan().getTrip().getId())) {
+            throw new ConflictException("dailyPlan.scheduledPlace.nonRelatedTrip");
+        }
+
+        tripRealtimeLockGuard.assertLockHeld(tripId, TripRealtimeResourceType.SCHEDULED_PLACE, placeId, currentUser);
+
         scheduledPlaceOrderService.removeAndReorder(scheduledPlace);
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.DAILY_PLANS));
     }
 
     private void checkTripAccess(User user, Integer tripId) {
@@ -171,4 +194,3 @@ public class DailyPlanService {
         return (short) (maxOrder + 1);
     }
 }
-

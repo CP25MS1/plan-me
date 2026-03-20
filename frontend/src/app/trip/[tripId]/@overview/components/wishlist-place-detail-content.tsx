@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import Image from 'next/image';
 import { Container, Grid, Box, Typography, IconButton, Divider } from '@mui/material';
 import { Star, X, MapPin, Clock, File } from 'lucide-react';
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
-import { useEditor, Editor } from '@tiptap/react';
+import { useEditor } from '@tiptap/react';
+import type { Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import {
@@ -27,10 +28,12 @@ import { useTranslation } from 'react-i18next';
 
 import { WishlistPlace, OpeningHours } from '@/api/trips';
 import { RootState } from '@/store';
-import { updateWishlistPlace } from '@/store/trip-detail-slice';
 import { tokens } from '@/providers/theme/design-tokens';
 import { useUpdateWishlistPlace } from '../hooks';
 import { TFunction } from 'i18next';
+import { useTripWishlistPlaces } from '@/api/trips';
+import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 
 dayjs.extend(localizedFormat);
 
@@ -62,6 +65,7 @@ const buildReadableHours = (
   const slots: Record<number, string[]> = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
   for (const period of openingHours.periods) {
+    if (!period.open || !period.close) continue;
     const openDay = period.open.day;
     const openTime = formatPoint(period.open);
     const closeTime = formatPoint(period.close);
@@ -82,19 +86,29 @@ export const WishlistPlaceDetailContent: React.FC<ContentProps> = ({
   wishlistItem,
   onCloseAction,
 }) => {
-  const dispatch = useDispatch();
   const locale = useSelector((s: RootState) => s.i18n.locale);
-  const tripOverview = useSelector((s: RootState) => s.tripDetail.overview);
   const { t } = useTranslation('trip_overview');
   const { t: tCommon } = useTranslation('common');
   const [isEditing, setIsEditing] = useState(false);
   const [notesHtml, setNotesHtml] = useState<string>(wishlistItem.notes || '');
-  const { mutate } = useUpdateWishlistPlace();
+  const { data: wishlistPlaces } = useTripWishlistPlaces(wishlistItem.tripId);
+  const updatedWishlistItem =
+    wishlistPlaces?.find((wp) => wp.id === wishlistItem.id) || wishlistItem;
+
+  const { mutate } = useUpdateWishlistPlace(updatedWishlistItem.tripId);
+  const { acquireLease } = useTripLockLease(updatedWishlistItem.tripId);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const isToolbarFocused = useRef(false);
 
-  const updatedWishlistItem =
-    tripOverview?.wishlistPlaces.find((wp) => wp.id === wishlistItem.id) || wishlistItem;
+  const editReleaseRef = useRef<null | (() => Promise<void>)>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
+
+  useEffect(() => {
+    return () => {
+      void editReleaseRef.current?.();
+      editReleaseRef.current = null;
+    };
+  }, []);
 
   const openingHours = useMemo(
     () => parseOpeningHours(updatedWishlistItem.place.openingHours),
@@ -137,20 +151,23 @@ export const WishlistPlaceDetailContent: React.FC<ContentProps> = ({
   const handleSave = useCallback(() => {
     if (notesHtml === updatedWishlistItem.notes) {
       setIsEditing(false);
+      void editReleaseRef.current?.();
+      editReleaseRef.current = null;
       return;
     }
 
     mutate(
-      { tripId: updatedWishlistItem.tripId, placeId: updatedWishlistItem.id, notes: notesHtml },
+      { placeId: updatedWishlistItem.id, notes: notesHtml },
       {
         onSuccess: (data) => {
-          dispatch(updateWishlistPlace({ wp: { ...updatedWishlistItem, notes: data.notes } }));
           setNotesHtml(data.notes);
           setIsEditing(false);
+          void editReleaseRef.current?.();
+          editReleaseRef.current = null;
         },
       }
     );
-  }, [notesHtml, updatedWishlistItem, mutate, dispatch]);
+  }, [notesHtml, updatedWishlistItem, mutate]);
 
   useEffect(() => {
     if (!isEditing) {
@@ -171,7 +188,29 @@ export const WishlistPlaceDetailContent: React.FC<ContentProps> = ({
 
   const nonEditingView =
     notesHtml && notesHtml.trim() && notesHtml !== '<p></p>' ? (
-      <Box sx={{ mt: 1 }} onClick={() => setIsEditing(true)}>
+      <Box
+        sx={{ mt: 1 }}
+        onClick={() => {
+          void (async () => {
+            const lease = await acquireLease({
+              resourceType: 'WISHLIST_PLACE',
+              resourceId: updatedWishlistItem.id,
+              purpose: 'EDIT',
+            });
+
+            if (lease.status === 'conflict') {
+              setSnackbar({
+                open: true,
+                message: `Locked by ${lease.lock.owner.username}`,
+              });
+              return;
+            }
+
+            editReleaseRef.current = lease.release;
+            setIsEditing(true);
+          })();
+        }}
+      >
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', marginBottom: '1rem' }}>
           <File size={18} />
           <Typography variant="subtitle1">{t('sectionCard.wishlistPlace.notes.title')}</Typography>
@@ -185,7 +224,26 @@ export const WishlistPlaceDetailContent: React.FC<ContentProps> = ({
       </Box>
     ) : (
       <Box
-        onClick={() => setIsEditing(true)}
+        onClick={() => {
+          void (async () => {
+            const lease = await acquireLease({
+              resourceType: 'WISHLIST_PLACE',
+              resourceId: updatedWishlistItem.id,
+              purpose: 'EDIT',
+            });
+
+            if (lease.status === 'conflict') {
+              setSnackbar({
+                open: true,
+                message: `Locked by ${lease.lock.owner.username}`,
+              });
+              return;
+            }
+
+            editReleaseRef.current = lease.release;
+            setIsEditing(true);
+          })();
+        }}
         sx={{
           borderRadius: 1,
           p: 1,
@@ -202,9 +260,19 @@ export const WishlistPlaceDetailContent: React.FC<ContentProps> = ({
     );
 
   return (
-    <Container maxWidth="md" sx={{ py: 3, position: 'relative' }}>
+    <>
+      <Container maxWidth="md" sx={{ py: 3, position: 'relative' }}>
       <Box sx={{ display: 'flex', justifyContent: 'end' }}>
-        <IconButton size="small" onClick={onCloseAction} aria-label="Close" sx={{ paddingX: 0 }}>
+        <IconButton
+          size="small"
+          onClick={() => {
+            void editReleaseRef.current?.();
+            editReleaseRef.current = null;
+            onCloseAction();
+          }}
+          aria-label="Close"
+          sx={{ paddingX: 0 }}
+        >
           <X size={21} />
         </IconButton>
       </Box>
@@ -350,7 +418,15 @@ export const WishlistPlaceDetailContent: React.FC<ContentProps> = ({
           </Box>
         </Grid>
       </Grid>
-    </Container>
+      </Container>
+
+      <AppSnackbar
+        open={Boolean(snackbar?.open)}
+        message={snackbar?.message ?? ''}
+        severity="warning"
+        onClose={() => setSnackbar(null)}
+      />
+    </>
   );
 };
 

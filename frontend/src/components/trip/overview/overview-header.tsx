@@ -31,13 +31,14 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import InviteDialog from '@/app/trip/[tripId]/@overview/components/invite/invite-dialog';
 import MembersModal from '@/app/trip/[tripId]/@overview/components/member/members-modal';
-import { useTripSelector, useTripVisibilitySelector } from '@/store/selectors';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
 export interface OverviewHeaderProps {
   tripOverview: {
     tripName: string;
+    ownerId: number;
+    visibility?: TripVisibility;
     members?: {
       id: number;
       username: string;
@@ -56,6 +57,8 @@ export interface OverviewHeaderProps {
 const OverviewHeader = ({
   tripOverview: {
     tripName,
+    ownerId,
+    visibility,
     members = [],
     objectives = [],
     startDate,
@@ -77,17 +80,12 @@ const OverviewHeader = ({
   const [openMembers, setOpenMembers] = useState(false);
 
   const currentUser = useSelector((s: RootState) => s.profile.currentUser);
-  const { tripOverview } = useTripSelector();
-  const isTripOwner = useMemo(() => {
-    if (currentUser && tripOverview) {
-      return currentUser.id === tripOverview.owner.id;
-    }
-    return false;
-  }, [currentUser, tripOverview]);
+  const isTripOwner = useMemo(
+    () => Boolean(currentUser && ownerId && currentUser.id === ownerId),
+    [currentUser, ownerId]
+  );
 
-  const visibilityFromStore = useTripVisibilitySelector(tripIdAsNumber);
-  const resolvedVisibility: TripVisibility =
-    visibilityFromStore ?? tripOverview?.visibility ?? 'PRIVATE';
+  const resolvedVisibility: TripVisibility = visibility ?? 'PRIVATE';
   const isPublicVisibility = resolvedVisibility === 'PUBLIC';
 
   // ----------------------------

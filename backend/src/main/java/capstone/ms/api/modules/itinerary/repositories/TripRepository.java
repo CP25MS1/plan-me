@@ -3,6 +3,7 @@ package capstone.ms.api.modules.itinerary.repositories;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +16,10 @@ import java.util.Optional;
 
 @Repository
 public interface TripRepository extends JpaRepository<Trip, Integer> {
+    @EntityGraph(attributePaths = {"owner", "objectives", "tripmates", "tripmates.user"})
+    @Query("SELECT t FROM Trip t WHERE t.id = :tripId")
+    Optional<Trip> findHeaderById(@Param("tripId") Integer tripId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM Trip t WHERE t.id = :tripId")
     Optional<Trip> findByIdForUpdate(@Param("tripId") Integer tripId);

@@ -43,6 +43,17 @@ export interface TripOverview {
   travelSegments: TravelSegmentResponseDto[];
 }
 
+export interface TripHeader {
+  id: number;
+  name: string;
+  startDate: string | null;
+  endDate: string | null;
+  visibility?: TripVisibility;
+  owner: PublicUserInfo;
+  objectives: Objective[];
+  tripmates: PublicUserInfo[];
+}
+
 // === Wishlist Place === //
 export type WishlistPlace = {
   id: number;
@@ -103,7 +114,7 @@ export type DailyPlan = {
   id: number;
   date: string;
   pinColor: string;
-  scheduledPlaces?: ScheduledPlace[];
+  scheduledPlaces: ScheduledPlace[];
 };
 
 export type ScheduledPlace = {

@@ -12,12 +12,8 @@ import {
   MenuItem,
   FormControl,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import DeleteIcon from '@mui/icons-material/Delete';
-import UploadIcon from '@mui/icons-material/Upload';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useState, useRef, useEffect, ElementType } from 'react';
-import { Building, Utensils, Plane, Train, Bus, Ship, Car } from 'lucide-react';
+import { Building, Utensils, Plane, Train, Bus, Ship, Car, Eye, Trash2, Upload, X } from 'lucide-react';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useTranslation } from 'react-i18next';
 
@@ -36,6 +32,7 @@ import { useParams } from 'next/navigation';
 import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
+import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-trip-add-presence';
 
 interface UploadReservationProps {
   open: boolean;
@@ -85,12 +82,19 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
     }
   }, [open]);
 
-  const { tripId } = useParams<{ tripId: string }>();
+  const { tripId: tripIdParam } = useParams<{ tripId: string }>();
+  const tripId = Number(tripIdParam);
 
   const { mutateAsync: previewFiles, isPending: isPreviewing } =
     useGetPreviewReservationsFromFiles();
 
-  const { mutateAsync: createBulk, isPending: isCreating } = useCreateReservationBulk();
+  const { mutateAsync: createBulk, isPending: isCreating } = useCreateReservationBulk(tripId);
+
+  useTripAddPresenceEffect({
+    tripId,
+    enabled: open,
+    section: 'OVERVIEW_RESERVATIONS',
+  });
 
   const [previewReservations, setPreviewReservations] = useState<ReservationDto[]>([]);
 
@@ -271,7 +275,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, position: 'relative' }}>
           อัพโหลดข้อมูลการจอง
           <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-            <CloseIcon />
+            <X size={18} />
           </IconButton>
         </DialogTitle>
 
@@ -309,7 +313,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                 onChange={handleFilesChange}
               />
 
-              <UploadIcon sx={{ fontSize: 50, color: 'grey.500' }} />
+              <Upload size={50} color="#9e9e9e" />
               <Typography sx={{ fontWeight: 600 }}>กดเพื่ออัพโหลดไฟล์</Typography>
               <Typography sx={{ fontSize: 14, color: 'text.disabled' }}>
                 รองรับไฟล์ประเภท .pdf, .png, .jpg
@@ -350,7 +354,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                     sx={{ position: 'absolute', right: 0, top: 0 }}
                     size="small"
                   >
-                    <DeleteIcon />
+                    <Trash2 size={18} />
                   </IconButton>
                   <Typography sx={{ mb: 1 }}>{item.file.name}</Typography>
                   <Typography sx={{ fontSize: 12, color: 'green', mb: 1 }}>
@@ -401,7 +405,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
           <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center', pb: 1 }}>
             <Button
               variant="contained"
-              startIcon={!isPreviewing && <VisibilityIcon />}
+              startIcon={!isPreviewing && <Eye size={18} />}
               onClick={handlePreview}
               disabled={!isAllSelected || isPreviewing}
               sx={{

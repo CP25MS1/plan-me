@@ -1,11 +1,15 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { addPlaceToWishlist } from '@/api/trips';
 
-export const useAddWishlistPlace = () => {
+export const useAddWishlistPlace = (tripId: number) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: ({ tripId, ggmpId }: { tripId: number; ggmpId: string }) =>
-      addPlaceToWishlist({ tripId, ggmpId }),
+    mutationFn: (ggmpId: string) => addPlaceToWishlist({ tripId, ggmpId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trip-wishlist-places', tripId] });
+    },
   });
 };
 

@@ -8,7 +8,6 @@ import { DailyPlan } from '@/api/trips';
 import PlaceMarker from '@/app/trip/[tripId]/@map/components/place-marker';
 import { useMapCenter } from '@/lib/google-maps';
 import { sortByDateAsc } from '@/lib/date';
-import { useDailyPlansSelector } from '@/store/selectors';
 
 type MapComponentProps = {
   selectedDay?: 'ALL' | number;
@@ -17,8 +16,7 @@ type MapComponentProps = {
 };
 
 const MiniMap = ({ selectedDay = 'ALL', viewOnly = false, dailyPlans }: MapComponentProps) => {
-  const storeDailyPlans = useDailyPlansSelector();
-  const resolvedDailyPlans = dailyPlans ?? storeDailyPlans;
+  const resolvedDailyPlans = dailyPlans ?? [];
   const mapCenter = useMapCenter(resolvedDailyPlans, selectedDay);
   const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
 

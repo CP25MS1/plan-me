@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateReservation } from '@/api/reservations/api';
 import { ReservationDto } from '@/api/reservations/type';
+import { RESERVATIONS } from '@/constants/query-keys';
 
-export const useUpdateReservation = () => {
+export const useUpdateReservation = (tripId: number) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -13,8 +14,9 @@ export const useUpdateReservation = () => {
       reservationId: number;
       reservation: Omit<ReservationDto, 'id'>;
     }) => updateReservation(reservationId, reservation),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trip-reservations', tripId] });
+      queryClient.invalidateQueries({ queryKey: [RESERVATIONS.PLACES, tripId] });
     },
     onError: (error) => {
       console.error('Update reservation failed:', error);

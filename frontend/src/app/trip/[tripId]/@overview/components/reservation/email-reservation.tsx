@@ -13,16 +13,11 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import EmailIcon from '@mui/icons-material/Email';
-import DeleteIcon from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import { ReactNode, ElementType, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { Building, Bus, Car, Plane, Ship, Train, Utensils } from 'lucide-react';
+import { Building, Bus, Car, Copy, Eye, Mail, Plane, Ship, Train, Trash2, Utensils, X } from 'lucide-react';
 import CircularProgress from '@mui/material/CircularProgress';
 import { BackButton } from '@/components/button';
 import LodgingCard from '@/app/trip/[tripId]/@overview/components/cards/lodging';
@@ -41,6 +36,7 @@ import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
+import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-trip-add-presence';
 
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -75,10 +71,17 @@ const icons: Record<ReservationType, ReactNode> = {
 };
 
 export default function EmailReservation({ open, onClose }: EmailReservationProps) {
-  const { tripId } = useParams<{ tripId: string }>();
+  const { tripId: tripIdParam } = useParams<{ tripId: string }>();
+  const tripId = Number(tripIdParam);
   const { t } = useTranslation('trip_overview');
   const [emails, setEmails] = useState<EmailItem[]>([]);
-  const { refetch: refetchEmailInfos, isFetching } = useGetReservationEmailInfo(Number(tripId));
+  const { refetch: refetchEmailInfos, isFetching } = useGetReservationEmailInfo(tripId);
+
+  useTripAddPresenceEffect({
+    tripId,
+    enabled: open,
+    section: 'OVERVIEW_RESERVATIONS',
+  });
 
   const resetEmailSelection = () => {
     setEmails([]);
@@ -242,7 +245,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   };
 
   // Confirm Create
-  const { mutateAsync: createBulk, isPending: isCreating } = useCreateReservationBulk();
+  const { mutateAsync: createBulk, isPending: isCreating } = useCreateReservationBulk(tripId);
   const { mutateAsync: readEmailInbox } = useReadEmailInbox();
 
   const handleConfirm = async () => {
@@ -306,7 +309,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, position: 'relative' }}>
           ส่งต่อข้อมูลการจองผ่านอีเมล
           <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-            <CloseIcon />
+            <X size={18} />
           </IconButton>
         </DialogTitle>
 
@@ -342,14 +345,14 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                 onClick={() => copyToClipboard(`cp25ms1+${tripId}@gmail.com`)}
                 size="small"
               >
-                <ContentCopyIcon fontSize="small" />
+                <Copy size={18} />
               </IconButton>
             </Tooltip>
           </Box>
 
           <Button
             variant="contained"
-            startIcon={!isFetching ? <EmailIcon /> : null}
+            startIcon={!isFetching ? <Mail size={18} /> : null}
             onClick={checkEmails}
             disabled={isFetching || isPending}
             sx={{
@@ -401,7 +404,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                   sx={{ position: 'absolute', right: 0, top: 0 }}
                   size="small"
                 >
-                  <DeleteIcon />
+                  <Trash2 size={18} />
                 </IconButton>
 
                 <Typography>{item.subject}</Typography>
@@ -451,7 +454,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
             <Button
               variant="contained"
-              startIcon={!isPending && <VisibilityIcon />}
+              startIcon={!isPending && <Eye size={18} />}
               onClick={handlePreview}
               disabled={isPending || !isAllSelected}
               sx={{

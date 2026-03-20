@@ -7,9 +7,9 @@ export const useUpdateTripOverview = (tripId: number) => {
   return useMutation({
     mutationFn: (tripInfo: UpsertTrip) => updateTripOverview(tripId, tripInfo),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['all-trips'],
-      });
+      queryClient.invalidateQueries({ queryKey: ['all-trips'] });
+      queryClient.invalidateQueries({ queryKey: ['trip-header', tripId] });
+      queryClient.invalidateQueries({ queryKey: ['trip-daily-plans', tripId] });
     },
   });
 };

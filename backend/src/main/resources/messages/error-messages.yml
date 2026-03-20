@@ -58,6 +58,16 @@ trip:
     th: "ไม่พบทริปนี้ในระบบ"
     en: "This trip is not found in the system."
 
+realtime:
+  lock:
+    409:
+      notHeld:
+        th: "จำเป็นต้องถือสิทธิ์การแก้ไขก่อนดำเนินการ"
+        en: "You must hold a lock before performing this action."
+      locked:
+        th: "รายการนี้กำลังถูกแก้ไขโดยสมาชิกคนอื่น"
+        en: "This item is currently being edited by another member."
+
 place:
   400:
     th: "ไม่สามารถเพิ่มสถานที่ได้ โปรดตรวจสอบข้อมูลอีกครั้ง"

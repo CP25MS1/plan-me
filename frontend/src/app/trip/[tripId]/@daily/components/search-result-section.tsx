@@ -1,13 +1,14 @@
 import { Fragment } from 'react';
 import { Box, CircularProgress, List, Typography } from '@mui/material';
 import { MapPin } from 'lucide-react';
+import { useParams } from 'next/navigation';
 
 import { tokens } from '@/providers/theme/design-tokens';
 import { createCustomTitle } from '../helpers/create-custom-title-for-search-section';
 import SectionCard from '@/components/trip/overview/section-card';
 import AddibleWishlistCard from './addible-wishlist-card';
 import { useTranslation } from 'react-i18next';
-import { useTripSelector } from '@/store/selectors';
+import { useTripWishlistPlaces } from '@/api/trips';
 
 type SectionProps = {
   title: string;
@@ -25,8 +26,9 @@ const SearchResultSection = ({ title, debouncedQ, isSearching, result }: Section
   const { t } = useTranslation('common');
   const qty = result.length;
 
-  const { tripOverview } = useTripSelector();
-  const wishlistPlaces = tripOverview?.wishlistPlaces ?? [];
+  const params = useParams<{ tripId: string }>();
+  const tripId = Number(params.tripId);
+  const { data: wishlistPlaces = [] } = useTripWishlistPlaces(tripId);
 
   const CustomTitle = createCustomTitle({
     startIcon: <MapPin size={25} color={tokens.color.primary} />,

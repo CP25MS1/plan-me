@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   createScheduledPlace,
   CreateScheduledPlaceRequest,
@@ -7,30 +7,41 @@ import {
   UpdateScheduledPlaceRequest,
 } from '@/api/daily-plan';
 
-export const useAddScheduledPlace = () => {
+export const useAddScheduledPlace = (tripId: number) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: ({ tripId, payload }: { tripId: number; payload: CreateScheduledPlaceRequest }) =>
-      createScheduledPlace(tripId, payload),
+    mutationFn: (payload: CreateScheduledPlaceRequest) => createScheduledPlace(tripId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trip-daily-plans', tripId] });
+    },
   });
 };
 
-export const useUpdateScheduledPlace = () => {
+export const useUpdateScheduledPlace = (tripId: number) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
-      tripId,
       placeId,
       payload,
     }: {
-      tripId: number;
       placeId: number;
       payload: UpdateScheduledPlaceRequest;
     }) => updateScheduledPlace(tripId, placeId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trip-daily-plans', tripId] });
+    },
   });
 };
 
-export const useRemoveScheduledPlace = () => {
+export const useRemoveScheduledPlace = (tripId: number) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: ({ tripId, placeId }: { tripId: number; placeId: number }) =>
-      deleteScheduledPlace(tripId, placeId),
+    mutationFn: (placeId: number) => deleteScheduledPlace(tripId, placeId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trip-daily-plans', tripId] });
+    },
   });
 };

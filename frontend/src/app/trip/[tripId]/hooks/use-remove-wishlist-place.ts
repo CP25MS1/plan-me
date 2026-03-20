@@ -1,11 +1,15 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { removePlaceFromWishlist } from '@/api/trips';
 
-export const useRemoveWishlistPlace = () => {
+export const useRemoveWishlistPlace = (tripId: number) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: ({ tripId, placeId }: { tripId: number; placeId: number }) =>
-      removePlaceFromWishlist({ tripId, placeId }),
+    mutationFn: (placeId: number) => removePlaceFromWishlist({ tripId, placeId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trip-wishlist-places', tripId] });
+    },
   });
 };
 
