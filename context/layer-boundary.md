@@ -17,8 +17,6 @@ PostgreSQL (Source of Truth)
 Redis (Cache Only)
 Object Storage (MinIO/S3-compatible, blob only)
 
-Realtime Path:
-Client ⇄ Elysia (WebSocket)
 REST Path:
 Client ⇄ Spring Boot (HTTP)
 
