@@ -178,7 +178,7 @@ const DailyPlanPage = () => {
                       key={plan.id}
                       title={planTitle}
                       asEmpty={!hasPlace}
-                      headerEndAdornment={
+                      titleEndAdornment={
                         <SectionPresenceGroup
                           users={getSectionUsersForPlan(plan.id)}
                           dialogTitle={`กำลังใช้งาน: Day ${index + 1}`}

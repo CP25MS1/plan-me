@@ -183,7 +183,7 @@ const TripOverviewPage = () => {
         <SectionCard
           title={t('sectionCard.reservation.title')}
           asEmpty={!hasReservation}
-          headerEndAdornment={
+          titleEndAdornment={
             <SectionPresenceGroup users={reservationUsers} dialogTitle="กำลังใช้งาน: Reservation" />
           }
         >
@@ -379,7 +379,7 @@ const TripOverviewPage = () => {
         <SectionCard
           title={t('sectionCard.wishlistPlace.title')}
           asEmpty={!wishlistPlaces.length}
-          headerEndAdornment={
+          titleEndAdornment={
             <SectionPresenceGroup users={wishlistUsers} dialogTitle="กำลังใช้งาน: Wishlist" />
           }
         >
