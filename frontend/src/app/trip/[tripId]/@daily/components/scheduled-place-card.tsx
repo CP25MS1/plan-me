@@ -148,10 +148,6 @@ const ScheduledPlaceCard = ({
   const cardContent = (
     <Box
       onClick={() => {
-        if (disabled) {
-          setSnackbar({ open: true, message: lockLabel });
-          return;
-        }
         openDetailsDialog(scheduledPlace.ggmp.ggmpId);
       }}
       sx={{
@@ -315,6 +311,13 @@ const ScheduledPlaceCard = ({
             notesReleaseRef.current = null;
           }}
           ggmpId={place.ggmpId}
+          notableInfo={
+            disabled ? (
+              <Typography variant="caption" sx={{ display: 'block', color: 'warning.main' }}>
+                {lockLabel} — view only
+              </Typography>
+            ) : null
+          }
           notableProps={
             readOnly
               ? undefined

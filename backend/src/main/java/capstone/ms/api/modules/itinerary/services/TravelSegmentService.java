@@ -4,7 +4,6 @@ import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.common.exceptions.ServerErrorException;
 import capstone.ms.api.modules.google_maps.clients.GoogleRoutesClient;
-import capstone.ms.api.modules.google_maps.entities.GoogleMapPlace;
 import capstone.ms.api.modules.google_maps.repositories.GoogleMapPlaceRepository;
 import capstone.ms.api.modules.itinerary.dto.travel_segment.ComputeRouteRequestDto;
 import capstone.ms.api.modules.itinerary.dto.travel_segment.RouteGoogleResultDto;
@@ -12,8 +11,8 @@ import capstone.ms.api.modules.itinerary.dto.travel_segment.TravelSegmentRespons
 import capstone.ms.api.modules.itinerary.entities.TravelSegment;
 import capstone.ms.api.modules.itinerary.entities.TravelSegmentMode;
 import capstone.ms.api.modules.itinerary.repositories.TravelSegmentRepository;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -26,7 +25,6 @@ public class TravelSegmentService {
     private final TravelSegmentRepository travelSegmentRepository;
     private final GoogleRoutesClient googleRoutesClient;
 
-    @Transactional
     public TravelSegmentResponseDto createSegment(ComputeRouteRequestDto requestDto) {
 
         if (requestDto.getStartPlaceId() == null || requestDto.getEndPlaceId() == null) {
@@ -37,20 +35,21 @@ public class TravelSegmentService {
             throw new BadRequestException("400", "travelSegment.400.samePlaces");
         }
 
-        GoogleMapPlace startPlace = googleMapPlaceRepository.findById(requestDto.getStartPlaceId())
-                .orElseThrow(() -> new NotFoundException("place.404"));
-
-        GoogleMapPlace endPlace = googleMapPlaceRepository.findById(requestDto.getEndPlaceId())
-                .orElseThrow(() -> new NotFoundException("place.404"));
-
         TravelSegmentMode mode = parseMode(requestDto.getMode());
 
         Optional<TravelSegment> existingSegment =
-                travelSegmentRepository.findByStartPlace_GgmpIdAndEndPlace_GgmpIdAndMode(startPlace.getGgmpId(), endPlace.getGgmpId(), mode.name());
+                travelSegmentRepository.findByStartPlace_GgmpIdAndEndPlace_GgmpIdAndMode(requestDto.getStartPlaceId(), requestDto.getEndPlaceId(), mode.name());
 
         if (existingSegment.isPresent()) {
-            return TravelSegmentMapper.toResponse(existingSegment.get());
+            return TravelSegmentMapper.toResponse(existingSegment.get(), requestDto.getStartPlaceId(), requestDto.getEndPlaceId());
         }
+
+        // Validate places exist before calling external API
+        googleMapPlaceRepository.findById(requestDto.getStartPlaceId())
+                .orElseThrow(() -> new NotFoundException("place.404"));
+
+        googleMapPlaceRepository.findById(requestDto.getEndPlaceId())
+                .orElseThrow(() -> new NotFoundException("place.404"));
 
         RouteGoogleResultDto route = googleRoutesClient.computeRoute(requestDto, mode);
 
@@ -58,16 +57,34 @@ public class TravelSegmentService {
             throw new ServerErrorException("travelSegment.500");
         }
 
+        // Re-check after external call in case another request created it first
+        Optional<TravelSegment> existingSegmentAfterCompute =
+                travelSegmentRepository.findByStartPlace_GgmpIdAndEndPlace_GgmpIdAndMode(requestDto.getStartPlaceId(), requestDto.getEndPlaceId(), mode.name());
+
+        if (existingSegmentAfterCompute.isPresent()) {
+            return TravelSegmentMapper.toResponse(existingSegmentAfterCompute.get(), requestDto.getStartPlaceId(), requestDto.getEndPlaceId());
+        }
+
         TravelSegment segment = new TravelSegment();
-        segment.setStartPlace(startPlace);
-        segment.setEndPlace(endPlace);
+        segment.setStartPlace(googleMapPlaceRepository.getReferenceById(requestDto.getStartPlaceId()));
+        segment.setEndPlace(googleMapPlaceRepository.getReferenceById(requestDto.getEndPlaceId()));
         segment.setMode(mode.name());
         segment.setDistance(route.getDistanceMeters());
         segment.setRegularDuration(route.getDurationSeconds());
 
-        TravelSegment savedSegment = travelSegmentRepository.save(segment);
+        try {
+            TravelSegment savedSegment = travelSegmentRepository.saveAndFlush(segment);
+            return TravelSegmentMapper.toResponse(savedSegment, requestDto.getStartPlaceId(), requestDto.getEndPlaceId());
+        } catch (DataIntegrityViolationException e) {
+            Optional<TravelSegment> existingSegmentAfterViolation =
+                    travelSegmentRepository.findByStartPlace_GgmpIdAndEndPlace_GgmpIdAndMode(requestDto.getStartPlaceId(), requestDto.getEndPlaceId(), mode.name());
 
-        return TravelSegmentMapper.toResponse(savedSegment);
+            if (existingSegmentAfterViolation.isPresent()) {
+                return TravelSegmentMapper.toResponse(existingSegmentAfterViolation.get(), requestDto.getStartPlaceId(), requestDto.getEndPlaceId());
+            }
+
+            throw new ServerErrorException("travelSegment.500");
+        }
     }
 
     private TravelSegmentMode parseMode(String mode) {
@@ -87,10 +104,10 @@ public class TravelSegmentService {
         private TravelSegmentMapper() {
         }
 
-        private static TravelSegmentResponseDto toResponse(TravelSegment segment) {
+        private static TravelSegmentResponseDto toResponse(TravelSegment segment, String startPlaceId, String endPlaceId) {
             TravelSegmentResponseDto dto = new TravelSegmentResponseDto();
-            dto.setStartPlaceId(segment.getStartPlace().getGgmpId());
-            dto.setEndPlaceId(segment.getEndPlace().getGgmpId());
+            dto.setStartPlaceId(startPlaceId);
+            dto.setEndPlaceId(endPlaceId);
             dto.setMode(segment.getMode());
             dto.setDistance(segment.getDistance());
             dto.setRegularDuration(segment.getRegularDuration());
