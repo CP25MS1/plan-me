@@ -23,6 +23,7 @@ type PlaceDetailsProps = {
     onBeginEdit?: () => Promise<boolean>;
     onEndEdit?: () => Promise<void>;
   };
+  notableInfo?: ReactNode;
   cta?: ReactNode;
 };
 
@@ -31,6 +32,7 @@ export const PlaceDetailsDialog = ({
   onClose,
   ggmpId,
   notableProps,
+  notableInfo,
   cta,
 }: DialogProps & PlaceDetailsProps) => {
   const { data: place } = useGetPlaceById(ggmpId);
@@ -75,6 +77,8 @@ export const PlaceDetailsDialog = ({
               <PlaceLocationInfo place={place} />
 
               <Divider sx={{ my: 2 }} />
+
+              {notableProps && notableInfo ? <Box sx={{ mb: 1 }}>{notableInfo}</Box> : null}
 
               {notableProps && (
                 <PlaceNoteAction

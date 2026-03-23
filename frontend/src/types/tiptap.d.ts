@@ -6,6 +6,7 @@ declare module '@tiptap/react' {
     isDestroyed?: boolean;
     chain: () => {
       setContent: (content: string) => { run: () => void };
+      focus: () => { run: () => void };
     };
   };
 
