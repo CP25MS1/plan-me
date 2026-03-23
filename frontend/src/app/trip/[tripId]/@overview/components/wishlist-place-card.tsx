@@ -111,13 +111,6 @@ export const WishlistPlaceCard = ({ tripId, data, onOpenDetailAction }: Wishlist
       >
         <Box
           onClick={() => {
-            if (lockedByOther) {
-              setSnackbar({
-                open: true,
-                message: `Locked by ${lock?.owner.username ?? 'someone'}`,
-              });
-              return;
-            }
             onOpenDetailAction();
           }}
           sx={{

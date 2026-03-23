@@ -54,6 +54,33 @@ export const PlaceNoteAction = ({ notes, onSave, onBeginEdit, onEndEdit }: Place
   });
 
   useEffect(() => {
+    if (isEditing || isSaving) return;
+    setNotesHtml(notes ?? '');
+  }, [isEditing, isSaving, notes]);
+
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    if (isEditing || isSaving) return;
+
+    const next = notes || EMPTY_CONTENT;
+    if (editor.getHTML() !== next) {
+      editor.chain().setContent(next).run();
+    }
+  }, [editor, isEditing, isSaving, notes]);
+
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    if (!isEditing) return;
+
+    const timer = window.setTimeout(() => {
+      if (editor.isDestroyed) return;
+      editor.chain().focus().run();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [editor, isEditing]);
+
+  useEffect(() => {
     return () => {
       void onEndEdit?.();
     };

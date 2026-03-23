@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Box, Button, IconButton, List, ListItem, Typography } from '@mui/material';
 import { Hand, Mail, Plus, Trash2, Upload } from 'lucide-react';
@@ -17,11 +17,10 @@ import MiniMap from '@/app/trip/[tripId]/components/maps/mini-map';
 import AddItemButton from '@/components/trip/overview/add-item-button';
 import { useFullScreenDialog } from '@/components/common/dialog';
 
-import { WishlistPlace } from '@/api/trips';
 import {
   SearchAddWishlistPlace,
   WishlistPlaceCard,
-  WishlistPlaceDetailContent,
+  WishlistPlaceDetailsDialog,
 } from './components';
 
 import {
@@ -158,12 +157,8 @@ const TripOverviewPage = () => {
     contentProps: { tripId },
   });
 
-  const { Dialog: WishlistPlaceDetailDialog, openWithProps: openWishlistPlaceDetail } =
-    useFullScreenDialog<{ wishlistItem: WishlistPlace }>({
-      Content: ({ wishlistItem, onCloseAction }) => (
-        <WishlistPlaceDetailContent wishlistItem={wishlistItem} onCloseAction={onCloseAction} />
-      ),
-    });
+  const [selectedWishlistPlaceId, setSelectedWishlistPlaceId] = useState<number | null>(null);
+  const closeWishlistDetails = useCallback(() => setSelectedWishlistPlaceId(null), []);
 
   if (isReservationsLoading || isWishlistLoading || isDailyPlansLoading) return <FullPageLoading />;
 
@@ -391,7 +386,7 @@ const TripOverviewPage = () => {
                     <WishlistPlaceCard
                       tripId={tripId}
                       data={wp}
-                      onOpenDetailAction={() => openWishlistPlaceDetail({ wishlistItem: wp })}
+                      onOpenDetailAction={() => setSelectedWishlistPlaceId(wp.id)}
                     />
                   </ListItem>
                 ))}
@@ -403,7 +398,6 @@ const TripOverviewPage = () => {
           ) : (
             WishlistPlaceDialog
           )}
-          {WishlistPlaceDetailDialog}
         </SectionCard>
       </Box>
 
@@ -446,6 +440,12 @@ const TripOverviewPage = () => {
         color="error"
         content={<Typography>คุณต้องการลบข้อมูลการจองนี้ใช่หรือไม่?</Typography>}
         confirmLabel={'ลบข้อมูลการจอง'}
+      />
+
+      <WishlistPlaceDetailsDialog
+        tripId={tripId}
+        wishlistPlaceId={selectedWishlistPlaceId}
+        onClose={closeWishlistDetails}
       />
 
       <AppSnackbar
