@@ -5,6 +5,7 @@ import capstone.ms.api.modules.itinerary.dto.daily_plan.CreateScheduledPlaceRequ
 import capstone.ms.api.modules.itinerary.dto.daily_plan.ScheduledPlaceDto;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.UpdateScheduledPlaceRequest;
 import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionResponse;
+import capstone.ms.api.modules.itinerary.dto.trip_version.TripVersionDto;
 import capstone.ms.api.modules.itinerary.dto.visibility.UpdateTripVisibilityRequest;
 import capstone.ms.api.modules.itinerary.dto.visibility.UpdateTripVisibilityResponse;
 import capstone.ms.api.modules.itinerary.services.TripService;
@@ -78,6 +79,14 @@ public class TripController {
                                                   @AuthenticationPrincipal User currentUser) {
         tripVersionService.deleteVersion(tripId, versionId, currentUser);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{tripId}/versions")
+    public ResponseEntity<List<TripVersionDto>> listTripVersions(@PathVariable Integer tripId,
+                                                                 @RequestParam(name = "includeSnapshot", required = false, defaultValue = "false") Boolean includeSnapshot,
+                                                                 @AuthenticationPrincipal User currentUser) {
+        List<TripVersionDto> versions = tripVersionService.listVersions(tripId, includeSnapshot, currentUser);
+        return ResponseEntity.ok(versions);
     }
 
     @PutMapping("/{tripId}")
