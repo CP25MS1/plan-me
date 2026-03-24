@@ -4,15 +4,19 @@ import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.checklist.CreateTripChecklistRequest;
+import capstone.ms.api.modules.itinerary.dto.checklist.RecommendedChecklistItemDto;
 import capstone.ms.api.modules.itinerary.dto.checklist.TripChecklistDto;
 import capstone.ms.api.modules.itinerary.dto.checklist.UpdateTripChecklistRequest;
+import capstone.ms.api.modules.itinerary.mappers.BasicChecklistItemMapper;
 import capstone.ms.api.modules.itinerary.entities.TripChecklist;
 import capstone.ms.api.modules.itinerary.mappers.ChecklistMapper;
+import capstone.ms.api.modules.itinerary.repositories.BasicChecklistItemRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripChecklistRepository;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.services.UserService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +28,8 @@ public class TripChecklistService {
     private static final String CHECKLIST_COMPLETED_LOCKED_KEY = "tripChecklist.completedLocked";
     private final TripChecklistRepository repository;
     private final ChecklistMapper mapper;
+    private final BasicChecklistItemRepository basicChecklistItemRepository;
+    private final BasicChecklistItemMapper basicChecklistItemMapper;
     private final TripAccessService tripAccessService;
     private final TripResourceService tripResourceService;
     private final UserService userService;
@@ -52,6 +58,14 @@ public class TripChecklistService {
     ) {
         assertTripmateAccess(user, tripId);
         return repository.findAllByTripId(tripId).stream().map(mapper::toDto).toList();
+    }
+
+    public List<RecommendedChecklistItemDto> getRecommendedChecklistItems(final Integer tripId, final User user) {
+        assertTripmateAccess(user, tripId);
+
+        return basicChecklistItemRepository.findAll(Sort.by(Sort.Direction.ASC, "id")).stream()
+                .map(basicChecklistItemMapper::toDto)
+                .toList();
     }
 
     @Transactional

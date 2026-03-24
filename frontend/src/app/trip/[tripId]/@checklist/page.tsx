@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   IconButton,
+  Chip,
   Avatar,
   TextField,
   Typography,
@@ -18,7 +19,8 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddItemButton from '@/components/trip/overview/add-item-button';
-import SectionCard from '@/components/trip/overview/section-card-no-close';
+import SectionCard from '@/components/trip/overview/section-card';
+import SectionCardNoClose from '@/components/trip/overview/section-card-no-close';
 
 import { Add } from '@mui/icons-material';
 import { CheckBoxOutlineBlank, CheckBox } from '@mui/icons-material';
@@ -28,6 +30,7 @@ import { UserPen, Trash2 } from 'lucide-react';
 import { TripChecklistDto } from '@/api/checklist/type';
 
 import { useGetTripChecklist } from '@/app/trip/[tripId]/@checklist/hooks/use-get-trip-checklist';
+import { useGetRecommendedChecklistItems } from '@/app/trip/[tripId]/@checklist/hooks/use-get-recommended-checklist-items';
 import { useCreateTripChecklist } from '@/app/trip/[tripId]/@checklist/hooks/use-create-trip-checklist';
 import { useDeleteTripChecklist } from '@/app/trip/[tripId]/@checklist/hooks/use-delete-trip-checklist';
 import { useUpdateTripChecklist } from '@/app/trip/[tripId]/@checklist/hooks/use-update-trip-checklist';
@@ -36,11 +39,13 @@ import { useAppSelector } from '@/store';
 import { useGetTripMembers } from '@/app/hooks/use-get-trip-members';
 import TripmateModal from '@/app/trip/[tripId]/@checklist/components/tripmate-modal';
 import { tokens } from '@/providers/theme/design-tokens';
+import { useI18nSelector } from '@/store/selectors';
 
 export default function ChecklistPage() {
   const params = useParams();
   const tripId = Number(params.tripId);
   const { t } = useTranslation('trip_checklist');
+  const { locale } = useI18nSelector();
 
   const me = useAppSelector((s) => s.profile.currentUser);
   const tripmates = useGetTripMembers(tripId);
@@ -48,6 +53,8 @@ export default function ChecklistPage() {
 
   /* ===== checklist hooks ===== */
   const { data: items = [], isLoading } = useGetTripChecklist(tripId);
+  const { data: recommendedItems = [], isLoading: isRecommendedLoading } =
+    useGetRecommendedChecklistItems(tripId);
 
   const createMut = useCreateTripChecklist(tripId);
   const updateMut = useUpdateTripChecklist(tripId);
@@ -66,6 +73,8 @@ export default function ChecklistPage() {
   const [editingName, setEditingName] = useState('');
 
   if (!tripId || Number.isNaN(tripId)) return null;
+
+  const existingNames = new Set(items.map((i) => i.name.trim().toLowerCase()));
 
   const handleInlineAdd = () => {
     const name = addingName.trim();
@@ -145,8 +154,65 @@ export default function ChecklistPage() {
 
   return (
     <Box sx={{ width: '100%', p: 2 }}>
+      <SectionCard
+        title={t('recommended.title')}
+        defaultOpen={false}
+        asEmpty={!isRecommendedLoading && recommendedItems.length === 0}
+        titleEndAdornment={
+          !isRecommendedLoading && recommendedItems.length > 0 ? (
+            <Typography variant="caption" sx={{ color: tokens.color.textSecondary }}>
+              ({recommendedItems.length})
+            </Typography>
+          ) : null
+        }
+      >
+        {isRecommendedLoading ? (
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} variant="rounded" width={96} height={32} />
+            ))}
+          </Box>
+        ) : recommendedItems.length === 0 ? (
+          <Typography sx={{ color: tokens.color.textSecondary, textAlign: 'left' }}>
+            {t('recommended.empty')}
+          </Typography>
+        ) : (
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+            {recommendedItems.map((rec) => {
+              const name = locale === 'th' ? rec.TH : rec.EN || rec.TH;
+              const isAdded = existingNames.has(name.trim().toLowerCase());
+
+              return (
+                <Chip
+                  key={rec.id}
+                  label={name}
+                  icon={isAdded ? undefined : <Add fontSize="small" />}
+                  clickable={!isAdded}
+                  disabled={isAdded || createMut.isPending}
+                  onClick={() => {
+                    if (isAdded) return;
+                    createMut.mutate(name);
+                  }}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    '& .MuiChip-label': {
+                      textAlign: 'left',
+                    },
+                    opacity: isAdded ? 0.6 : 1,
+                  }}
+                  variant={isAdded ? 'outlined' : 'filled'}
+                />
+              );
+            })}
+          </Box>
+        )}
+      </SectionCard>
+
       {openSection && (
-        <SectionCard title={t('title')} asEmpty={!isLoading && items.length === 0 && !isAdding}>
+        <SectionCardNoClose
+          title={t('title')}
+          asEmpty={!isLoading && items.length === 0 && !isAdding}
+        >
           {/* ===== List ===== */}
           {isLoading ? (
             [1, 2, 3].map((i) => (
@@ -441,7 +507,7 @@ export default function ChecklistPage() {
               )}
             </Box>
           )}
-        </SectionCard>
+        </SectionCardNoClose>
       )}
 
       {/* ===== Assign Dialog ===== */}

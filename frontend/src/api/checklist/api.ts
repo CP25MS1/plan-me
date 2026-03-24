@@ -1,8 +1,20 @@
 import { apiClient } from '@/api/client';
-import { TripChecklistDto, CreateTripChecklistRequest, UpdateTripChecklistRequest } from './type';
+import {
+  TripChecklistDto,
+  CreateTripChecklistRequest,
+  UpdateTripChecklistRequest,
+  RecommendedChecklistItemDto,
+} from './type';
 
 export const getChecklistItems = async (tripId: number): Promise<TripChecklistDto[]> => {
   const { data } = await apiClient.get(`/trips/${tripId}/checklist-items`);
+  return data;
+};
+
+export const getRecommendedChecklistItems = async (
+  tripId: number
+): Promise<RecommendedChecklistItemDto[]> => {
+  const { data } = await apiClient.get(`/trips/${tripId}/checklist-items/recommended`);
   return data;
 };
 
