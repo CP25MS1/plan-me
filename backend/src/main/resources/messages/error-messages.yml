@@ -212,6 +212,9 @@ tripVersion:
     cannotDeleteCurrent:
       th: "ไม่สามารถลบเวอร์ชันที่กำลังใช้งานอยู่ได้"
       en: "Cannot delete the current active trip version."
+    alreadyCurrent:
+      th: "เวอร์ชันนี้ถูกตั้งเป็นเวอร์ชันปัจจุบันอยู่แล้ว"
+      en: "This version is already set as the current version."
   404:
     th: "ไม่พบเวอร์ชันของทริปนี้ในระบบ"
     en: "This trip version is not found in the system."
