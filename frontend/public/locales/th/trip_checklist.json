@@ -13,5 +13,12 @@
   },
   "hints": {
     "completedLocked": "ต้อง uncheck ก่อนจึงจะแก้ไข/ลบได้"
+  },
+  "recommended": {
+    "title": "รายการแนะนำ",
+    "actions": {
+      "add": "เพิ่ม"
+    },
+    "empty": "ยังไม่มีรายการแนะนำ"
   }
 }
