@@ -209,6 +209,12 @@ tripVersion:
     maxReached:
       th: "คุณได้สร้างเวอร์ชันครบจำนวนสูงสุดแล้ว"
       en: "Maximum number of versions reached for this trip."
+    cannotDeleteCurrent:
+      th: "ไม่สามารถลบเวอร์ชันที่กำลังใช้งานอยู่ได้"
+      en: "Cannot delete the current active trip version."
+  404:
+    th: "ไม่พบเวอร์ชันของทริปนี้ในระบบ"
+    en: "This trip version is not found in the system."
   409:
     duplicate:
       th: "มีเวอร์ชันที่ใช้ชื่อนี้อยู่แล้ว"

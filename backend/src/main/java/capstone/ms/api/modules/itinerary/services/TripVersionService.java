@@ -2,6 +2,7 @@ package capstone.ms.api.modules.itinerary.services;
 
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ConflictException;
+import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionRequest;
 import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionResponse;
 import capstone.ms.api.modules.itinerary.entities.Trip;
@@ -54,7 +55,7 @@ public class TripVersionService {
         tripVersion.setSnapshotStartDate(trip.getStartDate());
         tripVersion.setSnapshotEndDate(trip.getEndDate());
         tripVersion.setCreatedBy(currentUser);
-        tripVersion.setIsCurrent(true);
+        tripVersion.setIsCurrent(false);
         tripVersion.setCreatedAt(Instant.now());
 
         TripVersion saved = tripVersionRepository.saveAndFlush(tripVersion);
@@ -80,6 +81,25 @@ public class TripVersionService {
                 .isCurrent(saved.getIsCurrent())
                 .snapshotSchemaVersion((short) 1)
                 .build();
+    }
+
+    @Transactional
+    public void deleteVersion(Integer tripId, Integer versionId, User currentUser) {
+        tripAccessService.getTripWithOwnerAccess(currentUser, tripId);
+
+        TripVersion tripVersion = tripVersionRepository.findById(versionId)
+                .orElseThrow(() -> new NotFoundException("tripVersion.404"));
+
+        if (tripVersion.getTrip() == null || !tripVersion.getTrip().getId().equals(tripId)) {
+            throw new NotFoundException("tripVersion.404");
+        }
+
+        if (Boolean.TRUE.equals(tripVersion.getIsCurrent())) {
+            throw new BadRequestException("tripVersion.400.cannotDeleteCurrent");
+        }
+
+        tripVersionRepository.delete(tripVersion);
+        tripVersionRepository.flush();
     }
 
     private Map<String, Object> buildSnapshot(Trip trip) {
