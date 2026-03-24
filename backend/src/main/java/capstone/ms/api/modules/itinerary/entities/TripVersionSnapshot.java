@@ -1,6 +1,5 @@
 package capstone.ms.api.modules.itinerary.entities;
 
-import capstone.ms.api.common.converters.MapToJsonConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
