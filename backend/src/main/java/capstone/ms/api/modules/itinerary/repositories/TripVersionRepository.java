@@ -15,8 +15,6 @@ public interface TripVersionRepository extends JpaRepository<TripVersion, Intege
 
     boolean existsByTripIdAndVersionName(Integer tripId, String versionName);
 
-    Optional<TripVersion> findByTripIdAndIsCurrentTrue(Integer tripId);
-
     @Modifying
     @Query("UPDATE TripVersion v SET v.isCurrent = false WHERE v.trip IS NOT NULL AND v.trip.id = :tripId AND v.isCurrent = true")
     void clearCurrentForTrip(@Param("tripId") Integer tripId);
