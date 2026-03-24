@@ -52,12 +52,16 @@ public interface TripRepository extends JpaRepository<Trip, Integer> {
 
     @Query("""
                 SELECT DISTINCT t FROM Trip t
-                LEFT JOIN FETCH t.owner
                 LEFT JOIN FETCH t.wishlistPlaces wp
                 LEFT JOIN FETCH wp.place
                 LEFT JOIN FETCH t.dailyPlans dp
                 LEFT JOIN FETCH dp.scheduledPlaces sp
                 LEFT JOIN FETCH sp.ggmp
+                LEFT JOIN FETCH t.objectives o
+                LEFT JOIN FETCH o.bo
+                LEFT JOIN FETCH t.reservations r
+                LEFT JOIN FETCH t.tripmates tm
+                LEFT JOIN FETCH tm.user
                 WHERE t.id = :tripId
             """)
     Optional<Trip> findByIdWithDetails(@Param("tripId") Integer tripId);
