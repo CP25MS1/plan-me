@@ -4,22 +4,26 @@ import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.ConflictException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.common.exceptions.ServerErrorException;
+import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionRequest;
 import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionResponse;
 import capstone.ms.api.modules.itinerary.dto.trip_version.TripVersionDto;
+import capstone.ms.api.modules.itinerary.dto.trip_version.ApplyTripVersionResponse;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.TripVersion;
 import capstone.ms.api.modules.itinerary.entities.TripVersionSnapshot;
 import capstone.ms.api.modules.itinerary.mappers.TripMapper;
 import capstone.ms.api.modules.itinerary.repositories.TripVersionRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripVersionSnapshotRepository;
+import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.mappers.UserMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
@@ -37,6 +41,7 @@ public class TripVersionService {
     private final UserMapper userMapper;
     private final TripMapper tripMapper;
     private final ObjectMapper objectMapper;
+    private final TripRepository tripRepository;
 
     @Transactional
     public CreateTripVersionResponse createVersion(Integer tripId, CreateTripVersionRequest request, User currentUser) {
@@ -86,6 +91,62 @@ public class TripVersionService {
                 .appliedBy(null)
                 .isCurrent(saved.getIsCurrent())
                 .snapshotSchemaVersion((short) 1)
+                .build();
+    }
+
+    @Transactional
+    public ApplyTripVersionResponse applyVersion(Integer tripId, Integer versionId, User currentUser) {
+        Trip lockedTrip = tripRepository.findByIdForUpdate(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+
+        if (lockedTrip.getOwner() == null || !lockedTrip.getOwner().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("trip.403");
+        }
+
+        TripVersion tripVersion = tripVersionRepository.findById(versionId)
+                .orElseThrow(() -> new NotFoundException("tripVersion.404"));
+
+        if (tripVersion.getTrip() == null || !tripVersion.getTrip().getId().equals(tripId)) {
+            throw new NotFoundException("tripVersion.404");
+        }
+
+        if (Boolean.TRUE.equals(tripVersion.getIsCurrent())) {
+            throw new BadRequestException("tripVersion.400.alreadyCurrent");
+        }
+
+        // Clear any existing current flag for this trip (single update statement)
+        tripVersionRepository.clearCurrentForTrip(tripId);
+
+        tripVersion.setIsCurrent(true);
+        tripVersion.setAppliedAt(Instant.now());
+        tripVersion.setAppliedBy(currentUser);
+
+        lockedTrip.setName(tripVersion.getSnapshotTripName());
+        lockedTrip.setStartDate(tripVersion.getSnapshotStartDate());
+        lockedTrip.setEndDate(tripVersion.getSnapshotEndDate());
+        tripRepository.save(lockedTrip);
+
+        TripVersion saved = tripVersionRepository.saveAndFlush(tripVersion);
+
+        Short snapshotSchemaVersion = tripVersionSnapshotRepository.findById(saved.getId())
+                .map(TripVersionSnapshot::getSnapshotSchemaVersion)
+                .orElse((short) 1);
+
+        TripVersionDto dto = TripVersionDto.builder()
+                .id(saved.getId())
+                .tripId(saved.getTrip().getId())
+                .versionName(saved.getVersionName())
+                .createdAt(saved.getCreatedAt())
+                .createdBy(saved.getCreatedBy() != null ? userMapper.userToPublicUserInfo(saved.getCreatedBy()) : null)
+                .appliedAt(saved.getAppliedAt())
+                .appliedBy(saved.getAppliedBy() != null ? userMapper.userToPublicUserInfo(saved.getAppliedBy()) : null)
+                .isCurrent(saved.getIsCurrent())
+                .snapshotSchemaVersion(snapshotSchemaVersion)
+                .build();
+
+        return ApplyTripVersionResponse.builder()
+                .tripId(tripId)
+                .appliedVersion(dto)
                 .build();
     }
 
