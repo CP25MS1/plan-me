@@ -1,14 +1,12 @@
-import { useAppSelector } from "@/store";
-import { useGetTripmates } from "../trip/[tripId]/@overview/hooks/invite/use-get-tripmates"
+import { useTripHeader } from '@/api/trips';
 
 export const useGetTripMembers = (tripId: number) => {
-    const { data: tripmates } = useGetTripmates(tripId)
-    const joinedTripmates = (tripmates?.joined ?? []).map(j => j.user);
+  const { data: tripHeader } = useTripHeader(tripId);
 
-    const tripOverview = useAppSelector((s) => s.tripDetail.overview)
-    const tripOwner = tripOverview?.owner;
+  const owner = tripHeader?.owner;
+  if (!owner) return [];
 
-    if (!tripOwner) return [];
+  const tripmates = (tripHeader.tripmates ?? []).filter((m) => m.id !== owner.id);
 
-    return [tripOwner, ...joinedTripmates]
-}
+  return [owner, ...tripmates];
+};

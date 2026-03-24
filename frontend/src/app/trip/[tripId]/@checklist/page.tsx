@@ -5,27 +5,26 @@ import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
 import {
+  Avatar,
+  Badge,
   Box,
   Button,
-  IconButton,
   Chip,
-  Avatar,
-  TextField,
-  Typography,
-  Stack,
+  IconButton,
   Skeleton,
+  Stack,
+  TextField,
   Tooltip,
-  Badge,
+  Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddItemButton from '@/components/trip/overview/add-item-button';
 import SectionCard from '@/components/trip/overview/section-card';
 import SectionCardNoClose from '@/components/trip/overview/section-card-no-close';
 
-import { Add } from '@mui/icons-material';
-import { CheckBoxOutlineBlank, CheckBox } from '@mui/icons-material';
+import { Add, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 
-import { UserPen, Trash2 } from 'lucide-react';
+import { Trash2, UserPen } from 'lucide-react';
 
 import { TripChecklistDto } from '@/api/checklist/type';
 
