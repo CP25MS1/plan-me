@@ -18,7 +18,7 @@ import org.mapstruct.*;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {ObjectiveMapper.class, ReservationMapper.class, TripmateMapper.class, ChecklistMapper.class})
+@Mapper(componentModel = "spring", uses = {ObjectiveMapper.class, ReservationMapper.class, TripmateMapper.class, ChecklistMapper.class, ScheduledPlaceMapper.class})
 public interface TripMapper {
 
     @Mapping(source = "owner", target = "owner", qualifiedByName = "userToPublicUserInfo")

@@ -59,4 +59,18 @@ public class TripAccessService {
 
         return trip;
     }
+
+    public Trip getTripWithTripmateLevelAccess(User user, Integer tripId) {
+        Trip trip = tripRepository.findByIdWithDetails(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+
+        boolean isOwner = trip.getOwner() != null && trip.getOwner().getId().equals(user.getId());
+        boolean isTripmate = tripmateRepository.existsTripmateByTripIdAndUserId(tripId, user.getId());
+
+        if (!isOwner && !isTripmate) {
+            throw new ForbiddenException("trip.403");
+        }
+
+        return trip;
+    }
 }
