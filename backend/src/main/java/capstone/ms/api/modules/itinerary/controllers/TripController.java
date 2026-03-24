@@ -72,6 +72,14 @@ public class TripController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @DeleteMapping("/{tripId}/versions/{versionId}")
+    public ResponseEntity<Void> deleteTripVersion(@PathVariable Integer tripId,
+                                                  @PathVariable Integer versionId,
+                                                  @AuthenticationPrincipal User currentUser) {
+        tripVersionService.deleteVersion(tripId, versionId, currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
     @PutMapping("/{tripId}")
     public ResponseEntity<TripOverviewDto> updateTripOverview(
             @AuthenticationPrincipal final User currentUser,
