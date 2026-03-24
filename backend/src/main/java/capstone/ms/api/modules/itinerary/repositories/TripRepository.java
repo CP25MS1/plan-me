@@ -49,4 +49,17 @@ public interface TripRepository extends JpaRepository<Trip, Integer> {
             WHERE t.id = :tripId
             """)
     Optional<Trip> findTemplateWithDetails(Integer tripId);
+
+    @Query("""
+                SELECT DISTINCT t FROM Trip t
+                LEFT JOIN FETCH t.owner
+                LEFT JOIN FETCH t.wishlistPlaces wp
+                LEFT JOIN FETCH wp.place
+                LEFT JOIN FETCH t.dailyPlans dp
+                LEFT JOIN FETCH dp.scheduledPlaces sp
+                LEFT JOIN FETCH sp.ggmp
+                WHERE t.id = :tripId
+            """)
+    Optional<Trip> findByIdWithDetails(@Param("tripId") Integer tripId);
+
 }

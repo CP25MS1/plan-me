@@ -203,3 +203,13 @@ tripTemplate:
   409:
     th: "ช่วงวันที่ต้องสอดคล้องกับโครงสร้างวันของเทมเพลต"
     en: "Date range must match the template’s day structure."
+
+tripVersion:
+  400:
+    maxReached:
+      th: "คุณได้สร้างเวอร์ชันครบจำนวนสูงสุดแล้ว"
+      en: "Maximum number of versions reached for this trip."
+  409:
+    duplicate:
+      th: "มีเวอร์ชันที่ใช้ชื่อนี้อยู่แล้ว"
+      en: "A version with this name already exists for this trip."
