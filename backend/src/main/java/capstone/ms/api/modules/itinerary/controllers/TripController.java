@@ -4,11 +4,14 @@ import capstone.ms.api.modules.itinerary.dto.*;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.CreateScheduledPlaceRequest;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.ScheduledPlaceDto;
 import capstone.ms.api.modules.itinerary.dto.daily_plan.UpdateScheduledPlaceRequest;
+import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionResponse;
 import capstone.ms.api.modules.itinerary.dto.visibility.UpdateTripVisibilityRequest;
 import capstone.ms.api.modules.itinerary.dto.visibility.UpdateTripVisibilityResponse;
 import capstone.ms.api.modules.itinerary.services.TripService;
 import capstone.ms.api.modules.itinerary.services.daily_plan.DailyPlanService;
 import capstone.ms.api.modules.itinerary.services.TripBudgetService;
+import capstone.ms.api.modules.itinerary.services.TripVersionService;
+import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionRequest;
 import capstone.ms.api.modules.itinerary.services.TripDebtService;
 import capstone.ms.api.modules.itinerary.dto.TripBudgetSummaryDto;
 import capstone.ms.api.modules.itinerary.dto.UpsertTripBudgetRequest;
@@ -31,6 +34,7 @@ public class TripController {
     private final DailyPlanService dailyPlanService;
     private final TripBudgetService tripBudgetService;
     private final TripDebtService tripDebtService;
+    private final TripVersionService tripVersionService;
 
     @PostMapping
     public ResponseEntity<TripOverviewDto> createTrip(
@@ -58,6 +62,14 @@ public class TripController {
                                                            @AuthenticationPrincipal User currentUser) {
         TripOverviewDto overview = tripService.getTripOverview(tripId, currentUser);
         return ResponseEntity.ok(overview);
+    }
+
+    @PostMapping("/{tripId}/versions")
+    public ResponseEntity<CreateTripVersionResponse> createTripVersion(@PathVariable Integer tripId,
+                                                                       @AuthenticationPrincipal User currentUser,
+                                                                       @Valid @RequestBody CreateTripVersionRequest request) {
+        CreateTripVersionResponse response = tripVersionService.createVersion(tripId, request, currentUser);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{tripId}")

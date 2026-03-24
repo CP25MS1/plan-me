@@ -49,4 +49,14 @@ public class TripAccessService {
         return user.getId().equals(trip.getOwner().getId());
     }
 
+    public Trip getTripWithOwnerAccess(User user, Integer tripId) {
+        Trip trip = tripRepository.findByIdWithDetails(tripId)
+                .orElseThrow(() -> new NotFoundException("trip.404"));
+
+        if (trip.getOwner() == null || !trip.getOwner().getId().equals(user.getId())) {
+            throw new ForbiddenException("trip.403");
+        }
+
+        return trip;
+    }
 }
