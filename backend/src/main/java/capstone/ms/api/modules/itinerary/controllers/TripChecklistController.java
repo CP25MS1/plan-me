@@ -1,6 +1,7 @@
 package capstone.ms.api.modules.itinerary.controllers;
 
 import capstone.ms.api.modules.itinerary.dto.checklist.CreateTripChecklistRequest;
+import capstone.ms.api.modules.itinerary.dto.checklist.RecommendedChecklistItemDto;
 import capstone.ms.api.modules.itinerary.dto.checklist.TripChecklistDto;
 import capstone.ms.api.modules.itinerary.dto.checklist.UpdateTripChecklistRequest;
 import capstone.ms.api.modules.itinerary.services.TripChecklistService;
@@ -36,6 +37,14 @@ public class TripChecklistController {
             final @AuthenticationPrincipal User currentUser
     ) {
         return ResponseEntity.ok(service.getTripChecklist(tripId, currentUser));
+    }
+
+    @GetMapping("/recommended")
+    public ResponseEntity<List<RecommendedChecklistItemDto>> getRecommendedChecklistItems(
+            final @PathVariable Integer tripId,
+            final @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(service.getRecommendedChecklistItems(tripId, currentUser));
     }
 
     @PatchMapping("/{itemId}")

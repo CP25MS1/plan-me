@@ -10,6 +10,7 @@ interface SectionCardProps {
   children?: ReactNode;
   asEmpty?: boolean;
   headerEndAdornment?: ReactNode;
+  defaultOpen?: boolean;
 }
 
 const SectionCard = ({
@@ -18,8 +19,9 @@ const SectionCard = ({
   children,
   asEmpty = false,
   headerEndAdornment,
+  defaultOpen = true,
 }: SectionCardProps) => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <Box sx={{ mb: 3 }}>

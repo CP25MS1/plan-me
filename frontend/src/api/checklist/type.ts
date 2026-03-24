@@ -12,6 +12,12 @@ export interface TripChecklistDto {
   updatedAt: string;
 }
 
+export interface RecommendedChecklistItemDto {
+  id: number;
+  TH: string;
+  EN: string;
+}
+
 export interface CreateTripChecklistRequest {
   name: string;
 }

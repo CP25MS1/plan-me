@@ -13,5 +13,12 @@
   },
   "hints": {
     "completedLocked": "Uncheck to edit/delete"
+  },
+  "recommended": {
+    "title": "Recommended",
+    "actions": {
+      "add": "Add"
+    },
+    "empty": "No recommended items yet"
   }
 }
