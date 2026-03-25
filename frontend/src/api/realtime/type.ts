@@ -1,4 +1,10 @@
-export type TripRealtimeScope = 'HEADER' | 'RESERVATIONS' | 'WISHLIST' | 'DAILY_PLANS';
+export type TripRealtimeScope =
+  | 'HEADER'
+  | 'RESERVATIONS'
+  | 'WISHLIST'
+  | 'DAILY_PLANS'
+  | 'BUDGET'
+  | 'CHECKLIST';
 
 export type TripRealtimeSection =
   | 'OVERVIEW_RESERVATIONS'
@@ -81,4 +87,3 @@ export type ReleaseLockResult =
   | { status: 'released' }
   | { status: 'forbidden' }
   | { status: 'not_found' };
-

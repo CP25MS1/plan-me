@@ -7,11 +7,13 @@ import capstone.ms.api.modules.itinerary.dto.checklist.CreateTripChecklistReques
 import capstone.ms.api.modules.itinerary.dto.checklist.RecommendedChecklistItemDto;
 import capstone.ms.api.modules.itinerary.dto.checklist.TripChecklistDto;
 import capstone.ms.api.modules.itinerary.dto.checklist.UpdateTripChecklistRequest;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeScope;
 import capstone.ms.api.modules.itinerary.mappers.BasicChecklistItemMapper;
 import capstone.ms.api.modules.itinerary.entities.TripChecklist;
 import capstone.ms.api.modules.itinerary.mappers.ChecklistMapper;
 import capstone.ms.api.modules.itinerary.repositories.BasicChecklistItemRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripChecklistRepository;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.services.UserService;
 import jakarta.transaction.Transactional;
@@ -33,6 +35,7 @@ public class TripChecklistService {
     private final TripAccessService tripAccessService;
     private final TripResourceService tripResourceService;
     private final UserService userService;
+    private final TripRealtimePublisher tripRealtimePublisher;
 
     @Transactional
     public TripChecklistDto createTripChecklist(
@@ -50,6 +53,8 @@ public class TripChecklistService {
         newChecklistItem.setCompleted(false);
 
         final TripChecklist createdChecklistItem = repository.save(newChecklistItem);
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.CHECKLIST));
 
         return mapper.toDto(createdChecklistItem);
     }
@@ -94,6 +99,9 @@ public class TripChecklistService {
             assertCanUpdateCompleted(checklist, user);
             checklist.setCompleted(false);
             final TripChecklist updatedChecklistItem = repository.save(checklist);
+
+            tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.CHECKLIST));
+
             return mapper.toDto(updatedChecklistItem);
         }
 
@@ -111,6 +119,9 @@ public class TripChecklistService {
         }
 
         final TripChecklist updatedChecklistItem = repository.save(checklist);
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.CHECKLIST));
+
         return mapper.toDto(updatedChecklistItem);
     }
 
@@ -127,6 +138,8 @@ public class TripChecklistService {
         }
 
         repository.delete(checklist);
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.CHECKLIST));
     }
 
     private void assertTripmateAccess(User user, Integer tripId) {

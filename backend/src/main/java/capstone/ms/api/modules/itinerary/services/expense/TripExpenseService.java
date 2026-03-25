@@ -5,6 +5,7 @@ import capstone.ms.api.common.exceptions.ForbiddenException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.common.exceptions.ServerErrorException;
 import capstone.ms.api.modules.itinerary.dto.expense.*;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeScope;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.expense.*;
 import capstone.ms.api.modules.itinerary.repositories.TripDebtBalanceRepository;
@@ -13,6 +14,7 @@ import capstone.ms.api.modules.itinerary.repositories.TripExpenseSplitRepository
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripmateRepository;
 import capstone.ms.api.modules.itinerary.services.TripAccessService;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.services.UserService;
 import jakarta.transaction.Transactional;
@@ -35,6 +37,7 @@ public class TripExpenseService {
     private final TripExpenseSplitRepository tripExpenseSplitRepository;
     private final TripDebtBalanceRepository tripDebtBalanceRepository;
     private final UserService userService;
+    private final TripRealtimePublisher tripRealtimePublisher;
 
     @Transactional
     public TripExpenseDto createExpense(Integer tripId, CreateTripExpenseRequest request, User currentUser) {
@@ -62,6 +65,8 @@ public class TripExpenseService {
             Map<DebtKey, BigDecimal> newDebt = buildDebtMap(payer.getId(), splitInputs);
             applyDebtDeltas(lockedTrip, Map.of(), newDebt, toUserMap(payer, splitInputs));
         }
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.BUDGET));
 
         return toDto(savedExpense, payer, savedExpense.getCreatedBy(), splitInputs);
     }
@@ -102,6 +107,8 @@ public class TripExpenseService {
             applyDebtDeltas(lockedTrip, oldDebt, newDebt, toUserMap(payer, splitInputs));
         }
 
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.BUDGET));
+
         return toDto(expense, payer, expense.getCreatedBy(), splitInputs);
     }
 
@@ -122,6 +129,8 @@ public class TripExpenseService {
 
         tripExpenseRepository.delete(expense);
         tripExpenseRepository.flush();
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.BUDGET));
     }
 
     public TripExpenseListDto getTripExpenses(Integer tripId, User currentUser) {
@@ -138,6 +147,9 @@ public class TripExpenseService {
             TripExpenseDto dto = mapExpenseWithSplitsToDto(expense, splits);
 
             if ("NO_SPLIT".equals(dto.getSplitType())) {
+                if (dto.getPayer() == null || !Objects.equals(dto.getPayer().getId(), currentUser.getId())) {
+                    continue;
+                }
                 noSplit.add(dto);
             } else {
                 split.add(dto);

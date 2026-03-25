@@ -65,6 +65,15 @@ export const useTripRealtimeSse = (tripId: number) => {
             case 'DAILY_PLANS':
               queryClient.invalidateQueries({ queryKey: ['trip-daily-plans', tripId] });
               break;
+            case 'BUDGET':
+              queryClient.invalidateQueries({ queryKey: ['tripBudget', tripId] });
+              queryClient.invalidateQueries({ queryKey: ['tripExpenses', tripId] });
+              queryClient.invalidateQueries({ queryKey: ['tripDebtSummary', tripId] });
+              break;
+            case 'CHECKLIST':
+              queryClient.invalidateQueries({ queryKey: ['trip-checklist', tripId] });
+              queryClient.invalidateQueries({ queryKey: ['trip-checklist-recommended', tripId] });
+              break;
             default:
               break;
           }
