@@ -1,10 +1,10 @@
 package capstone.ms.api.modules.itinerary.repositories;
 
 import capstone.ms.api.modules.itinerary.entities.ScheduledPlace;
-import feign.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface ScheduledPlaceRepository extends JpaRepository<ScheduledPlace, Integer> {
 
@@ -30,6 +30,10 @@ public interface ScheduledPlaceRepository extends JpaRepository<ScheduledPlace, 
     @Modifying
     @Query("update ScheduledPlace sp set sp.order = sp.order - 1 where sp.plan.id = :planId and sp.order between :startOrder and :endOrder")
     void decrementOrdersBetween(@Param("planId") Integer planId, @Param("startOrder") Short startOrder, @Param("endOrder") Short endOrder);
+
+    @Modifying
+    @Query("delete from ScheduledPlace sp where sp.plan.trip.id = :tripId")
+    void deleteAllByTripId(@Param("tripId") Integer tripId);
 
     boolean existsByPlanTripId(Integer tripId);
 }
