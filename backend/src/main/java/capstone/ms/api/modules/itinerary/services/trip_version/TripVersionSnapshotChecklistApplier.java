@@ -3,14 +3,13 @@ package capstone.ms.api.modules.itinerary.services.trip_version;
 import capstone.ms.api.common.exceptions.ServerErrorException;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.TripChecklist;
-// ...existing code... (no mapper needed)
 import capstone.ms.api.modules.itinerary.repositories.TripChecklistRepository;
 import capstone.ms.api.modules.user.entities.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
-import java.util.Objects;
+
 import java.util.Set;
 
 @Component
