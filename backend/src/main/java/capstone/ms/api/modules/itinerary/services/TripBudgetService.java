@@ -3,12 +3,14 @@ package capstone.ms.api.modules.itinerary.services;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.modules.itinerary.dto.TripBudgetSummaryDto;
 import capstone.ms.api.modules.itinerary.dto.UpsertTripBudgetRequest;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeScope;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.TripBudget;
 import capstone.ms.api.modules.itinerary.entities.expense.TripExpense;
 import capstone.ms.api.modules.itinerary.entities.expense.TripExpenseSplit;
 import capstone.ms.api.modules.itinerary.repositories.TripBudgetRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripExpenseSplitRepository;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
 import capstone.ms.api.modules.user.entities.User;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class TripBudgetService {
     private final TripExpenseSplitRepository tripExpenseSplitRepository;
     private final TripAccessService tripAccessService;
     private final TripResourceService tripResourceService;
+    private final TripRealtimePublisher tripRealtimePublisher;
 
     private static final int MONEY_SCALE = 2;
 
@@ -64,6 +67,8 @@ public class TripBudgetService {
 
         tripBudget.setTotalBudget(totalBudget);
         TripBudget saved = tripBudgetRepository.save(tripBudget);
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.BUDGET));
 
         return buildSummary(tripId, saved.getTotalBudget());
     }
