@@ -4,6 +4,7 @@ public enum TripRealtimeScope {
     HEADER,
     RESERVATIONS,
     WISHLIST,
-    DAILY_PLANS
+    DAILY_PLANS,
+    BUDGET,
+    CHECKLIST
 }
-
