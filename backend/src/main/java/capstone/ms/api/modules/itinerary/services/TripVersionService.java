@@ -1,36 +1,38 @@
 package capstone.ms.api.modules.itinerary.services;
 
-import capstone.ms.api.common.exceptions.BadRequestException;
-import capstone.ms.api.common.exceptions.ConflictException;
-import capstone.ms.api.common.exceptions.NotFoundException;
-import capstone.ms.api.common.exceptions.ServerErrorException;
-import capstone.ms.api.common.exceptions.ForbiddenException;
+import capstone.ms.api.common.exceptions.*;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
+import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeScope;
+import capstone.ms.api.modules.itinerary.dto.trip_version.ApplyTripVersionResponse;
 import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionRequest;
 import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionResponse;
 import capstone.ms.api.modules.itinerary.dto.trip_version.TripVersionDto;
-import capstone.ms.api.modules.itinerary.dto.trip_version.ApplyTripVersionResponse;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.TripVersion;
 import capstone.ms.api.modules.itinerary.entities.TripVersionSnapshot;
 import capstone.ms.api.modules.itinerary.mappers.TripMapper;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
+import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripVersionRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripVersionSnapshotRepository;
-import capstone.ms.api.modules.itinerary.repositories.TripRepository;
+import capstone.ms.api.modules.itinerary.services.trip_version.TripVersionDtoFactory;
+import capstone.ms.api.modules.itinerary.services.trip_version.TripVersionSnapshotApplier;
+import capstone.ms.api.modules.itinerary.services.trip_version.TripVersionSnapshotCodec;
+import capstone.ms.api.modules.itinerary.services.trip_version.TripVersionSnapshotGraphInitializer;
 import capstone.ms.api.modules.user.dto.PublicUserInfo;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.mappers.UserMapper;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import java.time.Instant;
 import lombok.AllArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 @Service
 @AllArgsConstructor
@@ -40,8 +42,12 @@ public class TripVersionService {
     private final TripAccessService tripAccessService;
     private final UserMapper userMapper;
     private final TripMapper tripMapper;
-    private final ObjectMapper objectMapper;
     private final TripRepository tripRepository;
+    private final TripVersionSnapshotCodec snapshotCodec;
+    private final TripVersionSnapshotGraphInitializer snapshotGraphInitializer;
+    private final TripVersionSnapshotApplier snapshotApplier;
+    private final TripVersionDtoFactory tripVersionDtoFactory;
+    private final TripRealtimePublisher tripRealtimePublisher;
 
     @Transactional
     public CreateTripVersionResponse createVersion(Integer tripId, CreateTripVersionRequest request, User currentUser) {
@@ -63,15 +69,15 @@ public class TripVersionService {
         tripVersion.setSnapshotTripName(trip.getName());
         tripVersion.setSnapshotStartDate(trip.getStartDate());
         tripVersion.setSnapshotEndDate(trip.getEndDate());
+        tripVersion.setCreatedAt(Instant.now());
         tripVersion.setCreatedBy(currentUser);
         tripVersion.setIsCurrent(false);
 
         TripVersion saved = tripVersionRepository.saveAndFlush(tripVersion);
 
-        initializeSnapshotGraph(trip);
+        snapshotGraphInitializer.initialize(trip);
         TripOverviewDto tripOverview = tripMapper.tripToTripOverviewDto(trip);
-
-        Map<String, Object> snapshot = objectMapper.convertValue(tripOverview, new TypeReference<>() {});
+        Map<String, Object> snapshot = snapshotCodec.encodeOverview(tripOverview);
 
         TripVersionSnapshot tripVersionSnapshot = new TripVersionSnapshot();
         tripVersionSnapshot.setTripVersion(saved);
@@ -114,6 +120,18 @@ public class TripVersionService {
             throw new BadRequestException("tripVersion.400.alreadyCurrent");
         }
 
+        TripVersionSnapshot snapshotEntity = tripVersionSnapshotRepository.findById(versionId)
+                .orElseThrow(() -> new ServerErrorException("500"));
+
+        TripOverviewDto snapshotOverview = snapshotCodec.decodeOrThrow(snapshotEntity);
+        if (snapshotOverview.getId() != null && !Objects.equals(snapshotOverview.getId(), tripId)) {
+            throw new ServerErrorException("500");
+        }
+
+        snapshotApplier.applySnapshot(tripId, lockedTrip, tripVersion, snapshotOverview);
+
+        tripRepository.save(lockedTrip);
+
         // Clear any existing current flag for this trip (single update statement)
         tripVersionRepository.clearCurrentForTrip(tripId);
 
@@ -121,28 +139,23 @@ public class TripVersionService {
         tripVersion.setAppliedAt(Instant.now());
         tripVersion.setAppliedBy(currentUser);
 
-        lockedTrip.setName(tripVersion.getSnapshotTripName());
-        lockedTrip.setStartDate(tripVersion.getSnapshotStartDate());
-        lockedTrip.setEndDate(tripVersion.getSnapshotEndDate());
-        tripRepository.save(lockedTrip);
-
         TripVersion saved = tripVersionRepository.saveAndFlush(tripVersion);
 
-        Short snapshotSchemaVersion = tripVersionSnapshotRepository.findById(saved.getId())
-                .map(TripVersionSnapshot::getSnapshotSchemaVersion)
-                .orElse((short) 1);
+        Short snapshotSchemaVersion = snapshotEntity.getSnapshotSchemaVersion() != null
+                ? snapshotEntity.getSnapshotSchemaVersion()
+                : (short) 1;
 
-        TripVersionDto dto = TripVersionDto.builder()
-                .id(saved.getId())
-                .tripId(saved.getTrip().getId())
-                .versionName(saved.getVersionName())
-                .createdAt(saved.getCreatedAt())
-                .createdBy(saved.getCreatedBy() != null ? userMapper.userToPublicUserInfo(saved.getCreatedBy()) : null)
-                .appliedAt(saved.getAppliedAt())
-                .appliedBy(saved.getAppliedBy() != null ? userMapper.userToPublicUserInfo(saved.getAppliedBy()) : null)
-                .isCurrent(saved.getIsCurrent())
-                .snapshotSchemaVersion(snapshotSchemaVersion)
-                .build();
+        TripVersionDto dto = tripVersionDtoFactory.from(saved, snapshotSchemaVersion, null);
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(
+                tripId,
+                EnumSet.of(
+                        TripRealtimeScope.HEADER,
+                        TripRealtimeScope.RESERVATIONS,
+                        TripRealtimeScope.WISHLIST,
+                        TripRealtimeScope.DAILY_PLANS
+                )
+        );
 
         return ApplyTripVersionResponse.builder()
                 .tripId(tripId)
@@ -154,55 +167,34 @@ public class TripVersionService {
     public List<TripVersionDto> listVersions(Integer tripId, Boolean includeSnapshot, User currentUser) {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
-        List<TripVersionDto> results = new java.util.ArrayList<>();
         List<TripVersion> versions = tripVersionRepository.findAllByTripIdWithUsers(tripId);
+        List<TripVersionDto> results = new java.util.ArrayList<>(versions.size());
 
-        Map<Integer, TripVersionSnapshot> snapshotsByVersionId = new java.util.HashMap<>();
+        Map<Integer, TripVersionSnapshot> snapshotsByVersionId = loadSnapshotsByVersionId(tripId, includeSnapshot);
 
-        if (Boolean.TRUE.equals(includeSnapshot)) {
-            List<TripVersionSnapshot> snapshots = tripVersionSnapshotRepository.findAllByTripIdOrderByTripVersionCreatedAtDesc(tripId);
-            for (TripVersionSnapshot s : snapshots) {
-                snapshotsByVersionId.put(s.getTripVersion().getId(), s);
+        Supplier<TripOverviewDto> fallbackSupplier = new Supplier<>() {
+            private TripOverviewDto cached;
+
+            @Override
+            public TripOverviewDto get() {
+                if (cached == null) {
+                    Trip detailedTrip = tripAccessService.getTripWithTripmateLevelAccess(currentUser, tripId);
+                    snapshotGraphInitializer.initialize(detailedTrip);
+                    cached = tripMapper.tripToTripOverviewDto(detailedTrip);
+                }
+                return cached;
             }
-        }
+        };
 
         for (TripVersion v : versions) {
-            TripVersionDto.TripVersionDtoBuilder builder = TripVersionDto.builder()
-                    .id(v.getId())
-                    .tripId(v.getTrip().getId())
-                    .versionName(v.getVersionName())
-                    .createdAt(v.getCreatedAt())
-                    .createdBy(v.getCreatedBy() != null ? userMapper.userToPublicUserInfo(v.getCreatedBy()) : null)
-                    .appliedAt(v.getAppliedAt())
-                    .appliedBy(v.getAppliedBy() != null ? userMapper.userToPublicUserInfo(v.getAppliedBy()) : null)
-                    .isCurrent(v.getIsCurrent());
+            TripVersionSnapshot snap = snapshotsByVersionId.get(v.getId());
 
-            if (Boolean.TRUE.equals(includeSnapshot)) {
-                TripVersionSnapshot snap = snapshotsByVersionId.get(v.getId());
-                if (snap != null) {
-                    builder.snapshotSchemaVersion(snap.getSnapshotSchemaVersion());
-
-                    try {
-                        Map<String, Object> snapshotMap = snap.getSnapshot() == null
-                                ? new HashMap<>()
-                                : new HashMap<>(snap.getSnapshot());
-
-                        if (isIncompleteSnapshot(snapshotMap)) {
-                            Trip detailedTrip = tripAccessService.getTripWithTripmateLevelAccess(currentUser, tripId);
-                            initializeSnapshotGraph(detailedTrip);
-                            TripOverviewDto fallbackOverview = tripMapper.tripToTripOverviewDto(detailedTrip);
-                            snapshotMap = objectMapper.convertValue(fallbackOverview, new TypeReference<>() {});
-                        }
-
-                        TripOverviewDto overview = objectMapper.convertValue(snapshotMap, TripOverviewDto.class);
-                        builder.snapshot(overview);
-                    } catch (Exception ex) {
-                        throw new ServerErrorException("500");
-                    }
-                }
+            if (snap == null) {
+                results.add(tripVersionDtoFactory.from(v));
+            } else {
+                TripOverviewDto snapshot = snapshotCodec.decodeOrFallback(snap, fallbackSupplier);
+                results.add(tripVersionDtoFactory.from(v, snap.getSnapshotSchemaVersion(), snapshot));
             }
-
-            results.add(builder.build());
         }
 
         return results;
@@ -226,45 +218,20 @@ public class TripVersionService {
         tripVersionRepository.delete(tripVersion);
     }
 
-    private boolean isIncompleteSnapshot(Map<String, Object> snapshotMap) {
-        if (snapshotMap == null || snapshotMap.isEmpty()) {
-            return true;
+    private Map<Integer, TripVersionSnapshot> loadSnapshotsByVersionId(Integer tripId, Boolean includeSnapshot) {
+        if (!Boolean.TRUE.equals(includeSnapshot)) {
+            return Map.of();
         }
 
-        return !(snapshotMap.containsKey("id")
-                && snapshotMap.containsKey("name")
-                && snapshotMap.containsKey("owner")
-                && snapshotMap.containsKey("objectives")
-                && snapshotMap.containsKey("tripmates")
-                && snapshotMap.containsKey("reservations")
-                && snapshotMap.containsKey("wishlistPlaces")
-                && snapshotMap.containsKey("dailyPlans")
-                && snapshotMap.containsKey("checklist")
-                && snapshotMap.containsKey("visibility"));
-    }
+        List<TripVersionSnapshot> snapshots =
+                tripVersionSnapshotRepository.findAllByTripIdOrderByTripVersionCreatedAtDesc(tripId);
 
-    private void initializeSnapshotGraph(Trip trip) {
-        Hibernate.initialize(trip.getOwner());
-
-        Hibernate.initialize(trip.getObjectives());
-        trip.getObjectives().forEach(objective -> Hibernate.initialize(objective.getBo()));
-
-        Hibernate.initialize(trip.getTripmates());
-        if (trip.getTripmates() != null) {
-            trip.getTripmates().forEach(tripmate -> Hibernate.initialize(tripmate.getUser()));
+        Map<Integer, TripVersionSnapshot> snapshotsByVersionId = new HashMap<>();
+        for (TripVersionSnapshot snapshot : snapshots) {
+            if (snapshot.getTripVersion() != null) {
+                snapshotsByVersionId.put(snapshot.getTripVersion().getId(), snapshot);
+            }
         }
-
-        Hibernate.initialize(trip.getReservations());
-
-        Hibernate.initialize(trip.getWishlistPlaces());
-        trip.getWishlistPlaces().forEach(wishlistPlace -> Hibernate.initialize(wishlistPlace.getPlace()));
-
-        Hibernate.initialize(trip.getDailyPlans());
-        trip.getDailyPlans().forEach(dailyPlan -> {
-            Hibernate.initialize(dailyPlan.getScheduledPlaces());
-            dailyPlan.getScheduledPlaces().forEach(scheduledPlace -> Hibernate.initialize(scheduledPlace.getGgmp()));
-        });
-
-        Hibernate.initialize(trip.getChecklists());
+        return snapshotsByVersionId;
     }
 }
