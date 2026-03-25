@@ -4,8 +4,8 @@ import capstone.ms.api.common.exceptions.*;
 import capstone.ms.api.modules.itinerary.dto.TripOverviewDto;
 import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeScope;
 import capstone.ms.api.modules.itinerary.dto.trip_version.ApplyTripVersionResponse;
+import capstone.ms.api.modules.itinerary.dto.trip_version.BaseTripVersionDto;
 import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionRequest;
-import capstone.ms.api.modules.itinerary.dto.trip_version.CreateTripVersionResponse;
 import capstone.ms.api.modules.itinerary.dto.trip_version.TripVersionDto;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.entities.TripVersion;
@@ -50,7 +50,7 @@ public class TripVersionService {
     private final TripRealtimePublisher tripRealtimePublisher;
 
     @Transactional
-    public CreateTripVersionResponse createVersion(Integer tripId, CreateTripVersionRequest request, User currentUser) {
+    public BaseTripVersionDto createVersion(Integer tripId, CreateTripVersionRequest request, User currentUser) {
         Trip trip = tripAccessService.getTripWithOwnerAccess(currentUser, tripId);
         String versionName = request.getVersionName().trim();
 
@@ -71,7 +71,7 @@ public class TripVersionService {
         tripVersion.setSnapshotEndDate(trip.getEndDate());
         tripVersion.setCreatedAt(Instant.now());
         tripVersion.setCreatedBy(currentUser);
-        tripVersion.setIsCurrent(false);
+        tripVersion.setIsCurrent(true);
 
         TripVersion saved = tripVersionRepository.saveAndFlush(tripVersion);
 
@@ -87,7 +87,7 @@ public class TripVersionService {
 
         PublicUserInfo createdBy = userMapper.userToPublicUserInfo(currentUser);
 
-        return CreateTripVersionResponse.builder()
+        return BaseTripVersionDto.builder()
                 .id(saved.getId())
                 .tripId(trip.getId())
                 .versionName(saved.getVersionName())
@@ -116,10 +116,6 @@ public class TripVersionService {
             throw new NotFoundException("tripVersion.404");
         }
 
-        if (Boolean.TRUE.equals(tripVersion.getIsCurrent())) {
-            throw new BadRequestException("tripVersion.400.alreadyCurrent");
-        }
-
         TripVersionSnapshot snapshotEntity = tripVersionSnapshotRepository.findById(versionId)
                 .orElseThrow(() -> new ServerErrorException("500"));
 
@@ -128,7 +124,7 @@ public class TripVersionService {
             throw new ServerErrorException("500");
         }
 
-        snapshotApplier.applySnapshot(tripId, lockedTrip, tripVersion, snapshotOverview);
+        snapshotApplier.applySnapshot(tripId, lockedTrip, tripVersion, snapshotOverview, currentUser);
 
         tripRepository.save(lockedTrip);
 
@@ -209,10 +205,6 @@ public class TripVersionService {
 
         if (tripVersion.getTrip() == null || !tripVersion.getTrip().getId().equals(tripId)) {
             throw new NotFoundException("tripVersion.404");
-        }
-
-        if (Boolean.TRUE.equals(tripVersion.getIsCurrent())) {
-            throw new BadRequestException("tripVersion.400.cannotDeleteCurrent");
         }
 
         tripVersionRepository.delete(tripVersion);
