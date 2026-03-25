@@ -2,6 +2,7 @@ package capstone.ms.api.modules.itinerary.repositories;
 
 import capstone.ms.api.modules.itinerary.entities.DailyPlan;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -9,6 +10,10 @@ import java.util.List;
 
 public interface DailyPlanRepository extends JpaRepository<DailyPlan, Integer> {
     List<DailyPlan> findAllByTripId(Integer tripId);
+
+    @Modifying
+    @Query("delete from DailyPlan dp where dp.trip.id = :tripId")
+    void deleteAllByTripId(@Param("tripId") Integer tripId);
 
     @Query("""
             select distinct dp
