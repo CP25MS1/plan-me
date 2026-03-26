@@ -55,9 +55,12 @@ public class TripRealtimeHub {
         try {
             room.sendTo(emitter, "hello", new TripRealtimeHelloDto(Instant.now(), connectionId, user));
             room.sendTo(emitter, "snapshot", room.buildSnapshot(Instant.now()));
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             room.removeEmitter(connectionId);
-            emitter.complete();
+            try {
+                emitter.complete();
+            } catch (Exception ignored) {
+            }
         }
 
         return emitter;
@@ -394,7 +397,7 @@ public class TripRealtimeHub {
             emittersByConnectionId.forEach((connectionId, emitter) -> {
                 try {
                     sendTo(emitter, eventName, payload);
-                } catch (IOException ex) {
+                } catch (Exception ex) {
                     emittersByConnectionId.remove(connectionId, emitter);
                     try {
                         emitter.complete();
