@@ -31,6 +31,7 @@ public class TripRealtimeController {
     ) {
         response.setHeader("X-Accel-Buffering", "no");
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache");
+        response.setHeader(HttpHeaders.CONNECTION, "keep-alive");
         return realtimeService.subscribe(tripId, currentUser);
     }
 
@@ -94,4 +95,3 @@ public class TripRealtimeController {
         };
     }
 }
-
