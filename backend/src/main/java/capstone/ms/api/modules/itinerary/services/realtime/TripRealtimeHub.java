@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -20,6 +21,7 @@ public class TripRealtimeHub {
     public static final Duration ADD_PRESENCE_TTL = Duration.ofSeconds(60);
     private static final Duration KEEPALIVE_INTERVAL = Duration.ofSeconds(15);
     private static final Duration SWEEP_INTERVAL = Duration.ofSeconds(5);
+    private static final String INITIAL_FLUSH_PADDING = "0".repeat(2048);
 
     private final ConcurrentHashMap<Integer, TripRoom> roomsByTripId = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler;
@@ -35,6 +37,30 @@ public class TripRealtimeHub {
         scheduler.shutdownNow();
     }
 
+    private static void completeQuietly(SseEmitter emitter) {
+        try {
+            emitter.complete();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static boolean isClientAbort(Throwable ex) {
+        for (Throwable t = ex; t != null; t = t.getCause()) {
+            String className = t.getClass().getName();
+            if (className.endsWith("ClientAbortException")) return true;
+
+            String msg = t.getMessage();
+            if (msg == null) continue;
+            String lower = msg.toLowerCase(Locale.ROOT);
+            if (lower.contains("broken pipe")) return true;
+            if (lower.contains("connection reset")) return true;
+            if (lower.contains("connection aborted")) return true;
+            if (lower.contains("client abort")) return true;
+            if (lower.contains("responsebodyemitter") && lower.contains("already completed")) return true;
+        }
+        return false;
+    }
+
     public SseEmitter subscribe(Integer tripId, TripRealtimeUserDto user) {
         String connectionId = UUID.randomUUID().toString();
         TripRoom room = roomsByTripId.computeIfAbsent(tripId, ignored -> new TripRoom(tripId));
@@ -42,25 +68,48 @@ public class TripRealtimeHub {
         SseEmitter emitter = new SseEmitter(0L);
         room.addEmitter(connectionId, emitter);
 
-        emitter.onCompletion(() -> room.removeEmitter(connectionId));
-        emitter.onTimeout(() -> {
+        AtomicBoolean closed = new AtomicBoolean(false);
+
+        emitter.onCompletion(() -> {
+            if (!closed.compareAndSet(false, true)) return;
             room.removeEmitter(connectionId);
-            emitter.complete();
+            log.info("TripRealtime SSE completed tripId={} userId={} connectionId={}", tripId, user.id(), connectionId);
+        });
+        emitter.onTimeout(() -> {
+            if (closed.compareAndSet(false, true)) {
+                room.removeEmitter(connectionId);
+                log.info("TripRealtime SSE timeout tripId={} userId={} connectionId={}", tripId, user.id(), connectionId);
+            }
+            completeQuietly(emitter);
         });
         emitter.onError((ex) -> {
-            room.removeEmitter(connectionId);
-            emitter.complete();
+            if (closed.compareAndSet(false, true)) {
+                room.removeEmitter(connectionId);
+                if (isClientAbort(ex)) {
+                    log.debug("TripRealtime SSE error (client abort) tripId={} userId={} connectionId={}: {}",
+                            tripId, user.id(), connectionId, ex.toString());
+                } else {
+                    log.warn("TripRealtime SSE error tripId={} userId={} connectionId={}", tripId, user.id(), connectionId, ex);
+                }
+            }
+            completeQuietly(emitter);
         });
 
+        log.info("TripRealtime SSE connected tripId={} userId={} connectionId={}", tripId, user.id(), connectionId);
+
         try {
+            emitter.send(SseEmitter.event().comment(INITIAL_FLUSH_PADDING));
             room.sendTo(emitter, "hello", new TripRealtimeHelloDto(Instant.now(), connectionId, user));
             room.sendTo(emitter, "snapshot", room.buildSnapshot(Instant.now()));
         } catch (Exception ex) {
             room.removeEmitter(connectionId);
-            try {
-                emitter.complete();
-            } catch (Exception ignored) {
+            if (isClientAbort(ex)) {
+                log.debug("TripRealtime SSE initial send failed (client abort) tripId={} userId={} connectionId={}: {}",
+                        tripId, user.id(), connectionId, ex.toString());
+            } else {
+                log.warn("TripRealtime SSE initial send failed tripId={} userId={} connectionId={}", tripId, user.id(), connectionId, ex);
             }
+            completeQuietly(emitter);
         }
 
         return emitter;
@@ -399,10 +448,13 @@ public class TripRealtimeHub {
                     sendTo(emitter, eventName, payload);
                 } catch (Exception ex) {
                     emittersByConnectionId.remove(connectionId, emitter);
-                    try {
-                        emitter.complete();
-                    } catch (Exception ignored) {
+                    if (isClientAbort(ex)) {
+                        log.debug("TripRealtime SSE send failed (client abort) tripId={} connectionId={} event={}: {}",
+                                tripId, connectionId, eventName, ex.toString());
+                    } else {
+                        log.warn("TripRealtime SSE send failed tripId={} connectionId={} event={}", tripId, connectionId, eventName, ex);
                     }
+                    completeQuietly(emitter);
                 }
             });
         }
