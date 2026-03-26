@@ -63,6 +63,8 @@ public class TripVersionService {
             throw new ConflictException("tripVersion.409.duplicate");
         }
 
+        tripVersionRepository.clearCurrentForTrip(tripId);
+
         TripVersion tripVersion = new TripVersion();
         tripVersion.setTrip(trip);
         tripVersion.setVersionName(versionName);
