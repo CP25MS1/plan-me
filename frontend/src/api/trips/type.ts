@@ -40,7 +40,7 @@ export interface TripOverview {
   reservations: ReservationDto[];
   wishlistPlaces: WishlistPlace[];
   dailyPlans: DailyPlan[];
-  travelSegments: TravelSegmentResponseDto[];
+  checklist: string[];
 }
 
 export interface TripHeader {
@@ -149,4 +149,29 @@ export interface ToggleTripVisibilityRequest {
 export interface ToggleTripVisibilityResponse {
   tripId: number;
   visibility: TripVisibility;
+}
+
+export interface TripVersionDto {
+  id: number;
+  tripId: number;
+  versionName: string;
+  createdAt: string;
+  createdBy: PublicUserInfo;
+  appliedAt: string | null;
+  appliedBy: PublicUserInfo | null;
+  isCurrent: boolean;
+  snapshotSchemaVersion: number;
+}
+
+export interface TripVersion extends TripVersionDto {
+  snapshot?: TripOverview;
+}
+
+export interface CreateTripVersionRequest {
+  versionName: string;
+}
+
+export interface ApplyTripVersionResponse {
+  tripId: number;
+  appliedVersion: TripVersionDto;
 }

@@ -16,7 +16,7 @@ export const useGetTripOverview = (tripId: number) => {
     enabled: !!tripId,
     retry: false,
   });
-
+  
   useEffect(() => {
     if (query.data) {
       dispatch(setTripOverview(query.data));
