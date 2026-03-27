@@ -28,6 +28,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/google/callback").permitAll()
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers("/auth/logout").permitAll()
+                        .requestMatchers("/realtime/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
