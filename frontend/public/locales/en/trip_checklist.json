@@ -12,7 +12,8 @@
     "delete": "Delete"
   },
   "hints": {
-    "completedLocked": "Uncheck to edit/delete"
+    "completedLocked": "Uncheck to edit/delete",
+    "duplicateName": "An item with this name already exists. Please review before saving."
   },
   "recommended": {
     "title": "Recommended",

@@ -9,9 +9,10 @@ export type TripRealtimeScope =
 export type TripRealtimeSection =
   | 'OVERVIEW_RESERVATIONS'
   | 'OVERVIEW_WISHLIST'
-  | 'DAILY_PLAN';
+  | 'DAILY_PLAN'
+  | 'CHECKLIST';
 
-export type TripRealtimeResourceType = 'RESERVATION' | 'WISHLIST_PLACE' | 'SCHEDULED_PLACE';
+export type TripRealtimeResourceType = 'RESERVATION' | 'WISHLIST_PLACE' | 'SCHEDULED_PLACE' | 'CHECKLIST_ITEM';
 
 export type TripRealtimeLockPurpose = 'EDIT' | 'DELETE' | 'REORDER';
 

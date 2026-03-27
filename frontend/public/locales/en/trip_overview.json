@@ -48,11 +48,17 @@
     "placeholderTime": "Start date - End date",
     "placeholderObjective": "Trip's objectives"
   },
-  "ManualoReservation": {
+  "ManualReservation": {
     "title": "Add booking information",
     "edit": "Edit booking information",
     "placeholder": "Please select the type of booking information",
     "nodata": "No data available",
+    "duplicateWarning": {
+      "title": "Duplicate Data Found",
+      "message": "It appears that this booking information might already exist. Are you sure you want to proceed?",
+      "cancel": "Cancel",
+      "accept": "Proceed"
+    },
     "Type": {
       "Lodging": "Lodging",
       "Restaurant": "Restaurant",

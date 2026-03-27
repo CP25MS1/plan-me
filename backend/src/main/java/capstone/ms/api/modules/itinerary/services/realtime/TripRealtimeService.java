@@ -3,6 +3,7 @@ package capstone.ms.api.modules.itinerary.services.realtime;
 import capstone.ms.api.common.exceptions.BadRequestException;
 import capstone.ms.api.common.exceptions.NotFoundException;
 import capstone.ms.api.modules.itinerary.dto.realtime.*;
+import capstone.ms.api.modules.itinerary.repositories.TripChecklistRepository;
 import capstone.ms.api.modules.itinerary.repositories.WishlistPlaceRepository;
 import capstone.ms.api.modules.itinerary.repositories.reservation.ReservationRepository;
 import capstone.ms.api.modules.itinerary.services.TripAccessService;
@@ -21,6 +22,7 @@ public class TripRealtimeService {
     private final TripResourceService tripResourceService;
     private final ReservationRepository reservationRepository;
     private final WishlistPlaceRepository wishlistPlaceRepository;
+    private final TripChecklistRepository tripChecklistRepository;
 
 
 
@@ -85,6 +87,11 @@ public class TripRealtimeService {
                     throw new NotFoundException("404");
                 }
                 yield scheduledPlace.getPlan().getId();
+            }
+            case CHECKLIST_ITEM -> {
+                tripChecklistRepository.findByIdAndTripId(resourceId, tripId)
+                        .orElseThrow(() -> new NotFoundException("404"));
+                yield null;
             }
         };
     }
