@@ -15,6 +15,7 @@ import { History, MoreVertical, Share2 } from 'lucide-react';
 import { tokens } from '@/providers/theme/design-tokens';
 
 type MeatballMenuProps = {
+  isOwner: boolean;
   onShareClick: () => void;
   onVersionClick: () => void;
 };
@@ -32,7 +33,7 @@ const menuItems = [
   },
 ];
 
-export const MeatballMenu = ({ onShareClick, onVersionClick }: MeatballMenuProps) => {
+export const MeatballMenu = ({ onShareClick, onVersionClick, isOwner }: MeatballMenuProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const handleAction = (itemId: string) => {
@@ -48,7 +49,7 @@ export const MeatballMenu = ({ onShareClick, onVersionClick }: MeatballMenuProps
 
   return (
     <>
-      <Tooltip title="More">
+      <Tooltip title="">
         <Box
           onClick={(event) => setAnchorEl(event.currentTarget)}
           sx={{
@@ -76,6 +77,7 @@ export const MeatballMenu = ({ onShareClick, onVersionClick }: MeatballMenuProps
         onClose={() => setAnchorEl(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        disableAutoFocusItem
         slotProps={{
           paper: {
             sx: {
@@ -92,34 +94,39 @@ export const MeatballMenu = ({ onShareClick, onVersionClick }: MeatballMenuProps
           },
         }}
       >
-        {menuItems.map((item) => {
-          const Icon = item.icon;
+        {menuItems
+          .filter((item) => {
+            if (item.id === 'share') return isOwner;
+            return true;
+          })
+          .map((item) => {
+            const Icon = item.icon;
 
-          return (
-            <MenuItem
-              key={item.id}
-              onClick={() => handleAction(item.id)}
-              sx={{
-                gap: 1,
-                minWidth: 190,
-                py: 1,
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 32, color: tokens.color.primary }}>
-                <Icon size={16} />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Typography
-                    sx={{ fontSize: 14, fontWeight: 500, color: tokens.color.textPrimary }}
-                  >
-                    {item.label}
-                  </Typography>
-                }
-              />
-            </MenuItem>
-          );
-        })}
+            return (
+              <MenuItem
+                key={item.id}
+                onClick={() => handleAction(item.id)}
+                sx={{
+                  gap: 1,
+                  minWidth: 190,
+                  py: 1,
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 32, color: tokens.color.primary }}>
+                  <Icon size={16} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Typography
+                      sx={{ fontSize: 14, fontWeight: 500, color: tokens.color.textPrimary }}
+                    >
+                      {item.label}
+                    </Typography>
+                  }
+                />
+              </MenuItem>
+            );
+          })}
       </Menu>
     </>
   );

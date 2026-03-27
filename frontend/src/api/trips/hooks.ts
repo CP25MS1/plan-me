@@ -67,9 +67,16 @@ export const useTripVersions = (
 };
 
 export const useCreateTripVersion = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ tripId, versionName }: { tripId: number; versionName: string }) =>
       createTripVersion(tripId, { versionName }),
+
+    onSuccess: async (_, { tripId }) => {
+      await queryClient.invalidateQueries({
+        queryKey: ['trip-versions', tripId],
+      });
+    },
   });
 };
 
@@ -93,7 +100,22 @@ export const useApplyTripVersion = () => {
       });
 
       await queryClient.invalidateQueries({
+        queryKey: ['trip-overview', tripId],
+      });
+      await queryClient.invalidateQueries({
         queryKey: ['trip-header', tripId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['trip-reservations', tripId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['trip-wishlist-places', tripId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['trip-daily-plans', tripId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['trip-checklist', tripId],
       });
     },
   });
