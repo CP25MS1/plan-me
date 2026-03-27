@@ -2,17 +2,20 @@
 
 import { ReactNode } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
-import { Box, Button, Container, Stack, Typography, Chip } from '@mui/material';
+import { Box, Button, Chip, Container, Stack, Typography } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import { BackButton } from '@/components/button';
+
 import TripTabPanel from '@/app/trip/[tripId]/tab-panel/trip-tab-panel';
 import { indexToTabKey, mapIndex, tabKeyToIndex } from '@/app/trip/[tripId]/tab-panel/trip-tabs';
-import OverviewTabs from '@/components/trip/overview/overview-tabs';
-import { useFullPageLoading } from '@/components/full-page-loading';
-import { useVersionTrip } from './hooks/use-version-trip';
 import { useApplyTripVersion } from '@/api/trips/hooks';
-import { useQueryClient } from '@tanstack/react-query';
+import { BackButton } from '@/components/button';
+import { useFullPageLoading } from '@/components/full-page-loading';
+import OverviewTabs from '@/components/trip/overview/overview-tabs';
+import { useAppSelector } from '@/store';
+
+import { useVersionTrip } from './hooks/use-version-trip';
 
 type VersionLayoutProps = {
   overview: ReactNode;
@@ -22,7 +25,7 @@ type VersionLayoutProps = {
   map: ReactNode;
 };
 
-const VersionLayout = ({ overview, daily, budget, checklist, map }: VersionLayoutProps) => {
+const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation('trip_overview');
@@ -32,6 +35,11 @@ const VersionLayout = ({ overview, daily, budget, checklist, map }: VersionLayou
   const tripIdParam = searchParams.get('tripId');
   const tabValue = tabKeyToIndex(tabParam);
   const { mutate: applyVersion, isPending } = useApplyTripVersion();
+  const me = useAppSelector((s) => s.profile.currentUser);
+
+  const { versionId } = params;
+  const versionTripIdAsNumber = Number(versionId);
+  const tripIdAsNumber = Number(tripIdParam);
 
   const handleApplyVersion = () => {
     applyVersion(
@@ -40,10 +48,10 @@ const VersionLayout = ({ overview, daily, budget, checklist, map }: VersionLayou
         onSuccess: async () => {
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ['trip-overview', tripIdAsNumber] }),
-            queryClient.invalidateQueries({ queryKey: ['tripReservations', tripIdAsNumber] }),
-            queryClient.invalidateQueries({ queryKey: ['tripWishlistPlaces', tripIdAsNumber] }),
-            queryClient.invalidateQueries({ queryKey: ['tripDailyPlans', tripIdAsNumber] }),
-            queryClient.invalidateQueries({ queryKey: ['tripChecklist', tripIdAsNumber] }),
+            queryClient.invalidateQueries({ queryKey: ['trip-reservations', tripIdAsNumber] }),
+            queryClient.invalidateQueries({ queryKey: ['trip-wishlist-places', tripIdAsNumber] }),
+            queryClient.invalidateQueries({ queryKey: ['trip-daily-plans', tripIdAsNumber] }),
+            queryClient.invalidateQueries({ queryKey: ['trip-checklist', tripIdAsNumber] }),
             queryClient.invalidateQueries({ queryKey: ['trip-version', tripIdAsNumber] }),
             queryClient.invalidateQueries({ queryKey: ['trip-versions', tripIdAsNumber, true] }),
           ]);
@@ -60,13 +68,12 @@ const VersionLayout = ({ overview, daily, budget, checklist, map }: VersionLayou
     router.push(`?tab=${key}&tripId=${tripIdParam}`, { scroll: false });
   };
 
-  const { versionId } = params;
-  const versionTripIdAsNumber = Number(versionId);
-  const tripIdAsNumber = Number(tripIdParam);
   const { version, snapshot, isLoading, isError } = useVersionTrip(
     tripIdAsNumber,
     versionTripIdAsNumber
   );
+  const isOwner = snapshot?.owner?.id === me?.id;
+
   const { FullPageLoading } = useFullPageLoading();
 
   if (isLoading) return <FullPageLoading />;
@@ -102,67 +109,113 @@ const VersionLayout = ({ overview, daily, budget, checklist, map }: VersionLayou
         map
       ) : (
         <Container maxWidth="sm" sx={{ py: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <BackButton onBack={() => router.push(`/trip/${tripIdParam}`)} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+              <Box
+                sx={{
+                  minWidth: { xs: 84, sm: 112 },
+                  flexShrink: 0,
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                }}
+              >
+                <BackButton onBack={() => router.push(`/trip/${tripIdParam}`)} />
+              </Box>
 
-              {!version.isCurrent && (
-                <Button variant="contained" onClick={handleApplyVersion} disabled={isPending}>
-                  Use this version
-                </Button>
-              )}
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Typography variant="caption" color="text.secondary">
-                Version Name
-              </Typography>
+              <Box sx={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
+                <Typography
+                  variant="h5"
+                  fontWeight={700}
+                  noWrap
+                  title={snapshot.name}
+                  sx={{ px: 1 }}
+                >
+                  {snapshot.name}
+                </Typography>
+              </Box>
 
               <Box
                 sx={{
+                  minWidth: { xs: 84, sm: 112 },
+                  flexShrink: 0,
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 1,
+                  justifyContent: 'flex-end',
                 }}
               >
-                <Typography variant="h5" fontWeight={700} noWrap title={version.versionName}>
-                  {version.versionName}
-                </Typography>
-
-                <Chip
-                  size="small"
-                  label={version.isCurrent ? 'Latest' : 'Version'}
-                  color={version.isCurrent ? 'success' : 'default'}
-                />
+                {isOwner ? (
+                  <Button
+                    variant="contained"
+                    onClick={handleApplyVersion}
+                    disabled={isPending}
+                    sx={{ minWidth: { xs: 84, sm: 112 } }}
+                  >
+                    ใช้เวอร์ชันนี้
+                  </Button>
+                ) : null}
               </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Typography variant="caption" color="text.secondary">
-                Trip Name
-              </Typography>
+            <Stack spacing={1.5} sx={{ mt: 2, width: '100%' }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                flexWrap="wrap"
+                sx={{ gap: 1 }}
+              >
+                <Chip
+                  size="small"
+                  label={version.isCurrent ? 'ใช้งานล่าสุด' : 'เวอร์ชันที่บันทึกไว้'}
+                  sx={{
+                    width: 'fit-content',
+                    height: 24,
+                    borderRadius: '999px',
+                    bgcolor: version.isCurrent ? '#E8F5E9' : '#F5F5F5',
+                    color: version.isCurrent ? '#1B5E20' : 'text.secondary',
+                    '& .MuiChip-label': {
+                      px: 1,
+                      fontSize: 11,
+                      fontWeight: 600,
+                    },
+                  }}
+                />
 
-              <Typography variant="body1" noWrap title={snapshot.name}>
-                {snapshot.name}
-              </Typography>
-            </Box>
+                <Typography variant="body2" color="text.secondary">
+                  สร้างเมื่อ {createdAtText}
+                </Typography>
+              </Stack>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              <Typography variant="caption" color="text.secondary">
-                Created At
-              </Typography>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="body2" color="text.secondary">
+                  ชื่อเวอร์ชัน:
+                </Typography>
+                <Typography variant="h6" fontWeight={600} noWrap title={snapshot.name}>
+                  {version.versionName}
+                </Typography>
+              </Box>
 
               <Typography variant="body2" color="text.secondary">
-                {createdAtText}
+                วันที่: {snapshot.startDate ? dayjs(snapshot.startDate).format('DD/MM/YYYY') : '-'}{' '}
+                - {snapshot.endDate ? dayjs(snapshot.endDate).format('DD/MM/YYYY') : '-'}
               </Typography>
-            </Box>
+
+              <Stack direction="row" flexWrap="wrap" spacing={1} sx={{ gap: '8px', rowGap: '6px' }}>
+                {snapshot.objectives?.length ? (
+                  snapshot.objectives.map((obj) => (
+                    <Chip
+                      key={obj.name}
+                      label={obj.name}
+                      size="small"
+                      sx={{ bgcolor: obj.badgeColor ?? '#C8F7D8', pointerEvents: 'none' }}
+                    />
+                  ))
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    ไม่มีวัตถุประสงค์
+                  </Typography>
+                )}
+              </Stack>
+            </Stack>
           </Box>
 
           <OverviewTabs value={tabValue} onChange={handleTabChange} />
@@ -173,10 +226,6 @@ const VersionLayout = ({ overview, daily, budget, checklist, map }: VersionLayou
 
           <TripTabPanel value={tabValue} index={1}>
             {daily}
-          </TripTabPanel>
-
-          <TripTabPanel value={tabValue} index={2}>
-            {budget}
           </TripTabPanel>
 
           <TripTabPanel value={tabValue} index={3}>

@@ -82,7 +82,7 @@ const VersionOverviewPage = () => {
           ) : (
             <Box sx={{ py: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                {t('template.empty.reservation')}
+                ยังไม่มีข้มูลการจองในเวอร์ชันนี้
               </Typography>
             </Box>
           )}

@@ -44,9 +44,9 @@ export default function BudgetPage() {
   const [tab, setTab] = React.useState<'category' | 'day'>('category');
   const [openSetBudget, setOpenSetBudget] = React.useState(false);
   const [openAddExpense, setOpenAddExpense] = React.useState(false);
-  const [addDefaultSplitMode, setAddDefaultSplitMode] = React.useState<ExpenseSplitType | undefined>(
-    undefined
-  );
+  const [addDefaultSplitMode, setAddDefaultSplitMode] = React.useState<
+    ExpenseSplitType | undefined
+  >(undefined);
   const [addFormContext, setAddFormContext] = React.useState<'default' | 'personal'>('default');
   const [hasNewNoSplit, setHasNewNoSplit] = React.useState(false);
   const [noSplitCreatedSnackbarOpen, setNoSplitCreatedSnackbarOpen] = React.useState(false);
@@ -140,7 +140,9 @@ export default function BudgetPage() {
         onOpenAddExpense={openAddSplitExpense}
       />
 
-      <FloatingAddButton onClick={noSplitDialogOpen ? openAddNoSplitExpense : openAddSplitExpense} />
+      <FloatingAddButton
+        onClick={noSplitDialogOpen ? openAddNoSplitExpense : openAddSplitExpense}
+      />
 
       <AddExpenseModal
         open={openAddExpense}

@@ -28,6 +28,7 @@ type VersionModalProps = {
   onAddVersion: () => void;
   onDeleteVersion: (versionId: number) => Promise<void>;
   isLoading?: boolean;
+  isOwner: boolean;
 };
 
 export const VersionModal = ({
@@ -37,6 +38,7 @@ export const VersionModal = ({
   onAddVersion,
   onDeleteVersion,
   isLoading = false,
+  isOwner,
 }: VersionModalProps) => {
   const isEmpty = versions.length === 0;
   const canAddMore = versions.length < MAX_VERSIONS;
@@ -115,25 +117,28 @@ export const VersionModal = ({
             }}
           >
             <Typography sx={{ fontWeight: 700, color: tokens.color.textPrimary, mb: 0.5 }}>
-              ไม่มีบันทึกเวอร์ชัน
+              ยังไม่มีบันทึกเวอร์ชัน
             </Typography>
             <Typography variant="body2" sx={{ color: tokens.color.textSecondary, mb: 2 }}>
-              คุณยังไม่มีบันทึกเวอร์ชันใด ๆ คลิกที่ปุ่มด้านล่างเพื่อสร้างบันทึกเวอร์ชันใหม่
+              เฉพาะเจ้าของทริปเท่านั้นที่สามารถสร้างบันทึกเวอร์ชันได้
             </Typography>
-            <Button
-              variant="contained"
-              startIcon={<Plus size={16} />}
-              onClick={onAddVersion}
-              sx={{
-                borderRadius: 2,
-                bgcolor: tokens.color.primary,
-                '&:hover': {
-                  bgcolor: tokens.color.primaryDark,
-                },
-              }}
-            >
-              สร้างบันทึกเวอร์ชันใหม่
-            </Button>
+
+            {isOwner && (
+              <Button
+                variant="contained"
+                startIcon={<Plus size={16} />}
+                onClick={onAddVersion}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: tokens.color.primary,
+                  '&:hover': {
+                    bgcolor: tokens.color.primaryDark,
+                  },
+                }}
+              >
+                สร้างบันทึกเวอร์ชันใหม่
+              </Button>
+            )}
           </Box>
         ) : null}
 
@@ -146,6 +151,7 @@ export const VersionModal = ({
                 version={version}
                 onDelete={onDeleteVersion}
                 isLatest={version.id === latestVersion?.id}
+                isOwner={isOwner}
               />
             ))}
           </Stack>
@@ -153,7 +159,7 @@ export const VersionModal = ({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2.5, justifyContent: 'center' }}>
-        {!isEmpty ? (
+        {isOwner && !isEmpty && (
           <Button
             variant="contained"
             onClick={onAddVersion}
@@ -164,14 +170,12 @@ export const VersionModal = ({
             sx={{
               borderRadius: 2,
               bgcolor: tokens.color.primary,
-              '&:hover': {
-                bgcolor: tokens.color.primaryDark,
-              },
+              '&:hover': { bgcolor: tokens.color.primaryDark },
             }}
           >
             {canAddMore ? 'สร้างบันทึกเวอร์ชัน' : 'บันทึกเวอร์ชันครบแล้ว'}
           </Button>
-        ) : null}
+        )}
       </DialogActions>
     </Dialog>
   );
