@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Avatar,
   AvatarGroup,
   Box,
-  Button,
   Chip,
   IconButton,
   InputBase,
@@ -17,6 +17,7 @@ import { Globe, Lock, Tag, X as XIcon } from 'lucide-react';
 import dayjs, { Dayjs } from 'dayjs';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
 import DateRangePicker from '@/components/common/date-time/date-range-picker';
 import ObjectivePickerDialog, {
@@ -25,12 +26,15 @@ import ObjectivePickerDialog, {
   MAX_OBJECTIVES,
   useDefaultObjectives,
 } from '@/components/trip/objective-picker-dialog';
-import { Objective, TripVisibility } from '@/api/trips';
+import { useCreateTripVersion, useDeleteTripVersion, useTripVersions } from '@/api/trips/hooks';
+import type { Objective, TripVersion, TripVisibility } from '@/api/trips/type';
 import { BackButton } from '@/components/button';
-import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import InviteDialog from '@/app/trip/[tripId]/@overview/components/invite/invite-dialog';
 import MembersModal from '@/app/trip/[tripId]/@overview/components/member/members-modal';
+import MeatballMenu from './meatball-menu';
+import VersionModal from './version-modal';
+import CreateVersionDialog from './create-version-dialog';
 
 type DateRange = [Dayjs | null, Dayjs | null];
 
@@ -47,12 +51,31 @@ export interface OverviewHeaderProps {
     objectives?: Objective[];
     startDate?: string;
     endDate?: string;
-
     onUpdateTripName?: (name: string) => void;
     onUpdateDates?: (start?: string, end?: string) => void;
     onUpdateObjectives?: (objectives: Objective[]) => void;
   };
 }
+
+const sanitizeObjectives = (objectives: Objective[]) => {
+  const uniqueObjectives: Objective[] = [];
+
+  for (const objective of objectives) {
+    if (uniqueObjectives.length >= MAX_OBJECTIVES) {
+      break;
+    }
+
+    if (!uniqueObjectives.some((item) => getKey(item) === getKey(objective))) {
+      uniqueObjectives.push({
+        ...objective,
+        name: objective.name.slice(0, 25),
+        badgeColor: objective.badgeColor ?? '#C8F7D8',
+      });
+    }
+  }
+
+  return uniqueObjectives;
+};
 
 const OverviewHeader = ({
   tripOverview: {
@@ -68,68 +91,76 @@ const OverviewHeader = ({
     onUpdateObjectives,
   },
 }: OverviewHeaderProps) => {
-  const locale = useSelector((s: RootState) => s.i18n.locale);
+  const locale = useSelector((state: RootState) => state.i18n.locale);
+  const currentUser = useSelector((state: RootState) => state.profile.currentUser);
   const { t } = useTranslation('trip_overview');
   const { t: tCommon } = useTranslation('common');
   const router = useRouter();
+  const queryClient = useQueryClient();
   const defaultObjectives = useDefaultObjectives();
 
   const { tripId } = useParams<{ tripId: string }>();
   const tripIdAsNumber = Number(tripId);
+
   const [openShareDialog, setOpenShareDialog] = useState(false);
   const [openMembers, setOpenMembers] = useState(false);
+  const [versionModalOpen, setVersionModalOpen] = useState(false);
+  const [createVersionDialogOpen, setCreateVersionDialogOpen] = useState(false);
 
-  const currentUser = useSelector((s: RootState) => s.profile.currentUser);
   const isTripOwner = useMemo(
     () => Boolean(currentUser && ownerId && currentUser.id === ownerId),
     [currentUser, ownerId]
   );
 
+  const {
+    data: allVersions = [],
+    isLoading: isVersionsLoading,
+    isFetching: isVersionsFetching,
+  } = useTripVersions(tripIdAsNumber, false, isTripOwner);
+  const createVersionMutation = useCreateTripVersion();
+  const deleteVersionMutation = useDeleteTripVersion();
+
+  const versions = allVersions.sort(
+    (left, right) => dayjs(right.createdAt).valueOf() - dayjs(left.createdAt).valueOf()
+  );
+
   const resolvedVisibility: TripVisibility = visibility ?? 'PRIVATE';
   const isPublicVisibility = resolvedVisibility === 'PUBLIC';
 
-  // ----------------------------
-  // TRIP NAME
-  // ----------------------------
   const [editingName, setEditingName] = useState('');
   const [isNameFocused, setIsNameFocused] = useState(false);
 
-  // ตั้งค่าเริ่มต้นเมื่อโหลดหน้า
   useEffect(() => {
     setEditingName(tripName === '' ? t('Header.defaultName') : tripName);
   }, [tripName, t]);
 
-  // แยก displayName สำหรับ UI และ InputBase
   const displayName =
     !isNameFocused && editingName.trim() === '' ? t('Header.defaultName') : editingName;
 
   const handleFocus = () => {
     setIsNameFocused(true);
-    if (editingName === t('Header.defaultName')) setEditingName('');
+    if (editingName === t('Header.defaultName')) {
+      setEditingName('');
+    }
   };
 
   const handleNameBlur = () => {
-    if (!isTripOwner) return;
+    if (!isTripOwner) {
+      return;
+    }
 
-    const trimmed = editingName.trim();
-    const valueToSave = trimmed; // save "" ถ้า user ไม่ใส่
-    setEditingName(trimmed === '' ? t('Header.defaultName') : trimmed);
-    onUpdateTripName?.(valueToSave);
+    const trimmedName = editingName.trim();
+    setEditingName(trimmedName === '' ? t('Header.defaultName') : trimmedName);
+    onUpdateTripName?.(trimmedName);
     setIsNameFocused(false);
   };
 
-  // ----------------------------
-  // DATE PICKER
-  // ----------------------------
   const [dateRange, setDateRange] = useState<DateRange>([null, null]);
 
   useEffect(() => {
     setDateRange([startDate ? dayjs(startDate) : null, endDate ? dayjs(endDate) : null]);
   }, [startDate, endDate]);
 
-  // ----------------------------
-  // OBJECTIVES
-  // ----------------------------
   const [selectedObjectives, setSelectedObjectives] = useState<Objective[]>([]);
   const [openObjectiveModal, setOpenObjectiveModal] = useState(false);
 
@@ -139,33 +170,57 @@ const OverviewHeader = ({
 
   const handleObjectiveModalClose = () => {
     setOpenObjectiveModal(false);
-    if (!isTripOwner) return;
 
-    const valid = selectedObjectives.slice(0, MAX_OBJECTIVES).map((o) => ({
-      ...o,
-      name: o.name.slice(0, 25),
-      badgeColor: o.badgeColor ?? '#C8F7D8',
-    }));
+    if (!isTripOwner) {
+      return;
+    }
 
-    onUpdateObjectives?.(valid);
+    onUpdateObjectives?.(sanitizeObjectives(selectedObjectives));
   };
 
-  useEffect(
-    () => setEditingName(tripName === '' ? t('Header.defaultName') : tripName),
+  const updateVersionCache = (updater: (currentVersions: TripVersion[]) => TripVersion[]) => {
+    queryClient.setQueryData(
+      ['trip-versions', tripIdAsNumber, false],
+      (currentVersions: TripVersion[] = []) => updater(currentVersions)
+    );
+  };
 
-    [tripName, t]
-  );
+  const handleCreateVersion = async (versionName: string) => {
+    const createdVersion = await createVersionMutation.mutateAsync({
+      tripId: tripIdAsNumber,
+      versionName,
+    });
+
+    updateVersionCache((currentVersions) => [
+      createdVersion,
+      ...currentVersions.filter((version) => version.id !== createdVersion.id),
+    ]);
+
+    setCreateVersionDialogOpen(false);
+    setVersionModalOpen(true);
+  };
+
+  const handleDeleteVersion = async (versionId: number) => {
+    await deleteVersionMutation.mutateAsync({
+      tripId: tripIdAsNumber,
+      versionId,
+    });
+
+    updateVersionCache((currentVersions) =>
+      currentVersions.filter((version) => version.id !== versionId)
+    );
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      {/* HEADER */}
       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-        {currentUser && <BackButton onBack={() => router.push('/profile')} />}
+        {currentUser ? <BackButton onBack={() => router.push('/profile')} /> : null}
+
         <Box sx={{ flex: 1, textAlign: 'center' }}>
           <Tooltip title={editingName} arrow disableInteractive>
             <InputBase
               value={displayName}
-              onChange={(e) => setEditingName(e.target.value)}
+              onChange={(event) => setEditingName(event.target.value)}
               onFocus={handleFocus}
               onBlur={handleNameBlur}
               disabled={!isTripOwner}
@@ -188,6 +243,7 @@ const OverviewHeader = ({
             />
           </Tooltip>
         </Box>
+
         <Stack direction="column" alignItems="center" spacing={0.5}>
           <AvatarGroup
             max={3}
@@ -201,55 +257,51 @@ const OverviewHeader = ({
             }}
             onClick={() => setOpenMembers(true)}
           >
-            {members.map((m) => (
-              <Avatar key={m.id} src={m.profilePicUrl}>
-                {m.username?.[0]}
+            {members.map((member) => (
+              <Avatar key={member.id} src={member.profilePicUrl}>
+                {member.username?.[0]}
               </Avatar>
             ))}
           </AvatarGroup>
-
-          <Button
-            sx={{
-              fontWeight: 600,
-              px: 2,
-              py: 0.5,
-              fontSize: 13,
-              borderRadius: '10px',
-            }}
-            variant="contained"
-            onClick={() => setOpenShareDialog(true)}
-            disabled={!isTripOwner}
-          >
-            {t('shareButton')}
-          </Button>
         </Stack>
       </Box>
 
-      {/* DATE + OBJECTIVES */}
       <Stack spacing={1.5} sx={{ mt: 2, width: '100%', px: 2 }}>
-        <Chip
-          size="small"
-          icon={isPublicVisibility ? <Globe size={14} /> : <Lock size={14} />}
-          label={tCommon(isPublicVisibility ? 'trip.visibility.public' : 'trip.visibility.private')}
-          sx={{
-            width: 'fit-content',
-            height: 24,
-            borderRadius: '999px',
-            bgcolor: isPublicVisibility ? '#E8F5FF' : '#F5F5F5',
-            color: isPublicVisibility ? '#0D47A1' : 'text.secondary',
-            '& .MuiChip-icon': {
-              color: 'inherit',
-              ml: 0.75,
-            },
-            '& .MuiChip-label': {
-              px: 1,
-              fontSize: 11,
-              fontWeight: 600,
-            },
-          }}
-        />
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Chip
+            size="small"
+            icon={isPublicVisibility ? <Globe size={14} /> : <Lock size={14} />}
+            label={tCommon(
+              isPublicVisibility ? 'trip.visibility.public' : 'trip.visibility.private'
+            )}
+            sx={{
+              width: 'fit-content',
+              height: 24,
+              borderRadius: '999px',
+              bgcolor: isPublicVisibility ? '#E8F5FF' : '#F5F5F5',
+              color: isPublicVisibility ? '#0D47A1' : 'text.secondary',
+              '& .MuiChip-icon': {
+                color: 'inherit',
+                ml: 0.75,
+              },
+              '& .MuiChip-label': {
+                px: 1,
+                fontSize: 11,
+                fontWeight: 600,
+              },
+            }}
+          />
 
-        {/* DATE RANGE */}
+          {isTripOwner ? (
+            <MeatballMenu
+              onShareClick={() => setOpenShareDialog(true)}
+              onVersionClick={() => setVersionModalOpen(true)}
+            />
+          ) : (
+            <Box />
+          )}
+        </Stack>
+
         <Stack
           direction="row"
           spacing={1}
@@ -271,7 +323,6 @@ const OverviewHeader = ({
           />
         </Stack>
 
-        {/* OBJECTIVES SECTION */}
         <Stack
           direction="row"
           spacing={1}
@@ -284,24 +335,28 @@ const OverviewHeader = ({
           </IconButton>
 
           <Stack direction="row" flexWrap="wrap" spacing={1} sx={{ gap: '8px', rowGap: '6px' }}>
-            {selectedObjectives.length === 0 && (
+            {selectedObjectives.length === 0 ? (
               <Typography sx={{ color: '#999' }}>{t('Header.placeholderObjective')}</Typography>
-            )}
+            ) : null}
 
-            {selectedObjectives.map((obj) => (
+            {selectedObjectives.map((objective) => (
               <Chip
-                key={obj.id ?? obj.name}
-                label={'boId' in obj ? getDefaultObjectiveName(locale, obj) : obj.name}
+                key={objective.id ?? objective.name}
+                label={
+                  'boId' in objective ? getDefaultObjectiveName(locale, objective) : objective.name
+                }
                 size="small"
-                sx={{ bgcolor: obj.badgeColor ?? '#C8F7D8' }}
+                sx={{ bgcolor: objective.badgeColor ?? '#C8F7D8' }}
                 disabled={!isTripOwner}
-                onDelete={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
+                onDelete={(event) => {
+                  event.stopPropagation();
+                  event.preventDefault();
 
                   setSelectedObjectives((prev) => {
-                    const updated = prev.filter((o) => (o.id ?? o.name) !== (obj.id ?? obj.name));
-                    onUpdateObjectives?.(updated);
+                    const updated = prev.filter(
+                      (item) => (item.id ?? item.name) !== (objective.id ?? objective.name)
+                    );
+                    onUpdateObjectives?.(sanitizeObjectives(updated));
                     return updated;
                   });
                 }}
@@ -316,25 +371,45 @@ const OverviewHeader = ({
           selected={selectedObjectives}
           defaultObjectives={defaultObjectives}
           onClose={handleObjectiveModalClose}
-          onChange={(next) => {
-            const unique: Objective[] = [];
-            for (const it of next) {
-              if (unique.length >= MAX_OBJECTIVES) break;
-              const key = getKey(it);
-              if (!unique.some((u) => getKey(u) === key)) unique.push(it);
-            }
-            setSelectedObjectives(unique);
+          onChange={(nextObjectives) => {
+            setSelectedObjectives(sanitizeObjectives(nextObjectives));
           }}
         />
+
         <InviteDialog
           open={openShareDialog}
           onClose={() => setOpenShareDialog(false)}
           tripId={tripIdAsNumber}
         />
+
         <MembersModal
           open={openMembers}
           onCloseAction={() => setOpenMembers(false)}
           tripId={tripIdAsNumber}
+        />
+
+        <VersionModal
+          open={versionModalOpen}
+          onClose={() => setVersionModalOpen(false)}
+          versions={versions}
+          onAddVersion={() => {
+            setVersionModalOpen(false);
+            setCreateVersionDialogOpen(true);
+          }}
+          onDeleteVersion={handleDeleteVersion}
+          isLoading={isVersionsLoading || isVersionsFetching}
+        />
+
+        <CreateVersionDialog
+          open={createVersionDialogOpen}
+          onClose={() => {
+            if (!createVersionMutation.isPending) {
+              setCreateVersionDialogOpen(false);
+              setVersionModalOpen(true);
+            }
+          }}
+          onConfirm={handleCreateVersion}
+          isLoading={createVersionMutation.isPending}
         />
       </Stack>
     </Box>

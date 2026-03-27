@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardMedia, Box, Typography, Chip, Button } from '@mui/material';
+import { Card, CardMedia, Box, Typography, Chip } from '@mui/material';
 import { PublicTripTemplateListItem } from '@/api/trip-templates/type';
 import { useRouter } from 'next/navigation';
 import { TruncatedTooltip } from '@/components/atoms';

@@ -1,6 +1,16 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { getTripDailyPlans, getTripHeader, getTripReservations, getTripWishlistPlaces } from './api';
+import {
+  applyTripVersion,
+  createTripVersion,
+  deleteTripVersion,
+  getTripDailyPlans,
+  getTripHeader,
+  getTripReservations,
+  getTripVersions,
+  getTripWishlistPlaces,
+} from './api';
 
 export const useTripHeader = (tripId: number) => {
   return useQuery({
@@ -42,3 +52,49 @@ export const useTripDailyPlans = (tripId: number) => {
   });
 };
 
+export const useTripVersions = (
+  tripId: number,
+  includeSnapshot: boolean = false,
+  enabled: boolean = true
+) => {
+  return useQuery({
+    queryKey: ['trip-versions', tripId, includeSnapshot],
+    queryFn: () => getTripVersions(tripId, includeSnapshot),
+    enabled: tripId > 0 && enabled,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useCreateTripVersion = () => {
+  return useMutation({
+    mutationFn: ({ tripId, versionName }: { tripId: number; versionName: string }) =>
+      createTripVersion(tripId, { versionName }),
+  });
+};
+
+export const useDeleteTripVersion = () => {
+  return useMutation({
+    mutationFn: ({ tripId, versionId }: { tripId: number; versionId: number }) =>
+      deleteTripVersion(tripId, versionId),
+  });
+};
+
+export const useApplyTripVersion = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ tripId, versionId }: { tripId: number; versionId: number }) =>
+      applyTripVersion(tripId, versionId),
+
+    onSuccess: async (_, { tripId }) => {
+      await queryClient.invalidateQueries({
+        queryKey: ['trip-versions', tripId],
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ['trip-header', tripId],
+      });
+    },
+  });
+};
