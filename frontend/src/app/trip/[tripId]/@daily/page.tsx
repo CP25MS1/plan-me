@@ -39,7 +39,10 @@ const DailyPlanPage = () => {
 
   const { acquireLease } = useTripLockLease(tripId);
   const dragLeaseRef = useRef<null | { placeId: number; release: () => Promise<void> }>(null);
-  const dragAcquireRef = useRef<null | { placeId: number; promise: ReturnType<typeof acquireLease> }>(null);
+  const dragAcquireRef = useRef<null | {
+    placeId: number;
+    promise: ReturnType<typeof acquireLease>;
+  }>(null);
 
   const { FullPageLoading } = useFullPageLoading();
 
@@ -66,7 +69,10 @@ const DailyPlanPage = () => {
   if (isLoading) return <FullPageLoading />;
 
   const getSectionUsersForPlan = (planId: number) => {
-    const usersById = new Map<number, { id: number; username: string; profilePicUrl: string | null }>();
+    const usersById = new Map<
+      number,
+      { id: number; username: string; profilePicUrl: string | null }
+    >();
 
     Object.values(locksMap).forEach((lock) => {
       if (lock.section !== 'DAILY_PLAN') return;
@@ -100,7 +106,8 @@ const DailyPlanPage = () => {
       const { source, destination } = result;
       const placeId = Number(result.draggableId);
 
-      const acquired = dragAcquireRef.current?.placeId === placeId ? await dragAcquireRef.current.promise : null;
+      const acquired =
+        dragAcquireRef.current?.placeId === placeId ? await dragAcquireRef.current.promise : null;
       dragAcquireRef.current = null;
 
       if (!acquired) return;
@@ -160,10 +167,7 @@ const DailyPlanPage = () => {
 
   return dailyPlans.length > 0 ? (
     <>
-      <DragDropContext
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-      >
+      <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <Box sx={{ mt: 2 }}>
           {sortByDateAsc(dailyPlans).map((plan, index) => {
             const titlePrefix = locale === 'en' ? 'Day' : 'วันที่';
@@ -226,7 +230,9 @@ const DailyPlanPage = () => {
                                             }
                                             isDragging={snapshot.isDragging}
                                             disabled={lockedByOther}
-                                            lockOwnerName={lockedByOther ? lock!.owner.username : undefined}
+                                            lockOwnerName={
+                                              lockedByOther ? lock!.owner.username : undefined
+                                            }
                                           />
                                         </Box>
                                       </ListItem>

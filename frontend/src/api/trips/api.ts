@@ -10,6 +10,9 @@ import {
   ToggleTripVisibilityRequest,
   ToggleTripVisibilityResponse,
   DailyPlan,
+  CreateTripVersionRequest,
+  TripVersion,
+  ApplyTripVersionResponse,
 } from './type';
 import type { ReservationDto } from '@/api/reservations';
 
@@ -112,4 +115,34 @@ export const toggleTripVisibility = async (
 
 export const deleteTrip = async (tripId: number): Promise<void> => {
   await apiClient.delete(`/trips/${tripId}`);
+};
+
+export const createTripVersion = async (
+  tripId: number,
+  payload: CreateTripVersionRequest
+): Promise<TripVersion> => {
+  const { data } = await apiClient.post(`/trips/${tripId}/versions`, payload);
+  return data;
+};
+
+export const deleteTripVersion = async (tripId: number, versionId: number): Promise<void> => {
+  await apiClient.delete(`/trips/${tripId}/versions/${versionId}`);
+};
+
+export const getTripVersions = async (
+  tripId: number,
+  includeSnapshot: boolean = false
+): Promise<TripVersion[]> => {
+  const { data } = await apiClient.get(`/trips/${tripId}/versions`, {
+    params: { includeSnapshot },
+  });
+  return data;
+};
+
+export const applyTripVersion = async (
+  tripId: number,
+  versionId: number
+): Promise<ApplyTripVersionResponse> => {
+  const { data } = await apiClient.post(`/trips/${tripId}/versions/${versionId}/apply`);
+  return data;
 };
