@@ -15,7 +15,7 @@ import { indexToTabKey, mapIndex, tabKeyToIndex } from './tab-panel/trip-tabs';
 import useUpdateTripOverview from './hooks/use-update-trip-overview';
 import { UpsertTrip, useTripHeader } from '@/api/trips';
 import TripForbiddenPage from '@/app/trip/[tripId]/components/trip-forbidden-page';
-import useTripRealtimeSse from '@/app/trip/[tripId]/hooks/use-trip-realtime-sse';
+import useTripRealtimeWs from '@/app/trip/[tripId]/hooks/use-trip-realtime-ws';
 
 type TripLayoutProps = {
   params: Promise<{ tripId: string }>;
@@ -41,7 +41,7 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
   const { tripId } = use(params);
   const tripIdAsNumber = Number(tripId);
 
-  useTripRealtimeSse(tripIdAsNumber);
+  useTripRealtimeWs(tripIdAsNumber);
 
   const { data: tripHeader, isLoading: isTripHeaderLoading, error, isError } =
     useTripHeader(tripIdAsNumber);

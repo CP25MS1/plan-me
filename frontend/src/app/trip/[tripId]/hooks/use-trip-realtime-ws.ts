@@ -22,24 +22,37 @@ const parseJsonEvent = <T,>(event: MessageEvent): T | null => {
   }
 };
 
-export const useTripRealtimeSse = (tripId: number) => {
+type WsMessageWrapper<T = any> = {
+  type: string;
+  data: T;
+};
+
+export const useTripRealtimeWs = (tripId: number) => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
-  const baseUrl = useMemo(() => {
+  const wsUrl = useMemo(() => {
     const raw = process.env.NEXT_PUBLIC_BACKEND_URL;
-    return raw ? raw.replace(/\/$/, '') : null;
-  }, []);
+    if (!raw) return null;
+    try {
+      const urlObj = new URL(raw);
+      urlObj.protocol = urlObj.protocol === 'https:' ? 'wss:' : 'ws:';
+      const basePath = urlObj.pathname.replace(/\/$/, '');
+      return `${urlObj.origin}${basePath}/realtime/trips/${tripId}/ws`;
+    } catch {
+      return null;
+    }
+  }, [tripId]);
 
   const pendingScopesRef = useRef<Set<TripRealtimeScope>>(new Set());
   const invalidateTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!baseUrl) return;
-    if (!Number.isFinite(tripId) || tripId <= 0) return;
+    if (!wsUrl || !Number.isFinite(tripId) || tripId <= 0) return;
 
-    const url = `${baseUrl}/realtime/trips/${tripId}/stream`;
-    const eventSource = new EventSource(url, { withCredentials: true });
+    let ws: WebSocket | null = null;
+    let reconnectTimer: number | null = null;
+    let isComponentMounted = true;
 
     const scheduleInvalidate = (scopes: TripRealtimeScope[]) => {
       for (const scope of scopes) pendingScopesRef.current.add(scope);
@@ -81,59 +94,66 @@ export const useTripRealtimeSse = (tripId: number) => {
       }, 150);
     };
 
-    const onSnapshot = (event: MessageEvent) => {
-      const data = parseJsonEvent<TripRealtimeSnapshot>(event);
-      if (!data) return;
-      dispatch(setSnapshot({ tripId, locks: data.locks, addPresence: data.addPresence }));
+    const connect = () => {
+      ws = new WebSocket(wsUrl);
+
+      ws.onmessage = (event) => {
+        const wrapper = parseJsonEvent<WsMessageWrapper>(event);
+        if (!wrapper) return;
+
+        const { type, data } = wrapper;
+
+        switch (type) {
+          case 'snapshot':
+            dispatch(setSnapshot({ tripId, locks: data.locks, addPresence: data.addPresence }));
+            break;
+          case 'lock_acquired':
+            dispatch(upsertLock({ tripId, lock: data }));
+            break;
+          case 'lock_released':
+          case 'lock_expired':
+            dispatch(removeLock({ tripId, lock: data }));
+            break;
+          case 'add_presence_upserted':
+            dispatch(upsertAddPresence({ tripId, entry: data }));
+            break;
+          case 'add_presence_cleared':
+            dispatch(removeAddPresence({ tripId, entry: data }));
+            break;
+          case 'data_changed':
+            scheduleInvalidate(data.scopes);
+            break;
+          default:
+            break;
+        }
+      };
+
+      ws.onclose = () => {
+        if (isComponentMounted) {
+          reconnectTimer = window.setTimeout(connect, 3000);
+        }
+      };
     };
 
-    const onLockUpsert = (event: MessageEvent) => {
-      const lock = parseJsonEvent<TripRealtimeLock>(event);
-      if (!lock) return;
-      dispatch(upsertLock({ tripId, lock }));
-    };
-
-    const onLockRemove = (event: MessageEvent) => {
-      const lock = parseJsonEvent<TripRealtimeLock>(event);
-      if (!lock) return;
-      dispatch(removeLock({ tripId, lock }));
-    };
-
-    const onPresenceUpsert = (event: MessageEvent) => {
-      const entry = parseJsonEvent<TripRealtimeAddPresence>(event);
-      if (!entry) return;
-      dispatch(upsertAddPresence({ tripId, entry }));
-    };
-
-    const onPresenceRemove = (event: MessageEvent) => {
-      const entry = parseJsonEvent<TripRealtimeAddPresence>(event);
-      if (!entry) return;
-      dispatch(removeAddPresence({ tripId, entry }));
-    };
-
-    const onDataChanged = (event: MessageEvent) => {
-      const data = parseJsonEvent<TripRealtimeDataChanged>(event);
-      if (!data) return;
-      scheduleInvalidate(data.scopes);
-    };
-
-    eventSource.addEventListener('snapshot', onSnapshot);
-    eventSource.addEventListener('lock_acquired', onLockUpsert);
-    eventSource.addEventListener('lock_released', onLockRemove);
-    eventSource.addEventListener('lock_expired', onLockRemove);
-    eventSource.addEventListener('add_presence_upserted', onPresenceUpsert);
-    eventSource.addEventListener('add_presence_cleared', onPresenceRemove);
-    eventSource.addEventListener('data_changed', onDataChanged);
+    connect();
 
     return () => {
+      isComponentMounted = false;
+      if (reconnectTimer) {
+        window.clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
       if (invalidateTimerRef.current) {
         window.clearTimeout(invalidateTimerRef.current);
         invalidateTimerRef.current = null;
       }
       pendingScopesRef.current.clear();
-      eventSource.close();
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
     };
-  }, [baseUrl, dispatch, queryClient, tripId]);
+  }, [wsUrl, dispatch, queryClient, tripId]);
 };
 
-export default useTripRealtimeSse;
+export default useTripRealtimeWs;

@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @AllArgsConstructor
@@ -23,17 +22,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class TripRealtimeController {
     private final TripRealtimeService realtimeService;
 
-    @GetMapping(value = "/{tripId}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter stream(
-            @PathVariable Integer tripId,
-            @AuthenticationPrincipal User currentUser,
-            HttpServletResponse response
-    ) {
-        response.setHeader("X-Accel-Buffering", "no");
-        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, no-transform");
-        response.setHeader(HttpHeaders.CONNECTION, "keep-alive");
-        return realtimeService.subscribe(tripId, currentUser);
-    }
 
     @PutMapping("/{tripId}/add-presence")
     public ResponseEntity<Void> addPresence(
