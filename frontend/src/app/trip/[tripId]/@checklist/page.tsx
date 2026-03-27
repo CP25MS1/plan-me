@@ -24,7 +24,7 @@ import SectionCardNoClose from '@/components/trip/overview/section-card-no-close
 
 import { Add, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 
-import { Trash2, UserPen } from 'lucide-react';
+import { Trash2, UserPen, AlertCircle } from 'lucide-react';
 
 import { TripChecklistDto } from '@/api/checklist/type';
 
@@ -39,6 +39,11 @@ import { useGetTripMembers } from '@/app/hooks/use-get-trip-members';
 import TripmateModal from '@/app/trip/[tripId]/@checklist/components/tripmate-modal';
 import { tokens } from '@/providers/theme/design-tokens';
 import { useI18nSelector } from '@/store/selectors';
+import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-trip-add-presence';
+import SectionPresenceGroup from '@/app/trip/[tripId]/realtime/components/section-presence-group';
+import { useTripSectionUsers, useTripRealtimeLocksMap } from '@/store/selectors';
+import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
+import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 
 export default function ChecklistPage() {
   const params = useParams();
@@ -49,6 +54,11 @@ export default function ChecklistPage() {
   const me = useAppSelector((s) => s.profile.currentUser);
   const tripmates = useGetTripMembers(tripId);
   const completedLockedTooltip = t('hints.completedLocked');
+  
+  const checklistUsers = useTripSectionUsers(tripId, 'CHECKLIST');
+  const locksMap = useTripRealtimeLocksMap(tripId);
+  const { acquireLease } = useTripLockLease(tripId);
+  const checklistEditReleaseRef = React.useRef<null | (() => Promise<void>)>(null);
 
   /* ===== checklist hooks ===== */
   const { data: items = [], isLoading } = useGetTripChecklist(tripId);
@@ -71,6 +81,15 @@ export default function ChecklistPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingName, setEditingName] = useState('');
 
+  const [duplicateWarningFor, setDuplicateWarningFor] = useState<string | null>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity?: 'error' | 'warning' | 'info' | 'success' } | null>(null);
+
+  useTripAddPresenceEffect({
+    tripId,
+    enabled: isAdding || editingId !== null,
+    section: 'CHECKLIST',
+  });
+
   if (!tripId || Number.isNaN(tripId)) return null;
 
   const existingNames = new Set(items.map((i) => i.name.trim().toLowerCase()));
@@ -81,6 +100,12 @@ export default function ChecklistPage() {
     if (!name) {
       setIsAdding(false);
       setAddingName('');
+      setDuplicateWarningFor(null);
+      return;
+    }
+
+    if (existingNames.has(name.toLowerCase()) && duplicateWarningFor !== name) {
+      setDuplicateWarningFor(name);
       return;
     }
 
@@ -88,6 +113,7 @@ export default function ChecklistPage() {
       onSuccess: () => {
         setAddingName('');
         setIsAdding(false);
+        setDuplicateWarningFor(null);
       },
     });
   };
@@ -96,13 +122,24 @@ export default function ChecklistPage() {
     const currentItem = items.find((x) => x.id === id);
     if (currentItem?.completed) {
       setEditingId(null);
+      setDuplicateWarningFor(null);
+      void checklistEditReleaseRef.current?.();
+      checklistEditReleaseRef.current = null;
       return;
     }
 
     const name = editingName.trim();
 
-    if (!name) {
+    if (!currentItem || !name || name.toLowerCase() === currentItem.name.trim().toLowerCase()) {
       setEditingId(null);
+      setDuplicateWarningFor(null);
+      void checklistEditReleaseRef.current?.();
+      checklistEditReleaseRef.current = null;
+      return;
+    }
+
+    if (existingNames.has(name.toLowerCase()) && duplicateWarningFor !== name) {
+      setDuplicateWarningFor(name);
       return;
     }
 
@@ -112,6 +149,9 @@ export default function ChecklistPage() {
     });
 
     setEditingId(null);
+    setDuplicateWarningFor(null);
+    void checklistEditReleaseRef.current?.();
+    checklistEditReleaseRef.current = null;
   };
 
   const handleToggleComplete = (item: TripChecklistDto) => {
@@ -146,7 +186,24 @@ export default function ChecklistPage() {
       return;
     }
 
-    deleteMut.mutate(id);
+    void (async () => {
+      const lease = await acquireLease({
+        resourceType: 'CHECKLIST_ITEM',
+        resourceId: id,
+        purpose: 'DELETE',
+      });
+      if (lease.status === 'conflict') {
+        setSnackbar({
+          open: true,
+          message: `Locked by ${lease.lock.owner.username}`,
+          severity: 'warning',
+        });
+        return;
+      }
+      deleteMut.mutate(id, {
+        onSettled: () => void lease.release(),
+      });
+    })();
   };
 
   /* ===== render ===== */
@@ -211,6 +268,9 @@ export default function ChecklistPage() {
         <SectionCardNoClose
           title={t('title')}
           asEmpty={!isLoading && items.length === 0 && !isAdding}
+          titleAdornment={
+            <SectionPresenceGroup users={checklistUsers} dialogTitle={`กำลังใช้งาน: ${t('title')}`} />
+          }
         >
           {/* ===== List ===== */}
           {isLoading ? (
@@ -254,12 +314,20 @@ export default function ChecklistPage() {
                     placeholder={t('fields.namePlaceholder')}
                     value={addingName}
                     onChange={(e) => setAddingName(e.target.value)}
-                    onBlur={handleInlineAdd}
+                    onBlur={() => {
+                      if (!duplicateWarningFor) handleInlineAdd();
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         handleInlineAdd();
                       }
                     }}
+                    error={duplicateWarningFor === addingName.trim() && addingName.trim() !== ''}
+                    helperText={
+                      duplicateWarningFor === addingName.trim() && addingName.trim() !== ''
+                        ? t('hints.duplicateName')
+                        : ''
+                    }
                     inputProps={{ maxLength: 30 }}
                     InputProps={{
                       endAdornment: (
@@ -290,170 +358,226 @@ export default function ChecklistPage() {
                 const canToggle = !it.assignee || (me && it.assignee && me.id === it.assignee.id);
                 const isLocked = it.completed === true;
 
+                const lock = locksMap[`CHECKLIST_ITEM:${it.id}`];
+                const lockedByOther = Boolean(lock) && Boolean(me) && lock!.owner.id !== me?.id;
+                
+                const isHighlighted =
+                  duplicateWarningFor &&
+                  it.name.trim().toLowerCase() === duplicateWarningFor.trim().toLowerCase()
+                    ? true
+                    : false;
+
                 return (
-                  <Box
-                    key={it.id}
-                    sx={{
-                      bgcolor: '#fff',
-                      borderRadius: 3,
-                      p: 2,
-                      mb: 2,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      boxShadow: '0 6px 14px rgba(0,0,0,0.06)',
-                    }}
-                  >
-                    {/* Left */}
-                    <Stack
-                      direction="row"
-                      spacing={2}
-                      alignItems="center"
-                      sx={{ flex: 1, minWidth: 0 }}
+                  <Box key={it.id} sx={{ mb: 2 }}>
+                    <Box
+                      sx={{
+                        bgcolor: '#fff',
+                        borderRadius: 3,
+                        p: 2,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        boxShadow: '0 6px 14px rgba(0,0,0,0.06)',
+                        border: isHighlighted
+                          ? `2px solid ${tokens.color.warning}`
+                          : lockedByOther 
+                          ? `2px solid ${tokens.color.warning}`
+                          : '2px solid transparent',
+                      }}
                     >
-                      <IconButton onClick={() => handleToggleComplete(it)} disabled={!canToggle}>
-                        {it.completed ? <CheckBox /> : <CheckBoxOutlineBlank />}
-                      </IconButton>
-
-                      {editingId === it.id ? (
-                        <TextField
-                          size="small"
-                          autoFocus
-                          fullWidth
-                          value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          onBlur={() => handleInlineUpdate(it.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handleInlineUpdate(it.id);
-                            }
-                          }}
-                          inputProps={{ maxLength: 30 }}
-                          InputProps={{
-                            endAdornment: (
-                              <Typography
-                                variant="caption"
-                                sx={{ ml: 1, color: tokens.color.textSecondary }}
-                              >
-                                {editingName.length}/30
-                              </Typography>
-                            ),
-                          }}
-                        />
-                      ) : (
-                        <Typography
-                          sx={{
-                            textDecoration: it.completed ? 'line-through' : 'none',
-                            cursor: isLocked ? 'default' : 'pointer',
-                            flex: 1,
-                            textAlign: 'left',
-                            wordBreak: 'break-word',
-                            whiteSpace: 'normal',
-                            lineHeight: 1.5,
-                          }}
-                          onClick={() => {
-                            if (isLocked) return;
-                            setEditingId(it.id);
-                            setEditingName(it.name);
-                          }}
-                        >
-                          {it.name}
-                        </Typography>
-                      )}
-                    </Stack>
-
-                    {/* Right */}
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      {/* ===== Assign Button ===== */}
-                      {it.assignee ? (
-                        <Box
-                          sx={{
-                            position: 'relative',
-
-                            '& .remove-btn': {
-                              opacity: 0,
-                              pointerEvents: 'none',
-                              transition: '0.15s',
-                            },
-
-                            '&:hover .remove-btn': {
-                              opacity: 1,
-                              pointerEvents: 'auto',
-                            },
-                          }}
-                        >
-                          <Badge
-                            overlap="circular"
-                            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                            badgeContent={
-                              <IconButton
+                      {/* Left */}
+                      <Stack
+                        direction="row"
+                        spacing={2}
+                        alignItems="center"
+                        sx={{ flex: 1, minWidth: 0 }}
+                      >
+                        <IconButton onClick={() => handleToggleComplete(it)} disabled={!canToggle}>
+                          {it.completed ? <CheckBox /> : <CheckBoxOutlineBlank />}
+                        </IconButton>
+  
+                          {editingId === it.id ? (
+                            <Box sx={{ flex: 1 }}>
+                              <TextField
                                 size="small"
-                                className="remove-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleAssign(it, null);
+                                autoFocus
+                                fullWidth
+                                value={editingName}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setEditingName(val);
+                                  const trimmed = val.trim().toLowerCase();
+                                  if (trimmed && items.some(xi => xi.id !== it.id && xi.name.trim().toLowerCase() === trimmed)) {
+                                    setDuplicateWarningFor(val.trim());
+                                  } else {
+                                    setDuplicateWarningFor(null);
+                                  }
                                 }}
-                                disabled={isLocked}
-                                sx={{
-                                  bgcolor: '#fff',
-                                  boxShadow: 1,
-                                  width: 18,
-                                  height: 18,
-                                  '&:hover': { bgcolor: '#eee' },
+                                onBlur={() => {
+                                  handleInlineUpdate(it.id);
                                 }}
-                              >
-                                <CloseIcon sx={{ fontSize: 12 }} />
-                              </IconButton>
-                            }
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleInlineUpdate(it.id);
+                                  }
+                                }}
+                                inputProps={{ maxLength: 30 }}
+                                InputProps={{
+                                  endAdornment: (
+                                    <Typography
+                                      variant="caption"
+                                      sx={{ ml: 1, color: tokens.color.textSecondary }}
+                                    >
+                                      {editingName.length}/30
+                                    </Typography>
+                                  ),
+                                  sx: {
+                                    '& fieldset': {
+                                      borderColor: duplicateWarningFor === editingName.trim() && editingName.trim() !== '' ? `${tokens.color.warning} !important` : undefined,
+                                    },
+                                  }
+                                }}
+                              />
+                              {duplicateWarningFor === editingName.trim() && editingName.trim() !== '' && (
+                                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
+                                  <AlertCircle size={14} color={tokens.color.warning} />
+                                  <Typography variant="caption" sx={{ color: tokens.color.warning, fontWeight: 500 }}>
+                                    {t('hints.duplicateName')}
+                                  </Typography>
+                                </Stack>
+                              )}
+                            </Box>
+                          ) : (
+                            <Typography
+                              sx={{
+                                textDecoration: it.completed ? 'line-through' : 'none',
+                                cursor: isLocked || lockedByOther ? 'default' : 'pointer',
+                                flex: 1,
+                                textAlign: 'left',
+                                wordBreak: 'break-word',
+                                whiteSpace: 'normal',
+                                lineHeight: 1.5,
+                              }}
+                              onClick={() => {
+                                if (isLocked || lockedByOther) return;
+                                void (async () => {
+                                  const lease = await acquireLease({
+                                    resourceType: 'CHECKLIST_ITEM',
+                                    resourceId: it.id,
+                                    purpose: 'EDIT',
+                                  });
+                                  if (lease.status === 'conflict') {
+                                    setSnackbar({
+                                      open: true,
+                                      message: `Locked by ${lease.lock.owner.username}`,
+                                      severity: 'warning',
+                                    });
+                                    return;
+                                  }
+                                  checklistEditReleaseRef.current = lease.release;
+                                  setEditingId(it.id);
+                                  setEditingName(it.name);
+                                })();
+                              }}
+                            >
+                              {it.name}
+                            </Typography>
+                          )}
+                      </Stack>
+  
+                      {/* Right */}
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        {/* ===== Assign Button ===== */}
+                        {it.assignee ? (
+                          <Box
+                            sx={{
+                              position: 'relative',
+  
+                              '& .remove-btn': {
+                                opacity: 0,
+                                pointerEvents: 'none',
+                                transition: '0.15s',
+                              },
+  
+                              '&:hover .remove-btn': {
+                                opacity: 1,
+                                pointerEvents: 'auto',
+                              },
+                            }}
                           >
-                            <Tooltip
-                              title={
-                                isLocked ? completedLockedTooltip : t('tooltips.changeAssignee')
+                            <Badge
+                              overlap="circular"
+                              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                              badgeContent={
+                                <IconButton
+                                  size="small"
+                                  className="remove-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAssign(it, null);
+                                  }}
+                                  disabled={isLocked || lockedByOther}
+                                  sx={{
+                                    bgcolor: '#fff',
+                                    boxShadow: 1,
+                                    width: 18,
+                                    height: 18,
+                                    '&:hover': { bgcolor: '#eee' },
+                                  }}
+                                >
+                                  <CloseIcon sx={{ fontSize: 12 }} />
+                                </IconButton>
                               }
                             >
-                              <Avatar
-                                src={it.assignee.profilePicUrl}
-                                sx={{
-                                  width: 32,
-                                  height: 32,
-                                  cursor: isLocked ? 'not-allowed' : 'pointer',
-                                  opacity: isLocked ? 0.7 : 1,
-                                }}
+                              <Tooltip
+                                title={
+                                  isLocked ? completedLockedTooltip : t('tooltips.changeAssignee')
+                                }
+                              >
+                                <Avatar
+                                  src={it.assignee.profilePicUrl}
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    cursor: isLocked || lockedByOther ? 'not-allowed' : 'pointer',
+                                    opacity: isLocked || lockedByOther ? 0.7 : 1,
+                                  }}
+                                  onClick={(e) => {
+                                    if (isLocked || lockedByOther) return;
+  
+                                    setAssignTarget(it);
+                                    setAssignAnchor(e.currentTarget);
+                                  }}
+                                />
+                              </Tooltip>
+                            </Badge>
+                          </Box>
+                        ) : (
+                          <Tooltip title={isLocked ? completedLockedTooltip : t('tooltips.assign')}>
+                            <span>
+                              <IconButton
+                                disabled={isLocked || lockedByOther}
                                 onClick={(e) => {
-                                  if (isLocked) return;
-
                                   setAssignTarget(it);
                                   setAssignAnchor(e.currentTarget);
                                 }}
-                              />
-                            </Tooltip>
-                          </Badge>
-                        </Box>
-                      ) : (
-                        <Tooltip title={isLocked ? completedLockedTooltip : t('tooltips.assign')}>
+                              >
+                                <UserPen size={18} />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        )}
+  
+                        {/* Delete */}
+                        <Tooltip title={isLocked ? completedLockedTooltip : t('tooltips.delete')}>
                           <span>
-                            <IconButton
-                              disabled={isLocked}
-                              onClick={(e) => {
-                                setAssignTarget(it);
-                                setAssignAnchor(e.currentTarget);
-                              }}
-                            >
-                              <UserPen size={18} />
+                            <IconButton disabled={isLocked || lockedByOther} onClick={() => handleDelete(it.id)}>
+                              <Trash2 size={18} />
                             </IconButton>
                           </span>
                         </Tooltip>
-                      )}
-
-                      {/* Delete */}
-                      <Tooltip title={isLocked ? completedLockedTooltip : t('tooltips.delete')}>
-                        <span>
-                          <IconButton disabled={isLocked} onClick={() => handleDelete(it.id)}>
-                            <Trash2 size={18} />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    </Stack>
+                      </Stack>
+                    </Box>
                   </Box>
                 );
               })
@@ -463,39 +587,68 @@ export default function ChecklistPage() {
           {!isLoading && items.length > 0 && (
             <Box mt={2}>
               {isAdding ? (
-                <Box
-                  sx={{
-                    bgcolor: '#fff',
-                    borderRadius: 3,
-                    p: 2,
-                    boxShadow: '0 6px 14px rgba(0,0,0,0.06)',
-                  }}
-                >
-                  <TextField
-                    fullWidth
-                    size="small"
-                    autoFocus
-                    placeholder={t('fields.namePlaceholder')}
-                    value={addingName}
-                    onChange={(e) => setAddingName(e.target.value)}
-                    onBlur={handleInlineAdd}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                <Box sx={{ mb: 2 }}>
+                  <Box
+                    sx={{
+                      bgcolor: '#fff',
+                      borderRadius: 3,
+                      p: 2,
+                      boxShadow: '0 6px 14px rgba(0,0,0,0.06)',
+                      border: duplicateWarningFor === addingName.trim() && addingName.trim() !== ''
+                        ? `2px solid ${tokens.color.warning}`
+                        : '2px solid transparent',
+                    }}
+                  >
+                    <TextField
+                      fullWidth
+                      size="small"
+                      autoFocus
+                      placeholder={t('fields.namePlaceholder')}
+                      value={addingName}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setAddingName(val);
+                        const trimmed = val.trim().toLowerCase();
+                        if (trimmed && items.some(it => it.name.trim().toLowerCase() === trimmed)) {
+                          setDuplicateWarningFor(val.trim());
+                        } else {
+                          setDuplicateWarningFor(null);
+                        }
+                      }}
+                      onBlur={() => {
                         handleInlineAdd();
-                      }
-                    }}
-                    inputProps={{ maxLength: 30 }}
-                    InputProps={{
-                      endAdornment: (
-                        <Typography
-                          variant="caption"
-                          sx={{ ml: 1, color: tokens.color.textSecondary }}
-                        >
-                          {addingName.length}/30
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleInlineAdd();
+                        }
+                      }}
+                      inputProps={{ maxLength: 30 }}
+                      InputProps={{
+                        endAdornment: (
+                          <Typography
+                            variant="caption"
+                            sx={{ ml: 1, color: tokens.color.textSecondary }}
+                          >
+                            {addingName.length}/30
+                          </Typography>
+                        ),
+                        sx: {
+                          '& fieldset': {
+                            borderColor: duplicateWarningFor === addingName.trim() && addingName.trim() !== '' ? `${tokens.color.warning} !important` : undefined,
+                          },
+                        }
+                      }}
+                    />
+                    {duplicateWarningFor === addingName.trim() && addingName.trim() !== '' && (
+                      <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
+                        <AlertCircle size={14} color={tokens.color.warning} />
+                        <Typography variant="caption" sx={{ color: tokens.color.warning, fontWeight: 500 }}>
+                          {t('hints.duplicateName')}
                         </Typography>
-                      ),
-                    }}
-                  />
+                      </Stack>
+                    )}
+                  </Box>
                 </Box>
               ) : (
                 <Box textAlign="center">
@@ -520,6 +673,13 @@ export default function ChecklistPage() {
         onAssign={(userId) => {
           if (assignTarget) handleAssign(assignTarget, userId);
         }}
+      />
+      
+      <AppSnackbar
+        open={Boolean(snackbar?.open)}
+        message={snackbar?.message ?? ''}
+        severity={snackbar?.severity ?? 'error'}
+        onClose={() => setSnackbar(null)}
       />
     </Box>
   );

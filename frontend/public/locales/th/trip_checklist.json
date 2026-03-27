@@ -12,7 +12,8 @@
     "delete": "ลบ"
   },
   "hints": {
-    "completedLocked": "ต้อง uncheck ก่อนจึงจะแก้ไข/ลบได้"
+    "completedLocked": "ต้อง uncheck ก่อนจึงจะแก้ไข/ลบได้",
+    "duplicateName": "มีรายการชื่อนี้อยู่แล้ว โปรดตรวจสอบข้อมูลก่อนบันทึก"
   },
   "recommended": {
     "title": "รายการแนะนำ",

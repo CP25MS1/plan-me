@@ -5,11 +5,13 @@ import { Box, Typography } from '@mui/material';
 
 interface SectionCardProps {
   title: ReactNode;
+  titleAdornment?: ReactNode;
+  titleEndAdornment?: ReactNode;
   children?: ReactNode;
   asEmpty?: boolean;
 }
 
-const SectionCardNoClose = ({ title, children, asEmpty = false }: SectionCardProps) => {
+const SectionCardNoClose = ({ title, titleAdornment, titleEndAdornment, children, asEmpty = false }: SectionCardProps) => {
   return (
     <Box sx={{ mb: 3 }}>
       {/* Header */}
@@ -21,9 +23,13 @@ const SectionCardNoClose = ({ title, children, asEmpty = false }: SectionCardPro
           mb: 1,
         }}
       >
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
-          {title}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            {title}
+          </Typography>
+          {titleAdornment}
+        </Box>
+        {titleEndAdornment}
       </Box>
 
       {/* Content (always open) */}
