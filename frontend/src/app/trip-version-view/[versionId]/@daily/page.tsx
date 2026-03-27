@@ -87,7 +87,7 @@ const VersionDailyPage = () => {
               ) : (
                 <Box sx={{ py: 2 }}>
                   <Typography variant="body2" color="text.secondary">
-                    {t('template.empty.dailyItem')}
+                    ยังไม่มีข้อมูลสถานที่ในวันนี้
                   </Typography>
                 </Box>
               )}

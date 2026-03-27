@@ -116,7 +116,7 @@ const OverviewHeader = ({
     data: allVersions = [],
     isLoading: isVersionsLoading,
     isFetching: isVersionsFetching,
-  } = useTripVersions(tripIdAsNumber, false, isTripOwner);
+  } = useTripVersions(tripIdAsNumber);
   const createVersionMutation = useCreateTripVersion();
   const deleteVersionMutation = useDeleteTripVersion();
 
@@ -266,7 +266,7 @@ const OverviewHeader = ({
         </Stack>
       </Box>
 
-      <Stack spacing={1.5} sx={{ mt: 2, width: '100%', px: 2 }}>
+      <Stack spacing={1.5} sx={{ mt: 2, width: '100%' }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between">
           <Chip
             size="small"
@@ -292,14 +292,11 @@ const OverviewHeader = ({
             }}
           />
 
-          {isTripOwner ? (
-            <MeatballMenu
-              onShareClick={() => setOpenShareDialog(true)}
-              onVersionClick={() => setVersionModalOpen(true)}
-            />
-          ) : (
-            <Box />
-          )}
+          <MeatballMenu
+            isOwner={isTripOwner}
+            onShareClick={() => setOpenShareDialog(true)}
+            onVersionClick={() => setVersionModalOpen(true)}
+          />
         </Stack>
 
         <Stack
@@ -398,6 +395,7 @@ const OverviewHeader = ({
           }}
           onDeleteVersion={handleDeleteVersion}
           isLoading={isVersionsLoading || isVersionsFetching}
+          isOwner={isTripOwner}
         />
 
         <CreateVersionDialog

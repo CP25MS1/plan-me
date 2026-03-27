@@ -15,10 +15,10 @@ type VersionCardProps = {
   version: TripVersion;
   tripId: number;
   onDelete: (versionId: number) => Promise<void>;
-  isLatest?: boolean;
+  isOwner: boolean;
 };
 
-export const VersionCard = ({ version, onDelete, isLatest = false }: VersionCardProps) => {
+export const VersionCard = ({ version, onDelete, isOwner }: VersionCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const router = useRouter();
@@ -37,7 +37,7 @@ export const VersionCard = ({ version, onDelete, isLatest = false }: VersionCard
     <>
       <SwipeReveal
         actionWidth={92}
-        disabled={isDeleting}
+        disabled={!isOwner || isDeleting}
         actionSx={{
           bgcolor: 'transparent',
           borderRadius: 2,
@@ -49,29 +49,31 @@ export const VersionCard = ({ version, onDelete, isLatest = false }: VersionCard
           overflow: 'visible',
         }}
         actionNode={
-          <Box
-            onClick={() => setConfirmOpen(true)}
-            sx={{
-              width: '100%',
-              my: 0.5,
-              px: 1.5,
-              py: 2,
-              borderRadius: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 0.5,
-              color: tokens.color.contrastText,
-              cursor: 'pointer',
-              bgcolor: tokens.color.error,
-            }}
-          >
-            <Trash2 size={16} />
-            <Typography variant="caption" sx={{ color: 'inherit', fontWeight: 600 }}>
-              ลบ
-            </Typography>
-          </Box>
+          isOwner && (
+            <Box
+              onClick={() => setConfirmOpen(true)}
+              sx={{
+                width: '100%',
+                my: 0.5,
+                px: 1.5,
+                py: 2,
+                borderRadius: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 0.5,
+                color: tokens.color.contrastText,
+                cursor: 'pointer',
+                bgcolor: tokens.color.error,
+              }}
+            >
+              <Trash2 size={16} />
+              <Typography variant="caption" sx={{ color: 'inherit', fontWeight: 600 }}>
+                ลบ
+              </Typography>
+            </Box>
+          )
         }
       >
         <Box
@@ -117,7 +119,7 @@ export const VersionCard = ({ version, onDelete, isLatest = false }: VersionCard
                 </Stack>
               </Stack>
 
-              {isLatest ? (
+              {version.isCurrent && (
                 <Box
                   sx={{
                     position: 'absolute',
@@ -135,10 +137,10 @@ export const VersionCard = ({ version, onDelete, isLatest = false }: VersionCard
                   }}
                 >
                   <Typography variant="caption" sx={{ color: 'inherit', fontWeight: 600 }}>
-                    สร้างล่าสุด
+                    ใช้งานล่าสุด
                   </Typography>
                 </Box>
-              ) : null}
+              )}
             </Stack>
 
             {isDeleting ? (
@@ -147,28 +149,29 @@ export const VersionCard = ({ version, onDelete, isLatest = false }: VersionCard
           </Stack>
         </Box>
       </SwipeReveal>
-
-      <ConfirmDialog
-        open={confirmOpen}
-        onClose={() => {
-          if (!isDeleting) {
-            setConfirmOpen(false);
+      {isOwner && (
+        <ConfirmDialog
+          open={confirmOpen}
+          onClose={() => {
+            if (!isDeleting) {
+              setConfirmOpen(false);
+            }
+          }}
+          onConfirm={() => void handleDelete()}
+          confirmLoading={isDeleting}
+          color="error"
+          content={
+            <Box sx={{ pr: 4 }}>
+              <Typography variant="h6" sx={{ mb: 1, fontWeight: 700 }}>
+                ยืนยันการลบบันทึกเวอร์ชัน?
+              </Typography>
+              <Typography sx={{ color: tokens.color.textSecondary }}>
+                คุณแน่ใจหรือไม่ที่จะลบบันทึกเวอร์ชัน <strong>{version.versionName}</strong> ?
+              </Typography>
+            </Box>
           }
-        }}
-        onConfirm={() => void handleDelete()}
-        confirmLoading={isDeleting}
-        color="error"
-        content={
-          <Box sx={{ pr: 4 }}>
-            <Typography variant="h6" sx={{ mb: 1, fontWeight: 700 }}>
-              ยืนยันการลบบันทึกเวอร์ชัน?
-            </Typography>
-            <Typography sx={{ color: tokens.color.textSecondary }}>
-              คุณแน่ใจหรือไม่ที่จะลบบันทึกเวอร์ชัน <strong>{version.versionName}</strong> ?
-            </Typography>
-          </Box>
-        }
-      />
+        />
+      )}
     </>
   );
 };
