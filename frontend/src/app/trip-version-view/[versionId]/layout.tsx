@@ -163,24 +163,26 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
                 flexWrap="wrap"
                 sx={{ gap: 1 }}
               >
-                <Chip
-                  size="small"
-                  label={version.isCurrent ? 'ใช้งานล่าสุด' : 'เวอร์ชันที่บันทึกไว้'}
-                  sx={{
-                    width: 'fit-content',
-                    height: 24,
-                    borderRadius: '999px',
-                    bgcolor: version.isCurrent ? '#E8F5E9' : '#F5F5F5',
-                    color: version.isCurrent ? '#1B5E20' : 'text.secondary',
-                    '& .MuiChip-label': {
-                      px: 1,
-                      fontSize: 11,
-                      fontWeight: 600,
-                    },
-                  }}
-                />
+                {version.isCurrent && (
+                  <Chip
+                    size="small"
+                    label="ใช้งานล่าสุด"
+                    sx={{
+                      width: 'fit-content',
+                      height: 24,
+                      borderRadius: '999px',
+                      bgcolor: '#25cf7a',
+                      color: '#000000',
+                      '& .MuiChip-label': {
+                        px: 1,
+                        fontSize: 11,
+                        fontWeight: 600,
+                      },
+                    }}
+                  />
+                )}
 
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto' }}>
                   สร้างเมื่อ {createdAtText}
                 </Typography>
               </Stack>
