@@ -212,6 +212,7 @@ public class TripRealtimeHub {
             case RESERVATION -> TripRealtimeSection.OVERVIEW_RESERVATIONS;
             case WISHLIST_PLACE -> TripRealtimeSection.OVERVIEW_WISHLIST;
             case SCHEDULED_PLACE -> TripRealtimeSection.DAILY_PLAN;
+            case CHECKLIST_ITEM -> TripRealtimeSection.CHECKLIST;
         };
     }
 
