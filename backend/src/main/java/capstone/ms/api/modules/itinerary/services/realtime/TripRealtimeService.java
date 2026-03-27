@@ -22,10 +22,7 @@ public class TripRealtimeService {
     private final ReservationRepository reservationRepository;
     private final WishlistPlaceRepository wishlistPlaceRepository;
 
-    public SseEmitter subscribe(Integer tripId, User currentUser) {
-        tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
-        return hub.subscribe(tripId, mapUser(currentUser));
-    }
+
 
     @Transactional
     public void upsertAddPresence(Integer tripId, TripRealtimeAddPresenceRequest request, User currentUser) {

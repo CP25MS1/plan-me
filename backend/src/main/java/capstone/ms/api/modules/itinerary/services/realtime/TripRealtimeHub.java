@@ -1,17 +1,18 @@
 package capstone.ms.api.modules.itinerary.services.realtime;
 
 import capstone.ms.api.modules.itinerary.dto.realtime.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -21,12 +22,13 @@ public class TripRealtimeHub {
     public static final Duration ADD_PRESENCE_TTL = Duration.ofSeconds(60);
     private static final Duration KEEPALIVE_INTERVAL = Duration.ofSeconds(15);
     private static final Duration SWEEP_INTERVAL = Duration.ofSeconds(5);
-    private static final String INITIAL_FLUSH_PADDING = "0".repeat(2048);
 
     private final ConcurrentHashMap<Integer, TripRoom> roomsByTripId = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduler;
+    private final ObjectMapper objectMapper;
 
-    public TripRealtimeHub() {
+    public TripRealtimeHub(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
         this.scheduler = Executors.newSingleThreadScheduledExecutor(new NamedDaemonThreadFactory("trip-realtime-hub"));
         this.scheduler.scheduleWithFixedDelay(this::sendKeepalives, KEEPALIVE_INTERVAL.toSeconds(), KEEPALIVE_INTERVAL.toSeconds(), TimeUnit.SECONDS);
         this.scheduler.scheduleWithFixedDelay(this::sweepExpiredState, SWEEP_INTERVAL.toSeconds(), SWEEP_INTERVAL.toSeconds(), TimeUnit.SECONDS);
@@ -37,9 +39,11 @@ public class TripRealtimeHub {
         scheduler.shutdownNow();
     }
 
-    private static void completeQuietly(SseEmitter emitter) {
+    private static void closeQuietly(WebSocketSession session) {
         try {
-            emitter.complete();
+            if (session.isOpen()) {
+                session.close();
+            }
         } catch (Exception ignored) {
         }
     }
@@ -56,63 +60,40 @@ public class TripRealtimeHub {
             if (lower.contains("connection reset")) return true;
             if (lower.contains("connection aborted")) return true;
             if (lower.contains("client abort")) return true;
-            if (lower.contains("responsebodyemitter") && lower.contains("already completed")) return true;
         }
         return false;
     }
 
-    public SseEmitter subscribe(Integer tripId, TripRealtimeUserDto user) {
-        String connectionId = UUID.randomUUID().toString();
+    public void subscribe(Integer tripId, TripRealtimeUserDto user, WebSocketSession session) {
+        String connectionId = session.getId();
         TripRoom room = roomsByTripId.computeIfAbsent(tripId, ignored -> new TripRoom(tripId));
+        room.addSession(connectionId, session);
 
-        SseEmitter emitter = new SseEmitter(0L);
-        room.addEmitter(connectionId, emitter);
-
-        AtomicBoolean closed = new AtomicBoolean(false);
-
-        emitter.onCompletion(() -> {
-            if (!closed.compareAndSet(false, true)) return;
-            room.removeEmitter(connectionId);
-            log.info("TripRealtime SSE completed tripId={} userId={} connectionId={}", tripId, user.id(), connectionId);
-        });
-        emitter.onTimeout(() -> {
-            if (closed.compareAndSet(false, true)) {
-                room.removeEmitter(connectionId);
-                log.info("TripRealtime SSE timeout tripId={} userId={} connectionId={}", tripId, user.id(), connectionId);
-            }
-            completeQuietly(emitter);
-        });
-        emitter.onError((ex) -> {
-            if (closed.compareAndSet(false, true)) {
-                room.removeEmitter(connectionId);
-                if (isClientAbort(ex)) {
-                    log.debug("TripRealtime SSE error (client abort) tripId={} userId={} connectionId={}: {}",
-                            tripId, user.id(), connectionId, ex.toString());
-                } else {
-                    log.warn("TripRealtime SSE error tripId={} userId={} connectionId={}", tripId, user.id(), connectionId, ex);
-                }
-            }
-            completeQuietly(emitter);
-        });
-
-        log.info("TripRealtime SSE connected tripId={} userId={} connectionId={}", tripId, user.id(), connectionId);
+        log.info("TripRealtime WS connected tripId={} userId={} connectionId={}", tripId, user.id(), connectionId);
 
         try {
-            emitter.send(SseEmitter.event().comment(INITIAL_FLUSH_PADDING));
-            room.sendTo(emitter, "hello", new TripRealtimeHelloDto(Instant.now(), connectionId, user));
-            room.sendTo(emitter, "snapshot", room.buildSnapshot(Instant.now()));
+            room.sendTo(session, "hello", new TripRealtimeHelloDto(Instant.now(), connectionId, user));
+            room.sendTo(session, "snapshot", room.buildSnapshot(Instant.now()));
         } catch (Exception ex) {
-            room.removeEmitter(connectionId);
+            room.removeSession(connectionId);
             if (isClientAbort(ex)) {
-                log.debug("TripRealtime SSE initial send failed (client abort) tripId={} userId={} connectionId={}: {}",
+                log.debug("TripRealtime WS initial send failed (client abort) tripId={} userId={} connectionId={}: {}",
                         tripId, user.id(), connectionId, ex.toString());
             } else {
-                log.warn("TripRealtime SSE initial send failed tripId={} userId={} connectionId={}", tripId, user.id(), connectionId, ex);
+                log.warn("TripRealtime WS initial send failed tripId={} userId={} connectionId={}", tripId, user.id(), connectionId, ex);
             }
-            completeQuietly(emitter);
+            closeQuietly(session);
         }
+    }
 
-        return emitter;
+    public void unsubscribe(Integer tripId, WebSocketSession session) {
+        String connectionId = session.getId();
+        TripRoom room = roomsByTripId.get(tripId);
+        if (room != null) {
+            room.removeSession(connectionId);
+            cleanupRoomIfEmpty(tripId, room);
+            log.info("TripRealtime WS disconnected tripId={} connectionId={}", tripId, connectionId);
+        }
     }
 
     public void upsertAddPresence(
@@ -283,10 +264,12 @@ public class TripRealtimeHub {
             return new ReleaseResult(ReleaseStatus.NOT_FOUND, null);
         }
     }
+    
+    public record WsMessageWrapper(String type, Object data) {}
 
-    private static final class TripRoom {
+    private final class TripRoom {
         private final Integer tripId;
-        private final ConcurrentHashMap<String, SseEmitter> emittersByConnectionId = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<String, WebSocketSession> sessionsByConnectionId = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<Integer, TripRealtimeAddPresenceDto> addPresenceByUserId = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<String, TripRealtimeLockDto> locksByResourceKey = new ConcurrentHashMap<>();
 
@@ -294,16 +277,16 @@ public class TripRealtimeHub {
             this.tripId = tripId;
         }
 
-        private void addEmitter(String connectionId, SseEmitter emitter) {
-            emittersByConnectionId.put(connectionId, emitter);
+        private void addSession(String connectionId, WebSocketSession session) {
+            sessionsByConnectionId.put(connectionId, session);
         }
 
-        private void removeEmitter(String connectionId) {
-            emittersByConnectionId.remove(connectionId);
+        private void removeSession(String connectionId) {
+            sessionsByConnectionId.remove(connectionId);
         }
 
         private boolean isEmpty() {
-            return emittersByConnectionId.isEmpty() && locksByResourceKey.isEmpty() && addPresenceByUserId.isEmpty();
+            return sessionsByConnectionId.isEmpty() && locksByResourceKey.isEmpty() && addPresenceByUserId.isEmpty();
         }
 
         private void upsertAddPresence(TripRealtimeAddPresenceDto dto) {
@@ -443,24 +426,27 @@ public class TripRealtimeHub {
         }
 
         private void broadcast(String eventName, Object payload) {
-            emittersByConnectionId.forEach((connectionId, emitter) -> {
+            sessionsByConnectionId.forEach((connectionId, session) -> {
                 try {
-                    sendTo(emitter, eventName, payload);
+                    sendTo(session, eventName, payload);
                 } catch (Exception ex) {
-                    emittersByConnectionId.remove(connectionId, emitter);
+                    sessionsByConnectionId.remove(connectionId, session);
                     if (isClientAbort(ex)) {
-                        log.debug("TripRealtime SSE send failed (client abort) tripId={} connectionId={} event={}: {}",
+                        log.debug("TripRealtime WS send failed (client abort) tripId={} connectionId={} event={}: {}",
                                 tripId, connectionId, eventName, ex.toString());
                     } else {
-                        log.warn("TripRealtime SSE send failed tripId={} connectionId={} event={}", tripId, connectionId, eventName, ex);
+                        log.warn("TripRealtime WS send failed tripId={} connectionId={} event={}", tripId, connectionId, eventName, ex);
                     }
-                    completeQuietly(emitter);
+                    closeQuietly(session);
                 }
             });
         }
 
-        private void sendTo(SseEmitter emitter, String eventName, Object payload) throws IOException {
-            emitter.send(SseEmitter.event().name(eventName).data(payload));
+        private synchronized void sendTo(WebSocketSession session, String eventName, Object payload) throws IOException {
+            if (session.isOpen()) {
+                String msg = objectMapper.writeValueAsString(new WsMessageWrapper(eventName, payload));
+                session.sendMessage(new TextMessage(msg));
+            }
         }
 
         private static String lockKey(TripRealtimeResourceType resourceType, Integer resourceId) {

@@ -1,17 +1,11 @@
 //! PRODUCTION CRITICAL FILE
 import withPWAInit from 'next-pwa';
-import defaultRuntimeCaching from 'next-pwa/cache';
 
 const withPWA = withPWAInit({
   dest: 'public',
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
-  runtimeCaching: [
-    // SSE streams must never be cached/intercepted by Workbox (breaks streaming + EventSource).
-    { urlPattern: /\/api\/realtime\//, handler: 'NetworkOnly', options: { cacheName: 'realtime-sse' } },
-    ...defaultRuntimeCaching,
-  ],
 });
 
 const nextConfig = {
