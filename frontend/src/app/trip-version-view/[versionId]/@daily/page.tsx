@@ -60,7 +60,7 @@ const VersionDailyPage = () => {
                     const prevPlace = arr[idx - 1];
 
                     return (
-                      <ListItem key={place.id} sx={{ p: 0, width: '100%' }}>
+                      <ListItem key={place.id} sx={{ p: 0, mb: 2, width: '100%' }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                           {prevPlace && (
                             <TravelSegmentSelect
