@@ -6,5 +6,6 @@ public enum TripRealtimeScope {
     WISHLIST,
     DAILY_PLANS,
     BUDGET,
-    CHECKLIST
+    CHECKLIST,
+    TRIP_VERSION
 }

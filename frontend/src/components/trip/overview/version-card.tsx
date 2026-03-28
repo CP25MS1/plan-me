@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Box, CircularProgress, Stack, Typography } from '@mui/material';
 import { Clock3, Trash2 } from 'lucide-react';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import { TruncatedTooltip } from '@/components/atoms';
 import { useRouter } from 'next/navigation';
 import { TripVersion } from '@/api/trips';
@@ -19,6 +20,7 @@ type VersionCardProps = {
 };
 
 export const VersionCard = ({ version, onDelete, isOwner }: VersionCardProps) => {
+  const { t } = useTranslation('trip_overview');
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const router = useRouter();
@@ -70,7 +72,7 @@ export const VersionCard = ({ version, onDelete, isOwner }: VersionCardProps) =>
             >
               <Trash2 size={16} />
               <Typography variant="caption" sx={{ color: 'inherit', fontWeight: 600 }}>
-                ลบ
+                {t('version.card.delete')}
               </Typography>
             </Box>
           )
@@ -137,7 +139,7 @@ export const VersionCard = ({ version, onDelete, isOwner }: VersionCardProps) =>
                   }}
                 >
                   <Typography variant="caption" sx={{ color: 'inherit', fontWeight: 600 }}>
-                    ใช้งานล่าสุด
+                    {t('version.card.latestBadge')}
                   </Typography>
                 </Box>
               )}
@@ -163,11 +165,17 @@ export const VersionCard = ({ version, onDelete, isOwner }: VersionCardProps) =>
           content={
             <Box sx={{ pr: 4 }}>
               <Typography variant="h6" sx={{ mb: 1, fontWeight: 700 }}>
-                ยืนยันการลบบันทึกเวอร์ชัน?
+                {t('version.card.deleteConfirm.title')}
               </Typography>
-              <Typography sx={{ color: tokens.color.textSecondary }}>
-                คุณแน่ใจหรือไม่ที่จะลบบันทึกเวอร์ชัน <strong>{version.versionName}</strong> ?
-              </Typography>
+              <Typography
+                sx={{ color: tokens.color.textSecondary }}
+                dangerouslySetInnerHTML={{
+                  __html: t('version.card.deleteConfirm.message', {
+                    name: version.versionName,
+                    interpolation: { escapeValue: false },
+                  }),
+                }}
+              />
             </Box>
           }
         />
