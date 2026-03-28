@@ -347,7 +347,14 @@
       "createdAt": "Created on {{date}}",
       "versionNameLabel": "Version name:",
       "dateLabel": "Date:",
-      "noObjectives": "No objectives"
+      "noObjectives": "No objectives",
+      "applyConfirm": {
+        "title": "Apply this version?",
+        "message": "Applying this version will overwrite your current trip data (dates, reservations, daily plans, etc.) with the data from this version.",
+        "checklistWarning": "Notes: Applying this version will reset the checklist. All items will be marked as incomplete, and assignees will be cleared.",
+        "confirm": "Apply version",
+        "cancel": "Cancel"
+      }
     },
     "staleSnackbar": {
       "title": "Updated Version",

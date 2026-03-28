@@ -16,28 +16,34 @@ public class TripRealtimePublisher {
 
     private final TripRealtimeHub hub;
 
+    private record PendingChange(EnumSet<TripRealtimeScope> scopes, Integer initiatorUserId) {}
+
     public void publishDataChangedAfterCommit(Integer tripId, Collection<TripRealtimeScope> scopes) {
+        publishDataChangedAfterCommit(tripId, scopes, null);
+    }
+
+    public void publishDataChangedAfterCommit(Integer tripId, Collection<TripRealtimeScope> scopes, Integer initiatorUserId) {
         if (scopes == null || scopes.isEmpty()) return;
 
         if (!TransactionSynchronizationManager.isActualTransactionActive()) {
-            hub.broadcastDataChanged(tripId, scopes, Instant.now());
+            hub.broadcastDataChanged(tripId, scopes, Instant.now(), initiatorUserId);
             return;
         }
 
         @SuppressWarnings("unchecked")
-        Map<Integer, EnumSet<TripRealtimeScope>> pending =
-                (Map<Integer, EnumSet<TripRealtimeScope>>) TransactionSynchronizationManager.getResource(TX_RESOURCE_KEY);
+        Map<Integer, PendingChange> pending =
+                (Map<Integer, PendingChange>) TransactionSynchronizationManager.getResource(TX_RESOURCE_KEY);
 
         if (pending == null) {
             pending = new HashMap<>();
             TransactionSynchronizationManager.bindResource(TX_RESOURCE_KEY, pending);
 
-            Map<Integer, EnumSet<TripRealtimeScope>> captured = pending;
+            Map<Integer, PendingChange> captured = pending;
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
                     Instant at = Instant.now();
-                    captured.forEach((tid, sc) -> hub.broadcastDataChanged(tid, sc, at));
+                    captured.forEach((tid, pc) -> hub.broadcastDataChanged(tid, pc.scopes, at, pc.initiatorUserId));
                 }
 
                 @Override
@@ -47,8 +53,21 @@ public class TripRealtimePublisher {
             });
         }
 
-        pending.computeIfAbsent(tripId, ignored -> EnumSet.noneOf(TripRealtimeScope.class))
-                .addAll(scopes);
+        PendingChange pc = pending.get(tripId);
+        EnumSet<TripRealtimeScope> currentScopes;
+        Integer currentInitiator = initiatorUserId;
+
+        if (pc == null) {
+            currentScopes = EnumSet.noneOf(TripRealtimeScope.class);
+        } else {
+            currentScopes = pc.scopes;
+            // If we already had an initiator, keep it (assuming it's the same for the whole tx)
+            if (pc.initiatorUserId != null) {
+                currentInitiator = pc.initiatorUserId;
+            }
+        }
+        currentScopes.addAll(scopes);
+        pending.put(tripId, new PendingChange(currentScopes, currentInitiator));
     }
 }
 

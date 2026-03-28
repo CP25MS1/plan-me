@@ -6,7 +6,8 @@ import java.util.List;
 public record TripRealtimeDataChangedDto(
         Integer tripId,
         List<TripRealtimeScope> scopes,
-        Instant at
+        Instant at,
+        Integer initiatorUserId
 ) {
 }
 

@@ -91,7 +91,8 @@ public class TripVersionService {
 
         tripRealtimePublisher.publishDataChangedAfterCommit(
                 trip.getId(),
-                EnumSet.of(TripRealtimeScope.TRIP_VERSION)
+                EnumSet.of(TripRealtimeScope.TRIP_VERSION),
+                currentUser.getId()
         );
 
         return BaseTripVersionDto.builder()
@@ -159,7 +160,8 @@ public class TripVersionService {
                         TripRealtimeScope.DAILY_PLANS,
                         TripRealtimeScope.CHECKLIST,
                         TripRealtimeScope.TRIP_VERSION
-                )
+                ),
+                currentUser.getId()
         );
 
         return ApplyTripVersionResponse.builder()
@@ -217,6 +219,12 @@ public class TripVersionService {
         }
 
         tripVersionRepository.delete(tripVersion);
+
+        tripRealtimePublisher.publishDataChangedAfterCommit(
+                tripId,
+                EnumSet.of(TripRealtimeScope.TRIP_VERSION),
+                currentUser.getId()
+        );
     }
 
     private Map<Integer, TripVersionSnapshot> loadSnapshotsByVersionId(Integer tripId, Boolean includeSnapshot) {
