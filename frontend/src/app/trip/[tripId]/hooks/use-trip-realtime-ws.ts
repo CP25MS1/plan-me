@@ -12,6 +12,7 @@ import type {
   TripRealtimeSnapshot,
 } from '@/api/realtime';
 import { removeAddPresence, removeLock, setSnapshot, upsertAddPresence, upsertLock } from '@/store/trip-realtime-slice';
+import { markStale } from '@/store/trip-stale-slice';
 import { RESERVATIONS } from '@/constants/query-keys';
 
 const parseJsonEvent = <T,>(event: MessageEvent): T | null => {
@@ -120,9 +121,17 @@ export const useTripRealtimeWs = (tripId: number) => {
           case 'add_presence_cleared':
             dispatch(removeAddPresence({ tripId, entry: data }));
             break;
-          case 'data_changed':
-            scheduleInvalidate(data.scopes);
+          case 'data_changed': {
+            const scopes: TripRealtimeScope[] = data.scopes ?? [];
+            if (scopes.includes('TRIP_VERSION')) {
+              dispatch(markStale(tripId));
+            }
+            const invalidateScopes = scopes.filter((s) => s !== 'TRIP_VERSION');
+            if (invalidateScopes.length > 0) {
+              scheduleInvalidate(invalidateScopes);
+            }
             break;
+          }
           default:
             break;
         }
@@ -157,3 +166,4 @@ export const useTripRealtimeWs = (tripId: number) => {
 };
 
 export default useTripRealtimeWs;
+

@@ -149,7 +149,7 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
                     disabled={isPending}
                     sx={{ minWidth: { xs: 84, sm: 112 } }}
                   >
-                    ใช้เวอร์ชันนี้
+                    {t('version.viewLayout.applyButton')}
                   </Button>
                 ) : null}
               </Box>
@@ -166,7 +166,7 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
                 {version.isCurrent && (
                   <Chip
                     size="small"
-                    label="ใช้งานล่าสุด"
+                    label={t('version.viewLayout.latestBadge')}
                     sx={{
                       width: 'fit-content',
                       height: 24,
@@ -183,13 +183,13 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
                 )}
 
                 <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto' }}>
-                  สร้างเมื่อ {createdAtText}
+                  {t('version.viewLayout.createdAt', { date: createdAtText })}
                 </Typography>
               </Stack>
 
               <Box sx={{ minWidth: 0 }}>
                 <Typography variant="body2" color="text.secondary">
-                  ชื่อเวอร์ชัน:
+                  {t('version.viewLayout.versionNameLabel')}
                 </Typography>
                 <Typography variant="h6" fontWeight={600} noWrap title={snapshot.name}>
                   {version.versionName}
@@ -197,7 +197,8 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
               </Box>
 
               <Typography variant="body2" color="text.secondary">
-                วันที่: {snapshot.startDate ? dayjs(snapshot.startDate).format('DD/MM/YYYY') : '-'}{' '}
+                {t('version.viewLayout.dateLabel')}{' '}
+                {snapshot.startDate ? dayjs(snapshot.startDate).format('DD/MM/YYYY') : '-'}{' '}
                 - {snapshot.endDate ? dayjs(snapshot.endDate).format('DD/MM/YYYY') : '-'}
               </Typography>
 
@@ -213,7 +214,7 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
                   ))
                 ) : (
                   <Typography variant="body2" color="text.secondary">
-                    ไม่มีวัตถุประสงค์
+                    {t('version.viewLayout.noObjectives')}
                   </Typography>
                 )}
               </Stack>

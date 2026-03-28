@@ -11,6 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import { History, MoreVertical, Share2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { tokens } from '@/providers/theme/design-tokens';
 
@@ -20,21 +21,14 @@ type MeatballMenuProps = {
   onVersionClick: () => void;
 };
 
-const menuItems = [
-  {
-    id: 'share',
-    label: 'เชิญเพื่อน',
-    icon: Share2,
-  },
-  {
-    id: 'versions',
-    label: 'บันทึกเวอร์ชัน',
-    icon: History,
-  },
-];
-
 export const MeatballMenu = ({ onShareClick, onVersionClick, isOwner }: MeatballMenuProps) => {
+  const { t } = useTranslation('trip_overview');
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+
+  const menuItems = [
+    { id: 'share', labelKey: 'menu.inviteFriend', icon: Share2 },
+    { id: 'versions', labelKey: 'menu.savedVersions', icon: History },
+  ];
 
   const handleAction = (itemId: string) => {
     setAnchorEl(null);
@@ -120,7 +114,7 @@ export const MeatballMenu = ({ onShareClick, onVersionClick, isOwner }: Meatball
                     <Typography
                       sx={{ fontSize: 14, fontWeight: 500, color: tokens.color.textPrimary }}
                     >
-                      {item.label}
+                      {t(item.labelKey)}
                     </Typography>
                   }
                 />

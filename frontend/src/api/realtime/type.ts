@@ -4,7 +4,8 @@ export type TripRealtimeScope =
   | 'WISHLIST'
   | 'DAILY_PLANS'
   | 'BUDGET'
-  | 'CHECKLIST';
+  | 'CHECKLIST'
+  | 'TRIP_VERSION';
 
 export type TripRealtimeSection =
   | 'OVERVIEW_RESERVATIONS'

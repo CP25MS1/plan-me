@@ -299,5 +299,51 @@
     "backAria": "Back to budget",
     "invalidTripId": "Invalid tripId",
     "error": "Failed to load debt summary"
+  },
+  "menu": {
+    "inviteFriend": "Invite friends",
+    "savedVersions": "Saved Versions"
+  },
+  "version": {
+    "modal": {
+      "title": "Saved Versions",
+      "count": "{{current}}/{{max}} saved versions",
+      "empty": {
+        "title": "No saved versions",
+        "description": "Only the trip owner can create saved versions.",
+        "cta": "Create a new version"
+      },
+      "addVersion": "Save version",
+      "addVersionFull": "Version limit reached"
+    },
+    "card": {
+      "delete": "Delete",
+      "latestBadge": "Latest",
+      "deleteConfirm": {
+        "title": "Delete saved version?",
+        "message": "Are you sure you want to delete version <strong>{{name}}</strong>?"
+      }
+    },
+    "create": {
+      "title": "Add Saved Version",
+      "description": "Save this trip's version so you can view it later.",
+      "nameLabel": "Version name",
+      "namePlaceholder": "e.g. Version 1",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "save": "Save version"
+    },
+    "viewLayout": {
+      "applyButton": "Apply this version",
+      "latestBadge": "Latest",
+      "createdAt": "Created on {{date}}",
+      "versionNameLabel": "Version name:",
+      "dateLabel": "Date:",
+      "noObjectives": "No objectives"
+    },
+    "staleSnackbar": {
+      "message": "Trip data has been updated. Please refresh to see the latest version.",
+      "cta": "Refresh"
+    }
   }
 }

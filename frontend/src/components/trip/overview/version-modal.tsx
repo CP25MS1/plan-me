@@ -13,7 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import { History, Plus, X } from 'lucide-react';
-import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 
 import { TripVersion } from '@/api/trips';
 import { tokens } from '@/providers/theme/design-tokens';
@@ -40,17 +40,9 @@ export const VersionModal = ({
   isLoading = false,
   isOwner,
 }: VersionModalProps) => {
+  const { t } = useTranslation('trip_overview');
   const isEmpty = versions.length === 0;
   const canAddMore = versions.length < MAX_VERSIONS;
-  const latestVersion = versions.reduce<TripVersion | null>((latestItem, version) => {
-    if (!latestItem) {
-      return version;
-    }
-
-    return dayjs(version.createdAt).valueOf() > dayjs(latestItem.createdAt).valueOf()
-      ? version
-      : latestItem;
-  }, null);
 
   return (
     <Dialog
@@ -85,10 +77,10 @@ export const VersionModal = ({
 
           <Box sx={{ flex: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: 700, color: tokens.color.textPrimary }}>
-              บันทึกเวอร์ชัน
+              {t('version.modal.title')}
             </Typography>
             <Typography variant="body2" sx={{ color: tokens.color.textSecondary }}>
-              {versions.length}/{MAX_VERSIONS} จำนวนบันทึกเวอร์ชัน
+              {t('version.modal.count', { current: versions.length, max: MAX_VERSIONS })}
             </Typography>
           </Box>
 
@@ -117,10 +109,10 @@ export const VersionModal = ({
             }}
           >
             <Typography sx={{ fontWeight: 700, color: tokens.color.textPrimary, mb: 0.5 }}>
-              ยังไม่มีบันทึกเวอร์ชัน
+              {t('version.modal.empty.title')}
             </Typography>
             <Typography variant="body2" sx={{ color: tokens.color.textSecondary, mb: 2 }}>
-              เฉพาะเจ้าของทริปเท่านั้นที่สามารถสร้างบันทึกเวอร์ชันได้
+              {t('version.modal.empty.description')}
             </Typography>
 
             {isOwner && (
@@ -136,7 +128,7 @@ export const VersionModal = ({
                   },
                 }}
               >
-                สร้างบันทึกเวอร์ชันใหม่
+                {t('version.modal.empty.cta')}
               </Button>
             )}
           </Box>
@@ -150,7 +142,6 @@ export const VersionModal = ({
                 tripId={version.tripId}
                 version={version}
                 onDelete={onDeleteVersion}
-                isLatest={version.id === latestVersion?.id}
                 isOwner={isOwner}
               />
             ))}
@@ -173,7 +164,7 @@ export const VersionModal = ({
               '&:hover': { bgcolor: tokens.color.primaryDark },
             }}
           >
-            {canAddMore ? 'สร้างบันทึกเวอร์ชัน' : 'บันทึกเวอร์ชันครบแล้ว'}
+            {canAddMore ? t('version.modal.addVersion') : t('version.modal.addVersionFull')}
           </Button>
         )}
       </DialogActions>
