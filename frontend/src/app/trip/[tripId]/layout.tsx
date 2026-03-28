@@ -15,7 +15,7 @@ import { indexToTabKey, mapIndex, tabKeyToIndex } from './tab-panel/trip-tabs';
 import useUpdateTripOverview from './hooks/use-update-trip-overview';
 import { UpsertTrip, useTripHeader } from '@/api/trips';
 import TripForbiddenPage from '@/app/trip/[tripId]/components/trip-forbidden-page';
-import TripStaleSnackbar from '@/app/trip/[tripId]/components/trip-stale-snackbar';
+import TripStaleDialog from '@/app/trip/[tripId]/components/trip-stale-dialog';
 import useTripRealtimeWs from '@/app/trip/[tripId]/hooks/use-trip-realtime-ws';
 
 type TripLayoutProps = {
@@ -114,7 +114,7 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
 
   return (
     <>
-      <TripStaleSnackbar tripId={tripIdAsNumber} />
+      <TripStaleDialog tripId={tripIdAsNumber} />
       {tabValue === mapIndex ? (
         map
       ) : (
