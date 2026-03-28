@@ -38,6 +38,7 @@ const TripStaleDialog = ({ tripId }: TripStaleDialogProps) => {
           padding: 1,
           maxWidth: 400,
           boxShadow: '0 12px 40px rgba(0,0,0,0.15)',
+          zIndex: 9999,
         },
       }}
       slotProps={{
@@ -45,6 +46,7 @@ const TripStaleDialog = ({ tripId }: TripStaleDialogProps) => {
           sx: {
             backgroundColor: 'rgba(0, 0, 0, 0.4)',
             backdropFilter: 'blur(8px)',
+            zIndex: 9998,
           },
         },
       }}

@@ -89,6 +89,11 @@ public class TripVersionService {
 
         PublicUserInfo createdBy = userMapper.userToPublicUserInfo(currentUser);
 
+        tripRealtimePublisher.publishDataChangedAfterCommit(
+                trip.getId(),
+                EnumSet.of(TripRealtimeScope.TRIP_VERSION)
+        );
+
         return BaseTripVersionDto.builder()
                 .id(saved.getId())
                 .tripId(trip.getId())

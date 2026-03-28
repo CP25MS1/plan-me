@@ -127,6 +127,7 @@ export const ExpenseFormModal: React.FC<Props> = ({
   const disableSave =
     disableAll ||
     isPending ||
+    !form.isDirty ||
     !form.amountStr.trim() ||
     (form.isSplit && !form.splitComplete);
 
