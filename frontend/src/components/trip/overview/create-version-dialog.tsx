@@ -14,6 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import { History } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { tokens } from '@/providers/theme/design-tokens';
 
@@ -32,6 +33,7 @@ export const CreateVersionDialog = ({
   onConfirm,
   isLoading = false,
 }: CreateVersionDialogProps) => {
+  const { t } = useTranslation('trip_overview');
   const [versionName, setVersionName] = useState('');
 
   useEffect(() => {
@@ -87,10 +89,10 @@ export const CreateVersionDialog = ({
           </Box>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, color: tokens.color.textPrimary }}>
-              เพิ่มบันทึกเวอร์ชัน
+              {t('version.create.title')}
             </Typography>
             <Typography variant="body2" sx={{ color: tokens.color.textSecondary }}>
-              บันทึกเวอร์ชันของทริปนี้ไว้เพื่อกลับมาดูในภายหลัง
+              {t('version.create.description')}
             </Typography>
           </Box>
         </Stack>
@@ -98,7 +100,6 @@ export const CreateVersionDialog = ({
 
       <DialogContent sx={{ pt: '8px !important' }}>
         <Stack spacing={1}>
-          {/* ✅ Label อยู่ด้านบน */}
           <Typography
             variant="body2"
             sx={{
@@ -106,14 +107,14 @@ export const CreateVersionDialog = ({
               color: tokens.color.textPrimary,
             }}
           >
-            ชื่อเวอร์ชัน
+            {t('version.create.nameLabel')}
           </Typography>
 
           <TextField
             autoFocus
             fullWidth
             value={versionName}
-            placeholder="e.g. เวอร์ชันที่ 1"
+            placeholder={t('version.create.namePlaceholder')}
             onChange={(event) =>
               setVersionName(event.target.value.slice(0, MAX_VERSION_NAME_LENGTH))
             }
@@ -145,7 +146,7 @@ export const CreateVersionDialog = ({
 
       <DialogActions sx={{ px: 3, pb: 2.5 }}>
         <Button onClick={onClose} disabled={isLoading} color="inherit">
-          ยกเลิก
+          {t('version.create.cancel')}
         </Button>
         <Button
           onClick={() => void handleConfirm()}
@@ -160,7 +161,7 @@ export const CreateVersionDialog = ({
             },
           }}
         >
-          {isLoading ? 'กำลังบันทึก' : 'บันทึกเวอร์ชัน'}
+          {isLoading ? t('version.create.saving') : t('version.create.save')}
         </Button>
       </DialogActions>
     </Dialog>

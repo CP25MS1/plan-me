@@ -152,7 +152,8 @@ public class TripVersionService {
                         TripRealtimeScope.RESERVATIONS,
                         TripRealtimeScope.WISHLIST,
                         TripRealtimeScope.DAILY_PLANS,
-                        TripRealtimeScope.CHECKLIST
+                        TripRealtimeScope.CHECKLIST,
+                        TripRealtimeScope.TRIP_VERSION
                 )
         );
 
