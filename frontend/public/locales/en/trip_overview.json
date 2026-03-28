@@ -327,11 +327,19 @@
     "create": {
       "title": "Add Saved Version",
       "description": "Save this trip's version so you can view it later.",
+      "infoTitle": "Included data:",
+      "infoDescription": "Trip name, date range, objective, reservation, wishlist places, daily plan, and checklist.",
+      "checklistWarning": "Notes: Checklist data only stores item names (not completed status or assignees).",
       "nameLabel": "Version name",
       "namePlaceholder": "e.g. Version 1",
       "cancel": "Cancel",
       "saving": "Saving...",
-      "save": "Save version"
+      "save": "Save version",
+      "confirmChecklist": {
+        "title": "Checklist Reminder",
+        "message": "Checklist data will only save item names. Completed status and assignees will NOT be included in this version.",
+        "confirm": "Got it, save version"
+      }
     },
     "viewLayout": {
       "applyButton": "Apply this version",

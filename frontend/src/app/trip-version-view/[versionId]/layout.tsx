@@ -13,6 +13,7 @@ import { useApplyTripVersion } from '@/api/trips/hooks';
 import { BackButton } from '@/components/button';
 import { useFullPageLoading } from '@/components/full-page-loading';
 import OverviewTabs from '@/components/trip/overview/overview-tabs';
+import { tokens } from '@/providers/theme/design-tokens';
 import { useAppSelector } from '@/store';
 
 import { useVersionTrip } from './hooks/use-version-trip';
@@ -171,8 +172,9 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
                       width: 'fit-content',
                       height: 24,
                       borderRadius: '999px',
-                      bgcolor: '#25cf7a',
-                      color: '#000000',
+                      bgcolor: tokens.color.lightBackground,
+                      color: tokens.color.textSecondary,
+                      border: `1px solid ${tokens.color.textplaceholder}`,
                       '& .MuiChip-label': {
                         px: 1,
                         fontSize: 11,
@@ -221,7 +223,7 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
             </Stack>
           </Box>
 
-          <OverviewTabs value={tabValue} onChange={handleTabChange} />
+          <OverviewTabs value={tabValue} onChange={handleTabChange} hiddenTabs={[2]} />
 
           <TripTabPanel value={tabValue} index={0}>
             {overview}
