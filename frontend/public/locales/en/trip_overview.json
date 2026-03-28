@@ -342,6 +342,7 @@
       "noObjectives": "No objectives"
     },
     "staleSnackbar": {
+      "title": "Updated Version",
       "message": "Trip data has been updated. Please refresh to see the latest version.",
       "cta": "Refresh"
     }
