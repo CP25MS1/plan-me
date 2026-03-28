@@ -58,6 +58,7 @@ export type TripRealtimeDataChanged = {
   tripId: number;
   scopes: TripRealtimeScope[];
   at: string;
+  initiatorUserId?: number | null;
 };
 
 export type TripRealtimeKeepalive = {

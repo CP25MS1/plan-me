@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { Box, Button, Chip, Container, Stack, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,6 +17,7 @@ import { tokens } from '@/providers/theme/design-tokens';
 import { useAppSelector } from '@/store';
 
 import { useVersionTrip } from './hooks/use-version-trip';
+import ApplyVersionDialog from './components/apply-version-dialog';
 
 type VersionLayoutProps = {
   overview: ReactNode;
@@ -42,8 +43,10 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
   const versionTripIdAsNumber = Number(versionId);
   const tripIdAsNumber = Number(tripIdParam);
 
-  const handleApplyVersion = () => {
-    applyVersion(
+  const [isApplyDialogOpen, setIsApplyDialogOpen] = useState(false);
+
+  const handleApplyVersion = async () => {
+    await applyVersion(
       { tripId: tripIdAsNumber, versionId: versionTripIdAsNumber },
       {
         onSuccess: async () => {
@@ -61,6 +64,7 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
         },
       }
     );
+    setIsApplyDialogOpen(false);
   };
 
   const handleTabChange = (newIndex: number) => {
@@ -146,7 +150,7 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
                 {isOwner ? (
                   <Button
                     variant="contained"
-                    onClick={handleApplyVersion}
+                    onClick={() => setIsApplyDialogOpen(true)}
                     disabled={isPending}
                     sx={{ minWidth: { xs: 84, sm: 112 } }}
                   >
@@ -238,6 +242,12 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
           </TripTabPanel>
         </Container>
       )}
+      <ApplyVersionDialog
+        open={isApplyDialogOpen}
+        onClose={() => setIsApplyDialogOpen(false)}
+        onConfirm={handleApplyVersion}
+        isLoading={isPending}
+      />
     </>
   );
 };

@@ -168,11 +168,11 @@ public class TripRealtimeHub {
         return Optional.ofNullable(room.getActiveLock(resourceType, resourceId, now));
     }
 
-    public void broadcastDataChanged(Integer tripId, Collection<TripRealtimeScope> scopes, Instant at) {
+    public void broadcastDataChanged(Integer tripId, Collection<TripRealtimeScope> scopes, Instant at, Integer initiatorUserId) {
         TripRoom room = roomsByTripId.get(tripId);
         if (room == null) return;
 
-        room.broadcast("data_changed", new TripRealtimeDataChangedDto(tripId, new ArrayList<>(new LinkedHashSet<>(scopes)), at));
+        room.broadcast("data_changed", new TripRealtimeDataChangedDto(tripId, new ArrayList<>(new LinkedHashSet<>(scopes)), at, initiatorUserId));
     }
 
     private void sendKeepalives() {

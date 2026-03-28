@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
 
+import { useAppSelector } from '@/store';
+
 import type {
   TripRealtimeAddPresence,
   TripRealtimeDataChanged,
@@ -48,6 +50,8 @@ export const useTripRealtimeWs = (tripId: number) => {
   const pendingScopesRef = useRef<Set<TripRealtimeScope>>(new Set());
   const invalidateTimerRef = useRef<number | null>(null);
 
+  const currentUser = useAppSelector((state) => state.profile.currentUser);
+
   useEffect(() => {
     if (!wsUrl || !Number.isFinite(tripId) || tripId <= 0) return;
 
@@ -88,6 +92,9 @@ export const useTripRealtimeWs = (tripId: number) => {
               queryClient.invalidateQueries({ queryKey: ['trip-checklist', tripId] });
               queryClient.invalidateQueries({ queryKey: ['trip-checklist-recommended', tripId] });
               break;
+            case 'TRIP_VERSION':
+              queryClient.invalidateQueries({ queryKey: ['trip-versions', tripId] });
+              break;
             default:
               break;
           }
@@ -123,12 +130,21 @@ export const useTripRealtimeWs = (tripId: number) => {
             break;
           case 'data_changed': {
             const scopes: TripRealtimeScope[] = data.scopes ?? [];
-            if (scopes.includes('TRIP_VERSION')) {
+            const isInitiator = currentUser && data.initiatorUserId === currentUser.id;
+
+            // Mark stale if it's a version update (apply) and NOT the initiator.
+            // We distinguish 'Apply' by seeing TRIP_VERSION combined with core data changes (like HEADER or plans).
+            // A simple Create/Delete only sends TRIP_VERSION.
+            const isVersionApply =
+              scopes.includes('TRIP_VERSION') &&
+              scopes.some((s) => s === 'HEADER' || s === 'DAILY_PLANS' || s === 'RESERVATIONS');
+
+            if (isVersionApply && !isInitiator) {
               dispatch(markStale(tripId));
             }
-            const invalidateScopes = scopes.filter((s) => s !== 'TRIP_VERSION');
-            if (invalidateScopes.length > 0) {
-              scheduleInvalidate(invalidateScopes);
+
+            if (scopes.length > 0) {
+              scheduleInvalidate(scopes);
             }
             break;
           }
