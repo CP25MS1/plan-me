@@ -16,12 +16,11 @@ type TemplateLayoutProps = {
   params: Promise<{ templateTripId: string }>;
   overview: ReactNode;
   daily: ReactNode;
-  budget: ReactNode;
   checklist: ReactNode;
   map: ReactNode;
 };
 
-const TemplateLayout = ({ overview, daily, budget, checklist, map, params }: TemplateLayoutProps) => {
+const TemplateLayout = ({ overview, daily, checklist, map, params }: TemplateLayoutProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation('trip_overview');
@@ -78,7 +77,7 @@ const TemplateLayout = ({ overview, daily, budget, checklist, map, params }: Tem
             dayCount={dayCount}
           />
 
-          <OverviewTabs value={tabValue} onChange={handleTabChange} />
+          <OverviewTabs value={tabValue} onChange={handleTabChange} hiddenTabs={[2]} />
 
           <TripTabPanel value={tabValue} index={0}>
             {overview}
@@ -86,10 +85,6 @@ const TemplateLayout = ({ overview, daily, budget, checklist, map, params }: Tem
 
           <TripTabPanel value={tabValue} index={1}>
             {daily}
-          </TripTabPanel>
-
-          <TripTabPanel value={tabValue} index={2}>
-            {budget}
           </TripTabPanel>
 
           <TripTabPanel value={tabValue} index={3}>

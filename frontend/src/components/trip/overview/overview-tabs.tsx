@@ -6,9 +6,10 @@ import { useTranslation } from 'react-i18next';
 interface OverViewTabsProps {
   value: number;
   onChange: (val: number) => void;
+  hiddenTabs?: number[];
 }
 
-const OverviewTabs = ({ value, onChange }: OverViewTabsProps) => {
+const OverviewTabs = ({ value, onChange, hiddenTabs = [] }: OverViewTabsProps) => {
   const { t } = useTranslation('trip_overview');
   const labels = [
     t('tabHeader.overView'),
@@ -25,9 +26,10 @@ const OverviewTabs = ({ value, onChange }: OverViewTabsProps) => {
         variant="scrollable"
         scrollButtons="auto"
       >
-        {labels.map((label, idx) => (
-          <Tab key={idx} label={label} />
-        ))}
+        {labels.map((label, idx) => {
+          if (hiddenTabs.includes(idx)) return null;
+          return <Tab key={idx} label={label} value={idx} />;
+        })}
       </Tabs>
     </Box>
   );

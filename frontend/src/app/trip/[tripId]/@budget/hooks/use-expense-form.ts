@@ -128,6 +128,67 @@ export const useExpenseForm = ({
   const buildUpdate = () =>
     buildUpdatePayload({ name, type, payerId, splitMode, selectedParticipantIds, totalAmount, effectiveSplitMap });
 
+  const isDirty = React.useMemo(() => {
+    if (mode === 'create') return true;
+    if (!initialExpense) return false;
+
+    const initialTotal = getExpenseTotal(initialExpense);
+    const initialAmountStr = initialTotal ? initialTotal.toFixed(2) : '';
+    const initialSelectedParticipantIds = initialExpense.splits.map((s) => s.participant.id).sort();
+    const currentSelectedParticipantIds = [...selectedParticipantIds].sort();
+
+    const isNameChanged = name !== (initialExpense.name ?? '');
+    const isTypeChanged = type !== (initialExpense.type ?? '');
+    const isAmountChanged = amountStr !== initialAmountStr;
+    const isSpentAtChanged = !dayjs(spentAt).isSame(dayjs(initialExpense.spentAt), 'second');
+    const isPayerChanged = payerId !== initialExpense.payer.id;
+    const isSplitModeChanged = splitMode !== initialExpense.splitType;
+    const isParticipantsChanged =
+      JSON.stringify(initialSelectedParticipantIds) !== JSON.stringify(currentSelectedParticipantIds);
+
+    let isSplitMapChanged = false;
+    if (splitMode === 'SPLIT') {
+      const initialMap: SplitMap = {};
+      for (const s of initialExpense.splits) initialMap[s.participant.id] = Number(s.amount ?? 0);
+
+      const initialKeys = Object.keys(initialMap).sort();
+      const currentKeys = Object.keys(splitMap).sort();
+
+      if (JSON.stringify(initialKeys) !== JSON.stringify(currentKeys)) {
+        isSplitMapChanged = true;
+      } else {
+        for (const key of currentKeys) {
+          if (Number(splitMap[Number(key)]) !== Number(initialMap[Number(key)])) {
+            isSplitMapChanged = true;
+            break;
+          }
+        }
+      }
+    }
+
+    return (
+      isNameChanged ||
+      isTypeChanged ||
+      isAmountChanged ||
+      isSpentAtChanged ||
+      isPayerChanged ||
+      isSplitModeChanged ||
+      isParticipantsChanged ||
+      isSplitMapChanged
+    );
+  }, [
+    amountStr,
+    initialExpense,
+    mode,
+    name,
+    payerId,
+    selectedParticipantIds,
+    splitMap,
+    splitMode,
+    spentAt,
+    type,
+  ]);
+
   return {
     name, setName,
     type, setType,
@@ -143,6 +204,7 @@ export const useExpenseForm = ({
     clearError, validateForm,
     buildCreatePayload: buildCreate,
     buildUpdatePayload: buildUpdate,
+    isDirty,
   };
 };
 

@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import { sortByDateAsc } from '@/lib/date';
 import { TripVersion, TripOverview } from '@/api/trips/type';
 import { apiClient } from '@/api/client';
 
@@ -32,7 +33,8 @@ export const useVersionTrip = (tripId: number, versionId: number) => {
   const dailyPlans = useMemo(() => {
     if (!snapshot?.dailyPlans?.length) return [];
     const startDate = snapshot.startDate ? dayjs(snapshot.startDate) : null;
-    return snapshot.dailyPlans.map((plan) => ({
+    const sorted = sortByDateAsc([...snapshot.dailyPlans]);
+    return sorted.map((plan) => ({
       ...plan,
       dayIndex: startDate ? dayjs(plan.date).diff(startDate, 'day') + 1 : 0,
     }));
