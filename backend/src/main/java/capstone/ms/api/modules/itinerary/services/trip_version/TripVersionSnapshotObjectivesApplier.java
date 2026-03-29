@@ -6,6 +6,7 @@ import capstone.ms.api.modules.itinerary.entities.Objective;
 import capstone.ms.api.modules.itinerary.entities.Trip;
 import capstone.ms.api.modules.itinerary.mappers.ObjectiveMapper;
 import capstone.ms.api.modules.itinerary.repositories.BasicObjectiveRepository;
+import capstone.ms.api.modules.itinerary.repositories.ObjectiveRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,12 +19,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TripVersionSnapshotObjectivesApplier {
     private final BasicObjectiveRepository basicObjectiveRepository;
+    private final ObjectiveRepository objectiveRepository;
     private final ObjectiveMapper objectiveMapper;
 
     public void apply(Trip trip, Set<MergedObjective> snapshotObjectives) {
-        trip.getObjectives().clear();
+        objectiveRepository.deleteAllByTripId(trip.getId());
 
         if (snapshotObjectives == null || snapshotObjectives.isEmpty()) {
+            trip.getObjectives().clear();
             return;
         }
 
@@ -34,6 +37,11 @@ public class TripVersionSnapshotObjectivesApplier {
 
         Set<Objective> entities = objectiveMapper.toEntitySet(inputs, basicObjectiveRepository);
         entities.forEach(obj -> obj.setTrip(trip));
+
+        objectiveRepository.saveAll(entities);
+
+        // Update the trip's internal set to stay in sync
+        trip.getObjectives().clear();
         trip.getObjectives().addAll(entities);
     }
 
