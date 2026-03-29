@@ -222,9 +222,7 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
           </Typography>
 
           <Typography variant="body2" color="text.secondary">
-            {imageCount > 0 && `${imageCount} รูป`}
-            {imageCount > 0 && videoCount > 0 && ' • '}
-            {videoCount > 0 && `${videoCount} วิดีโอ`}
+            {imageCount} รูป {videoCount} วิดีโอ
           </Typography>
 
           <Typography
