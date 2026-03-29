@@ -9,8 +9,8 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @SuperBuilder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TripVersionDto extends BaseTripVersionDto {
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private TripOverviewDto snapshot;
 }
 

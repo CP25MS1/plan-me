@@ -13,7 +13,7 @@ public class TripVersionDtoFactory {
     private final UserMapper userMapper;
 
     public TripVersionDto from(TripVersion version) {
-        return from(version, null, null);
+        return from(version, (short) 1, null);
     }
 
     public TripVersionDto from(TripVersion version, Short snapshotSchemaVersion, TripOverviewDto snapshot) {
@@ -22,6 +22,7 @@ public class TripVersionDtoFactory {
         }
 
         Integer tripId = version.getTrip() != null ? version.getTrip().getId() : null;
+        short resolvedSchemaVersion = snapshotSchemaVersion != null ? snapshotSchemaVersion : 1;
 
         return TripVersionDto.builder()
                 .id(version.getId())
@@ -32,7 +33,7 @@ public class TripVersionDtoFactory {
                 .appliedAt(version.getAppliedAt())
                 .appliedBy(version.getAppliedBy() != null ? userMapper.userToPublicUserInfo(version.getAppliedBy()) : null)
                 .isCurrent(version.getIsCurrent())
-                .snapshotSchemaVersion(snapshotSchemaVersion)
+                .snapshotSchemaVersion(resolvedSchemaVersion)
                 .snapshot(snapshot)
                 .build();
     }
