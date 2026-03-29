@@ -73,7 +73,14 @@ export const ExpenseFormBasicFields: React.FC<Props> = ({
 
       <Stack spacing={2.5} mt={1}>
         <TextField
-          label={t('budget.expenseForm.fields.name.label')}
+          label={
+            <Box component="span">
+              {t('budget.expenseForm.fields.name.label')}
+              <Box component="span" sx={{ color: 'error.main', ml: 0.5 }}>
+                *
+              </Box>
+            </Box>
+          }
           placeholder={t('budget.expenseForm.fields.name.placeholder')}
           InputLabelProps={{ shrink: true }}
           value={form.name}
@@ -91,7 +98,14 @@ export const ExpenseFormBasicFields: React.FC<Props> = ({
         <Grid container spacing={2}>
           <Grid size={7}>
             <FormControl fullWidth error={!!form.errors.type} size="small" disabled={disableAll}>
-              <InputLabel shrink>{t('budget.expenseForm.fields.type.label')}</InputLabel>
+              <InputLabel shrink>
+                <Box component="span">
+                  {t('budget.expenseForm.fields.type.label')}
+                  <Box component="span" sx={{ color: 'error.main', ml: 0.5 }}>
+                    *
+                  </Box>
+                </Box>
+              </InputLabel>
               <Select
                 value={form.type}
                 label={t('budget.expenseForm.fields.type.label')}
@@ -126,7 +140,14 @@ export const ExpenseFormBasicFields: React.FC<Props> = ({
 
           <Grid size={5}>
             <TextField
-              label={t('budget.expenseForm.fields.amount.label')}
+              label={
+                <Box component="span">
+                  {t('budget.expenseForm.fields.amount.label')}
+                  <Box component="span" sx={{ color: 'error.main', ml: 0.5 }}>
+                    *
+                  </Box>
+                </Box>
+              }
               placeholder={t('budget.expenseForm.fields.amount.placeholder')}
               InputLabelProps={{ shrink: true }}
               value={form.amountStr}

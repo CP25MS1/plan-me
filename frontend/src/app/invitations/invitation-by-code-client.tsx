@@ -7,6 +7,7 @@ import { PublicUserInfo } from '@/api/users';
 import { useRespondToInvitation } from '@/app/invitations/use-respond-to-invitation';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import { useTripHeader } from '@/api/trips/hooks';
 
 export type InvitationByCodeParams = {
   tripId: number;
@@ -27,6 +28,12 @@ const InvitationByCodeClient = () => {
 
   const { tripId, tripName, invitationCode, inviter } =
     decodeBase64Json<InvitationByCodeParams>(ref);
+
+  const { data: tripHeader, isSuccess } = useTripHeader(tripId);
+
+  if (isSuccess && tripHeader) {
+    router.replace(`/trip/${tripId}`);
+  }
 
   if (inviter.id === currentUser.id) {
     router.push(`/trip/${tripId}`);

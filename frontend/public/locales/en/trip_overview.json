@@ -279,7 +279,8 @@
       "title": "Select participants",
       "searchPlaceholder": "Search members",
       "selectAll": "Select all",
-      "payerChip": "Payer"
+      "payerChip": "Payer",
+      "empty": "No members found"
     },
     "splitEditor": {
       "empty": "No participants selected",
@@ -332,6 +333,9 @@
       "checklistWarning": "Notes: Checklist data only stores item names (not completed status or assignees).",
       "nameLabel": "Version name",
       "namePlaceholder": "e.g. Version 1",
+      "errors": {
+        "duplicateName": "This version name already exists"
+      },
       "cancel": "Cancel",
       "saving": "Saving...",
       "save": "Save version",

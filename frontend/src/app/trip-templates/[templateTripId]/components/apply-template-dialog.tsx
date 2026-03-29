@@ -195,7 +195,7 @@ const ApplyTemplateDialog = ({
           <FormControl fullWidth sx={{ mt: 2 }}>
             <DateRangePicker
               label={t('template.apply.fields.date', { dayCount })}
-              required={false}
+              required
               value={dateRange}
               onChange={handleDateChange}
               disabled={isPending}

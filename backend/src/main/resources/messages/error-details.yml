@@ -36,7 +36,7 @@ reservation:
 album:
   400:
     name:
-      invalid: "Album name is required and must be at most 100 characters."
+      invalid: "Album name is required and must be at most 50 characters."
     cursor:
       invalid: "The album pagination cursor is invalid."
     limit:

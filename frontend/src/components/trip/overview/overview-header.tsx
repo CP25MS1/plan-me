@@ -408,6 +408,7 @@ const OverviewHeader = ({
           }}
           onConfirm={handleCreateVersion}
           isLoading={createVersionMutation.isPending}
+          existingNames={versions.map((v) => v.versionName)}
         />
       </Stack>
     </Box>

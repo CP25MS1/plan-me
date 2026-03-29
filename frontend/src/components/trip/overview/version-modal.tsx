@@ -148,7 +148,6 @@ export const VersionModal = ({
           </Stack>
         ) : null}
       </DialogContent>
-
       <DialogActions sx={{ px: 3, pb: 2.5, justifyContent: 'center' }}>
         {isOwner && !isEmpty && (
           <Button

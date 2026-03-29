@@ -130,7 +130,7 @@ export const ExpenseFormSplitFields: React.FC<Props> = ({
               initialTotalAmount={initialTotalAmount}
               disabled={disableAll}
               error={form.errors.splits ?? null}
-              autoEqualizeOnTotalChange={isEdit}
+              autoEqualizeOnTotalChange={true}
             />
           </Paper>
         )}
