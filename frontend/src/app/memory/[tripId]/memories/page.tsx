@@ -243,8 +243,7 @@ export default function AlbumMemoriesPage() {
 
       {/* Metadata */}
       <Typography variant="body2" color="text.secondary" mb={2}>
-        {imageCount > 0 && `${imageCount} รูป `}
-        {videoCount > 0 && `${videoCount} วิดีโอ`}
+        {imageCount} รูป {videoCount} วิดีโอ
       </Typography>
 
       {/* Empty */}
