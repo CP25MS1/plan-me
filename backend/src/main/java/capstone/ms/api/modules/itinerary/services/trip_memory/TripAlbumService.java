@@ -175,6 +175,10 @@ public class TripAlbumService {
                 .orElseThrow(() -> new NotFoundException("album.404"));
 
         List<TripMemory> memories = tripMemoryRepository.findAllByAlbumIdOrderByCreatedAtDescIdDesc(album.getId());
+        if (memories.isEmpty()) {
+            throw new NotFoundException("memory.404");
+        }
+
         List<TripAlbumSignedUrlItemDto> items = memories.stream()
                 .map(tripMemoryUrlService::toAlbumSignedUrlItem)
                 .toList();
