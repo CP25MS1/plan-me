@@ -90,10 +90,10 @@ export const validateExpenseForm = ({
   if (mode === 'create' && !spentAtIso) next.spentAt = 'budget.expenseForm.errors.requiredDate';
   if (!members.some((m) => m.id === payerId)) next.payer = 'budget.expenseForm.errors.invalidPayer';
 
-  if (isSplit) {
-    if (selectedParticipantIds.length === 0) next.splits = 'budget.expenseForm.errors.selectParticipants';
-    else if (!splitComplete) next.form = 'budget.expenseForm.errors.amountMismatch';
-  }
+    if (isSplit) {
+      if (selectedParticipantIds.length === 0) next.splits = 'budget.expenseForm.errors.selectParticipants';
+      else if (!splitComplete) next.amount = 'budget.expenseForm.errors.amountMismatch';
+    }
 
   return next;
 };

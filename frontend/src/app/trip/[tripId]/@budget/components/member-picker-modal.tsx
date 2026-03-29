@@ -124,6 +124,14 @@ export const MemberPickerModal: React.FC<Props> = ({
             </>
           )}
 
+          {filteredMembers.length === 0 && (
+            <Box sx={{ py: 4, textAlign: 'center' }}>
+              <Typography color="text.secondary">
+                {t('budget.memberPicker.empty')}
+              </Typography>
+            </Box>
+          )}
+
           {filteredMembers.map((m) => {
             const checked = localSelected.includes(m.id);
 

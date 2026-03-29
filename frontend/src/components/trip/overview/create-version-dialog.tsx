@@ -25,6 +25,7 @@ type CreateVersionDialogProps = {
   onClose: () => void;
   onConfirm: (versionName: string) => Promise<void>;
   isLoading?: boolean;
+  existingNames?: string[];
 };
 
 export const CreateVersionDialog = ({
@@ -32,24 +33,32 @@ export const CreateVersionDialog = ({
   onClose,
   onConfirm,
   isLoading = false,
+  existingNames = [],
 }: CreateVersionDialogProps) => {
   const { t } = useTranslation('trip_overview');
   const [versionName, setVersionName] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const [showConfirmChecklist, setShowConfirmChecklist] = useState(false);
 
   useEffect(() => {
     if (!open) {
       setVersionName('');
+      setError(null);
       setShowConfirmChecklist(false);
     }
   }, [open]);
 
   const trimmedVersionName = versionName.trim();
-  const isSubmitDisabled = !trimmedVersionName || isLoading;
+  const isSubmitDisabled = !trimmedVersionName || isLoading || !!error;
 
   const handleConfirm = async () => {
     if (isSubmitDisabled) {
+      return;
+    }
+
+    if (existingNames.includes(trimmedVersionName)) {
+      setError(t('version.create.errors.duplicateName'));
       return;
     }
 
@@ -152,9 +161,11 @@ export const CreateVersionDialog = ({
                 fullWidth
                 value={versionName}
                 placeholder={t('version.create.namePlaceholder')}
-                onChange={(event) =>
-                  setVersionName(event.target.value.slice(0, MAX_VERSION_NAME_LENGTH))
-                }
+                onChange={(event) => {
+                  const val = event.target.value.slice(0, MAX_VERSION_NAME_LENGTH);
+                  setVersionName(val);
+                  if (error) setError(null);
+                }}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();
@@ -162,6 +173,8 @@ export const CreateVersionDialog = ({
                   }
                 }}
                 disabled={isLoading}
+                error={!!error}
+                helperText={error}
                 inputProps={{ maxLength: MAX_VERSION_NAME_LENGTH }}
                 InputProps={{
                   endAdornment: (
