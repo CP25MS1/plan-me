@@ -23,6 +23,7 @@ export default function MemoryPage() {
 
   const [openUploadDialog, setOpenUploadDialog] = React.useState(false);
   const [uploadTripId, setUploadTripId] = React.useState<number | null>(null);
+  const [uploadExistingSize, setUploadExistingSize] = React.useState(0);
 
   const { data, isLoading, isError, error } = useQuery<ListAlbumsResponseDto>({
     queryKey: ['my-accessible-albums'],
@@ -118,6 +119,7 @@ export default function MemoryPage() {
               isOwner={isOwner}
               onOpenUpload={(tripId) => {
                 setUploadTripId(tripId);
+                setUploadExistingSize(album.totalSizeBytes);
                 setOpenUploadDialog(true);
               }}
               onOpenAlbum={(tripId) => router.push(`/memory/${tripId}/memories`)}
@@ -137,7 +139,7 @@ export default function MemoryPage() {
           setUploadTripId(null);
         }}
         tripId={uploadTripId ?? 0}
-        existingTotalBytes={0}
+        existingTotalBytes={uploadExistingSize}
       />
     </Box>
   );

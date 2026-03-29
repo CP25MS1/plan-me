@@ -22,6 +22,7 @@ import {
   MAX_FILE_BYTES,
   MAX_TOTAL_BYTES,
 } from '../utils/file';
+import { formatFileSize } from '../utils/format-file-size';
 
 import { AppSnackbar } from '@/components/common/snackbar/snackbar';
 
@@ -60,44 +61,53 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // ===== Validate when selecting files =====
+  // ===== Calculate total size =====
+  const totalSelectedSize = useMemo(() => {
+    return files.reduce((sum, f) => sum + f.size, 0);
+  }, [files]);
+
+  // ===== Validate when selecting files with trimming =====
   const handleSelectFiles = (newFiles: File[]) => {
-    let total = existingTotalBytes + files.reduce((sum, f) => sum + f.size, 0);
+    const validFiles: File[] = [];
+    let currentBatchTotal = 0;
+    let limitExceeded = false;
+    let albumLimitExceeded = false;
 
     for (const file of newFiles) {
-      if (file.size > MAX_FILE_BYTES) {
-        setSnackbar({
-          open: true,
-          message: `ขนาดไฟล์เกิน 1GB`,
-          severity: 'error',
-        });
-        return;
-      }
-
       const ext = getFileExtension(file.name);
       if (!isSupportedExtension(ext)) {
-        setSnackbar({
-          open: true,
-          message: `รองรับไฟล์ประเภท .png, .jpg, .jpeg, .mov, .mp4`,
-          severity: 'error',
-          duration: 5000,
-        });
-        return;
+        continue; // Skip unsupported extensions
       }
 
-      total += file.size;
+      if (currentBatchTotal + file.size > MAX_FILE_BYTES) {
+        limitExceeded = true;
+        break;
+      }
+
+      if (existingTotalBytes + currentBatchTotal + file.size > MAX_TOTAL_BYTES) {
+        albumLimitExceeded = true;
+        break;
+      }
+
+      validFiles.push(file);
+      currentBatchTotal += file.size;
     }
 
-    if (total > MAX_TOTAL_BYTES) {
+    if (limitExceeded) {
       setSnackbar({
         open: true,
-        message: 'ขนาดรวมของไฟล์เกิน 3GB',
+        message: 'ไม่สามารถอัปโหลดได้เนื่องจากขนาดไฟล์ทั้งหมดเกิน 1 GB',
         severity: 'error',
       });
-      return;
+    } else if (albumLimitExceeded) {
+      setSnackbar({
+        open: true,
+        message: 'ไม่สามารถอัปโหลดได้เนื่องจากขนาดไฟล์ทั้งหมดในอัลบั้มต้องไม่เกิน 3 GB',
+        severity: 'error',
+      });
     }
 
-    setFiles(newFiles);
+    setFiles(validFiles);
   };
 
   const handleUpload = async () => {
@@ -137,7 +147,16 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
           sx: { borderRadius: 3, p: 1 },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 700 }}>เพิ่มความทรงจำ</DialogTitle>
+        <DialogTitle
+          sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <Box>เพิ่มความทรงจำ</Box>
+          {files.length > 0 && (
+            <Typography variant="body2" color="text.secondary" fontWeight={500}>
+              ขนาดทั้งหมด: {formatFileSize(totalSelectedSize)}
+            </Typography>
+          )}
+        </DialogTitle>
 
         <DialogContent>
           {/* Upload Area */}
@@ -174,7 +193,7 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
               </Typography>
 
               <Typography variant="body2" color="text.secondary">
-                สูงสุด 1GB ต่อไฟล์ ไม่เกิน 3GB ต่อครั้ง
+                สูงสุดทั้งหมดไม่เกิน 1 GB ต่อครั้ง (ไม่เกิน 3 GB ต่ออัลบั้ม)
               </Typography>
 
               <input

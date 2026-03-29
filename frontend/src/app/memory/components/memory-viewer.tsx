@@ -264,6 +264,34 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
                 )}
               </Box>
             ))}
+            {/* INDEX INDICATOR */}
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: 24,
+                left: 0,
+                right: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                zIndex: 10,
+                pointerEvents: 'none',
+              }}
+            >
+              <Typography
+                sx={{
+                  color: 'white',
+                  bgcolor: 'rgba(0,0,0,0.4)',
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 1,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                }}
+              >
+                {index + 1} / {memories.length}
+              </Typography>
+            </Box>
           </Box>
         </DialogContent>
       </Dialog>
@@ -287,7 +315,7 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
           }}
         >
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          ลบ
+          ลบรูป/วิดีโอ
         </MenuItem>
       </Menu>
 
@@ -316,7 +344,7 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
         confirmLabel="ยืนยัน"
         cancelLabel="ยกเลิก"
         color="error"
-        content={<Typography>คุณต้องการลบไฟล์นี้ใช่หรือไม่?</Typography>}
+        content={<Typography>คุณต้องการลบรูปภาพหรือวิดีโอนี้ใช่หรือไม่?</Typography>}
       />
     </>
   );
