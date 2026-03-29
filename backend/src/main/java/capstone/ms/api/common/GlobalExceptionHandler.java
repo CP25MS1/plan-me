@@ -42,10 +42,8 @@ public class GlobalExceptionHandler {
         }
 
         LocalizedText message = null;
-        Map<String, String> yamlDetails = null;
         if (messageKey != null) {
             message = yamlMessageService.getMessage(messageKey);
-            yamlDetails = yamlMessageService.getDetails(messageKey);
         }
 
         // validation field errors (field -> message)
@@ -59,10 +57,8 @@ public class GlobalExceptionHandler {
                         LinkedHashMap::new
                 ));
 
-        // combine details: YAML details first, then overlay fieldErrors
-        Map<String, String> combinedDetails = new LinkedHashMap<>();
-        if (yamlDetails != null) combinedDetails.putAll(yamlDetails);
-        combinedDetails.putAll(fieldErrors);
+        // combine details: overlay fieldErrors
+        Map<String, String> combinedDetails = new LinkedHashMap<>(fieldErrors);
 
         String path = ((ServletWebRequest) request).getRequest().getRequestURI();
         // If message is null, fallback to generic

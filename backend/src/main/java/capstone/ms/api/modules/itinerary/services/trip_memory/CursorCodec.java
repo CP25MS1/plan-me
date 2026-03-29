@@ -20,15 +20,20 @@ final class CursorCodec {
             return null;
         }
 
-        String raw = new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8);
-        String[] parts = raw.split("\\|", 2);
-        if (parts.length != 2) {
-            throw new IllegalArgumentException("invalid cursor");
-        }
+        try {
+            byte[] decoded = Base64.getUrlDecoder().decode(cursor);
+            String raw = new String(decoded, StandardCharsets.UTF_8);
+            String[] parts = raw.split("\\|", 2);
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("invalid cursor format");
+            }
 
-        Instant createdAt = Instant.parse(parts[0]);
-        Integer id = Integer.parseInt(parts[1]);
-        return new CursorValue(createdAt, id);
+            Instant createdAt = Instant.parse(parts[0]);
+            Integer id = Integer.parseInt(parts[1]);
+            return new CursorValue(createdAt, id);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("invalid cursor: " + ex.getMessage(), ex);
+        }
     }
 
     record CursorValue(Instant createdAt, Integer id) {
