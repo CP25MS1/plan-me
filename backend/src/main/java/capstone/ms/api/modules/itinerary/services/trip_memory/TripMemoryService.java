@@ -158,8 +158,7 @@ public class TripMemoryService {
 
         if (StringUtils.hasText(extension)) {
             String requestedExtension = tripMemoryPolicyService.normalizeExtensionToken(extension);
-            String actualExtension = tripMemoryPolicyService.normalizeExtensionToken(memory.getFileExtension());
-            if (!requestedExtension.equals(actualExtension)) {
+            if (!requestedExtension.equals(memory.getFileExtension())) {
                 throw new NotFoundException("memory.404");
             }
         }
