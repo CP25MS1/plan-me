@@ -8,6 +8,7 @@ import { useRespondToInvitation } from '@/app/invitations/use-respond-to-invitat
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { useTripHeader } from '@/api/trips/hooks';
+import { useEffect, useMemo } from 'react';
 
 export type InvitationByCodeParams = {
   tripId: number;
@@ -24,20 +25,32 @@ const InvitationByCodeClient = () => {
 
   const { mutate: respondInvitation } = useRespondToInvitation();
 
-  if (!ref || !currentUser) return null;
+  const decoded = useMemo(() => {
+    if (!ref) return null;
+    try {
+      return decodeBase64Json<InvitationByCodeParams>(ref);
+    } catch {
+      return null;
+    }
+  }, [ref]);
 
-  const { tripId, tripName, invitationCode, inviter } =
-    decodeBase64Json<InvitationByCodeParams>(ref);
+  const { data: tripHeader, isSuccess } = useTripHeader(decoded?.tripId ?? 0);
 
-  const { data: tripHeader, isSuccess } = useTripHeader(tripId);
+  useEffect(() => {
+    if (isSuccess && tripHeader && decoded) {
+      router.replace(`/trip/${decoded.tripId}`);
+    }
+  }, [isSuccess, tripHeader, decoded, router]);
 
-  if (isSuccess && tripHeader) {
-    router.replace(`/trip/${tripId}`);
-  }
+  useEffect(() => {
+    if (currentUser && decoded && decoded.inviter.id === currentUser.id) {
+      router.push(`/trip/${decoded.tripId}`);
+    }
+  }, [currentUser, decoded, router]);
 
-  if (inviter.id === currentUser.id) {
-    router.push(`/trip/${tripId}`);
-  }
+  if (!ref || !currentUser || !decoded) return null;
+
+  const { tripId, tripName, invitationCode, inviter } = decoded;
 
   const handleAccept = () => {
     respondInvitation(
