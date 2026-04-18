@@ -3,8 +3,8 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Plan ME',
-    short_name: 'Plan ME',
+    name: 'Plan Me',
+    short_name: 'Plan Me',
     description: 'A trip planning app that helps you organize your travels.',
     start_url: '/capstone25/cp25ms1/home',
     // start_url: '/',
@@ -15,14 +15,8 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: '#25cf7a',
     icons: [
       {
-        src: '/icons/icon-192x192.png',
-        sizes: '192x192',
-        type: 'image/png',
-        purpose: 'maskable',
-      },
-      {
-        src: '/icons/icon-512x512.png',
-        sizes: '512x512',
+        src: '/capstone25/cp25ms1/images/plan-me-logo.png',
+        sizes: '297x297',
         type: 'image/png',
         purpose: 'maskable',
       },
