@@ -186,6 +186,8 @@ const OverviewHeader = ({
   };
 
   const handleCreateVersion = async (versionName: string) => {
+    setCreateVersionDialogOpen(false);
+
     const createdVersion = await createVersionMutation.mutateAsync({
       tripId: tripIdAsNumber,
       versionName,
@@ -195,9 +197,6 @@ const OverviewHeader = ({
       createdVersion,
       ...currentVersions.filter((version) => version.id !== createdVersion.id),
     ]);
-
-    setCreateVersionDialogOpen(false);
-    setVersionModalOpen(true);
   };
 
   const handleDeleteVersion = async (versionId: number) => {

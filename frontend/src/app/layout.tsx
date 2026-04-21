@@ -15,14 +15,21 @@ const sarabun = Sarabun({
   display: 'swap',
 });
 
+  const planMeLogoPath = '/capstone25/cp25ms1/images/plan-me-logo.png';
+  // const planMeLogoPath = '/images/plan-me-logo.png';
+
 export const metadata: Metadata = {
-  title: 'CP25MS1 Team - Under Construction',
-  description:
-    'Our website is currently under construction. We are working diligently to bring you an amazing experience. Stay tuned for updates!',
+  title: 'PLAN ME',
+  description: 'Plan your trip easily and efficiently with PLAN ME.',
+  icons: {
+    icon: planMeLogoPath,
+    shortcut: planMeLogoPath,
+    apple: planMeLogoPath,
+  },
 };
 
-// const manifestPath = '/capstone25/cp25ms1/manifest.webmanifest';
-const manifestPath = '/manifest.webmanifest';
+const manifestPath = '/capstone25/cp25ms1/manifest.webmanifest';
+// const manifestPath = '/manifest.webmanifest';
 
 const RootLayout = async ({
   children,
