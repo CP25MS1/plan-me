@@ -17,7 +17,7 @@ type Props = {
   initialTotalAmount?: number;
   disabled?: boolean;
   error?: string | null;
-  autoEqualizeOnTotalChange?: boolean;
+  onTotalChangeStrategy?: 'equalize' | 'scale' | 'preserve';
 };
 
 export const ParticipantsSplitEditor: React.FC<Props> = ({
@@ -28,7 +28,7 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
   initialSplits,
   initialTotalAmount,
   disabled = false,
-  autoEqualizeOnTotalChange = false,
+  onTotalChangeStrategy = 'equalize',
 }) => {
   const { t } = useTranslation('trip_overview');
   const { locale } = useI18nSelector();
@@ -44,36 +44,109 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
 
   const lastEmittedRef = React.useRef<string>('');
 
-  const prevTotalAmountRef = React.useRef<number | null>(null);
+  const prevTotalCentsRef = React.useRef<number | null>(null);
   const didInitFromInitialTotalRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (!autoEqualizeOnTotalChange) return;
+    if (onTotalChangeStrategy === 'preserve') return;
 
-    const isInitialTotal =
-      initialTotalAmount != null &&
-      Math.round(totalAmount * 100) === Math.round(initialTotalAmount * 100);
+    const nextTotalCents = Math.round((Number.isFinite(totalAmount) ? totalAmount : 0) * 100);
+
+    const isInitialTotal = initialTotalAmount != null && nextTotalCents === Math.round(initialTotalAmount * 100);
     if (!didInitFromInitialTotalRef.current && isInitialTotal) {
-      prevTotalAmountRef.current = totalAmount;
+      prevTotalCentsRef.current = nextTotalCents;
       didInitFromInitialTotalRef.current = true;
       return;
     }
 
-    if (prevTotalAmountRef.current == null) {
-      prevTotalAmountRef.current = totalAmount;
+    if (prevTotalCentsRef.current == null) {
+      prevTotalCentsRef.current = nextTotalCents;
       return;
     }
 
-    if (prevTotalAmountRef.current === totalAmount) return;
-    prevTotalAmountRef.current = totalAmount;
+    if (prevTotalCentsRef.current === nextTotalCents) return;
 
-    setCustomMap(() => {
+    const prevTotalCents = prevTotalCentsRef.current;
+    prevTotalCentsRef.current = nextTotalCents;
+
+    if (onTotalChangeStrategy === 'equalize') {
+      setCustomMap(() => {
+        const next: Record<number, string> = {};
+        for (const id of ids) next[id] = '';
+        return next;
+      });
+      lastEmittedRef.current = '';
+      return;
+    }
+
+    if (onTotalChangeStrategy !== 'scale') return;
+
+    const prevTotal = prevTotalCents / 100;
+    const prevEqualMap = computeEqualSplitAmounts(prevTotal, ids);
+
+    lastEmittedRef.current = '';
+    setCustomMap((prev) => {
+      const oldCentsById: Record<number, number> = {};
+      let oldSumCents = 0;
+
+      for (const id of ids) {
+        const raw = (prev[id] ?? '').trim();
+
+        if (!raw) {
+          const cents = Math.round((prevEqualMap[id] ?? 0) * 100);
+          oldCentsById[id] = cents;
+          oldSumCents += cents;
+          continue;
+        }
+
+        const n = Number(raw.replace(/,/g, ''));
+        const cents = Number.isFinite(n) ? Math.round(n * 100) : 0;
+        oldCentsById[id] = cents;
+        oldSumCents += cents;
+      }
+
+      if (oldSumCents <= 0) {
+        const equal = computeEqualSplitAmounts(nextTotalCents / 100, ids);
+        const next: Record<number, string> = {};
+        for (const id of ids) next[id] = (equal[id] ?? 0).toFixed(2);
+        return next;
+      }
+
+      const denom = BigInt(oldSumCents);
+      const total = BigInt(nextTotalCents);
+
+      const floors: Record<number, number> = {};
+      let sumFloor = 0;
+      const remainders: Array<{ id: number; remainder: bigint; index: number }> = [];
+
+      ids.forEach((id, index) => {
+        const numerator = BigInt(oldCentsById[id] ?? 0) * total;
+        const floor = Number(numerator / denom);
+        const remainder = numerator % denom;
+
+        floors[id] = floor;
+        sumFloor += floor;
+        remainders.push({ id, remainder, index });
+      });
+
+      const remaining = nextTotalCents - sumFloor;
+      if (remaining > 0) {
+        remainders.sort((a, b) => {
+          if (a.remainder === b.remainder) return a.index - b.index;
+          return a.remainder > b.remainder ? -1 : 1;
+        });
+
+        for (let i = 0; i < remaining; i++) {
+          floors[remainders[i].id] += 1;
+        }
+      }
+
       const next: Record<number, string> = {};
-      for (const id of ids) next[id] = '';
+      for (const id of ids) next[id] = ((floors[id] ?? 0) / 100).toFixed(2);
+
       return next;
     });
-    lastEmittedRef.current = '';
-  }, [autoEqualizeOnTotalChange, ids, initialTotalAmount, totalAmount]);
+  }, [ids, initialTotalAmount, onTotalChangeStrategy, totalAmount]);
 
   React.useEffect(() => {
     const out: Record<number, number> = {};
@@ -98,12 +171,17 @@ export const ParticipantsSplitEditor: React.FC<Props> = ({
 
   React.useEffect(() => {
     setCustomMap((prev) => {
-      const next: Record<number, string> = {};
+      let changed = false;
+      const next = { ...prev };
+
       for (const id of ids) {
+        if (Object.prototype.hasOwnProperty.call(next, id)) continue;
         const init = initialSplits?.[id];
-        next[id] = init != null ? Number(init).toFixed(2) : (prev[id] ?? '');
+        next[id] = init != null ? Number(init).toFixed(2) : '';
+        changed = true;
       }
-      return next;
+
+      return changed ? next : prev;
     });
   }, [ids, initialSplits]);
 
