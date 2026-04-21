@@ -16,6 +16,7 @@ import { useGetTripMembers } from '@/app/hooks/use-get-trip-members';
 import { useCreateTripExpense } from '../hooks/use-create-trip-expense';
 import { useUpdateTripExpense } from '../hooks/use-update-trip-expense';
 import { useExpenseForm } from '../hooks/use-expense-form';
+import { safeNumber } from '../utils/expense-form-helpers';
 import ExpenseFormBasicFields from './expense-form-basic-fields';
 import ExpenseFormDialog from './expense-form-dialog';
 import ExpenseFormSplitFields from './expense-form-split-fields';
@@ -157,7 +158,7 @@ export const ExpenseFormModal: React.FC<Props> = ({
           disableAll={disableAll}
           disableSplitMode={disableSplitMode}
           onOpenMemberPicker={() => setMemberPickerOpen(true)}
-          totalAmount={Number(form.amountStr || 0)}
+          totalAmount={safeNumber(form.amountStr)}
           initialExpense={initialExpense}
           initialSplits={initialSplits}
           hideSplitModeToggle={formContext === 'personal'}
