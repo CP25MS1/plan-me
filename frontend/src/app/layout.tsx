@@ -21,8 +21,8 @@ export const metadata: Metadata = {
     'Our website is currently under construction. We are working diligently to bring you an amazing experience. Stay tuned for updates!',
 };
 
-const manifestPath = '/capstone25/cp25ms1/manifest.webmanifest';
-// const manifestPath = '/manifest.webmanifest';
+// const manifestPath = '/capstone25/cp25ms1/manifest.webmanifest';
+const manifestPath = '/manifest.webmanifest';
 
 const RootLayout = async ({
   children,

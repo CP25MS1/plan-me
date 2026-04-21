@@ -77,8 +77,8 @@ const LoginContent = () => {
     return <FullPageLoading />;
   }
 
-  const googleIconImagePath = '/capstone25/cp25ms1/images/google-icon.png';
-  // const googleIconImagePath = '/images/google-icon.png';
+  // const googleIconImagePath = '/capstone25/cp25ms1/images/google-icon.png';
+  const googleIconImagePath = '/images/google-icon.png';
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
