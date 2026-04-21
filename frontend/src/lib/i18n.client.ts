@@ -15,8 +15,8 @@ if (!isInitialized) {
       defaultNS: 'common',
       ns: ['common', 'trip_create', 'profile', 'trip_overview', 'trip_checklist', 'search'],
       backend: {
-        // loadPath: '/locales/{{lng}}/{{ns}}.json',
-        loadPath: '/capstone25/cp25ms1/locales/{{lng}}/{{ns}}.json',
+        loadPath: '/locales/{{lng}}/{{ns}}.json',
+        // loadPath: '/capstone25/cp25ms1/locales/{{lng}}/{{ns}}.json',
       },
       react: { useSuspense: false },
       interpolation: { escapeValue: false },
