@@ -67,8 +67,8 @@ export const CreateVersionDialog = ({
       return;
     }
 
-    await onConfirm(trimmedVersionName);
     setShowConfirmChecklist(false);
+    await onConfirm(trimmedVersionName);
   };
 
   return (

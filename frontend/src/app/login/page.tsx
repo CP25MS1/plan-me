@@ -77,23 +77,30 @@ const LoginContent = () => {
     return <FullPageLoading />;
   }
 
-  // const googleIconImagePath = '/capstone25/cp25ms1/images/google-icon.png';
-  const googleIconImagePath = '/images/google-icon.png';
+  const googleIconImagePath = '/capstone25/cp25ms1/images/google-icon.png';
+  // const googleIconImagePath = '/images/google-icon.png';
+
+  const planMeLogoPath = '/capstone25/cp25ms1/images/plan-me-logo.png';
+  // const planMeLogoPath = '/images/plan-me-logo.png';
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h1 className="text-2xl font-bold mb-4 text-primary">PLAN ME</h1>
+    <div className="min-h-screen flex items-center justify-center bg-[#a8e6c8]">
+      <div className="bg-white/85 backdrop-blur-md rounded-3xl shadow-xl px-8 py-10 flex flex-col items-center w-[320px]">
+        <Image src={planMeLogoPath} alt="PlanMe Logo" width={80} height={80} className="mb-4" />
 
-      <Button variant="outline" onClick={handleLogin}>
-        <Image
-          src={googleIconImagePath}
-          width={25}
-          height={25}
-          alt="Google"
-          className="mr-2"
-        />
-        เข้าสู่ระบบด้วย Google
-      </Button>
+        <h1 className="text-xl font-bold text-[#1FA968] mb-2">PLAN ME</h1>
+
+        <p className="text-sm text-gray-600 mb-4 text-center">ทริปต่อไปของคุณกำลังรออยู่</p>
+
+        <Button
+          variant="outline"
+          onClick={handleLogin}
+          className="flex items-center justify-center gap-2 rounded-xl border-gray-300"
+        >
+          <Image src={googleIconImagePath} width={22} height={22} alt="Google" />
+          เข้าสู่ระบบด้วย Google
+        </Button>
+      </div>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent
@@ -127,4 +134,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
