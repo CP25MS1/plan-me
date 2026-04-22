@@ -21,11 +21,6 @@ const sarabun = Sarabun({
 export const metadata: Metadata = {
   title: 'PLAN ME',
   description: 'Plan your trip easily and efficiently with PLAN ME.',
-  icons: {
-    icon: planMeLogoPath,
-    shortcut: planMeLogoPath,
-    apple: planMeLogoPath,
-  },
 };
 
 const manifestPath = '/capstone25/cp25ms1/manifest.webmanifest';
@@ -40,11 +35,13 @@ const RootLayout = async ({
     <html lang="th">
       <head>
         <meta name="theme-color" content="#25cf7a" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/all/all.min.css"
         />
         <link rel="manifest" href={manifestPath} />
+        <link rel="apple-touch-icon" href={planMeLogoPath} />
       </head>
       <body className={`${sarabun.variable} antialiased`}>
         <AppProvider>
