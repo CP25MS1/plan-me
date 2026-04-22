@@ -16,7 +16,7 @@ export default function manifest(): MetadataRoute.Manifest {
     icons: [
       {
         src: '/capstone25/cp25ms1/images/plan-me-logo.png',
-        sizes: '297x297',
+        sizes: '275x259',
         type: 'image/png',
         purpose: 'maskable',
       },
