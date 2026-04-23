@@ -14,6 +14,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.Instant;
+import java.util.Objects;
+
 @Service
 @AllArgsConstructor
 public class TripRealtimeService {
@@ -52,6 +55,35 @@ public class TripRealtimeService {
     public TripRealtimeHub.AcquireResult acquireLock(Integer tripId, TripRealtimeLockRequest request, User currentUser) {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
 
+        if (request.resourceType() == TripRealtimeResourceType.TRIP) {
+            tripAccessService.assertOwnerAccess(currentUser, tripId);
+
+            if (!Objects.equals(request.resourceId(), tripId)) {
+                throw new BadRequestException("400");
+            }
+
+            if (request.purpose() != TripRealtimeLockPurpose.VERSION_CREATE
+                    && request.purpose() != TripRealtimeLockPurpose.VERSION_APPLY) {
+                throw new BadRequestException("400");
+            }
+
+            return hub.acquireLock(
+                    tripId,
+                    request.resourceType(),
+                    request.resourceId(),
+                    null,
+                    request.purpose(),
+                    mapUser(currentUser)
+            );
+        }
+
+        // If the trip is under a version mutation lock, prevent acquiring per-item locks by other users.
+        Instant now = Instant.now();
+        TripRealtimeLockDto tripLock = hub.getActiveLock(tripId, TripRealtimeResourceType.TRIP, tripId, now).orElse(null);
+        if (tripLock != null && !Objects.equals(tripLock.owner().id(), currentUser.getId())) {
+            return TripRealtimeHub.AcquireResult.conflict(tripLock);
+        }
+
         Integer resolvedPlanId = resolveAndAssertResourceOwnership(tripId, request.resourceType(), request.resourceId());
         return hub.acquireLock(tripId, request.resourceType(), request.resourceId(), resolvedPlanId, request.purpose(), mapUser(currentUser));
     }
@@ -68,6 +100,12 @@ public class TripRealtimeService {
 
     private Integer resolveAndAssertResourceOwnership(Integer tripId, TripRealtimeResourceType resourceType, Integer resourceId) {
         return switch (resourceType) {
+            case TRIP -> {
+                if (!Objects.equals(resourceId, tripId)) {
+                    throw new BadRequestException("400");
+                }
+                yield null;
+            }
             case RESERVATION -> {
                 var reservation = reservationRepository.findById(resourceId)
                         .orElseThrow(() -> new NotFoundException("404"));
@@ -100,4 +138,3 @@ public class TripRealtimeService {
         return new TripRealtimeUserDto(user.getId(), user.getUsername(), user.getProfilePicUrl());
     }
 }
-

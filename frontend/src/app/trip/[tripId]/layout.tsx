@@ -16,7 +16,9 @@ import useUpdateTripOverview from './hooks/use-update-trip-overview';
 import { UpsertTrip, useTripHeader } from '@/api/trips';
 import TripForbiddenPage from '@/app/trip/[tripId]/components/trip-forbidden-page';
 import TripStaleDialog from '@/app/trip/[tripId]/components/trip-stale-dialog';
+import TripMutationLockBanner from '@/app/trip/[tripId]/components/trip-mutation-lock-banner';
 import useTripRealtimeWs from '@/app/trip/[tripId]/hooks/use-trip-realtime-ws';
+import { useTripVersionMutationLock } from '@/store/selectors';
 
 type TripLayoutProps = {
   params: Promise<{ tripId: string }>;
@@ -46,6 +48,8 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
 
   const { data: tripHeader, isLoading: isTripHeaderLoading, error, isError } =
     useTripHeader(tripIdAsNumber);
+
+  const { lockedByOther } = useTripVersionMutationLock(tripIdAsNumber);
 
   const { mutate: updateTrip } = useUpdateTripOverview(tripIdAsNumber);
   const handleSave = useCallback(
@@ -119,25 +123,34 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
         map
       ) : (
         <Container maxWidth="sm" sx={{ py: 3 }}>
-          <OverviewHeader tripOverview={tripOverviewProps} />
+          <TripMutationLockBanner tripId={tripIdAsNumber} />
 
-          <OverviewTabs value={tabValue} onChange={handleTabChange} />
+          <div
+            style={{
+              pointerEvents: lockedByOther ? 'none' : undefined,
+              opacity: lockedByOther ? 0.6 : 1,
+            }}
+          >
+            <OverviewHeader tripOverview={tripOverviewProps} />
 
-          <TripTabPanel value={tabValue} index={0}>
-            {overview}
-          </TripTabPanel>
+            <OverviewTabs value={tabValue} onChange={handleTabChange} />
 
-          <TripTabPanel value={tabValue} index={1}>
-            {daily}
-          </TripTabPanel>
+            <TripTabPanel value={tabValue} index={0}>
+              {overview}
+            </TripTabPanel>
 
-          <TripTabPanel value={tabValue} index={2}>
-            {budget}
-          </TripTabPanel>
+            <TripTabPanel value={tabValue} index={1}>
+              {daily}
+            </TripTabPanel>
 
-          <TripTabPanel value={tabValue} index={3}>
-            {checklist}
-          </TripTabPanel>
+            <TripTabPanel value={tabValue} index={2}>
+              {budget}
+            </TripTabPanel>
+
+            <TripTabPanel value={tabValue} index={3}>
+              {checklist}
+            </TripTabPanel>
+          </div>
         </Container>
       )}
     </>

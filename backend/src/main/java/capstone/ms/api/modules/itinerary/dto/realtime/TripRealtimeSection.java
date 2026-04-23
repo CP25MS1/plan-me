@@ -4,6 +4,6 @@ public enum TripRealtimeSection {
     OVERVIEW_RESERVATIONS,
     OVERVIEW_WISHLIST,
     DAILY_PLAN,
-    CHECKLIST
+    CHECKLIST,
+    TRIP_VERSION
 }
-

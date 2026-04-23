@@ -26,6 +26,19 @@ export const useTripRealtimeLocksMap = (tripId: number): Record<string, TripReal
   return useSelector((s: RootState) => s.tripRealtime.locksByTripId[tripId] ?? {});
 };
 
+export const useTripVersionMutationLock = (
+  tripId: number
+): { lockedByOther: boolean; lock: TripRealtimeLock | null } => {
+  return useSelector((s: RootState) => {
+    const map = s.tripRealtime.locksByTripId[tripId];
+    const lock = map?.[lockKey('TRIP', tripId)] ?? null;
+    const myUserId = s.profile.currentUser?.id;
+
+    if (!lock || !myUserId) return { lockedByOther: false, lock };
+    return { lockedByOther: lock.owner.id !== myUserId, lock };
+  });
+};
+
 export const useIsLockedByOther = (
   tripId: number,
   resourceType: TripRealtimeResourceType,
