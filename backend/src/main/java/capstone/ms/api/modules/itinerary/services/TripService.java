@@ -89,6 +89,7 @@ public class TripService {
     public TripOverviewDto updateTripOverview(final User currentUser, final Integer tripId, final UpsertTripDto tripInfo) {
         final Trip existing = loadTripOrThrow(tripId);
         ensureOwnerOrThrow(currentUser, existing);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         LocalDate previousStartDate = existing.getStartDate();
         LocalDate previousEndDate = existing.getEndDate();
@@ -137,6 +138,7 @@ public class TripService {
 
         final Trip existing = loadTripOrThrow(tripId);
         ensureOwnerOrThrow(currentUser, existing);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         if (parsed == TripVisibility.PUBLIC) {
             boolean hasScheduledPlace = scheduledPlaceRepository.existsByPlanTripId(existing.getId());
@@ -181,6 +183,7 @@ public class TripService {
     public WishlistPlaceDto addPlaceToWishlist(Integer tripId, String ggmpId, User currentUser) {
         Trip trip = loadTripOrThrow(tripId);
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         GoogleMapPlace place = googleMapPlaceRepository.findById(ggmpId)
                 .orElseThrow(() -> new NotFoundException("place.404"));
@@ -204,6 +207,7 @@ public class TripService {
     @Transactional
     public UpdateWishlistPlaceNoteDto updateWishlistPlaceNote(User currentUser, Integer tripId, Integer placeId, UpdateWishlistPlaceNoteDto newNote) {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         WishlistPlace wp = wishlistPlaceRepository.findByIdAndTripId(placeId, tripId)
                 .orElseThrow(() -> new NotFoundException("place.404"));
@@ -223,6 +227,7 @@ public class TripService {
     @Transactional
     public void removePlaceFromWishlist(User currentUser, Integer tripId, Integer placeId) {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         WishlistPlace wp = wishlistPlaceRepository.findByIdAndTripId(placeId, tripId)
                 .orElseThrow(() -> new NotFoundException("place.404"));
@@ -240,6 +245,7 @@ public class TripService {
         if (!existing.getOwner().getId().equals(currentUser.getId())) {
             throw new ForbiddenException("trip.403.delete");
         }
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
         tripRepository.deleteById(existing.getId());
     }
 

@@ -11,6 +11,7 @@ import capstone.ms.api.modules.itinerary.entities.expense.TripExpenseSplit;
 import capstone.ms.api.modules.itinerary.repositories.TripBudgetRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripExpenseSplitRepository;
 import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimeLockGuard;
 import capstone.ms.api.modules.user.entities.User;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class TripBudgetService {
     private final TripExpenseSplitRepository tripExpenseSplitRepository;
     private final TripAccessService tripAccessService;
     private final TripResourceService tripResourceService;
+    private final TripRealtimeLockGuard tripRealtimeLockGuard;
     private final TripRealtimePublisher tripRealtimePublisher;
 
     private static final int MONEY_SCALE = 2;
@@ -52,6 +54,7 @@ public class TripBudgetService {
     public TripBudgetSummaryDto upsertTripBudget(Integer tripId, UpsertTripBudgetRequest request, User currentUser) {
         Trip trip = tripResourceService.getTripOrThrow(tripId);
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         BigDecimal totalBudget = request.getTotalBudget().setScale(MONEY_SCALE, RoundingMode.HALF_UP);
         if (totalBudget.compareTo(BigDecimal.ZERO) <= 0) {

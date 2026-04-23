@@ -65,6 +65,7 @@ public class ReservationService {
 
         Trip trip = loadTripOrThrow(dto.getTripId());
         tripAccessService.assertTripmateLevelAccess(currentUser, trip.getId());
+        tripRealtimeLockGuard.assertTripMutationAllowed(trip.getId(), currentUser);
 
         Reservation reservation = reservationMapper.dtoToReservation(dto);
         reservation.setTrip(trip);
@@ -159,6 +160,7 @@ public class ReservationService {
                 .orElseThrow(() -> new NotFoundException("404"));
 
         tripAccessService.assertTripmateLevelAccess(currentUser, reservation.getTrip().getId());
+        tripRealtimeLockGuard.assertTripMutationAllowed(reservation.getTrip().getId(), currentUser);
         tripRealtimeLockGuard.assertLockHeld(reservation.getTrip().getId(), TripRealtimeResourceType.RESERVATION, reservationId, currentUser);
 
         reservation.setBookingRef(dto.getBookingRef());
@@ -244,6 +246,7 @@ public class ReservationService {
                 .orElseThrow(() -> new NotFoundException("404"));
 
         tripAccessService.assertTripmateLevelAccess(currentUser, reservation.getTrip().getId());
+        tripRealtimeLockGuard.assertTripMutationAllowed(reservation.getTrip().getId(), currentUser);
         tripRealtimeLockGuard.assertLockHeld(reservation.getTrip().getId(), TripRealtimeResourceType.RESERVATION, reservationId, currentUser);
         ReservationType type;
         try {
