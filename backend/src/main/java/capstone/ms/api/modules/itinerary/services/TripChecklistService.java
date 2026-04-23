@@ -14,6 +14,7 @@ import capstone.ms.api.modules.itinerary.mappers.ChecklistMapper;
 import capstone.ms.api.modules.itinerary.repositories.BasicChecklistItemRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripChecklistRepository;
 import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimeLockGuard;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.services.UserService;
 import jakarta.transaction.Transactional;
@@ -35,6 +36,7 @@ public class TripChecklistService {
     private final TripAccessService tripAccessService;
     private final TripResourceService tripResourceService;
     private final UserService userService;
+    private final TripRealtimeLockGuard tripRealtimeLockGuard;
     private final TripRealtimePublisher tripRealtimePublisher;
 
     @Transactional
@@ -45,6 +47,7 @@ public class TripChecklistService {
     ) {
         final var trip = tripResourceService.getTripOrThrow(tripId);
         assertTripmateAccess(user, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, user);
 
         TripChecklist newChecklistItem = new TripChecklist();
         newChecklistItem.setTrip(trip);
@@ -81,6 +84,7 @@ public class TripChecklistService {
             final Integer itemId
     ) {
         assertTripmateAccess(user, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, user);
 
         final TripChecklist checklist = repository
                 .findByIdAndTripId(itemId, tripId)
@@ -128,6 +132,7 @@ public class TripChecklistService {
     @Transactional
     public void deleteTripChecklist(final Integer tripId, final User user, final Integer itemId) {
         assertTripmateAccess(user, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, user);
 
         final TripChecklist checklist = repository
                 .findByIdAndTripId(itemId, tripId)

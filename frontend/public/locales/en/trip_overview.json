@@ -364,6 +364,14 @@
       "title": "Updated Version",
       "message": "Trip data has been updated. Please refresh to see the latest version.",
       "cta": "Refresh"
+    },
+    "lock": {
+      "banner": {
+        "create": "Trip is temporarily locked while {{username}} is saving a version.",
+        "apply": "Trip is temporarily locked while {{username}} is applying a version.",
+        "generic": "Trip is temporarily locked by {{username}}.",
+        "hint": "Read-only mode: you can view data, but changes are temporarily disabled."
+      }
     }
   }
 }

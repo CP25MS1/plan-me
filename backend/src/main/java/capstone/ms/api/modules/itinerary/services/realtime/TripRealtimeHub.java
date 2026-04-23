@@ -209,6 +209,7 @@ public class TripRealtimeHub {
 
     private static TripRealtimeSection resolveSection(TripRealtimeResourceType resourceType) {
         return switch (resourceType) {
+            case TRIP -> TripRealtimeSection.TRIP_VERSION;
             case RESERVATION -> TripRealtimeSection.OVERVIEW_RESERVATIONS;
             case WISHLIST_PLACE -> TripRealtimeSection.OVERVIEW_WISHLIST;
             case SCHEDULED_PLACE -> TripRealtimeSection.DAILY_PLAN;

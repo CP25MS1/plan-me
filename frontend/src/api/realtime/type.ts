@@ -11,11 +11,22 @@ export type TripRealtimeSection =
   | 'OVERVIEW_RESERVATIONS'
   | 'OVERVIEW_WISHLIST'
   | 'DAILY_PLAN'
-  | 'CHECKLIST';
+  | 'CHECKLIST'
+  | 'TRIP_VERSION';
 
-export type TripRealtimeResourceType = 'RESERVATION' | 'WISHLIST_PLACE' | 'SCHEDULED_PLACE' | 'CHECKLIST_ITEM';
+export type TripRealtimeResourceType =
+  | 'TRIP'
+  | 'RESERVATION'
+  | 'WISHLIST_PLACE'
+  | 'SCHEDULED_PLACE'
+  | 'CHECKLIST_ITEM';
 
-export type TripRealtimeLockPurpose = 'EDIT' | 'DELETE' | 'REORDER';
+export type TripRealtimeLockPurpose =
+  | 'VERSION_CREATE'
+  | 'VERSION_APPLY'
+  | 'EDIT'
+  | 'DELETE'
+  | 'REORDER';
 
 export type TripRealtimeUser = {
   id: number;

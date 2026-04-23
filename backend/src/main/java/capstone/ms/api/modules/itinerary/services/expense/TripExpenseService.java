@@ -14,6 +14,7 @@ import capstone.ms.api.modules.itinerary.repositories.TripExpenseSplitRepository
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripmateRepository;
 import capstone.ms.api.modules.itinerary.services.TripAccessService;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimeLockGuard;
 import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.services.UserService;
@@ -37,11 +38,13 @@ public class TripExpenseService {
     private final TripExpenseSplitRepository tripExpenseSplitRepository;
     private final TripDebtBalanceRepository tripDebtBalanceRepository;
     private final UserService userService;
+    private final TripRealtimeLockGuard tripRealtimeLockGuard;
     private final TripRealtimePublisher tripRealtimePublisher;
 
     @Transactional
     public TripExpenseDto createExpense(Integer tripId, CreateTripExpenseRequest request, User currentUser) {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         Trip lockedTrip = getTripForUpdate(tripId);
         Set<Integer> tripMemberIds = getTripMemberIds(lockedTrip);
@@ -74,6 +77,7 @@ public class TripExpenseService {
     @Transactional
     public TripExpenseDto updateExpense(Integer tripId, Integer expenseId, UpdateTripExpenseRequest request, User currentUser) {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         if (request.isSpentAtPresent()) {
             throw new BadRequestException("tripExpense.400", "tripExpense.400.spentAtImmutable");
@@ -115,6 +119,7 @@ public class TripExpenseService {
     @Transactional
     public void deleteExpense(Integer tripId, Integer expenseId, User currentUser) {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         Trip lockedTrip = getTripForUpdate(tripId);
         TripExpense expense = getExpenseOrThrow(expenseId, tripId);

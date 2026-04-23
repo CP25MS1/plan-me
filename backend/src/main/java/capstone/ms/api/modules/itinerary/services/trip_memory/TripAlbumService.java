@@ -12,6 +12,7 @@ import capstone.ms.api.modules.itinerary.repositories.TripAlbumSummaryProjection
 import capstone.ms.api.modules.itinerary.repositories.TripMemoryRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.services.TripAccessService;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimeLockGuard;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.services.UserService;
 import jakarta.transaction.Transactional;
@@ -28,6 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TripAlbumService {
     private final TripAccessService tripAccessService;
+    private final TripRealtimeLockGuard tripRealtimeLockGuard;
     private final TripRepository tripRepository;
     private final TripAlbumRepository tripAlbumRepository;
     private final TripMemoryRepository tripMemoryRepository;
@@ -47,6 +49,7 @@ public class TripAlbumService {
             User currentUser
     ) {
         tripAccessService.assertOwnerAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
         validateAlbumName(name);
 
         if (tripAlbumRepository.existsByTripId(tripId)) {
@@ -118,6 +121,7 @@ public class TripAlbumService {
     @Transactional
     public void deleteAlbum(Integer tripId, User currentUser) {
         tripAccessService.assertOwnerAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         TripAlbum album = tripAlbumRepository.findByTripIdForUpdate(tripId)
                 .orElseThrow(() -> new NotFoundException("album.404"));

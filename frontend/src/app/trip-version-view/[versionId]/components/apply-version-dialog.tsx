@@ -13,6 +13,11 @@ import {
 } from '@mui/material';
 import { AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+
+import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
+import { useTripVersionMutationLock } from '@/store/selectors';
 
 import { tokens } from '@/providers/theme/design-tokens';
 
@@ -31,13 +36,56 @@ export const ApplyVersionDialog = ({
 }: ApplyVersionDialogProps) => {
   const { t } = useTranslation('trip_overview');
 
-  return (
-    <Dialog
-      open={open}
-      onClose={() => {
-        if (!isLoading) {
-          onClose();
+  const releaseRef = useRef<(() => Promise<void>) | null>(null);
+  const [isAcquiringLock, setIsAcquiringLock] = useState(false);
+  const searchParams = useSearchParams();
+  const tripIdParam = searchParams.get('tripId');
+  const tripIdAsNumber = Number(tripIdParam);
+  const { acquireLease } = useTripLockLease(tripIdAsNumber);
+  const { lockedByOther } = useTripVersionMutationLock(tripIdAsNumber);
+
+  useEffect(() => {
+    if (!open) return;
+
+    let mounted = true;
+    (async () => {
+      if (lockedByOther) return;
+      setIsAcquiringLock(true);
+      try {
+        const res = await acquireLease({
+          resourceType: 'TRIP',
+          resourceId: tripIdAsNumber,
+          purpose: 'VERSION_APPLY',
+        });
+
+        if (res.status === 'acquired' && mounted) {
+          releaseRef.current = res.release;
         }
+      } finally {
+        if (mounted) setIsAcquiringLock(false);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+      if (releaseRef.current) {
+        void releaseRef.current();
+        releaseRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  return (
+      <Dialog
+      open={open}
+      onClose={async () => {
+        if (isLoading) return;
+        if (releaseRef.current) {
+          await releaseRef.current();
+          releaseRef.current = null;
+        }
+        onClose();
       }}
       fullWidth
       maxWidth="xs"
@@ -94,15 +142,28 @@ export const ApplyVersionDialog = ({
         </Stack>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        <Button onClick={onClose} disabled={isLoading} color="inherit">
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+        <Button onClick={async () => {
+          if (isAcquiringLock) return;
+          if (releaseRef.current) {
+            await releaseRef.current();
+            releaseRef.current = null;
+          }
+          onClose();
+        }} disabled={isLoading || isAcquiringLock} color="inherit">
           {t('version.viewLayout.applyConfirm.cancel')}
         </Button>
         <Button
-          onClick={() => void onConfirm()}
+          onClick={async () => {
+            await onConfirm();
+            if (releaseRef.current) {
+              await releaseRef.current();
+              releaseRef.current = null;
+            }
+          }}
           variant="contained"
-          disabled={isLoading}
-          startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : null}
+          disabled={isLoading || isAcquiringLock || lockedByOther}
+          startIcon={isLoading || isAcquiringLock ? <CircularProgress size={16} color="inherit" /> : null}
           sx={{
             borderRadius: 2,
             bgcolor: tokens.color.primary,

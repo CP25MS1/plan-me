@@ -108,6 +108,7 @@ public class DailyPlanService {
             CreateScheduledPlaceRequest request
     ) {
         checkTripAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         var dailyPlan = tripResourceService.getDailyPlanOrThrow(request.getPlanId());
         var googleMapPlace = tripResourceService.getGoogleMapPlaceOrThrow(request.getGgmpId());
@@ -132,6 +133,7 @@ public class DailyPlanService {
             UpdateScheduledPlaceRequest request
     ) {
         checkTripAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         var trip = tripResourceService.getTripOrThrow(tripId);
         var targetPlan = tripResourceService.getDailyPlanOrThrow(request.getPlanId());
@@ -169,6 +171,7 @@ public class DailyPlanService {
             Integer placeId
     ) {
         checkTripAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         ScheduledPlace scheduledPlace =
                 tripResourceService.getScheduledPlaceOrThrow(placeId);
