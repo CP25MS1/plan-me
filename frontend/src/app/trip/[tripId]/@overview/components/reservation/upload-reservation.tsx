@@ -383,6 +383,28 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
 
   const selectedCount = files.filter((file) => file.type && !file.error).length;
   const isAllSelected = files.length > 0 && files.every((file) => !!file.type);
+  const previewCards = editableReservations.flatMap((reservation, reservationIndex) => {
+    const previewReservation = buildReservationFromForm(
+      tripId,
+      reservation.typeValue,
+      reservation.formData!,
+      reservation.passengers
+    );
+
+    if (reservation.typeValue === 'Flight') {
+      return reservation.passengers.map((_, passengerIndex) => ({
+        key: `${reservation.key}-${passengerIndex}`,
+        content: renderReservationCard('FLIGHT', previewReservation, passengerIndex),
+      }));
+    }
+
+    return [
+      {
+        key: `${reservation.key}-${reservationIndex}`,
+        content: renderReservationCard(previewReservation.type, previewReservation),
+      },
+    ];
+  });
 
   return (
     <>
@@ -657,13 +679,13 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, p: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
             <Typography variant="subtitle2">
-              ไฟล์ ({previewReservations.length}/{previewReservations.length})
+              ไฟล์ ({previewCards.length}/{previewCards.length})
             </Typography>
           </Box>
           <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1, pt: 1 }}>
-            {previewReservations.map((item, index) => (
-              <Box key={index} sx={{ mb: 2 }}>
-                {renderReservationCard(item.type, item, index)}
+            {previewCards.map((card) => (
+              <Box key={card.key} sx={{ mb: 2 }}>
+                {card.content}
               </Box>
             ))}
           </Box>
