@@ -15,6 +15,7 @@ import capstone.ms.api.modules.itinerary.repositories.PendingTripmateInvitationR
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripmateRepository;
 import capstone.ms.api.modules.itinerary.dto.realtime.TripRealtimeScope;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimeLockGuard;
 import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimePublisher;
 import capstone.ms.api.modules.user.entities.User;
 import capstone.ms.api.modules.user.mappers.UserMapper;
@@ -36,6 +37,7 @@ public class TripmateService {
     private final NotificationService notificationService;
     private final TripmateMapper tripmateMapper;
     private final UserMapper userMapper;
+    private final TripRealtimeLockGuard tripRealtimeLockGuard;
     private final TripRealtimePublisher tripRealtimePublisher;
 
     public List<PendingInvitationDto> getReceivedInvitations(final User user) {
@@ -85,6 +87,8 @@ public class TripmateService {
         ) != null;
 
         if (status.equals("ACCEPTED")) {
+            tripRealtimeLockGuard.assertTripMutationAllowed(tripId, user);
+
             if (tripmateRepository.existsTripmateByTripIdAndUserId(tripId, user.getId())) {
                 throw new ConflictException("tripmate.inviteAction.409.alreadyJoined");
             }
@@ -109,6 +113,8 @@ public class TripmateService {
 
             tripRealtimePublisher.publishDataChangedAfterCommit(tripId, List.of(TripRealtimeScope.HEADER));
         } else if (!wasRejected) {
+            tripRealtimeLockGuard.assertTripMutationAllowed(tripId, user);
+
             notificationService.createNotification(
                     NotificationCode.INVITE_REJECTED.name(),
                     user,
@@ -126,6 +132,7 @@ public class TripmateService {
         if (!trip.getOwner().getId().equals(currentUser.getId())) {
             throw new ForbiddenException("tripmate.invite.403.ownerOnly");
         }
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         List<Integer> mutualFriendIds = userRepository.findMutualFriends(currentUser.getId())
                 .stream()
@@ -193,6 +200,7 @@ public class TripmateService {
         if (!invitation.getTrip().getId().equals(tripId) || !invitation.getUser().getId().equals(currentUser.getId())) {
             throw new BadRequestException("tripmate.inviteAction.400.invalidInvite");
         }
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         TripmateId id = new TripmateId();
         id.setTripId(trip.getId());
@@ -232,6 +240,7 @@ public class TripmateService {
         if (!invitation.getTrip().getId().equals(tripId) || !invitation.getUser().getId().equals(currentUser.getId())) {
             throw new BadRequestException("tripmate.inviteAction.400.invalidInvite");
         }
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         pendingTripmateInvitationRepository.delete(invitation);
 

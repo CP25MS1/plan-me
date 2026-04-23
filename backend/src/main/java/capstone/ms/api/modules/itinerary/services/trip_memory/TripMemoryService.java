@@ -13,6 +13,7 @@ import capstone.ms.api.modules.itinerary.repositories.TripAlbumRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripMemoryRepository;
 import capstone.ms.api.modules.itinerary.repositories.TripRepository;
 import capstone.ms.api.modules.itinerary.services.TripAccessService;
+import capstone.ms.api.modules.itinerary.services.realtime.TripRealtimeLockGuard;
 import capstone.ms.api.modules.user.entities.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TripMemoryService {
     private final TripAccessService tripAccessService;
+    private final TripRealtimeLockGuard tripRealtimeLockGuard;
     private final TripRepository tripRepository;
     private final TripAlbumRepository tripAlbumRepository;
     private final TripMemoryRepository tripMemoryRepository;
@@ -40,6 +42,7 @@ public class TripMemoryService {
     @Transactional
     public CreateTripMemoryResponse uploadMemories(Integer tripId, List<MultipartFile> files, User currentUser) {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
         tripMemoryPolicyService.validateUploadRequest(files);
 
         tripAlbumRepository.findByTripId(tripId).orElseThrow(() -> new NotFoundException("album.404"));
@@ -170,6 +173,7 @@ public class TripMemoryService {
     @Transactional
     public void bulkDeleteMemories(Integer tripId, List<Integer> memoryIds, User currentUser) {
         tripAccessService.assertTripmateLevelAccess(currentUser, tripId);
+        tripRealtimeLockGuard.assertTripMutationAllowed(tripId, currentUser);
 
         List<Integer> normalizedMemoryIds = tripMemoryPolicyService.normalizeAndValidateMemoryIds(memoryIds);
 

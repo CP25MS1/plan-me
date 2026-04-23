@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   Box,
   Button,
@@ -15,6 +15,10 @@ import {
 } from '@mui/material';
 import { History } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'next/navigation';
+
+import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
+import { useTripVersionMutationLock } from '@/store/selectors';
 
 import { tokens } from '@/providers/theme/design-tokens';
 
@@ -40,6 +44,13 @@ export const CreateVersionDialog = ({
   const [error, setError] = useState<string | null>(null);
 
   const [showConfirmChecklist, setShowConfirmChecklist] = useState(false);
+  const releaseRef = useRef<(() => Promise<void>) | null>(null);
+  const [isAcquiringLock, setIsAcquiringLock] = useState(false);
+
+  const { tripId } = useParams<{ tripId: string }>();
+  const tripIdAsNumber = Number(tripId);
+  const { acquireLease } = useTripLockLease(tripIdAsNumber);
+  const { lockedByOther } = useTripVersionMutationLock(tripIdAsNumber);
 
   useEffect(() => {
     if (!open) {
@@ -63,13 +74,52 @@ export const CreateVersionDialog = ({
     }
 
     if (!showConfirmChecklist) {
-      setShowConfirmChecklist(true);
+      if (lockedByOther) {
+        setError(t('version.lock.banner.hint'));
+        return;
+      }
+
+      setIsAcquiringLock(true);
+      try {
+        const res = await acquireLease({
+          resourceType: 'TRIP',
+          resourceId: tripIdAsNumber,
+          purpose: 'VERSION_CREATE',
+        });
+
+        if (res.status === 'acquired') {
+          releaseRef.current = res.release;
+          setShowConfirmChecklist(true);
+        } else {
+          setError(t('version.lock.banner.hint'));
+        }
+      } finally {
+        setIsAcquiringLock(false);
+      }
+
       return;
     }
 
     setShowConfirmChecklist(false);
-    await onConfirm(trimmedVersionName);
+    try {
+      await onConfirm(trimmedVersionName);
+    } finally {
+      if (releaseRef.current) {
+        await releaseRef.current();
+        releaseRef.current = null;
+      }
+    }
   };
+
+  useEffect(() => {
+    return () => {
+      if (releaseRef.current) {
+        void releaseRef.current();
+        releaseRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
@@ -202,8 +252,8 @@ export const CreateVersionDialog = ({
           <Button
             onClick={() => void handleConfirm()}
             variant="contained"
-            disabled={isSubmitDisabled}
-            startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : null}
+            disabled={isSubmitDisabled || isAcquiringLock}
+            startIcon={isLoading || isAcquiringLock ? <CircularProgress size={16} color="inherit" /> : null}
             sx={{
               borderRadius: 2,
               bgcolor: tokens.color.primary,
@@ -237,13 +287,23 @@ export const CreateVersionDialog = ({
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button onClick={() => setShowConfirmChecklist(false)} color="inherit">
+          <Button
+            onClick={async () => {
+              if (releaseRef.current) {
+                await releaseRef.current();
+                releaseRef.current = null;
+              }
+              setShowConfirmChecklist(false);
+            }}
+            color="inherit"
+            disabled={isAcquiringLock}
+          >
             {t('version.create.cancel')}
           </Button>
           <Button
             onClick={() => void handleConfirm()}
             variant="contained"
-            disabled={isLoading}
+            disabled={isLoading || isAcquiringLock}
             sx={{
               borderRadius: 2,
               bgcolor: tokens.color.primary,
