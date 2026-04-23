@@ -491,6 +491,28 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
 
   const selectedCount = emails.filter((email) => email.type && !email.error).length;
   const isAllSelected = emails.length > 0 && emails.every((email) => !!email.type);
+  const previewCards = editableReservations.flatMap((reservation, reservationIndex) => {
+    const previewReservation = buildReservationFromForm(
+      tripId,
+      reservation.typeValue,
+      reservation.formData!,
+      reservation.passengers
+    );
+
+    if (reservation.typeValue === 'Flight') {
+      return reservation.passengers.map((_, passengerIndex) => ({
+        key: `${reservation.key}-${passengerIndex}`,
+        content: renderReservationCard('FLIGHT', previewReservation, passengerIndex),
+      }));
+    }
+
+    return [
+      {
+        key: `${reservation.key}-${reservationIndex}`,
+        content: renderReservationCard(previewReservation.type, previewReservation),
+      },
+    ];
+  });
 
   return (
     <>
@@ -786,7 +808,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
             <Typography variant="subtitle2">
-              อีเมล ({previewReservations.length}/{previewReservations.length})
+              อีเมล ({previewCards.length}/{previewCards.length})
             </Typography>
           </Box>
           <Box
@@ -798,8 +820,8 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               gap: 2,
             }}
           >
-            {previewReservations.map((item, index) => (
-              <Box key={index}>{renderReservationCard(item.type, item, index)}</Box>
+            {previewCards.map((card) => (
+              <Box key={card.key}>{card.content}</Box>
             ))}
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
