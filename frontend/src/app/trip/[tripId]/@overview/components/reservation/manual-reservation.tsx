@@ -24,7 +24,12 @@ import { AxiosError } from 'axios';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-import { ReservationDetails, ReservationDto, ReservationType, useCreateReservation } from '@/api/reservations';
+import {
+  ReservationDetails,
+  ReservationDto,
+  ReservationType,
+  useCreateReservation,
+} from '@/api/reservations';
 import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-trip-add-presence';
 import { useTripReservations } from '@/api/trips';
 import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
@@ -38,11 +43,7 @@ interface ManualReservationProps {
   tripId: number;
 }
 
-export default function ManualReservation({
-  open,
-  onClose,
-  tripId,
-}: ManualReservationProps) {
+export default function ManualReservation({ open, onClose, tripId }: ManualReservationProps) {
   const { t } = useTranslation('trip_overview');
 
   const [typeValue, setTypeValue] = useState('');
@@ -80,7 +81,10 @@ export default function ManualReservation({
   }>({ open: false, message: '', severity: 'error' });
 
   const showErrorSnackbar = (error: unknown) => {
-    const apiMessage = error instanceof AxiosError ? error.response?.data?.message || error.response?.data?.error || error.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+    const apiMessage =
+      error instanceof AxiosError
+        ? error.response?.data?.message || error.response?.data?.error || error.message
+        : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
     setSnackbar({ open: true, message: apiMessage || 'เกิดข้อผิดพลาดบางอย่าง', severity: 'error' });
   };
 
@@ -90,7 +94,8 @@ export default function ManualReservation({
   };
 
   const addPassenger = () => setPassengers((prev) => [...prev, { passengerName: '', seatNo: '' }]);
-  const removePassenger = (index: number) => setPassengers((prev) => prev.filter((_, i) => i !== index));
+  const removePassenger = (index: number) =>
+    setPassengers((prev) => prev.filter((_, i) => i !== index));
   const handlePassengerChange = (index: number, key: 'passengerName' | 'seatNo', value: string) => {
     setPassengers((prev) => prev.map((p, i) => (i === index ? { ...p, [key]: value } : p)));
     setErrors((prev) => {
@@ -137,8 +142,13 @@ export default function ManualReservation({
   };
 
   const typeMap: Record<string, ReservationType> = {
-    Lodging: 'LODGING', Restaurant: 'RESTAURANT', Flight: 'FLIGHT',
-    Train: 'TRAIN', Bus: 'BUS', Ferry: 'FERRY', CarRental: 'CAR_RENTAL',
+    Lodging: 'LODGING',
+    Restaurant: 'RESTAURANT',
+    Flight: 'FLIGHT',
+    Train: 'TRAIN',
+    Bus: 'BUS',
+    Ferry: 'FERRY',
+    CarRental: 'CAR_RENTAL',
   };
 
   const handleConfirm = () => {
@@ -150,7 +160,10 @@ export default function ManualReservation({
     const payloadCheck: Partial<ReservationDto> = {
       type: typeMap[typeValue],
       bookingRef: formData.bookingRef,
-      details: { ...formData, type: typeMap[typeValue] } as any,
+      details: {
+        type: typeMap[typeValue],
+        ...buildDetails(typeMap[typeValue]),
+      } as ReservationDetails,
     };
 
     if (isDuplicateReservation(payloadCheck, reservations)) {
@@ -190,33 +203,52 @@ export default function ManualReservation({
 
   const buildDetails = (type: ReservationType): Record<string, unknown> => {
     if (type === 'FLIGHT') {
-      const f = formData as any;
+      const f = formData as ReservationDto & Record<string, unknown>;
       return {
-        airline: f?.airline ?? '', flightNo: f?.flightNo ?? '', boardingTime: f?.boardingTime ?? '',
-        gateNo: f?.gateNo ?? '', departureAirport: f?.departureAirport ?? '', departureTime: f?.departureTime ?? '',
-        arrivalAirport: f?.arrivalAirport ?? '', arrivalTime: f?.arrivalTime ?? '', flightClass: f?.flightClass ?? '',
-        passengers: passengers.map(p => ({ passengerName: p.passengerName, seatNo: p.seatNo })),
+        airline: f?.airline ?? '',
+        flightNo: f?.flightNo ?? '',
+        boardingTime: f?.boardingTime ?? '',
+        gateNo: f?.gateNo ?? '',
+        departureAirport: f?.departureAirport ?? '',
+        departureTime: f?.departureTime ?? '',
+        arrivalAirport: f?.arrivalAirport ?? '',
+        arrivalTime: f?.arrivalTime ?? '',
+        flightClass: f?.flightClass ?? '',
+        passengers: passengers.map((p) => ({ passengerName: p.passengerName, seatNo: p.seatNo })),
       };
     }
-    const f = formData as any;
-    return fieldsByType[typeValue].reduce((acc, field) => {
-      acc[field.name] = f?.[field.name] ?? '';
-      return acc;
-    }, {} as Record<string, any>);
+    const f = formData as ReservationDto & Record<string, unknown>;
+    return fieldsByType[typeValue].reduce(
+      (acc, field) => {
+        acc[field.name] = f?.[field.name] ?? '';
+        return acc;
+      },
+      {} as Record<string, unknown>
+    );
   };
 
   const icons = {
-    Lodging: <Building size={18} color="#25CF7A" />, Restaurant: <Utensils size={18} color="#25CF7A" />,
-    Flight: <Plane size={18} color="#25CF7A" />, Train: <Train size={18} color="#25CF7A" />,
-    Bus: <Bus size={18} color="#25CF7A" />, Ferry: <Ship size={18} color="#25CF7A" />, CarRental: <Car size={18} color="#25CF7A" />,
+    Lodging: <Building size={18} color="#25CF7A" />,
+    Restaurant: <Utensils size={18} color="#25CF7A" />,
+    Flight: <Plane size={18} color="#25CF7A" />,
+    Train: <Train size={18} color="#25CF7A" />,
+    Bus: <Bus size={18} color="#25CF7A" />,
+    Ferry: <Ship size={18} color="#25CF7A" />,
+    CarRental: <Car size={18} color="#25CF7A" />,
   };
 
   return (
     <>
-      <Dialog open={open && !showPreview} fullWidth PaperProps={{ sx: { width: '420px', borderRadius: 3, p: 1 } }}>
+      <Dialog
+        open={open && !showPreview}
+        fullWidth
+        PaperProps={{ sx: { width: '420px', borderRadius: 3, p: 1 } }}
+      >
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, pb: 1 }}>
           {t('ManualReservation.title')}
-          <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}><X size={18} /></IconButton>
+          <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+            <X size={18} />
+          </IconButton>
         </DialogTitle>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DialogContent sx={{ pt: 0 }}>
@@ -225,27 +257,76 @@ export default function ManualReservation({
                 value={typeValue}
                 onChange={(e) => {
                   setTypeValue(e.target.value);
-                  setFormData(null); setErrors({}); setPassengers([{ passengerName: '', seatNo: '' }]);
+                  setFormData(null);
+                  setErrors({});
+                  setPassengers([{ passengerName: '', seatNo: '' }]);
                 }}
                 displayEmpty
-                sx={{ borderRadius: 2, '& .MuiSelect-displayEmpty': { color: typeValue ? 'inherit' : 'grey.500' } }}
-                renderValue={(selected) => selected ? (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>{icons[selected as keyof typeof icons]} {t(`ManualReservation.Type.${selected}`)}</Box>
-                ) : t('ManualReservation.placeholder')}
+                sx={{
+                  borderRadius: 2,
+                  '& .MuiSelect-displayEmpty': { color: typeValue ? 'inherit' : 'grey.500' },
+                }}
+                renderValue={(selected) =>
+                  selected ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {icons[selected as keyof typeof icons]}{' '}
+                      {t(`ManualReservation.Type.${selected}`)}
+                    </Box>
+                  ) : (
+                    t('ManualReservation.placeholder')
+                  )
+                }
               >
                 {Object.keys(fieldsByType).map((type) => {
-                  const IconComp = { Lodging: Building, Restaurant: Utensils, Flight: Plane, Train: Train, Bus: Bus, Ferry: Ship, CarRental: Car }[type] as ElementType;
-                  return <MenuItem key={type} value={type} className="flex items-center gap-3"><IconComp size={18} color="#25CF7A" /> {t(`ManualReservation.Type.${type}`)}</MenuItem>;
+                  const IconComp = {
+                    Lodging: Building,
+                    Restaurant: Utensils,
+                    Flight: Plane,
+                    Train: Train,
+                    Bus: Bus,
+                    Ferry: Ship,
+                    CarRental: Car,
+                  }[type] as ElementType;
+                  return (
+                    <MenuItem key={type} value={type} className="flex items-center gap-3">
+                      <IconComp size={18} color="#25CF7A" /> {t(`ManualReservation.Type.${type}`)}
+                    </MenuItem>
+                  );
                 })}
               </Select>
             </FormControl>
 
-            <DynamicReservationFields typeValue={typeValue} formData={formData} errors={errors} handleChange={handleChange} fieldsRef={fieldsRef} />
-            <FlightPassengerFields typeValue={typeValue} passengers={passengers} errors={errors} handlePassengerChange={handlePassengerChange} removePassenger={removePassenger} addPassenger={addPassenger} />
+            <DynamicReservationFields
+              typeValue={typeValue}
+              formData={formData}
+              errors={errors}
+              handleChange={handleChange}
+              fieldsRef={fieldsRef}
+            />
+            <FlightPassengerFields
+              typeValue={typeValue}
+              passengers={passengers}
+              errors={errors}
+              handlePassengerChange={handlePassengerChange}
+              removePassenger={removePassenger}
+              addPassenger={addPassenger}
+            />
 
             <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pb: 6, mt: 2 }}>
-              <Button variant="contained" onClick={handlePreview} startIcon={<Eye size={18} />}
-                sx={{ borderRadius: 5, px: 3, textTransform: 'none', boxShadow: 'none', color: '#fff', bgcolor: typeValue ? '#25CF7A' : '#B0B0B0', pointerEvents: typeValue ? 'auto' : 'none' }}>
+              <Button
+                variant="contained"
+                onClick={handlePreview}
+                startIcon={<Eye size={18} />}
+                sx={{
+                  borderRadius: 5,
+                  px: 3,
+                  textTransform: 'none',
+                  boxShadow: 'none',
+                  color: '#fff',
+                  bgcolor: typeValue ? '#25CF7A' : '#B0B0B0',
+                  pointerEvents: typeValue ? 'auto' : 'none',
+                }}
+              >
                 {t('ManualReservation.Button')}
               </Button>
             </Box>
@@ -253,29 +334,82 @@ export default function ManualReservation({
         </LocalizationProvider>
       </Dialog>
 
-      <Dialog open={showPreview} onClose={() => setShowPreview(false)} fullWidth PaperProps={{ sx: { width: '420px', borderRadius: 3, p: 1 } }}>
+      <Dialog
+        open={showPreview}
+        onClose={() => setShowPreview(false)}
+        fullWidth
+        PaperProps={{ sx: { width: '420px', borderRadius: 3, p: 1 } }}
+      >
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, pb: 1, position: 'relative' }}>
-          <Box sx={{ position: 'absolute', left: 8, top: 8 }}><BackButton onBack={() => setShowPreview(false)} /></Box>
+          <Box sx={{ position: 'absolute', left: 8, top: 8 }}>
+            <BackButton onBack={() => setShowPreview(false)} />
+          </Box>
           ตัวอย่างข้อมูลการจอง
         </DialogTitle>
-        <DialogContent sx={{ pt: 0, maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {typeValue === 'Flight' ? passengers.map((_, i) => renderReservationCard(typeValue, { ...formData, type: 'FLIGHT', details: { type: 'FLIGHT', ...buildDetails('FLIGHT') } }, i)) : renderReservationCard(typeValue, formData)}
+        <DialogContent
+          sx={{
+            pt: 0,
+            maxHeight: '400px',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+          }}
+        >
+          {typeValue === 'Flight'
+            ? passengers.map((_, i) =>
+                renderReservationCard(
+                  typeValue,
+                  {
+                    ...formData,
+                    type: 'FLIGHT',
+                    details: {
+                      type: 'FLIGHT',
+                      ...buildDetails('FLIGHT'),
+                    },
+                  } as ReservationDto,
+                  i
+                )
+              )
+            : renderReservationCard(typeValue, formData)}
         </DialogContent>
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pb: 1, mt: 1 }}>
-          <Button variant="contained" onClick={handleConfirm} disabled={createReservation.isPending} sx={{ borderRadius: 5, px: 3, bgcolor: '#25CF7A' }}>
-            {createReservation.isPending ? <CircularProgress size={20} color="inherit" /> : 'ยืนยัน'}
+          <Button
+            variant="contained"
+            onClick={handleConfirm}
+            disabled={createReservation.isPending}
+            sx={{ borderRadius: 5, px: 3, bgcolor: '#25CF7A' }}
+          >
+            {createReservation.isPending ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              'ยืนยัน'
+            )}
           </Button>
         </Box>
       </Dialog>
 
-      <AppSnackbar open={snackbar.open} message={snackbar.message} severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} />
+      <AppSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+      />
 
-      <ConfirmDialog open={showDuplicateWarning} onClose={() => setShowDuplicateWarning(false)}
-        onConfirm={() => { setShowDuplicateWarning(false); proceedConfirm(); }}
-        confirmLoading={createReservation.isPending} color="warning"
+      <ConfirmDialog
+        open={showDuplicateWarning}
+        onClose={() => setShowDuplicateWarning(false)}
+        onConfirm={() => {
+          setShowDuplicateWarning(false);
+          proceedConfirm();
+        }}
+        confirmLoading={createReservation.isPending}
+        color="warning"
         content={
           <Box>
-            <Typography variant="h6" fontWeight={600} mb={1}>{t('ManualReservation.duplicateWarning.title')}</Typography>
+            <Typography variant="h6" fontWeight={600} mb={1}>
+              {t('ManualReservation.duplicateWarning.title')}
+            </Typography>
             <Typography>{t('ManualReservation.duplicateWarning.message')}</Typography>
           </Box>
         }
