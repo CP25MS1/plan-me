@@ -129,12 +129,15 @@ const TripLayout = ({ overview, daily, budget, checklist, map, params }: TripLay
             style={{
               pointerEvents: lockedByOther ? 'none' : undefined,
               opacity: lockedByOther ? 0.6 : 1,
+              marginBottom: 8,
             }}
           >
             <OverviewHeader tripOverview={tripOverviewProps} />
+          </div>
 
-            <OverviewTabs value={tabValue} onChange={handleTabChange} />
+          <OverviewTabs value={tabValue} onChange={handleTabChange} />
 
+          <div style={{ pointerEvents: lockedByOther ? 'none' : undefined, opacity: lockedByOther ? 0.6 : 1 }}>
             <TripTabPanel value={tabValue} index={0}>
               {overview}
             </TripTabPanel>
