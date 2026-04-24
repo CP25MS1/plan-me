@@ -73,8 +73,8 @@
   "Reservation": {
     "typeMismatchWarning": "Detected content may not match selected type",
     "extractionLoading": {
-      "title": "Extracting reservation info...",
-      "description": "Analyzing your content. Please wait a moment."
+      "title": "Analyzing information...",
+      "description": "Analyzing the content. Please wait a moment."
     }
   },
   "template": {
