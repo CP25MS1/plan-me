@@ -47,19 +47,21 @@ public class FileReservationExtractorService {
         List<ReservationDto> results = new ArrayList<>();
         for (int i = 0; i < files.size(); i++) {
             MultipartFile file = files.get(i);
-            ReservationType type = ReservationType.valueOf(types.get(i).toUpperCase());
+            String typeStr = types.get(i).toUpperCase();
+            ReservationType type = ReservationType.valueOf(typeStr);
+            String filename = file.getOriginalFilename();
 
             try {
                 byte[] fileBytes = file.getBytes();
-                String filename = file.getOriginalFilename();
-
                 ReservationDto dto = previewSingleFile(fileBytes, filename, type, tripId);
                 results.add(dto);
 
-            } catch (BadRequestException | ServerErrorException e) {
-                throw e;
-            } catch (IOException e) {
-                throw new ServerErrorException("reservation.file.500");
+            } catch (Exception e) {
+                log.error("Failed to preview file={}: {}", filename, e.getMessage());
+                ReservationDto fallback = reservationMapper.emptyReservationForType(typeStr);
+                fallback.setTripId(tripId);
+                fallback.setTypeMismatch(true);
+                results.add(fallback);
             }
         }
         return results;
@@ -109,25 +111,34 @@ public class FileReservationExtractorService {
     }
 
     private ReservationDto previewSingleFile(byte[] fileBytes, String filename, ReservationType type, Integer tripId) {
-        String ocrText = typhoonService.ocr(fileBytes, filename);
-        // If OCR failed, return an empty DTO for the requested type so frontend can edit
-        if (ocrText == null || ocrText.isBlank()) {
-            log.warn("OCR returned empty text for file={}", filename);
-            ReservationDto fallback = reservationMapper.emptyReservationForType(type.name());
-            fallback.setTripId(tripId);
-            fallback.setTypeMismatch(true);
-            return fallback;
-        }
-
-        String llmResult = callTyphoon(ocrText, type.name());
-        log.info("Typhoon raw response: {}", llmResult);
-
-        // Try to map LLM result. On any mapping/parsing error return fallback DTO instead of 500.
         try {
+            String ocrText = typhoonService.ocr(fileBytes, filename);
+            // If OCR failed, return an empty DTO for the requested type so frontend can edit
+            if (ocrText == null || ocrText.isBlank()) {
+                log.warn("OCR returned empty text for file={}", filename);
+                ReservationDto fallback = reservationMapper.emptyReservationForType(type.name());
+                fallback.setTripId(tripId);
+                fallback.setTypeMismatch(true);
+                return fallback;
+            }
+
+            String llmResult = callTyphoon(ocrText, type.name());
+            log.info("Typhoon raw response: {}", llmResult);
+
+            // Try to map LLM result. On any mapping/parsing error return fallback DTO instead of 500.
             MappedReservationResponse mapped = objectMapper.readValue(llmResult, MappedReservationResponse.class);
 
             ReservationDto dto = reservationMapper.toReservationDto(mapped);
             dto.setTripId(tripId);
+
+            // Ensure requested type is present if LLM failed to return data
+            if (dto.getType() == null) {
+                dto.setType(type.name());
+            }
+            if (dto.getDetails() == null) {
+                ReservationDto fallback = reservationMapper.emptyReservationForType(type.name());
+                dto.setDetails(fallback.getDetails());
+            }
 
             // Do not throw on validation failures for preview - return DTO so user can edit.
             if (!validationService.isReservationValid(dto)) {
@@ -137,7 +148,7 @@ public class FileReservationExtractorService {
             return dto;
 
         } catch (Exception e) {
-            log.warn("Mapping/parsing failed for file={}, error={}", filename, e.getMessage());
+            log.warn("Extraction/Mapping failed for file={}, error={}", filename, e.getMessage());
             ReservationDto fallback = reservationMapper.emptyReservationForType(type.name());
             fallback.setTripId(tripId);
             fallback.setTypeMismatch(true);
