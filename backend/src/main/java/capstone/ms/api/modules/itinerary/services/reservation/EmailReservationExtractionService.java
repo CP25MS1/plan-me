@@ -165,11 +165,6 @@ public class EmailReservationExtractionService {
                         ReservationDto dto = reservationMapper.toReservationDto(mapped);
                         dto.setTripId(tripId);
 
-                        if (mapped.getData() != null && mapped.getData().getType() != null
-                                        && !mapped.getData().getType().equalsIgnoreCase(requestedType)) {
-                                dto.setTypeMismatch(true);
-                        }
-
                         log.info("Mapped reservation: type={}, tripId={}", dto.getType(), tripId);
 
                         return dto;

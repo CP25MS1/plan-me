@@ -71,7 +71,11 @@
     "Button": "preview"
   },
   "Reservation": {
-    "typeMismatchWarning": "Detected content may not match selected type"
+    "typeMismatchWarning": "Detected content may not match selected type",
+    "extractionLoading": {
+      "title": "Extracting reservation info...",
+      "description": "AI is analyzing your content and images. Please wait a moment."
+    }
   },
   "template": {
     "header": {

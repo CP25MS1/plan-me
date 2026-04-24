@@ -42,6 +42,7 @@ import { useTripReservations } from '@/api/trips';
 import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
 import DynamicReservationFields from './shared/dynamic-reservation-fields';
 import FlightPassengerFields from './shared/flight-passenger-fields';
+import ExtractionLoading from './shared/extraction-loading';
 import {
   buildReservationFromForm,
   getFlightPassengers,
@@ -55,6 +56,8 @@ import {
 } from './shared/reservation-utils';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+
+// ... (rest of the file remains same until DialogContent)
 
 interface UploadReservationProps {
   open: boolean;
@@ -431,117 +434,125 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, p: 2 }}>
-          {files.length === 0 ? (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                cursor: 'pointer',
-                py: 4,
-                flexGrow: 1,
-              }}
-              onClick={() => document.getElementById('upload-input')?.click()}
-            >
-              <input
-                id="upload-input"
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg"
-                style={{ display: 'none' }}
-                multiple
-                onChange={handleFilesChange}
-              />
-              <Upload size={50} color="#9e9e9e" />
-              <Typography sx={{ fontWeight: 600 }}>กดเพื่ออัพโหลดไฟล์</Typography>
-              <Typography sx={{ fontSize: 14, color: 'text.disabled' }}>
-                รองรับไฟล์ประเภท .pdf, .png, .jpg
-              </Typography>
+          {isPreviewing ? (
+            <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <ExtractionLoading />
             </Box>
           ) : (
             <>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-                <Typography variant="subtitle2">
-                  ไฟล์ ({selectedCount}/{files.length})
-                </Typography>
-              </Box>
-              <Box ref={containerRef} sx={{ flexGrow: 1, overflowY: 'auto' }}>
-                {files.map((item, index) => (
-                  <Box
-                    key={`${item.file.name}-${index}`}
-                    sx={{
-                      border: item.error ? '2px solid red' : '1px solid grey',
-                      borderRadius: 2,
-                      p: 2,
-                      mb: 2,
-                      position: 'relative',
-                    }}
-                  >
-                    <IconButton
-                      onClick={() =>
-                        setFiles((prev) => prev.filter((_, fileIndex) => fileIndex !== index))
-                      }
-                      disabled={isPreviewing}
-                      sx={{ position: 'absolute', right: 0, top: 0 }}
-                      size="small"
-                    >
-                      <Trash2 size={18} />
-                    </IconButton>
-                    <Typography sx={{ mb: 1 }}>{item.file.name}</Typography>
-                    <Typography sx={{ fontSize: 12, color: 'green', mb: 1 }}>
-                      ขนาด: {(item.file.size / (1024 * 1024)).toFixed(2)} MB | ไฟล์อัพโหลดสมบูรณ์
+              {files.length === 0 ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    py: 4,
+                    flexGrow: 1,
+                  }}
+                  onClick={() => document.getElementById('upload-input')?.click()}
+                >
+                  <input
+                    id="upload-input"
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    style={{ display: 'none' }}
+                    multiple
+                    onChange={handleFilesChange}
+                  />
+                  <Upload size={50} color="#9e9e9e" />
+                  <Typography sx={{ fontWeight: 600 }}>กดเพื่ออัพโหลดไฟล์</Typography>
+                  <Typography sx={{ fontSize: 14, color: 'text.disabled' }}>
+                    รองรับไฟล์ประเภท .pdf, .png, .jpg
+                  </Typography>
+                </Box>
+              ) : (
+                <>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+                    <Typography variant="subtitle2">
+                      ไฟล์ ({selectedCount}/{files.length})
                     </Typography>
-                    <FormControl fullWidth>
-                      <Select
-                        value={item.type}
-                        displayEmpty
-                        onChange={(e) =>
-                          setFiles((prev) =>
-                            prev.map((file, fileIndex) =>
-                              fileIndex === index
-                                ? { ...file, type: e.target.value as ReservationType, error: false }
-                                : file
-                            )
-                          )
-                        }
-                        error={item.error}
-                        renderValue={(selected) => {
-                          if (!selected) return t('UploadReservation.placeholder');
-                          const Icon = typeIcons[selected as ReservationType];
-                          return (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Icon size={18} color="#25CF7A" />
-                              {t(`UploadReservation.Type.${selected}`)}
-                            </Box>
-                          );
+                  </Box>
+                  <Box ref={containerRef} sx={{ flexGrow: 1, overflowY: 'auto' }}>
+                    {files.map((item, index) => (
+                      <Box
+                        key={`${item.file.name}-${index}`}
+                        sx={{
+                          border: item.error ? '2px solid red' : '1px solid grey',
+                          borderRadius: 2,
+                          p: 2,
+                          mb: 2,
+                          position: 'relative',
                         }}
                       >
-                        {types.map((type) => (
-                          <MenuItem key={type} value={type}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                              {((Icon) => <Icon size={18} color="#25CF7A" />)(typeIcons[type])}
-                              {t(`UploadReservation.Type.${type}`)}
-                            </Box>
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                        <IconButton
+                          onClick={() =>
+                            setFiles((prev) => prev.filter((_, fileIndex) => fileIndex !== index))
+                          }
+                          disabled={isPreviewing}
+                          sx={{ position: 'absolute', right: 0, top: 0 }}
+                          size="small"
+                        >
+                          <Trash2 size={18} />
+                        </IconButton>
+                        <Typography sx={{ mb: 1 }}>{item.file.name}</Typography>
+                        <Typography sx={{ fontSize: 12, color: 'green', mb: 1 }}>
+                          ขนาด: {(item.file.size / (1024 * 1024)).toFixed(2)} MB | ไฟล์อัพโหลดสมบูรณ์
+                        </Typography>
+                        <FormControl fullWidth>
+                          <Select
+                            value={item.type}
+                            displayEmpty
+                            onChange={(e) =>
+                              setFiles((prev) =>
+                                prev.map((file, fileIndex) =>
+                                  fileIndex === index
+                                    ? { ...file, type: e.target.value as ReservationType, error: false }
+                                    : file
+                                )
+                              )
+                            }
+                            error={item.error}
+                            renderValue={(selected) => {
+                              if (!selected) return t('UploadReservation.placeholder');
+                              const Icon = typeIcons[selected as ReservationType];
+                              return (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Icon size={18} color="#25CF7A" />
+                                  {t(`UploadReservation.Type.${selected}`)}
+                                </Box>
+                              );
+                            }}
+                          >
+                            {types.map((type) => (
+                              <MenuItem key={type} value={type}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                  {((Icon) => <Icon size={18} color="#25CF7A" />)(typeIcons[type])}
+                                  {t(`UploadReservation.Type.${type}`)}
+                                </Box>
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    ))}
                   </Box>
-                ))}
+                </>
+              )}
+              <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center', pb: 1 }}>
+                <Button
+                  variant="contained"
+                  startIcon={<Eye size={18} />}
+                  onClick={handleFetchPreviewData}
+                  disabled={!isAllSelected || isPreviewing}
+                  sx={{ bgcolor: isAllSelected ? '#25CF7A' : 'grey.400', minWidth: 150 }}
+                >
+                  แสดงตัวอย่าง
+                </Button>
               </Box>
             </>
           )}
-          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center', pb: 1 }}>
-            <Button
-              variant="contained"
-              startIcon={!isPreviewing && <Eye size={18} />}
-              onClick={handleFetchPreviewData}
-              disabled={!isAllSelected || isPreviewing}
-              sx={{ bgcolor: isAllSelected ? '#25CF7A' : 'grey.400', minWidth: 150 }}
-            >
-              {isPreviewing ? <CircularProgress size={20} color="inherit" /> : 'แสดงตัวอย่าง'}
-            </Button>
-          </Box>
         </DialogContent>
       </Dialog>
 
