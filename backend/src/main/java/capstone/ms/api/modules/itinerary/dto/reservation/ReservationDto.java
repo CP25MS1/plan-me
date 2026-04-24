@@ -34,4 +34,10 @@ public class ReservationDto {
 
     @Valid
     private ReservationDetails details;
+
+    /**
+     * Optional flag returned for preview endpoints indicating the extracted content
+     * does not match the user-selected reservation `type` or parsing/ocr failed.
+     */
+    private Boolean typeMismatch;
 }

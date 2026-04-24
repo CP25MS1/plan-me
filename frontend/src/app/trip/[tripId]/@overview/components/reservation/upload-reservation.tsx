@@ -351,14 +351,15 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
     if (!validateEditableReservations()) return;
 
     setPreviewReservations(
-      editableReservations.map((reservation) =>
-        buildReservationFromForm(
+      editableReservations.map((reservation) => ({
+        ...buildReservationFromForm(
           tripId,
           reservation.typeValue,
           reservation.formData!,
           reservation.passengers
-        )
-      )
+        ),
+        typeMismatch: reservation.formData?.typeMismatch ?? false,
+      }))
     );
     setStep('preview');
   };
@@ -622,6 +623,14 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                         </Typography>
                       </Box>
                     </Box>
+
+                    {reservation.formData?.typeMismatch && (
+                      <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1, mb: 1 }}>
+                        <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
+                          {t('Reservation.typeMismatchWarning')}
+                        </Typography>
+                      </Box>
+                    )}
 
                     <DynamicReservationFields
                       typeValue={reservation.typeValue}

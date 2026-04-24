@@ -2,6 +2,7 @@
 
 import { CarRentalDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { Car } from 'lucide-react';
 import { formatCurrencyTHB } from '@/lib/string';
 
@@ -14,6 +15,7 @@ const formatTime = (date: string) =>
     : '-';
 
 export default function CarRentalCard({ data }: { data: ReservationDto | null }) {
+  const { t } = useTranslation('trip_overview');
   const carRentalDetails =
     (data?.details as CarRentalDetails | undefined) ?? (data as unknown as CarRentalDetails);
 
@@ -71,6 +73,13 @@ export default function CarRentalCard({ data }: { data: ReservationDto | null })
         gap: 0.6,
       }}
     >
+        {data?.typeMismatch && (
+          <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}>
+            <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
+              {t('Reservation.typeMismatchWarning')}
+            </Typography>
+          </Box>
+        )}
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
