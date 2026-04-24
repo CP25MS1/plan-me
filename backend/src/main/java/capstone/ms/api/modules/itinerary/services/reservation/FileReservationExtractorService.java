@@ -110,33 +110,45 @@ public class FileReservationExtractorService {
 
     private ReservationDto previewSingleFile(byte[] fileBytes, String filename, ReservationType type, Integer tripId) {
         String ocrText = typhoonService.ocr(fileBytes, filename);
-
+        // If OCR failed, return an empty DTO for the requested type so frontend can edit
         if (ocrText == null || ocrText.isBlank()) {
-            throw new ServerErrorException("reservation.file.500", "reservation.500.file.ocrFailed");
+            log.warn("OCR returned empty text for file={}", filename);
+            ReservationDto fallback = reservationMapper.emptyReservationForType(type.name());
+            fallback.setTripId(tripId);
+            fallback.setTypeMismatch(true);
+            return fallback;
         }
 
         String llmResult = callTyphoon(ocrText, type.name());
         log.info("Typhoon raw response: {}", llmResult);
 
-        ReservationDto dto;
+        // Try to map LLM result. On any mapping/parsing error return fallback DTO instead of 500.
         try {
             MappedReservationResponse mapped = objectMapper.readValue(llmResult, MappedReservationResponse.class);
 
-            dto = reservationMapper.toReservationDto(mapped);
+            ReservationDto dto = reservationMapper.toReservationDto(mapped);
             dto.setTripId(tripId);
 
-        } catch (BadRequestException e) {
-            throw e;
+            // If LLM reported a different type, mark it as a type mismatch so UI can warn the user.
+            if (mapped.getData() != null && mapped.getData().getType() != null
+                    && !type.name().equalsIgnoreCase(mapped.getData().getType())) {
+                dto.setTypeMismatch(true);
+            }
+
+            // Do not throw on validation failures for preview - return DTO so user can edit.
+            if (!validationService.isReservationValid(dto)) {
+                log.info("Mapped reservation failed validation but will be returned for user edit: file={}, type={}", filename, type.name());
+            }
+
+            return dto;
 
         } catch (Exception e) {
-            throw new ServerErrorException("reservation.file.500", "reservation.500.file.mapFailed");
+            log.warn("Mapping/parsing failed for file={}, error={}", filename, e.getMessage());
+            ReservationDto fallback = reservationMapper.emptyReservationForType(type.name());
+            fallback.setTripId(tripId);
+            fallback.setTypeMismatch(true);
+            return fallback;
         }
-
-        if (!validationService.isReservationValid(dto)) {
-            throw new ServerErrorException("reservation.file.500", "reservation.500.file.invalidOrNotMatched");
-        }
-
-        return dto;
     }
 
     private String callTyphoon(String input, String reservationType) {

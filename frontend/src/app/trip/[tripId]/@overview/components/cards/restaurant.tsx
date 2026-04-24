@@ -3,6 +3,7 @@
 import { ReservationDto, RestaurantDetails } from '@/api/reservations';
 import { Box, Typography, Divider, Tooltip, Stack } from '@mui/material';
 import { Utensils, Phone, Mail, UserRound, Clock, Table, Ticket, Users } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { formatCurrencyTHB } from '@/lib/string';
 
 const formatDate = (datetime: string) => {
@@ -17,6 +18,7 @@ const formatTime = (time?: string) => {
 };
 
 export default function RestaurantCard({ data }: { data: ReservationDto | null }) {
+  const { t } = useTranslation('trip_overview');
   const restaurantDetails =
     (data?.details as RestaurantDetails | undefined) ?? (data as unknown as RestaurantDetails);
 
@@ -49,6 +51,13 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
         boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
       }}
     >
+      {data?.typeMismatch && (
+        <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}>
+          <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
+            {t('Reservation.typeMismatchWarning')}
+          </Typography>
+        </Box>
+      )}
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>

@@ -96,6 +96,9 @@
     },
     "Button": "แสดงตัวอย่าง"
   },
+  "Reservation": {
+    "typeMismatchWarning": "ข้อมูลที่ตรวจพบอาจไม่ตรงกับประเภทที่เลือก"
+  },
   "template": {
     "header": {
       "objectives": {

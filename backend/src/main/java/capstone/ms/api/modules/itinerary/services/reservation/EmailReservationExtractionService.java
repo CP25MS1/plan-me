@@ -102,7 +102,7 @@ public class EmailReservationExtractionService {
     ) {
         String llmResult = callTyphoon(emailText, reservationType);
         log.info("Typhoon raw response: {}", llmResult);
-        return mapToReservationOrThrow(llmResult, tripId);
+                return mapToReservationOrFallback(llmResult, tripId, reservationType);
     }
 
     private ReservationDto parseFromAttachmentsFallback(
@@ -126,11 +126,12 @@ public class EmailReservationExtractionService {
                 tripId
         );
 
-        if (!validationService.isReservationValid(mergedResult)) {
-            throw new ServerErrorException("reservation.email.500");
-        }
+                // Do not throw on validation failures for preview flows; return merged result so user can edit.
+                if (!validationService.isReservationValid(mergedResult)) {
+                        log.info("Merged email+attachment result failed validation but will be returned for user edit: emailId={}, type={}", emailId, reservationType);
+                }
 
-        return mergedResult;
+                return mergedResult;
     }
 
     private String callTyphoon(String input, String reservationType) {
@@ -157,26 +158,30 @@ public class EmailReservationExtractionService {
                 .collect(Collectors.joining("\n"));
     }
 
-    private ReservationDto mapToReservationOrThrow(String source, Integer tripId) {
-        try {
-            MappedReservationResponse mapped =
-                    objectMapper.readValue(source, MappedReservationResponse.class);
+        private ReservationDto mapToReservationOrFallback(String source, Integer tripId, String requestedType) {
+                try {
+                        MappedReservationResponse mapped = objectMapper.readValue(source, MappedReservationResponse.class);
 
-            ReservationDto dto = reservationMapper.toReservationDto(mapped);
-            dto.setTripId(tripId);
+                        ReservationDto dto = reservationMapper.toReservationDto(mapped);
+                        dto.setTripId(tripId);
 
-            log.info(
-                    "Mapped reservation: type={}, tripId={}",
-                    dto.getType(),
-                    tripId
-            );
+                        if (mapped.getData() != null && mapped.getData().getType() != null
+                                        && !mapped.getData().getType().equalsIgnoreCase(requestedType)) {
+                                dto.setTypeMismatch(true);
+                        }
 
-            return dto;
+                        log.info("Mapped reservation: type={}, tripId={}", dto.getType(), tripId);
 
-        } catch (JsonProcessingException e) {
-            throw new ServerErrorException("reservation.email.500");
+                        return dto;
+
+                } catch (JsonProcessingException e) {
+                        log.warn("Failed to parse mapped reservation for email; returning fallback: {}", e.getMessage());
+                        ReservationDto fallback = reservationMapper.emptyReservationForType(requestedType);
+                        fallback.setTripId(tripId);
+                        fallback.setTypeMismatch(true);
+                        return fallback;
+                }
         }
-    }
 
     private Map<Integer, Message> fetchMessages(List<ReservationPreviewRequest> requests) {
         List<Integer> emailIds = requests.stream()
