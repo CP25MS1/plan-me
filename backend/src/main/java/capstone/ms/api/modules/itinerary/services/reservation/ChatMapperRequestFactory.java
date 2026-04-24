@@ -72,7 +72,7 @@ public class ChatMapperRequestFactory {
                 .model("typhoon-v2.5-30b-a3b-instruct")
                 .messages(List.of(systemInstruction, userInstruction))
                 .temperature(0.1)
-                .maxTokens(2000)
+                .maxTokens(8000)
                 .topP(0.8)
                 .frequencyPenalty(0.0)
                 .build();
