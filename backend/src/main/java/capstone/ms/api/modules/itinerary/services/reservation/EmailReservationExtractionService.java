@@ -74,25 +74,34 @@ public class EmailReservationExtractionService {
         Integer emailId = request.getEmailId();
         String reservationType = request.getType().toString().toUpperCase();
 
-        Message message = requireMessage(emailId, messages);
-        String emailBody = emailParser.getTextFromMessage(message);
+        try {
+            Message message = requireMessage(emailId, messages);
+            String emailBody = emailParser.getTextFromMessage(message);
 
-        ReservationDto reservation = parseFromEmailBody(
-                emailBody,
-                reservationType,
-                tripId
-        );
-
-        if (!validationService.isReservationValid(reservation)) {
-            reservation = parseFromAttachmentsFallback(
-                    emailId,
-                    reservation,
+            ReservationDto reservation = parseFromEmailBody(
+                    emailBody,
                     reservationType,
                     tripId
             );
-        }
 
-        return reservation;
+            if (!validationService.isReservationValid(reservation)) {
+                reservation = parseFromAttachmentsFallback(
+                        emailId,
+                        reservation,
+                        reservationType,
+                        tripId
+                );
+            }
+
+            return reservation;
+
+        } catch (Exception e) {
+            log.warn("Email extraction failed for emailId={}, error={}", emailId, e.getMessage());
+            ReservationDto fallback = reservationMapper.emptyReservationForType(reservationType);
+            fallback.setTripId(tripId);
+            fallback.setTypeMismatch(true);
+            return fallback;
+        }
     }
 
     private ReservationDto parseFromEmailBody(
@@ -164,6 +173,15 @@ public class EmailReservationExtractionService {
 
                         ReservationDto dto = reservationMapper.toReservationDto(mapped);
                         dto.setTripId(tripId);
+
+                        // Ensure requested type is present if LLM failed to return data
+                        if (dto.getType() == null) {
+                            dto.setType(requestedType);
+                        }
+                        if (dto.getDetails() == null) {
+                            ReservationDto fallback = reservationMapper.emptyReservationForType(requestedType);
+                            dto.setDetails(fallback.getDetails());
+                        }
 
                         log.info("Mapped reservation: type={}, tripId={}", dto.getType(), tripId);
 
