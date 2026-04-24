@@ -176,7 +176,10 @@ const TripOverviewPage = () => {
           title={t('sectionCard.reservation.title')}
           asEmpty={!hasReservation}
           titleEndAdornment={
-            <SectionPresenceGroup users={reservationUsers} dialogTitle="กำลังใช้งาน: Reservation" />
+            <SectionPresenceGroup
+              users={reservationUsers}
+              dialogTitle={t('presence.in_section', { section: t('sectionCard.reservation.title') })}
+            />
           }
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -366,7 +369,10 @@ const TripOverviewPage = () => {
           title={t('sectionCard.wishlistPlace.title')}
           asEmpty={!wishlistPlaces.length}
           titleEndAdornment={
-            <SectionPresenceGroup users={wishlistUsers} dialogTitle="กำลังใช้งาน: Wishlist" />
+            <SectionPresenceGroup
+              users={wishlistUsers}
+              dialogTitle={t('presence.in_section', { section: t('sectionCard.wishlistPlace.title') })}
+            />
           }
         >
           {wishlistPlaces.length && !isWishlistPlaceDialogOpened ? (
@@ -429,8 +435,8 @@ const TripOverviewPage = () => {
         onConfirm={handleConfirmDelete}
         confirmLoading={isPending}
         color="error"
-        content={<Typography>คุณต้องการลบข้อมูลการจองนี้ใช่หรือไม่?</Typography>}
-        confirmLabel={'ลบข้อมูลการจอง'}
+        content={<Typography>{t('sectionCard.reservation.delete.confirm_message')}</Typography>}
+        confirmLabel={'sectionCard.reservation.delete.confirm_label'}
       />
 
       <WishlistPlaceDetailsDialog

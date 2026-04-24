@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Box, Container, IconButton, Tab, Tabs, Typography } from '@mui/material';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 import { NotificationItem } from './components/notification-item';
 import { EmptyState } from './components/empty-state';
@@ -16,6 +17,7 @@ type Filter = 'ALL' | 'UNREAD';
 
 const NotificationPage = () => {
   const router = useRouter();
+  const { t } = useTranslation('common');
 
   useGetMyReceivedInvitations();
   useGetNotifications();
@@ -31,7 +33,7 @@ const NotificationPage = () => {
     return sorted;
   }, [notifications, filter]);
 
-  const grouped = useMemo(() => groupNotificationsByDate(filtered), [filtered]);
+  const grouped = useMemo(() => groupNotificationsByDate(filtered, t), [filtered, t]);
 
   return (
     <Container disableGutters>
@@ -52,14 +54,14 @@ const NotificationPage = () => {
           sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
           fontWeight={600}
         >
-          การแจ้งเตือน
+          {t('notification.title')}
         </Typography>
       </Box>
 
       {/* Filter */}
       <Tabs value={filter} onChange={(_, v) => setFilter(v)} variant="fullWidth">
-        <Tab label="ทั้งหมด" value="ALL" />
-        <Tab label="ยังไม่ได้อ่าน" value="UNREAD" />
+        <Tab label={t('notification.filter.all')} value="ALL" />
+        <Tab label={t('notification.filter.unread')} value="UNREAD" />
       </Tabs>
 
       {/* Content */}

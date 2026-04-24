@@ -11,6 +11,7 @@ import { TripVersion } from '@/api/trips';
 import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
 import SwipeReveal from '@/components/common/card/swipe-reveal';
 import { tokens } from '@/providers/theme/design-tokens';
+import { useI18nSelector } from '@/store/selectors';
 
 type VersionCardProps = {
   version: TripVersion;
@@ -21,6 +22,7 @@ type VersionCardProps = {
 
 export const VersionCard = ({ version, onDelete, isOwner }: VersionCardProps) => {
   const { t } = useTranslation('trip_overview');
+  const { locale } = useI18nSelector();
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const router = useRouter();
@@ -116,7 +118,7 @@ export const VersionCard = ({ version, onDelete, isOwner }: VersionCardProps) =>
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {dayjs(version.createdAt).format('DD/MM/YYYY - HH:mm')}
+                    {dayjs(version.createdAt).locale(locale).format('DD/MM/YYYY - HH:mm')}
                   </Typography>
                 </Stack>
               </Stack>

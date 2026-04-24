@@ -1,12 +1,17 @@
 import { Box, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
-export const EmptyState = () => (
-  <Box sx={{ textAlign: 'center', mt: 8 }}>
-    <Typography fontSize={16} fontWeight={500}>
-      ยังไม่มีการแจ้งเตือน
-    </Typography>
-    <Typography fontSize={14} color="text.secondary">
-      เมื่อมีความเคลื่อนไหว เราจะแจ้งให้คุณทราบ
-    </Typography>
-  </Box>
-);
+export const EmptyState = () => {
+  const { t } = useTranslation('common');
+
+  return (
+    <Box sx={{ textAlign: 'center', mt: 8 }}>
+      <Typography fontSize={16} fontWeight={500}>
+        {t('notification.empty.title')}
+      </Typography>
+      <Typography fontSize={14} color="text.secondary">
+        {t('notification.empty.body')}
+      </Typography>
+    </Box>
+  );
+};

@@ -4,6 +4,7 @@ import React from 'react';
 import { Badge, Box, IconButton, Typography, CircularProgress } from '@mui/material';
 import { Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 import { useNotificationsSelector } from '@/store/selectors';
 import { useGetNotifications } from '@/app/hooks/use-get-notifications';
@@ -14,6 +15,7 @@ import PublicTripTemplateCard from '@/app/home/components/public-trip-template-c
 
 const HomePage: React.FC = () => {
   const router = useRouter();
+  const { t } = useTranslation('common');
   const { unreadCount } = useNotificationsSelector();
 
   useGetMyReceivedInvitations();
@@ -49,7 +51,7 @@ const HomePage: React.FC = () => {
         }}
       >
         <IconButton
-          aria-label="notifications"
+          aria-label={t('home.notifications')}
           onClick={() => router.push('/notifications')}
           sx={{ width: 40, height: 40 }}
         >
@@ -66,7 +68,7 @@ const HomePage: React.FC = () => {
       {/* title */}
       <Box sx={{ px: 2, mb: 2, display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
         <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          เทมเพลตทริปที่ถูกแชร์
+          {t('home.shared_trip_templates')}
         </Typography>
 
         {isFetching && !isLoading && (
@@ -82,9 +84,9 @@ const HomePage: React.FC = () => {
           <CircularProgress />
         </Box>
       ) : isError ? (
-        <Box sx={{ px: 2, color: 'error.main' }}>ไม่สามารถโหลดข้อมูลทริปที่ถูกเเชร์ได้</Box>
+        <Box sx={{ px: 2, color: 'error.main' }}>{t('home.shared_trip_templates_load_error')}</Box>
       ) : templates.length === 0 ? (
-        <Box sx={{ px: 2, color: 'text.secondary' }}>ยังไม่มีทริปที่ถูกเเชร์</Box>
+        <Box sx={{ px: 2, color: 'text.secondary' }}>{t('home.shared_trip_templates_empty')}</Box>
       ) : (
         <Box
           component="section"

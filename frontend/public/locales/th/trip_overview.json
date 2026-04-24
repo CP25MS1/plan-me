@@ -15,6 +15,10 @@
         "Manual": "เพิ่มด้วยตนเอง",
         "Email": "เพิ่มด้วยอีเมล",
         "Upload": "เพิ่มด้วยไฟล์"
+      },
+      "delete": {
+        "confirm_message": "คุณต้องการลบข้อมูลการจองนี้ใช่หรือไม่?",
+        "confirm_label": "ลบข้อมูลการจอง"
       }
     },
     "wishlistPlace": {
@@ -47,6 +51,13 @@
     "placeholderName": "ใส่ชื่อทริป",
     "placeholderTime": "วันที่เริ่มต้น - วันที่สิ้นสุด",
     "placeholderObjective": "จุดประสงค์ของทริป"
+  },
+  "daily": {
+    "day_label": "วันที่ {{day}}",
+    "add_place": "เพิ่มสถานที่"
+  },
+  "lock": {
+    "by_user": "Locked by {{username}}"
   },
   "ManualReservation": {
     "title": "เพิ่มข้อมูลการจอง",
@@ -134,6 +145,7 @@
     },
     "empty": {
       "wishlist": "ยังไม่มีสถานที่ที่อยากไปในเทมเพลตนี้",
+      "reservation": "ยังไม่มีข้อมูลการจองในเวอร์ชันนี้",
       "daily": {
         "title": "ยังไม่มีแผนรายวัน",
         "body": "เทมเพลตนี้ยังไม่มีแผนรายวันให้ใช้งาน"
@@ -148,6 +160,26 @@
       "title": "ไม่พบเทมเพลตนี้",
       "description": "เทมเพลตนี้อาจถูกลบหรือถูกเปลี่ยนเป็นส่วนตัวแล้ว",
       "cta": "กลับไปหน้า Home"
+    }
+  },
+  "presence": {
+    "active_users": "กำลังใช้งานอยู่",
+    "in_section": "กำลังใช้งาน: {{section}}"
+  },
+  "travelSegment": {
+    "mode": {
+      "car": "รถยนต์",
+      "motorcycle": "จักรยานยนต์",
+      "walk": "เดิน"
+    },
+    "distance": "{{value}} กม.",
+    "duration": {
+      "hoursOnly": "{{hours}} ชม",
+      "hoursMinutes": "{{hours}} ชม {{minutes}} นาที",
+      "minutesOnly": "{{minutes}} นาที"
+    },
+    "error": {
+      "unavailable": "ไม่สามารถเดินทางด้วย {{mode}} ได้"
     }
   },
   "budget": {

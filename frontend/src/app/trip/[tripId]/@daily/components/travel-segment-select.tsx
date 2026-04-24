@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, Button, Skeleton, Typography } from '@mui/material';
 import { Bike, Car, Footprints } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { tokens } from '@/providers/theme/design-tokens';
 import {
   DropdownMenu,
@@ -15,32 +16,22 @@ import { useCreateTravelSegment } from '@/app/trip/[tripId]/@daily/hooks/travel-
 import { useSelectRoute } from '@/store/selectors';
 import { TravelMode } from '@/api/trips/type';
 
-const ModeSegment: Record<TravelMode, { label: string; icon: React.ReactNode }> = {
-  CAR: {
-    label: 'รถยนต์',
-    icon: <Car size={18} color={tokens.color.primary} />,
-  },
-  MOTORCYCLE: {
-    label: 'จักรยานยนต์',
-    icon: <Bike size={18} color={tokens.color.primary} />,
-  },
-  WALK: {
-    label: 'เดิน',
-    icon: <Footprints size={18} color={tokens.color.primary} />,
-  },
-};
-
-const formatDuration = (seconds: number) => {
+const formatDuration = (
+  seconds: number,
+  t: (key: string, options?: Record<string, unknown>) => string
+) => {
   const totalMinutes = Math.round(seconds / 60);
 
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 
   if (hours > 0) {
-    return minutes === 0 ? `${hours} ชม` : `${hours} ชม ${minutes} นาที`;
+    return minutes === 0
+      ? t('travelSegment.duration.hoursOnly', { hours })
+      : t('travelSegment.duration.hoursMinutes', { hours, minutes });
   }
 
-  return `${totalMinutes} นาที`;
+  return t('travelSegment.duration.minutesOnly', { minutes: totalMinutes });
 };
 
 interface Props {
@@ -50,10 +41,26 @@ interface Props {
 }
 
 export default function TravelSegmentSelect({ start, end, readOnly = false }: Props) {
+  const { t } = useTranslation('trip_overview');
   const [mode, setMode] = useState<TravelMode>('CAR');
   const [hasError, setHasError] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const { mutate } = useCreateTravelSegment();
+
+  const ModeSegment: Record<TravelMode, { label: string; icon: React.ReactNode }> = {
+    CAR: {
+      label: t('travelSegment.mode.car'),
+      icon: <Car size={18} color={tokens.color.primary} />,
+    },
+    MOTORCYCLE: {
+      label: t('travelSegment.mode.motorcycle'),
+      icon: <Bike size={18} color={tokens.color.primary} />,
+    },
+    WALK: {
+      label: t('travelSegment.mode.walk'),
+      icon: <Footprints size={18} color={tokens.color.primary} />,
+    },
+  };
 
   const travelSegment = useSelectRoute(start, end, mode);
 
@@ -152,11 +159,13 @@ export default function TravelSegmentSelect({ start, end, readOnly = false }: Pr
         {travelSegment ? (
           <>
             <Typography sx={{ fontSize: 12, color: tokens.color.textSecondary }}>
-              {(travelSegment.distance / 1000).toFixed(2)} กม.
+              {t('travelSegment.distance', {
+                value: (travelSegment.distance / 1000).toFixed(2),
+              })}
             </Typography>
 
             <Typography sx={{ fontSize: 12, color: tokens.color.textSecondary }}>
-              {formatDuration(travelSegment.regularDuration)}
+              {formatDuration(travelSegment.regularDuration, t)}
             </Typography>
           </>
         ) : isLoading ? (
@@ -166,7 +175,7 @@ export default function TravelSegmentSelect({ start, end, readOnly = false }: Pr
           </Box>
         ) : hasError ? (
           <Typography sx={{ fontSize: 12, color: tokens.color.error }} variant="body2">
-            ไม่สามารถเดินทางด้วย {ModeSegment[mode].label} ได้
+            {t('travelSegment.error.unavailable', { mode: ModeSegment[mode].label })}
           </Typography>
         ) : null}
       </Box>
