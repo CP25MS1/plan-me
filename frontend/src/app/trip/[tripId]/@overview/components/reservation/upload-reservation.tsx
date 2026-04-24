@@ -414,7 +414,10 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
     <>
       <Dialog
         open={open && step === 'select'}
-        onClose={(_, reason) => reason !== 'backdropClick' && onClose()}
+        onClose={(_, reason) => {
+          if (isPreviewing) return;
+          if (reason !== 'backdropClick') onClose();
+        }}
         fullWidth
         PaperProps={{
           sx: {
@@ -429,9 +432,11 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
       >
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, position: 'relative' }}>
           อัพโหลดข้อมูลการจอง
-          <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-            <X size={18} />
-          </IconButton>
+          {!isPreviewing && (
+            <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+              <X size={18} />
+            </IconButton>
+          )}
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, p: 2 }}>
           {isPreviewing ? (

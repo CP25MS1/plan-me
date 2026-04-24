@@ -520,15 +520,20 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     <>
       <Dialog
         open={open && step === 'select'}
-        onClose={(_, reason) => reason !== 'backdropClick' && onClose()}
+        onClose={(_, reason) => {
+          if (isPending) return;
+          if (reason !== 'backdropClick') onClose();
+        }}
         fullWidth
         PaperProps={{ sx: { width: 720, height: 600, borderRadius: 3, p: 2 } }}
       >
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, position: 'relative' }}>
           ส่งต่อข้อมูลการจองผ่านอีเมล
-          <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-            <X size={18} />
-          </IconButton>
+          {!isPending && (
+            <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
+              <X size={18} />
+            </IconButton>
+          )}
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           {isPending ? (
