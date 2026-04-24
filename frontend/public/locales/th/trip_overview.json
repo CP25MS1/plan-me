@@ -97,7 +97,11 @@
     "Button": "แสดงตัวอย่าง"
   },
   "Reservation": {
-    "typeMismatchWarning": "ข้อมูลที่ตรวจพบอาจไม่ตรงกับประเภทที่เลือก"
+    "typeMismatchWarning": "ข้อมูลที่ตรวจพบอาจไม่ตรงกับประเภทที่เลือก",
+    "extractionLoading": {
+      "title": "กำลังสกัดข้อมูลการจอง...",
+      "description": "AI กำลังวิเคราะห์ข้อมูลและรูปภาพของคุณ โปรดรอสักครู่"
+    }
   },
   "template": {
     "header": {
