@@ -7,10 +7,14 @@ import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 
 import dayjs from '@/lib/dayjs';
 import { useNotificationsSelector } from '@/store/selectors';
+import { useTranslation } from 'react-i18next';
+import { useI18nSelector } from '@/store/selectors';
 
 const NotificationDetailPage = () => {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation('common');
+  const { locale } = useI18nSelector();
 
   const { notifications } = useNotificationsSelector();
   const notification = notifications.find((n) => n.id === Number(id));
@@ -33,7 +37,9 @@ const NotificationDetailPage = () => {
 
   const isAccepted = notiCode === 'INVITE_ACCEPTED';
 
-  const actionMessage = isAccepted ? 'ตอบรับคำเชิญเข้าร่วมทริป' : 'ปฏิเสธคำเชิญเข้าร่วมทริป';
+  const actionMessage = isAccepted
+    ? t('notification.detail.action.accepted')
+    : t('notification.detail.action.rejected');
 
   return (
     <Container>
@@ -47,7 +53,7 @@ const NotificationDetailPage = () => {
           fontWeight={600}
           sx={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
         >
-          การแจ้งเตือน
+          {t('notification.title')}
         </Typography>
       </Box>
 
@@ -96,13 +102,15 @@ const NotificationDetailPage = () => {
         </Box>
 
         <Typography fontSize={14} sx={{ mt: 0.75 }}>
-          {tripRef ? `ทริป "${tripRef.tripName}"` : 'ทริปของคุณ'}
+          {tripRef
+            ? t('notification.trip.named', { tripName: tripRef.tripName })
+            : t('notification.trip.yours')}
         </Typography>
       </Box>
 
       {/* Time */}
       <Typography fontSize={12} color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
-        {dayjs(createdAt).fromNow()}
+        {dayjs(createdAt).locale(locale).fromNow()}
       </Typography>
     </Container>
   );

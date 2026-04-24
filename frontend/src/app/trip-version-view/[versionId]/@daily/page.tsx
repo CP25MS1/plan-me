@@ -47,8 +47,7 @@ const VersionDailyPage = () => {
     <OpeningDialogContext.Provider value={mockDialogContext}>
       <Box sx={{ mt: 2 }}>
         {dailyPlans.map((plan) => {
-          const titlePrefix = locale === 'en' ? 'Day' : 'วันที่';
-          const planTitle = `${titlePrefix} ${plan.dayIndex}`;
+          const planTitle = t('daily.day_label', { day: plan.dayIndex });
           const scheduledPlaces = plan.scheduledPlaces ?? [];
           const hasPlace = scheduledPlaces.length > 0;
 
@@ -87,7 +86,7 @@ const VersionDailyPage = () => {
               ) : (
                 <Box sx={{ py: 2 }}>
                   <Typography variant="body2" color="text.secondary">
-                    ยังไม่มีข้อมูลสถานที่ในวันนี้
+                    {t('template.empty.dailyItem')}
                   </Typography>
                 </Box>
               )}

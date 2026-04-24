@@ -1,0 +1,54 @@
+{
+  "title": "Memories",
+  "subtitle": "Create memory albums for your trips",
+  "create_album": "Create album",
+  "error_prefix": "Error",
+  "add_memory": "Add memory",
+  "download_album": "Download album",
+  "delete_album": "Delete album",
+  "media_count": "{{imageCount}} images {{videoCount}} videos",
+  "created_by": "Created by {{username}}",
+  "delete_confirm": "Do you want to delete this album?",
+  "default_album_name": "Album",
+  "album_page": {
+    "invalid_trip_id": "Invalid trip id",
+    "load_failed": "Failed to load album",
+    "no_memories": "No memories yet",
+    "delete_action": "Delete"
+  },
+  "viewer": {
+    "uploaded_by": "Uploaded by {{username}}",
+    "menu": {
+      "details": "Details",
+      "delete_media": "Delete media"
+    },
+    "info": {
+      "title": "File details",
+      "uploaded_by": "Uploaded by: {{username}}",
+      "uploaded_at": "Uploaded at: {{date}}",
+      "file_size": "File size: {{size}}",
+      "file_type": "File type: {{type}}",
+      "close": "Close"
+    },
+    "delete_confirm": "Do you want to delete this image or video?"
+  },
+  "modal": {
+    "select_trip_title": "Please select a trip to create an album",
+    "no_available_trip": "No trips available for album creation",
+    "select_trip_label": "Select trip"
+  },
+  "upload": {
+    "title": "Add memories",
+    "total_size": "Total size",
+    "pick_files": "Click to select files",
+    "supported_types": "Supported file types",
+    "limit_notice": "Up to 1 GB per upload (max 3 GB per album)",
+    "submit": "Upload",
+    "success": "Upload successful",
+    "failed": "Upload failed",
+    "errors": {
+      "over_batch_limit": "Upload failed because total selected file size exceeds 1 GB",
+      "over_album_limit": "Upload failed because total album size must not exceed 3 GB"
+    }
+  }
+}

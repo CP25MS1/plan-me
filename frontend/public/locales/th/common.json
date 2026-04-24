@@ -54,6 +54,48 @@
     "en": "EN"
   },
 
+  "home": {
+    "notifications": "การแจ้งเตือน",
+    "shared_trip_templates": "เทมเพลตทริปที่ถูกแชร์",
+    "shared_trip_templates_load_error": "ไม่สามารถโหลดข้อมูลทริปที่ถูกแชร์ได้",
+    "shared_trip_templates_empty": "ยังไม่มีทริปที่ถูกแชร์"
+  },
+
+  "notification": {
+    "title": "การแจ้งเตือน",
+    "filter": {
+      "all": "ทั้งหมด",
+      "unread": "ยังไม่ได้อ่าน"
+    },
+    "empty": {
+      "title": "ยังไม่มีการแจ้งเตือน",
+      "body": "เมื่อมีความเคลื่อนไหว เราจะแจ้งให้คุณทราบ"
+    },
+    "group": {
+      "today": "วันนี้",
+      "yesterday": "เมื่อวาน",
+      "this_week": "สัปดาห์นี้",
+      "this_month": "เดือนนี้",
+      "this_year": "ปีนี้"
+    },
+    "trip": {
+      "named": "ทริป \"{{tripName}}\"",
+      "yours": "ทริปของคุณ"
+    },
+    "message": {
+      "invite_pending": "{{name}} เชิญคุณเข้าร่วม {{tripName}}",
+      "invite_accepted": "{{name}} ตอบรับคำเชิญเข้าร่วม {{tripName}}",
+      "invite_rejected": "{{name}} ปฏิเสธคำเชิญเข้าร่วม {{tripName}}",
+      "new": "มีการแจ้งเตือนใหม่"
+    },
+    "detail": {
+      "action": {
+        "accepted": "ตอบรับคำเชิญเข้าร่วมทริป",
+        "rejected": "ปฏิเสธคำเชิญเข้าร่วมทริป"
+      }
+    }
+  },
+
   "placeholder": {
     "search": "ค้นหาผู้ใช้"
   },

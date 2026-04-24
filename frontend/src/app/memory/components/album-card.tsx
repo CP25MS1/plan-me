@@ -18,6 +18,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AddIcon from '@mui/icons-material/Add';
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useTranslation } from 'react-i18next';
 
 import { getMemoriesInAlbum } from '@/api/memory/api';
 import { useGetAlbumSignedUrls } from '../hooks/use-get-album-signed-urls';
@@ -35,6 +36,7 @@ type AlbumCardProps = {
 };
 
 export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }: AlbumCardProps) {
+  const { t } = useTranslation('trip_memory');
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
@@ -156,7 +158,7 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
             <ListItemIcon>
               <AddIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>เพิ่มความทรงจำ</ListItemText>
+            <ListItemText>{t('add_memory')}</ListItemText>
           </MenuItem>
 
           <MenuItem
@@ -169,7 +171,7 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
               <DownloadIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>
-              ดาวน์โหลดอัลบั้ม
+              {t('download_album')}
               {progress ? ` (${progress.done}/${progress.total})` : ''}
             </ListItemText>
           </MenuItem>
@@ -184,7 +186,7 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
               <ListItemIcon>
                 <DeleteIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText>ลบอัลบั้ม</ListItemText>
+              <ListItemText>{t('delete_album')}</ListItemText>
             </MenuItem>
           )}
         </Menu>
@@ -222,7 +224,7 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
           </Typography>
 
           <Typography variant="body2" color="text.secondary">
-            {imageCount} รูป {videoCount} วิดีโอ
+            {t('media_count', { imageCount, videoCount })}
           </Typography>
 
           <Typography
@@ -236,7 +238,7 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
               maxWidth: '100%',
             }}
           >
-            สร้างโดย {album.createdBy.username}
+            {t('created_by', { username: album.createdBy.username })}
           </Typography>
         </Box>
       </Card>
@@ -245,11 +247,11 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
         onConfirm={handleDelete}
-        confirmLabel="ยืนยัน"
-        cancelLabel="ยกเลิก"
+        confirmLabel="confirm"
+        cancelLabel="cancel"
         confirmLoading={isDeleting}
         color="error"
-        content={<Typography>คุณต้องการลบอัลบั้มนี้ใช่หรือไม่?</Typography>}
+        content={<Typography>{t('delete_confirm')}</Typography>}
       />
     </>
   );
