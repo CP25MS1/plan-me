@@ -6,6 +6,7 @@ import { tokens } from '@/providers/theme/design-tokens';
 import dayjs from 'dayjs';
 import { ReservationDto } from '@/api/reservations/type';
 import { fieldsByType } from '../../fields-by-type';
+import { useTranslation } from 'react-i18next';
 
 interface DynamicReservationFieldsProps {
   typeValue: string;
@@ -22,6 +23,8 @@ export default function DynamicReservationFields({
   handleChange,
   fieldsRef,
 }: DynamicReservationFieldsProps) {
+  const { t } = useTranslation('trip_overview');
+
   if (!typeValue || !fieldsByType[typeValue]?.length) return null;
 
   return (
@@ -49,7 +52,7 @@ export default function DynamicReservationFields({
               variant="body2"
               color={(errors ? errors[field.name] : false) ? 'error.main' : 'text.secondary'}
             >
-              {field.label}
+              {t(`reservation.fields.${field.name}.label`, { defaultValue: field.label })}
               {field.required && (
                 <Box
                   component="span"
@@ -84,7 +87,7 @@ export default function DynamicReservationFields({
                     fullWidth: true,
                     error: hasError,
                     placeholder: field.placeholder,
-                    helperText: hasError ? 'โปรดระบุข้อมูล' : '',
+                    helperText: hasError ? t('reservation.validation.requiredField') : '',
                     FormHelperTextProps: {
                       sx: { color: tokens.color.error },
                     },
@@ -108,7 +111,7 @@ export default function DynamicReservationFields({
                     fullWidth: true,
                     error: hasError,
                     placeholder: field.placeholder,
-                    helperText: hasError ? 'โปรดระบุข้อมูล' : '',
+                    helperText: hasError ? t('reservation.validation.requiredField') : '',
                     FormHelperTextProps: {
                       sx: { color: tokens.color.error },
                     },
@@ -135,7 +138,7 @@ export default function DynamicReservationFields({
                     fullWidth: true,
                     error: hasError,
                     placeholder: field.placeholder,
-                    helperText: hasError ? 'โปรดระบุข้อมูล' : '',
+                    helperText: hasError ? t('reservation.validation.requiredField') : '',
                     FormHelperTextProps: {
                       sx: { color: tokens.color.error },
                     },
@@ -163,11 +166,11 @@ export default function DynamicReservationFields({
                 placeholder={field.placeholder}
                 helperText={
                   hasError
-                    ? 'โปรดระบุข้อมูล'
+                    ? t('reservation.validation.requiredField')
                     : emailInvalid
-                      ? 'โปรดระบุอีเมลในรูปแบบ username@domain'
+                      ? t('reservation.validation.invalidEmail')
                       : numberInvalid
-                        ? 'กรุณากรอกตัวเลขเท่านั้น'
+                        ? t('reservation.validation.numbersOnly')
                         : ''
                 }
                 FormHelperTextProps={{

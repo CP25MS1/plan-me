@@ -4,6 +4,7 @@ import { Box, Dialog, DialogContent, DialogTitle, IconButton } from '@mui/materi
 import { X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useGetTripmates } from '@/app/trip/[tripId]/@overview/hooks/invite/use-get-tripmates';
 import TripMembers from './members-list';
@@ -18,6 +19,7 @@ export default function MembersModal({
   onCloseAction: () => void;
   tripId: number;
 }) {
+  const { t } = useTranslation('trip_overview');
   const { data: tripmate, refetch } = useGetTripmates(tripId);
   const { data: tripHeader } = useTripHeader(tripId);
 
@@ -62,7 +64,7 @@ export default function MembersModal({
           pb: 1,
         }}
       >
-        สมาชิก
+        {t('members.title')}
         <IconButton onClick={onCloseAction} sx={{ position: 'absolute', right: 12, top: 12 }}>
           <X size={18} />
         </IconButton>
@@ -80,10 +82,12 @@ export default function MembersModal({
         {/* !NOTE: We won't use components from shadCN anymore */}
         <Tabs defaultValue="joined" variant="underline" fullWidth>
           <TabsList className="justify-center">
-            <TabsTrigger value="joined">อยู่ในทริปแล้ว ({joined.length})</TabsTrigger>
+            <TabsTrigger value="joined">
+              {t('members.joinedTab', { count: joined.length })}
+            </TabsTrigger>
 
             <TabsTrigger value="pending">
-              กำลังถูกเชิญ ({tripmate?.pending.length ?? 0})
+              {t('members.pendingTab', { count: tripmate?.pending.length ?? 0 })}
             </TabsTrigger>
           </TabsList>
 
@@ -93,11 +97,11 @@ export default function MembersModal({
               className="w-full flex justify-center"
               style={{ minHeight: 0 }}
             >
-              <TripMembers members={joined} emptyText="ยังไม่มีสมาชิก" />
+              <TripMembers members={joined} emptyText={t('members.joinedEmpty')} />
             </TabsContent>
 
             <TabsContent value="pending" className="w-full flex justify-center">
-              <TripMembers members={pending} emptyText="ไม่มีคำเชิญค้างอยู่" />
+              <TripMembers members={pending} emptyText={t('members.pendingEmpty')} />
             </TabsContent>
           </Box>
         </Tabs>

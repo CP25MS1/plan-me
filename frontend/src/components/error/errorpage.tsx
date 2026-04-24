@@ -3,6 +3,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Typography, Button, Card, CardContent } from '@mui/material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { useTranslation } from 'react-i18next';
 
 interface FullPageErrorProps {
   code: number | string;
@@ -12,10 +13,11 @@ interface FullPageErrorProps {
 
 const FullPageError: React.FC<FullPageErrorProps> = ({ code, message, onBackHome }) => {
   const router = useRouter();
+  const { t } = useTranslation('common');
 
   const defaultMessages: Record<number, string> = {
-    404: 'Page Not Found!',
-    403: 'You are not authorized to access this page!',
+    404: t('errorPage.default.404'),
+    403: t('errorPage.default.403'),
   };
 
   const handleBackHome = () => {
@@ -60,7 +62,7 @@ const FullPageError: React.FC<FullPageErrorProps> = ({ code, message, onBackHome
 
           {/* Error Message */}
           <Typography variant="h3" sx={{ mb: 3, color: 'text.secondary' }}>
-            {message || defaultMessages[Number(code)] || 'An error occurred'}
+            {message || defaultMessages[Number(code)] || t('errorPage.default.generic')}
           </Typography>
 
           {/* Back Home Button */}
@@ -77,7 +79,7 @@ const FullPageError: React.FC<FullPageErrorProps> = ({ code, message, onBackHome
             }}
             onClick={handleBackHome}
           >
-            กลับสู่หน้าหลัก
+            {t('errorPage.backHome')}
           </Button>
         </CardContent>
       </Card>

@@ -43,8 +43,13 @@ interface EditReservationProps {
 }
 
 const typeUiMap: Record<ReservationType, string> = {
-  LODGING: 'Lodging', RESTAURANT: 'Restaurant', FLIGHT: 'Flight',
-  TRAIN: 'Train', BUS: 'Bus', FERRY: 'Ferry', CAR_RENTAL: 'CarRental',
+  LODGING: 'Lodging',
+  RESTAURANT: 'Restaurant',
+  FLIGHT: 'Flight',
+  TRAIN: 'Train',
+  BUS: 'Bus',
+  FERRY: 'Ferry',
+  CAR_RENTAL: 'CarRental',
 };
 
 export default function EditReservation({
@@ -164,9 +169,15 @@ export default function EditReservation({
     if (typeValue === 'Flight') {
       const f = formData as any;
       return {
-        airline: f.airline ?? '', flightNo: f.flightNo ?? '', boardingTime: f.boardingTime ?? '',
-        gateNo: f.gateNo ?? '', departureAirport: f.departureAirport ?? '', departureTime: f.departureTime ?? '',
-        arrivalAirport: f.arrivalAirport ?? '', arrivalTime: f.arrivalTime ?? '', flightClass: f.flightClass ?? '',
+        airline: f.airline ?? '',
+        flightNo: f.flightNo ?? '',
+        boardingTime: f.boardingTime ?? '',
+        gateNo: f.gateNo ?? '',
+        departureAirport: f.departureAirport ?? '',
+        departureTime: f.departureTime ?? '',
+        arrivalAirport: f.arrivalAirport ?? '',
+        arrivalTime: f.arrivalTime ?? '',
+        flightClass: f.flightClass ?? '',
         passengers,
       };
     }
@@ -179,29 +190,81 @@ export default function EditReservation({
   if (!formData) return null;
 
   const icons = {
-    Lodging: <Building size={18} color="#25CF7A" />, Restaurant: <Utensils size={18} color="#25CF7A" />,
-    Flight: <Plane size={18} color="#25CF7A" />, Train: <Train size={18} color="#25CF7A" />,
-    Bus: <Bus size={18} color="#25CF7A" />, Ferry: <Ship size={18} color="#25CF7A" />, CarRental: <Car size={18} color="#25CF7A" />,
+    Lodging: <Building size={18} color="#25CF7A" />,
+    Restaurant: <Utensils size={18} color="#25CF7A" />,
+    Flight: <Plane size={18} color="#25CF7A" />,
+    Train: <Train size={18} color="#25CF7A" />,
+    Bus: <Bus size={18} color="#25CF7A" />,
+    Ferry: <Ship size={18} color="#25CF7A" />,
+    CarRental: <Car size={18} color="#25CF7A" />,
   };
 
   return (
     <Dialog open={open} fullWidth PaperProps={{ sx: { width: 420, borderRadius: 3 } }}>
       <DialogTitle sx={{ textAlign: 'center', fontWeight: 600 }}>
-        แก้ไขข้อมูลการจอง
-        <IconButton onClick={onClose} disabled={updateReservation.isPending} sx={{ position: 'absolute', right: 8, top: 8 }}><X size={18} /></IconButton>
+        {t('ManualReservation.edit')}
+        <IconButton
+          onClick={onClose}
+          disabled={updateReservation.isPending}
+          sx={{ position: 'absolute', right: 8, top: 8 }}
+        >
+          <X size={18} />
+        </IconButton>
       </DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Box sx={{ p: 1.5, borderRadius: 2, border: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'action.hover' }}>
-          {icons[typeValue as keyof typeof icons]} <Typography variant="body1" fontWeight={500}>{t(`ManualReservation.Type.${typeValue}`)}</Typography>
+        <Box
+          sx={{
+            p: 1.5,
+            borderRadius: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            bgcolor: 'action.hover',
+          }}
+        >
+          {icons[typeValue as keyof typeof icons]}{' '}
+          <Typography variant="body1" fontWeight={500}>
+            {t(`ManualReservation.Type.${typeValue}`)}
+          </Typography>
         </Box>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DynamicReservationFields typeValue={typeValue} formData={formData} errors={errors} handleChange={handleChange} fieldsRef={fieldsRef} />
-          <FlightPassengerFields typeValue={typeValue} passengers={passengers} errors={errors} handlePassengerChange={handlePassengerChange} removePassenger={(idx) => setPassengers(p => p.filter((_, i) => i !== idx))} addPassenger={() => setPassengers(p => [...p, { passengerName: '', seatNo: '' }])} />
+          <DynamicReservationFields
+            typeValue={typeValue}
+            formData={formData}
+            errors={errors}
+            handleChange={handleChange}
+            fieldsRef={fieldsRef}
+          />
+          <FlightPassengerFields
+            typeValue={typeValue}
+            passengers={passengers}
+            errors={errors}
+            handlePassengerChange={handlePassengerChange}
+            removePassenger={(idx) => setPassengers((p) => p.filter((_, i) => i !== idx))}
+            addPassenger={() => setPassengers((p) => [...p, { passengerName: '', seatNo: '' }])}
+          />
         </LocalizationProvider>
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <Button variant="contained" disabled={!hasChanges || updateReservation.isPending} onClick={handleConfirm}
-            sx={{ borderRadius: 5, px: 4, bgcolor: !hasChanges || updateReservation.isPending ? tokens.color.textSecondary : tokens.color.primary }}>
-            {updateReservation.isPending ? <CircularProgress size={22} sx={{ color: tokens.color.background }} /> : 'ยืนยัน'}
+          <Button
+            variant="contained"
+            disabled={!hasChanges || updateReservation.isPending}
+            onClick={handleConfirm}
+            sx={{
+              borderRadius: 5,
+              px: 4,
+              bgcolor:
+                !hasChanges || updateReservation.isPending
+                  ? tokens.color.textSecondary
+                  : tokens.color.primary,
+            }}
+          >
+            {updateReservation.isPending ? (
+              <CircularProgress size={22} sx={{ color: tokens.color.background }} />
+            ) : (
+              t('reservation.confirm')
+            )}
           </Button>
         </Box>
       </DialogContent>

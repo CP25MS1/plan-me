@@ -63,6 +63,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { useI18nSelector } from '@/store/selectors';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -149,6 +150,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   const { tripId: tripIdParam } = useParams<{ tripId: string }>();
   const tripId = Number(tripIdParam);
   const { t } = useTranslation('trip_overview');
+  const { locale } = useI18nSelector();
   const [emails, setEmails] = useState<EmailItem[]>([]);
   const [step, setStep] = useState<EmailStep>('select');
   const [editableReservations, setEditableReservations] = useState<EditableEmailReservation[]>([]);
@@ -174,7 +176,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    showInfo('Copied to clipboard');
+    showInfo(t('EmailReservation.copiedEmail'));
   };
 
   const checkEmails = async () => {
@@ -190,7 +192,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     setEmails(
       data.map((email) => ({
         ...email,
-        receivedAt: dayjs(email.sentAt.replace(' ICT', '')).fromNow(),
+        receivedAt: dayjs(email.sentAt.replace(' ICT', '')).locale(locale).fromNow(),
         type: '',
         prefillReservation: null,
       }))
@@ -266,7 +268,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     setEmails(updatedEmails);
 
     if (hasError) {
-      showError('เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก');
+      showError(t('EmailReservation.validation.invalidContentTypeMismatch'));
       return;
     }
 
@@ -297,7 +299,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
       buildEditableReservations(updatedEmails, reservationsByEmailId);
     } catch (error) {
       showErrorSnackbar(error);
-      showError('เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก');
+      showError(t('EmailReservation.validation.invalidContentTypeMismatch'));
     }
   };
 
@@ -461,7 +463,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   const proceedConfirm = async () => {
     try {
       await createBulk(previewReservations);
-      showSuccess('เพิ่มข้อมูลการจองสำเร็จ');
+      showSuccess(t('reservation.success.created'));
       setStep('select');
       onClose();
       await readEmailInbox({ emailIds: emails.map((email) => email.emailId) });
@@ -508,7 +510,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         PaperProps={{ sx: { width: 720, height: 600, borderRadius: 3, p: 2 } }}
       >
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, position: 'relative' }}>
-          ส่งต่อข้อมูลการจองผ่านอีเมล
+          {t('EmailReservation.title')}
           {!isPending && (
             <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
               <X size={18} />
@@ -563,7 +565,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                 sx={{ mb: 2, bgcolor: '#25CF7A', minWidth: 180, position: 'relative' }}
               >
                 <span style={{ visibility: isFetching ? 'hidden' : 'visible' }}>
-                  เช็คอีเมลที่เข้ามา
+                  {t('EmailReservation.checkInbox')}
                 </span>
                 {isFetching && (
                   <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
@@ -572,7 +574,10 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               {emails.length > 0 && (
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
                   <Typography variant="subtitle2">
-                    อีเมล ({selectedCount}/{emails.length})
+                    {t('EmailReservation.emailCounter', {
+                      selected: selectedCount,
+                      total: emails.length,
+                    })}
                   </Typography>
                 </Box>
               )}
@@ -674,7 +679,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           <Box sx={{ position: 'absolute', left: 8, top: 8 }}>
             <BackButton onBack={() => setStep('select')} />
           </Box>
-          ข้อมูลการจองจากอีเมล
+          {t('EmailReservation.editTitle')}
           <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
             <X size={18} />
           </IconButton>
@@ -781,7 +786,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               onClick={handlePreview}
               sx={{ bgcolor: '#25CF7A', minWidth: 150, position: 'relative' }}
             >
-              ยืนยันข้อมูลการจอง
+              {t('EmailReservation.confirmData')}
             </Button>
           </Box>
         </DialogContent>
@@ -797,7 +802,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           <Box sx={{ position: 'absolute', left: 8, top: 8 }}>
             <BackButton onBack={() => setStep('edit')} />
           </Box>
-          ตัวอย่างข้อมูลการจอง
+          {t('reservation.previewTitle')}
           <IconButton
             onClick={() => setStep('edit')}
             sx={{ position: 'absolute', right: 8, top: 8 }}
@@ -808,7 +813,10 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
             <Typography variant="subtitle2">
-              อีเมล ({previewCards.length}/{previewCards.length})
+              {t('EmailReservation.emailCounter', {
+                selected: previewCards.length,
+                total: previewCards.length,
+              })}
             </Typography>
           </Box>
           <Box
@@ -831,7 +839,9 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               disabled={isCreating}
               sx={{ bgcolor: '#25CF7A', minWidth: 120, position: 'relative' }}
             >
-              <span style={{ visibility: isCreating ? 'hidden' : 'visible' }}>ยืนยัน</span>
+              <span style={{ visibility: isCreating ? 'hidden' : 'visible' }}>
+                {t('reservation.confirm')}
+              </span>
               {isCreating && (
                 <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
               )}

@@ -57,8 +57,6 @@ import {
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-// ... (rest of the file remains same until DialogContent)
-
 interface UploadReservationProps {
   open: boolean;
   onClose: () => void;
@@ -134,10 +132,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
 
   const showErrorSnackbar = (error: unknown) => {
     if (!(error instanceof AxiosError)) return;
-    const thMessage = error.response?.data?.message?.TH;
-    if (typeof thMessage === 'string') {
-      showError(thMessage);
-    }
+    showError(t('reservation.validation.unknownError'));
   };
 
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,14 +143,14 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
         (file) => !['application/pdf', 'image/png', 'image/jpeg'].includes(file.type)
       )
     ) {
-      showError('โปรดอัปโหลดไฟล์ประเภท .pdf, .png, .jpg, .jpeg');
+      showError(t('UploadReservation.upload.invalidFileType'));
       return;
     }
     const totalSize =
       files.reduce((size, item) => size + item.file.size, 0) +
       selectedFiles.reduce((size, file) => size + file.size, 0);
     if (totalSize > 20 * 1024 * 1024) {
-      showError('ขนาดไฟล์รวมต้องไม่เกิน 20 MB');
+      showError(t('UploadReservation.upload.maxTotalSize'));
       return;
     }
     setFiles((prev) => [
@@ -415,7 +410,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
         }}
       >
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 600, position: 'relative' }}>
-          อัพโหลดข้อมูลการจอง
+          {t('UploadReservation.title')}
           {!isPreviewing && (
             <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
               <X size={18} />
@@ -451,16 +446,21 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                     onChange={handleFilesChange}
                   />
                   <Upload size={50} color="#9e9e9e" />
-                  <Typography sx={{ fontWeight: 600 }}>กดเพื่ออัพโหลดไฟล์</Typography>
+                  <Typography sx={{ fontWeight: 600 }}>
+                    {t('UploadReservation.upload.clickToUpload')}
+                  </Typography>
                   <Typography sx={{ fontSize: 14, color: 'text.disabled' }}>
-                    รองรับไฟล์ประเภท .pdf, .png, .jpg
+                    {t('UploadReservation.upload.supportedTypes')}
                   </Typography>
                 </Box>
               ) : (
                 <>
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
                     <Typography variant="subtitle2">
-                      ไฟล์ ({selectedCount}/{files.length})
+                      {t('UploadReservation.fileCounter', {
+                        selected: selectedCount,
+                        total: files.length,
+                      })}
                     </Typography>
                   </Box>
                   <Box ref={containerRef} sx={{ flexGrow: 1, overflowY: 'auto' }}>
@@ -487,7 +487,9 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                         </IconButton>
                         <Typography sx={{ mb: 1 }}>{item.file.name}</Typography>
                         <Typography sx={{ fontSize: 12, color: 'green', mb: 1 }}>
-                          ขนาด: {(item.file.size / (1024 * 1024)).toFixed(2)} MB | ไฟล์อัพโหลดสมบูรณ์
+                          {t('UploadReservation.fileStatus', {
+                            size: (item.file.size / (1024 * 1024)).toFixed(2),
+                          })}
                         </Typography>
                         <FormControl fullWidth>
                           <Select
@@ -537,7 +539,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                   disabled={!isAllSelected || isPreviewing}
                   sx={{ bgcolor: isAllSelected ? '#25CF7A' : 'grey.400', minWidth: 150 }}
                 >
-                  แสดงตัวอย่าง
+                  {t('UploadReservation.Button')}
                 </Button>
               </Box>
             </>
@@ -562,7 +564,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
           <Box sx={{ position: 'absolute', left: 8, top: 8 }}>
             <BackButton onBack={() => setStep('select')} />
           </Box>
-          ตัวอย่างข้อมูล
+          {t('UploadReservation.editTitle')}
           <IconButton onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
             <X size={18} />
           </IconButton>
@@ -677,7 +679,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
           <Box sx={{ position: 'absolute', left: 8, top: 8 }}>
             <BackButton onBack={() => setStep('edit')} />
           </Box>
-          ตัวอย่างข้อมูล
+          {t('UploadReservation.previewTitle')}
           <IconButton
             onClick={() => setStep('edit')}
             sx={{ position: 'absolute', right: 8, top: 8 }}
@@ -688,7 +690,10 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, p: 0 }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
             <Typography variant="subtitle2">
-              ไฟล์ ({previewCards.length}/{previewCards.length})
+              {t('UploadReservation.fileCounter', {
+                selected: previewCards.length,
+                total: previewCards.length,
+              })}
             </Typography>
           </Box>
           <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1, pt: 1 }}>
@@ -705,7 +710,11 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
               onClick={handleConfirm}
               disabled={isCreating}
             >
-              {isCreating ? <CircularProgress size={20} color="inherit" /> : 'ยืนยัน'}
+              {isCreating ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                t('reservation.confirm')
+              )}
             </Button>
           </Box>
         </DialogContent>
