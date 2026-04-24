@@ -74,7 +74,7 @@
     "typeMismatchWarning": "Detected content may not match selected type",
     "extractionLoading": {
       "title": "Extracting reservation info...",
-      "description": "AI is analyzing your content and images. Please wait a moment."
+      "description": "Analyzing your content. Please wait a moment."
     }
   },
   "template": {

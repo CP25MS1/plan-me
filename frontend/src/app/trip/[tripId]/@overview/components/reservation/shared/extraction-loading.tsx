@@ -43,23 +43,6 @@ export default function ExtractionLoading() {
       }}
     >
       <Box sx={{ position: 'relative', width: 80, height: 80 }}>
-        {/* Background Glow */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 100,
-            height: 100,
-            bgcolor: '#25CF7A',
-            filter: 'blur(30px)',
-            opacity: 0.15,
-            borderRadius: '50%',
-            animation: `${pulseAnimation} 3s infinite ease-in-out`,
-          }}
-        />
-
         {/* Main Icon Container */}
         <Box
           sx={{
@@ -97,27 +80,14 @@ export default function ExtractionLoading() {
         >
           <Sparkles size={24} color="#FFD700" fill="#FFD700" />
         </Box>
-        
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 0,
-            left: -15,
-            animation: `${pulseAnimation} 2s infinite ease-in-out`,
-          }}
-        >
-          <Box sx={{ display: 'flex', animation: `${rotateAnimation} 2s infinite linear` }}>
-            <Loader2 size={20} color="#25CF7A" />
-          </Box>
-        </Box>
       </Box>
 
       <Box>
         <Typography variant="h6" fontWeight={700} color="text.primary" gutterBottom>
-          {t('Reservation.extractionLoading.title') || 'กำลังสกัดข้อมูลการจอง...'}
+          {t('Reservation.extractionLoading.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 280 }}>
-          {t('Reservation.extractionLoading.description') || 'AI กำลังวิเคราะห์ข้อมูลและรูปภาพของคุณ โปรดรอสักครู่'}
+          {t('Reservation.extractionLoading.description')}
         </Typography>
       </Box>
       
