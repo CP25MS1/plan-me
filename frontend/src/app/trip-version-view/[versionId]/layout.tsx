@@ -19,6 +19,7 @@ import { useAppSelector } from '@/store';
 import { useVersionTrip } from './hooks/use-version-trip';
 import ApplyVersionDialog from './components/apply-version-dialog';
 import { useI18nSelector } from '@/store/selectors';
+import { getDefaultObjectiveName, useDefaultObjectives } from '@/components/trip/objective-picker-dialog';
 
 type VersionLayoutProps = {
   overview: ReactNode;
@@ -33,6 +34,7 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
   const searchParams = useSearchParams();
   const { t } = useTranslation('trip_overview');
   const { locale } = useI18nSelector();
+  const defaultObjectives = useDefaultObjectives();
   const queryClient = useQueryClient();
   const params = useParams<{ versionId: string }>();
   const tabParam = searchParams.get('tab');
@@ -109,6 +111,22 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
   }
 
   const createdAtText = dayjs(version.createdAt).locale(locale).format('DD MMM YYYY HH:mm');
+
+  const getObjectiveLabel = (objective: (typeof snapshot.objectives)[number]) => {
+    if ('boId' in objective) return getDefaultObjectiveName(locale, objective);
+
+    const matchedDefault = defaultObjectives.find(
+      (defaultObjective) =>
+        defaultObjective.TH === objective.name ||
+        defaultObjective.EN === objective.name ||
+        defaultObjective.name === objective.name
+    );
+
+    if (!matchedDefault) return objective.name;
+    return locale === 'en'
+      ? matchedDefault.EN || matchedDefault.TH || objective.name
+      : matchedDefault.TH || matchedDefault.EN || objective.name;
+  };
 
   return (
     <>
@@ -206,8 +224,13 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
 
               <Typography variant="body2" color="text.secondary">
                 {t('version.viewLayout.dateLabel')}{' '}
-                {snapshot.startDate ? dayjs(snapshot.startDate).locale(locale).format('DD/MM/YYYY') : '-'}{' '}
-                - {snapshot.endDate ? dayjs(snapshot.endDate).locale(locale).format('DD/MM/YYYY') : '-'}
+                {snapshot.startDate
+                  ? dayjs(snapshot.startDate).locale(locale).format('DD/MM/YYYY')
+                  : '-'}{' '}
+                -{' '}
+                {snapshot.endDate
+                  ? dayjs(snapshot.endDate).locale(locale).format('DD/MM/YYYY')
+                  : '-'}
               </Typography>
 
               <Stack direction="row" flexWrap="wrap" spacing={1} sx={{ gap: '8px', rowGap: '6px' }}>
@@ -215,7 +238,7 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
                   snapshot.objectives.map((obj) => (
                     <Chip
                       key={obj.name}
-                      label={obj.name}
+                      label={getObjectiveLabel(obj)}
                       size="small"
                       sx={{ bgcolor: obj.badgeColor ?? '#C8F7D8', pointerEvents: 'none' }}
                     />

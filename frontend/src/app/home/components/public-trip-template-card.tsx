@@ -5,12 +5,30 @@ import { Card, CardMedia, Box, Typography, Chip } from '@mui/material';
 import { PublicTripTemplateListItem } from '@/api/trip-templates/type';
 import { useRouter } from 'next/navigation';
 import { TruncatedTooltip } from '@/components/atoms';
+import { useTranslation } from 'react-i18next';
+import { useDefaultObjectives } from '@/components/trip/objective-picker-dialog';
+import { useI18nSelector } from '@/store/selectors';
 interface Props {
   template: PublicTripTemplateListItem;
 }
 
 const PublicTripTemplateCard = ({ template }: Props) => {
   const router = useRouter();
+  const { t } = useTranslation('common');
+  const { locale } = useI18nSelector();
+  const defaultObjectives = useDefaultObjectives();
+
+  const getObjectiveLabel = (name: string) => {
+    const matchedDefault = defaultObjectives.find(
+      (objective) => objective.TH === name || objective.EN === name || objective.name === name
+    );
+
+    if (!matchedDefault) return name;
+    return locale === 'en'
+      ? matchedDefault.EN || matchedDefault.TH || name
+      : matchedDefault.TH || matchedDefault.EN || name;
+  };
+
   const truncatedTripName =
     template.tripName.length > 30 ? template.tripName.slice(0, 30) + '...' : template.tripName;
   return (
@@ -65,7 +83,7 @@ const PublicTripTemplateCard = ({ template }: Props) => {
 
       {/* days badge (top-right) */}
       <Chip
-        label={`${template.dayCount} วัน`}
+        label={t('home.templateCard.dayCount', { count: template.dayCount })}
         size="small"
         sx={{
           position: 'absolute',
@@ -96,7 +114,9 @@ const PublicTripTemplateCard = ({ template }: Props) => {
         {/* objectives */}
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           {template.objectives?.map((obj, idx) => {
-            const truncated = obj.name.length > 25 ? obj.name.slice(0, 25) + '...' : obj.name;
+            const objectiveLabel = getObjectiveLabel(obj.name);
+            const truncated =
+              objectiveLabel.length > 25 ? objectiveLabel.slice(0, 25) + '...' : objectiveLabel;
 
             return (
               <Chip
@@ -124,7 +144,11 @@ const PublicTripTemplateCard = ({ template }: Props) => {
             justifyContent: 'space-between',
           }}
         >
-          <Typography variant="body2">แชร์โดย {template.owner?.username ?? 'Unknown'}</Typography>
+          <Typography variant="body2">
+            {t('home.templateCard.sharedBy', {
+              username: template.owner?.username ?? t('home.templateCard.unknownOwner'),
+            })}
+          </Typography>
         </Box>
       </Box>
     </Card>

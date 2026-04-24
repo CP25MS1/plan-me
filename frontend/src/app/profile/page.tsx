@@ -124,11 +124,11 @@ export default function ProfilePage() {
         open={openLogoutDialog}
         onClose={() => setOpenLogoutDialog(false)}
         onConfirm={handleLogout}
-        confirmLabel="ยืนยัน"
-        cancelLabel="ยกเลิก"
+        confirmLabel="profile.logout.confirm"
+        cancelLabel="cancel"
         color="error"
         confirmLoading={isLogoutPending}
-        content={<Typography>คุณต้องการออกจากบัญชีนี้ใช่หรือไม่ ?</Typography>}
+        content={<Typography>{t('profile.logout.message')}</Typography>}
       />
     </div>
   );

@@ -23,7 +23,7 @@ const FollowListClient: React.FC<Props> = ({ defaultTab = 'followers' }) => {
 
   const following = currentUser?.following ?? [];
   const followers = currentUser?.followers ?? [];
-  const username = currentUser?.username ?? 'Loading...';
+  const username = currentUser?.username ?? t('profile.loading');
 
   const followersWithCta = useFollowersWithCta(currentUser);
 

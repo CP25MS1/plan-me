@@ -6,5 +6,6 @@
   "remove_follower": "Remove follower",
   "unfollow": "Unfollow",
   "remove_confirm": "Do you want to remove <strong><tooltip>{{username}}</tooltip></strong> from your followers?",
-  "unfollow_confirm": "Are you sure you want to unfollow <strong><tooltip>{{username}}</tooltip></strong>?"
+  "unfollow_confirm": "Are you sure you want to unfollow <strong><tooltip>{{username}}</tooltip></strong>?",
+  "userFallback": "User"
 }
