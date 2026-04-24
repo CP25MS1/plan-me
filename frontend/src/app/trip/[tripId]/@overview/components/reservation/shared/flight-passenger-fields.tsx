@@ -3,6 +3,7 @@
 import { Box, Typography, TextField, IconButton, Button } from '@mui/material';
 import { Trash2 } from 'lucide-react';
 import { tokens } from '@/providers/theme/design-tokens';
+import { useTranslation } from 'react-i18next';
 
 interface FlightPassengerFieldsProps {
   typeValue: string;
@@ -21,12 +22,14 @@ export default function FlightPassengerFields({
   removePassenger,
   addPassenger,
 }: FlightPassengerFieldsProps) {
+  const { t } = useTranslation('trip_overview');
+
   if (typeValue !== 'Flight') return null;
 
   return (
     <Box sx={{ mt: 2 }}>
       <Typography variant="body2" color="text.secondary">
-        รายชื่อผู้โดยสาร
+        {t('reservation.flightPassengers.title')}
       </Typography>
 
       {passengers.map((p, idx) => {
@@ -39,7 +42,7 @@ export default function FlightPassengerFields({
           <Box key={idx} sx={{ mt: 2 }}>
             {/* ===== ชื่อ ===== */}
             <Typography variant="body2" sx={{ mb: 0.5 }}>
-              ผู้จอง
+              {t('reservation.flightPassengers.bookingName')}
               <Box
                 component="span"
                 sx={{
@@ -59,8 +62,8 @@ export default function FlightPassengerFields({
               onChange={(e) => handlePassengerChange(idx, 'passengerName', e.target.value)}
               fullWidth
               error={nameError}
-              placeholder="eg. สมพงษ์"
-              helperText={nameError ? 'โปรดระบุข้อมูล' : ''}
+              placeholder={t('reservation.flightPassengers.bookingNamePlaceholder')}
+              helperText={nameError ? t('reservation.validation.requiredField') : ''}
               FormHelperTextProps={{
                 sx: { color: tokens.color.error },
               }}
@@ -69,7 +72,7 @@ export default function FlightPassengerFields({
 
             {/* ===== เลขที่นั่ง ===== */}
             <Typography variant="body2" sx={{ mb: 0.5 }}>
-              เลขที่นั่ง
+              {t('reservation.flightPassengers.seatNo')}
               <Box
                 component="span"
                 sx={{
@@ -90,8 +93,8 @@ export default function FlightPassengerFields({
                 onChange={(e) => handlePassengerChange(idx, 'seatNo', e.target.value)}
                 fullWidth
                 error={seatError}
-                placeholder="eg. 12A"
-                helperText={seatError ? 'โปรดระบุข้อมูล' : ''}
+                placeholder={t('reservation.flightPassengers.seatNoPlaceholder')}
+                helperText={seatError ? t('reservation.validation.requiredField') : ''}
                 FormHelperTextProps={{
                   sx: { color: tokens.color.error },
                 }}
@@ -112,7 +115,7 @@ export default function FlightPassengerFields({
 
       <Box sx={{ textAlign: 'center' }}>
         <Button variant="outlined" sx={{ mt: 1 }} onClick={addPassenger}>
-          + เพิ่มผู้โดยสาร
+          {t('reservation.flightPassengers.addPassenger')}
         </Button>
       </Box>
     </Box>

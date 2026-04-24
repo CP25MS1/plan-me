@@ -82,7 +82,16 @@
     "Button": "แสดงตัวอย่าง"
   },
   "EmailReservation": {
+    "title": "ส่งต่อข้อมูลการจองผ่านอีเมล",
     "placeholder": "โปรดเลือกประเภทของข้อมูลการจอง",
+    "checkInbox": "เช็คอีเมลที่เข้ามา",
+    "emailCounter": "อีเมล ({{selected}}/{{total}})",
+    "editTitle": "ข้อมูลการจองจากอีเมล",
+    "confirmData": "ยืนยันข้อมูลการจอง",
+    "copiedEmail": "คัดลอกอีเมลแล้ว",
+    "validation": {
+      "invalidContentTypeMismatch": "เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก"
+    },
     "Type": {
       "LODGING": "ที่พัก",
       "RESTAURANT": "ร้านอาหาร",
@@ -95,7 +104,18 @@
     "Button": "แสดงตัวอย่าง"
   },
   "UploadReservation": {
+    "title": "อัพโหลดข้อมูลการจอง",
     "placeholder": "โปรดเลือกประเภทของข้อมูลการจอง",
+    "editTitle": "ตัวอย่างข้อมูล",
+    "previewTitle": "ตัวอย่างข้อมูล",
+    "fileCounter": "ไฟล์ ({{selected}}/{{total}})",
+    "fileStatus": "ขนาด: {{size}} MB | ไฟล์อัพโหลดสมบูรณ์",
+    "upload": {
+      "clickToUpload": "กดเพื่ออัพโหลดไฟล์",
+      "supportedTypes": "รองรับไฟล์ประเภท .pdf, .png, .jpg",
+      "invalidFileType": "โปรดอัปโหลดไฟล์ประเภท .pdf, .png, .jpg, .jpeg",
+      "maxTotalSize": "ขนาดไฟล์รวมต้องไม่เกิน 20 MB"
+    },
     "Type": {
       "LODGING": "ที่พัก",
       "RESTAURANT": "ร้านอาหาร",
@@ -112,6 +132,112 @@
     "extractionLoading": {
       "title": "กำลังวิเคราะห์ข้อมูล...",
       "description": "กำลังวิเคราะห์ข้อมูล โปรดรอสักครู่"
+    }
+  },
+  "inviteDialog": {
+    "title": "เชิญเพื่อนเข้าร่วมทริป",
+    "tabs": {
+      "link": "ผ่านลิงก์",
+      "friends": "ผ่านรายชื่อเพื่อน"
+    },
+    "byLink": {
+      "copyTooltip": "คัดลอกลิงก์",
+      "copied": "คัดลอกลิงก์เชิญแล้ว"
+    },
+    "byFriends": {
+      "searchPlaceholder": "ค้นหาด้วยชื่อหรืออีเมล",
+      "inviteSuccess": "ส่งคำเชิญสำเร็จ",
+      "inviteFailed": "ไม่สามารถส่งคำเชิญได้",
+      "emptySearch": "ไม่พบผู้ใช้ที่สามารถเชิญได้",
+      "emptyFriends": "ยังไม่มีรายชื่อเพื่อน",
+      "selectedCount": "เลือกเพื่อนแล้ว {{count}} คน",
+      "sendInvite": "ส่งคำเชิญ"
+    }
+  },
+  "members": {
+    "title": "สมาชิก",
+    "joinedTab": "อยู่ในทริปแล้ว ({{count}})",
+    "pendingTab": "กำลังถูกเชิญ ({{count}})",
+    "joinedEmpty": "ยังไม่มีสมาชิก",
+    "pendingEmpty": "ไม่มีคำเชิญค้างอยู่"
+  },
+  "map": {
+    "selectDay": {
+      "all": "ทั้งหมด",
+      "dayLabel": "วันที่ {{day}}"
+    },
+    "place": {
+      "removeButton": "ลบสถานที่"
+    }
+  },
+  "reservation": {
+    "previewTitle": "ตัวอย่างข้อมูลการจอง",
+    "confirm": "ยืนยัน",
+    "success": {
+      "created": "เพิ่มข้อมูลการจองสำเร็จ"
+    },
+    "validation": {
+      "unknownError": "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ",
+      "genericError": "เกิดข้อผิดพลาดบางอย่าง",
+      "requiredField": "โปรดระบุข้อมูล",
+      "invalidEmail": "โปรดระบุอีเมลในรูปแบบ username@domain",
+      "numbersOnly": "กรุณากรอกตัวเลขเท่านั้น",
+      "cannotSave": "ไม่สามารถบันทึกข้อมูลได้"
+    },
+    "flightPassengers": {
+      "title": "รายชื่อผู้โดยสาร",
+      "bookingName": "ผู้จอง",
+      "bookingNamePlaceholder": "eg. สมพงษ์",
+      "seatNo": "เลขที่นั่ง",
+      "seatNoPlaceholder": "eg. 12A",
+      "addPassenger": "+ เพิ่มผู้โดยสาร"
+    },
+    "fields": {
+      "lodgingName": { "label": "ชื่อโรงแรม" },
+      "lodgingAddress": { "label": "ที่อยู่โรงแรม" },
+      "underName": { "label": "ชื่อผู้จอง" },
+      "checkinDate": { "label": "วันที่เช็คอิน" },
+      "checkoutDate": { "label": "วันที่เช็คเอ้าท์" },
+      "bookingRef": { "label": "หมายเลขการจอง" },
+      "contactTel": { "label": "เบอร์ติดต่อ" },
+      "contactEmail": { "label": "Email ติดต่อ" },
+      "cost": { "label": "ราคา" },
+      "restaurantName": { "label": "ชื่อร้านอาหาร" },
+      "restaurantAddress": { "label": "ที่อยู่ร้านอาหาร" },
+      "reservationDate": { "label": "วันที่จอง" },
+      "reservationTime": { "label": "เวลาที่จอง" },
+      "tableNo": { "label": "หมายเลขโต๊ะ" },
+      "queueNo": { "label": "หมายเลขคิว" },
+      "partySize": { "label": "จำนวนสมาชิก" },
+      "airline": { "label": "สายการบิน" },
+      "flightNo": { "label": "หมายเลขเที่ยวบิน" },
+      "boardingTime": { "label": "เวลา Boarding" },
+      "gateNo": { "label": "Gate" },
+      "departureAirport": { "label": "สนามบินต้นทาง" },
+      "departureTime": { "label": "เวลาออกเดินทาง" },
+      "arrivalAirport": { "label": "สนามบินปลายทาง" },
+      "arrivalTime": { "label": "เวลาถึง" },
+      "flightClass": { "label": "ชั้นโดยสาร" },
+      "trainNo": { "label": "หมายเลขขบวน" },
+      "trainClass": { "label": "ชั้นโดยสาร" },
+      "seatClass": { "label": "ประเภทที่นั่ง" },
+      "seatNo": { "label": "หมายเลขที่นั่ง" },
+      "passengerName": { "label": "ชื่อผู้โดยสาร" },
+      "departureStation": { "label": "สถานีต้นทาง" },
+      "arrivalStation": { "label": "สถานีปลายทาง" },
+      "transportCompany": { "label": "ชื่อบริษัทรถ/เรือ" },
+      "busClass": { "label": "ประเภทรถ" },
+      "departurePort": { "label": "ท่าเรือต้นทาง" },
+      "arrivalPort": { "label": "ท่าเรือปลายทาง" },
+      "ticketType": { "label": "ประเภทตั๋ว" },
+      "rentalCompany": { "label": "ชื่อบริษัทเช่า" },
+      "carModel": { "label": "รุ่นรถ" },
+      "vrn": { "label": "หมายเลขทะเบียน" },
+      "renterName": { "label": "ชื่อผู้เช่า" },
+      "pickupLocation": { "label": "สถานที่รับรถ" },
+      "pickupTime": { "label": "เวลารับรถ" },
+      "dropoffLocation": { "label": "สถานที่คืนรถ" },
+      "dropoffTime": { "label": "เวลาคืนรถ" }
     }
   },
   "template": {

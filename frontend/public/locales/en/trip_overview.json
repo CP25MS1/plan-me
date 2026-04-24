@@ -88,6 +88,158 @@
       "description": "Analyzing the content. Please wait a moment."
     }
   },
+  "EmailReservation": {
+    "placeholder": "Please select the type of booking information",
+    "title": "Import bookings from email",
+    "checkInbox": "Check incoming emails",
+    "emailCounter": "Emails ({{selected}}/{{total}})",
+    "editTitle": "Booking data from emails",
+    "confirmData": "Confirm booking data",
+    "copiedEmail": "Email address copied",
+    "validation": {
+      "invalidContentTypeMismatch": "An error occurred, or the email content does not match the selected booking type."
+    },
+    "Type": {
+      "LODGING": "Lodging",
+      "RESTAURANT": "Restaurant",
+      "FLIGHT": "Flight",
+      "TRAIN": "Train",
+      "BUS": "Bus",
+      "FERRY": "Ferry",
+      "CAR_RENTAL": "Car rental"
+    },
+    "Button": "Preview"
+  },
+  "UploadReservation": {
+    "title": "Upload booking files",
+    "placeholder": "Please select the type of booking information",
+    "editTitle": "Review booking data",
+    "previewTitle": "Booking preview",
+    "fileCounter": "Files ({{selected}}/{{total}})",
+    "fileStatus": "Size: {{size}} MB | Uploaded",
+    "upload": {
+      "clickToUpload": "Click to upload files",
+      "supportedTypes": "Supported file types: .pdf, .png, .jpg",
+      "invalidFileType": "Please upload only .pdf, .png, .jpg, .jpeg files.",
+      "maxTotalSize": "Total file size must not exceed 20 MB."
+    },
+    "Type": {
+      "LODGING": "Lodging",
+      "RESTAURANT": "Restaurant",
+      "FLIGHT": "Flight",
+      "TRAIN": "Train",
+      "BUS": "Bus",
+      "FERRY": "Ferry",
+      "CAR_RENTAL": "Car rental"
+    },
+    "Button": "Preview"
+  },
+  "inviteDialog": {
+    "title": "Invite friends to this trip",
+    "tabs": {
+      "link": "By link",
+      "friends": "From friends list"
+    },
+    "byLink": {
+      "copyTooltip": "Copy invite link",
+      "copied": "Invite link copied"
+    },
+    "byFriends": {
+      "searchPlaceholder": "Search by name or email",
+      "inviteSuccess": "Invitations sent successfully",
+      "inviteFailed": "Unable to send invitations",
+      "emptySearch": "No users available to invite",
+      "emptyFriends": "No friends yet",
+      "selectedCount": "{{count}} friends selected",
+      "sendInvite": "Send invite"
+    }
+  },
+  "members": {
+    "title": "Members",
+    "joinedTab": "In trip ({{count}})",
+    "pendingTab": "Pending invites ({{count}})",
+    "joinedEmpty": "No members yet",
+    "pendingEmpty": "No pending invites"
+  },
+  "map": {
+    "selectDay": {
+      "all": "All",
+      "dayLabel": "Day {{day}}"
+    },
+    "place": {
+      "removeButton": "Remove place"
+    }
+  },
+  "reservation": {
+    "previewTitle": "Booking preview",
+    "confirm": "Confirm",
+    "success": {
+      "created": "Booking added successfully"
+    },
+    "validation": {
+      "unknownError": "Unknown error occurred",
+      "genericError": "Something went wrong",
+      "requiredField": "Required",
+      "invalidEmail": "Please enter an email in username@domain format",
+      "numbersOnly": "Please enter digits only",
+      "cannotSave": "Unable to save booking data"
+    },
+    "flightPassengers": {
+      "title": "Passengers",
+      "bookingName": "Passenger name",
+      "bookingNamePlaceholder": "e.g. John Doe",
+      "seatNo": "Seat number",
+      "seatNoPlaceholder": "e.g. 12A",
+      "addPassenger": "+ Add passenger"
+    },
+    "fields": {
+      "lodgingName": { "label": "Hotel name" },
+      "lodgingAddress": { "label": "Hotel address" },
+      "underName": { "label": "Booked under" },
+      "checkinDate": { "label": "Check-in date" },
+      "checkoutDate": { "label": "Check-out date" },
+      "bookingRef": { "label": "Booking reference" },
+      "contactTel": { "label": "Contact phone" },
+      "contactEmail": { "label": "Contact email" },
+      "cost": { "label": "Cost" },
+      "restaurantName": { "label": "Restaurant name" },
+      "restaurantAddress": { "label": "Restaurant address" },
+      "reservationDate": { "label": "Reservation date" },
+      "reservationTime": { "label": "Reservation time" },
+      "tableNo": { "label": "Table number" },
+      "queueNo": { "label": "Queue number" },
+      "partySize": { "label": "Party size" },
+      "airline": { "label": "Airline" },
+      "flightNo": { "label": "Flight number" },
+      "boardingTime": { "label": "Boarding time" },
+      "gateNo": { "label": "Gate" },
+      "departureAirport": { "label": "Departure airport" },
+      "departureTime": { "label": "Departure time" },
+      "arrivalAirport": { "label": "Arrival airport" },
+      "arrivalTime": { "label": "Arrival time" },
+      "flightClass": { "label": "Cabin class" },
+      "trainNo": { "label": "Train number" },
+      "trainClass": { "label": "Train class" },
+      "seatClass": { "label": "Seat class" },
+      "seatNo": { "label": "Seat number" },
+      "passengerName": { "label": "Passenger name" },
+      "departureStation": { "label": "Departure station" },
+      "arrivalStation": { "label": "Arrival station" },
+      "transportCompany": { "label": "Transport company" },
+      "busClass": { "label": "Bus class" },
+      "departurePort": { "label": "Departure port" },
+      "arrivalPort": { "label": "Arrival port" },
+      "ticketType": { "label": "Ticket type" },
+      "rentalCompany": { "label": "Rental company" },
+      "carModel": { "label": "Car model" },
+      "vrn": { "label": "License plate" },
+      "renterName": { "label": "Renter name" },
+      "pickupLocation": { "label": "Pickup location" },
+      "pickupTime": { "label": "Pickup time" },
+      "dropoffLocation": { "label": "Dropoff location" },
+      "dropoffTime": { "label": "Dropoff time" }
+    }
+  },
   "template": {
     "header": {
       "objectives": {
@@ -358,7 +510,7 @@
     },
     "card": {
       "delete": "Delete",
-      "latestBadge": "Latest",
+      "latestBadge": "Latest Saved",
       "deleteConfirm": {
         "title": "Delete saved version?",
         "message": "Are you sure you want to delete version <strong>{{name}}</strong>?"

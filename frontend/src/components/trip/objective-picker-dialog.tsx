@@ -33,8 +33,8 @@ type ObjectivePickerDialogProps = {
 };
 
 export const getDefaultObjectiveName = (locale: Locale, obj: DefaultObjective) => {
-  if (locale === 'th') return obj.TH;
-  return obj.EN;
+  if (locale === 'th') return obj.TH || obj.EN || obj.name;
+  return obj.EN || obj.TH || obj.name;
 };
 
 const ObjectivePickerDialog = ({

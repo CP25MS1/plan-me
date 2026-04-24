@@ -36,24 +36,21 @@ const PlaceBottomSheet = ({ planId, place, onClose, readOnly = false }: PlaceBot
   const { mutate: remove, isPending: isRemoving } = useRemoveScheduledPlace(tripId);
   const confirmRemove = () => {
     if (!planId || !place) return;
-    remove(
-      place.id,
-      {
-        onSettled: () => {
-          void deleteReleaseRef.current?.();
-          deleteReleaseRef.current = null;
-        },
-        onSuccess: () => {
-          setIsRemoveDialogOpened(false);
-          setIsDrawerOpened(false);
-        },
-      }
-    );
+    remove(place.id, {
+      onSettled: () => {
+        void deleteReleaseRef.current?.();
+        deleteReleaseRef.current = null;
+      },
+      onSuccess: () => {
+        setIsRemoveDialogOpened(false);
+        setIsDrawerOpened(false);
+      },
+    });
   };
 
   useEffect(() => {
     if (ggmp) setIsDrawerOpened(true);
-  }, [ggmp])
+  }, [ggmp]);
 
   return (
     <>
@@ -132,7 +129,7 @@ const PlaceBottomSheet = ({ planId, place, onClose, readOnly = false }: PlaceBot
                       purpose: 'DELETE',
                     });
                     if (lease.status === 'conflict') {
-                      showWarning(`Locked by ${lease.lock.owner.username}`);
+                      showWarning(t('lock.by_user', { username: lease.lock.owner.username }));
                       return;
                     }
 
@@ -141,7 +138,7 @@ const PlaceBottomSheet = ({ planId, place, onClose, readOnly = false }: PlaceBot
                   })();
                 }}
               >
-                ลบสถานที่
+                {t('map.place.removeButton')}
               </Button>
             )}
           </Box>

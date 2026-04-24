@@ -2,6 +2,7 @@
 
 import { Dialog, DialogTitle, DialogContent, IconButton } from '@mui/material';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import InviteTabs from './invite-tabs';
 
@@ -12,6 +13,8 @@ interface Props {
 }
 
 export default function InviteDialog({ open, onClose, tripId }: Props) {
+  const { t } = useTranslation('trip_overview');
+
   return (
     <Dialog
       open={open}
@@ -39,7 +42,7 @@ export default function InviteDialog({ open, onClose, tripId }: Props) {
           pb: 1,
         }}
       >
-        เชิญเพื่อนเข้าร่วมทริป
+        {t('inviteDialog.title')}
         {/* Close button */}
         <IconButton
           onClick={onClose}

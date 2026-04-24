@@ -1,8 +1,19 @@
 {
   "profile": {
-    "logout": "Log out",
+    "loading": "Loading...",
+    "logout": {
+      "confirm": "Confirm",
+      "message": "Do you want to log out from this account?"
+    },
     "followers": "Followers",
     "following": "Following",
+
+    "trips": {
+      "empty": {
+        "title": "You have no trips yet",
+        "description": "Start creating your first trip now"
+      }
+    },
 
     "followers_count": "{{count}} follower",
     "followers_count_plural": "{{count}} followers",
@@ -58,7 +69,25 @@
     "notifications": "Notifications",
     "shared_trip_templates": "Shared trip templates",
     "shared_trip_templates_load_error": "Unable to load shared trip templates.",
-    "shared_trip_templates_empty": "No shared trips yet"
+    "shared_trip_templates_empty": "No shared trips yet",
+    "templateCard": {
+      "dayCount": "{{count}} day(s)",
+      "sharedBy": "Shared by {{username}}",
+      "unknownOwner": "Unknown"
+    }
+  },
+
+  "errors": {
+    "generic": "Something went wrong"
+  },
+
+  "errorPage": {
+    "backHome": "Back to Home",
+    "default": {
+      "404": "Page Not Found!",
+      "403": "You are not authorized to access this page!",
+      "generic": "An error occurred"
+    }
   },
 
   "notification": {

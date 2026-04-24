@@ -6,5 +6,6 @@
   "remove_follower": "ลบผู้ติดตาม",
   "unfollow": "เลิกติดตาม",
   "remove_confirm": "คุณต้องการลบ <strong><tooltip>{{username}}</tooltip></strong> ออกจากผู้ติดตามหรือไม่?",
-  "unfollow_confirm": "คุณต้องการเลิกติดตาม <strong><tooltip>{{username}}</tooltip></strong> หรือไม่?"
+  "unfollow_confirm": "คุณต้องการเลิกติดตาม <strong><tooltip>{{username}}</tooltip></strong> หรือไม่?",
+  "userFallback": "ผู้ใช้"
 }

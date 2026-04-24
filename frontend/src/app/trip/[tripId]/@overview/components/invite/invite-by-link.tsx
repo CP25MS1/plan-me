@@ -13,8 +13,10 @@ import { useGetTripInvitationCode } from '@/app/trip/[tripId]/hooks/use-get-trip
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { useTripHeader } from '@/api/trips';
+import { useTranslation } from 'react-i18next';
 
 export default function InviteTripModal({ tripId }: { tripId: number }) {
+  const { t } = useTranslation('trip_overview');
   const currentUser = useSelector((s: RootState) => s.profile.currentUser);
   const { data: tripHeader } = useTripHeader(tripId);
   const { data: invitationCode } = useGetTripInvitationCode(tripId);
@@ -22,7 +24,7 @@ export default function InviteTripModal({ tripId }: { tripId: number }) {
   const { showSuccess } = useSnackbar();
   const copy = async () => {
     await navigator.clipboard.writeText(inviteLink);
-    showSuccess('คัดลอกลิงก์เชิญแล้ว');
+    showSuccess(t('inviteDialog.byLink.copied'));
   };
 
   if (!tripHeader || !currentUser || !invitationCode) return null;
@@ -63,7 +65,7 @@ export default function InviteTripModal({ tripId }: { tripId: number }) {
               <TruncatedTooltip text={inviteLink} className="text-[14px] text-gray-700 truncate" />
             </Box>
 
-            <Tooltip title="คัดลอกลิงก์">
+            <Tooltip title={t('inviteDialog.byLink.copyTooltip')}>
               <IconButton onClick={copy} size="small">
                 <Copy size={16} />
               </IconButton>
