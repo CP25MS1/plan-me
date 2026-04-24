@@ -17,6 +17,8 @@ export interface ReservationDto {
   contactEmail?: string | null;
   cost?: number;
   details?: ReservationDetails;
+  // Optional flag returned by preview endpoints when extracted content doesn't match requested type
+  typeMismatch?: boolean;
 }
 
 export type ReservationDetails =

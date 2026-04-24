@@ -70,6 +70,9 @@
     },
     "Button": "preview"
   },
+  "Reservation": {
+    "typeMismatchWarning": "Detected content may not match selected type"
+  },
   "template": {
     "header": {
       "objectives": {

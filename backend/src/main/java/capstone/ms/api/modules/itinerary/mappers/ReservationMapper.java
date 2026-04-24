@@ -140,6 +140,56 @@ public interface ReservationMapper {
         }
     }
 
+    /**
+     * Build an empty / best-effort ReservationDto for the requested reservation type.
+     * Fields are left null or empty so the frontend can display editable skeletons.
+     */
+    default ReservationDto emptyReservationForType(String type) {
+        if (type == null) {
+            return ReservationDto.builder().type(null).details(null).build();
+        }
+
+        switch (type.toUpperCase()) {
+            case "LODGING":
+                return ReservationDto.builder()
+                        .type("LODGING")
+                        .details(LodgingDetails.builder().build())
+                        .build();
+            case "RESTAURANT":
+                return ReservationDto.builder()
+                        .type("RESTAURANT")
+                        .details(RestaurantDetails.builder().build())
+                        .build();
+            case "FLIGHT":
+                return ReservationDto.builder()
+                        .type("FLIGHT")
+                        .details(FlightDetails.builder().passengers(List.of()).build())
+                        .build();
+            case "TRAIN":
+                return ReservationDto.builder()
+                        .type("TRAIN")
+                        .details(TrainDetails.builder().build())
+                        .build();
+            case "BUS":
+                return ReservationDto.builder()
+                        .type("BUS")
+                        .details(BusDetails.builder().build())
+                        .build();
+            case "FERRY":
+                return ReservationDto.builder()
+                        .type("FERRY")
+                        .details(FerryDetails.builder().build())
+                        .build();
+            case "CAR_RENTAL":
+                return ReservationDto.builder()
+                        .type("CAR_RENTAL")
+                        .details(CarRentalDetails.builder().build())
+                        .build();
+            default:
+                return ReservationDto.builder().type(type).details(null).build();
+        }
+    }
+
     @Mapping(target = "type", source = "data.type")
     @Mapping(target = "bookingRef", source = "data.bookingRef")
     @Mapping(target = "contactTel", source = "data.contactTel")

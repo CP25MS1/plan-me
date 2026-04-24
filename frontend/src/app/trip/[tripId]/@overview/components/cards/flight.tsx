@@ -2,6 +2,7 @@
 
 import { FlightDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { Plane } from 'lucide-react';
 import { formatCurrencyTHB } from '@/lib/string';
 
@@ -24,6 +25,7 @@ export default function FlightCard({
   data: ReservationDto | null;
   passengerIndex: number;
 }) {
+  const { t } = useTranslation('trip_overview');
   const flightDetails =
     (data?.details as FlightDetails | undefined) ?? (data as unknown as FlightDetails);
 
@@ -68,6 +70,13 @@ export default function FlightCard({
         gap: 0.5,
       }}
     >
+          {data?.typeMismatch && (
+            <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}>
+              <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
+                {t('Reservation.typeMismatchWarning')}
+              </Typography>
+            </Box>
+          )}
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

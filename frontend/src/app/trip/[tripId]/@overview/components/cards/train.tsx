@@ -2,6 +2,7 @@
 
 import { ReservationDto, TrainDetails } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { Train } from 'lucide-react';
 import { formatCurrencyTHB } from '@/lib/string';
 
@@ -65,6 +66,7 @@ const Row = ({ children }: { children: React.ReactNode }) => (
 );
 
 export default function TrainCard({ data }: { data: ReservationDto | null }) {
+  const { t } = useTranslation('trip_overview');
   const trainDetails =
     (data?.details as TrainDetails | undefined) ?? (data as unknown as TrainDetails);
 
@@ -97,6 +99,13 @@ export default function TrainCard({ data }: { data: ReservationDto | null }) {
         gap: 0.8,
       }}
     >
+          {data?.typeMismatch && (
+            <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}>
+              <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
+                {t('Reservation.typeMismatchWarning')}
+              </Typography>
+            </Box>
+          )}
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
