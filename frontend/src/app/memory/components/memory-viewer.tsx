@@ -29,6 +29,8 @@ import { needsRefresh } from '../utils/refresh';
 import { useWheelPageScroll } from '../hooks/use-wheel-page-scroll';
 import { downloadBlobAndSave } from '../utils/download-blob';
 import { useTouchPageScroll } from '../hooks/use-touch-page-scroll';
+import { useTranslation } from 'react-i18next';
+import { useI18nSelector } from '@/store/selectors';
 
 interface Props {
   memories: MemoryItemDto[];
@@ -39,6 +41,8 @@ interface Props {
 }
 
 export default function MemoryViewer({ memories, currentIndex, tripName, tripId, onClose }: Props) {
+  const { t } = useTranslation('trip_memory');
+  const { locale } = useI18nSelector();
   const [index, setIndex] = useState<number>(currentIndex);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
@@ -181,7 +185,7 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
               <Box>
                 <Typography fontWeight={600}>{tripName}</Typography>
                 <Typography variant="caption">
-                  Uploaded by {currentMemory.uploader?.username ?? '-'}
+                  {t('viewer.uploaded_by', { username: currentMemory.uploader?.username ?? '-' })}
                 </Typography>
               </Box>
             </Box>
@@ -305,7 +309,7 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
           }}
         >
           <InfoOutlinedIcon fontSize="small" sx={{ mr: 1 }} />
-          รายละเอียด
+          {t('viewer.menu.details')}
         </MenuItem>
 
         <MenuItem
@@ -315,23 +319,31 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
           }}
         >
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          ลบรูป/วิดีโอ
+          {t('viewer.menu.delete_media')}
         </MenuItem>
       </Menu>
 
       {/* INFO */}
       <Dialog open={openInfo} onClose={() => setOpenInfo(false)}>
-        <DialogTitle>รายละเอียดไฟล์</DialogTitle>
+        <DialogTitle>{t('viewer.info.title')}</DialogTitle>
         <DialogContent>
-          <Typography>อัปโหลดโดย: {currentMemory.uploader?.username}</Typography>
           <Typography>
-            วันที่อัปโหลด: {new Date(currentMemory.createdAt).toLocaleString()}
+            {t('viewer.info.uploaded_by', { username: currentMemory.uploader?.username ?? '-' })}
           </Typography>
-          <Typography>ขนาดไฟล์: {formatFileSize(currentMemory.sizeBytes)}</Typography>
-          <Typography>ประเภทไฟล์: {currentMemory.contentType}</Typography>
+          <Typography>
+            {t('viewer.info.uploaded_at', {
+              date: new Date(currentMemory.createdAt).toLocaleString(
+                locale === 'th' ? 'th-TH' : 'en-GB'
+              ),
+            })}
+          </Typography>
+          <Typography>
+            {t('viewer.info.file_size', { size: formatFileSize(currentMemory.sizeBytes) })}
+          </Typography>
+          <Typography>{t('viewer.info.file_type', { type: currentMemory.contentType })}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenInfo(false)}>ปิด</Button>
+          <Button onClick={() => setOpenInfo(false)}>{t('viewer.info.close')}</Button>
         </DialogActions>
       </Dialog>
 
@@ -341,10 +353,10 @@ export default function MemoryViewer({ memories, currentIndex, tripName, tripId,
         onClose={() => !isDeleting && setOpenDelete(false)}
         onConfirm={handleDelete}
         confirmLoading={isDeleting}
-        confirmLabel="ยืนยัน"
-        cancelLabel="ยกเลิก"
+        confirmLabel="confirm"
+        cancelLabel="cancel"
         color="error"
-        content={<Typography>คุณต้องการลบรูปภาพหรือวิดีโอนี้ใช่หรือไม่?</Typography>}
+        content={<Typography>{t('viewer.delete_confirm')}</Typography>}
       />
     </>
   );

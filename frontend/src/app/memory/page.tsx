@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Box, Typography, Card, CircularProgress } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { ImagePlus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { getMyAccessibleAlbums } from '@/api/memory/api';
 import { ListAlbumsResponseDto } from '@/api/memory/type';
@@ -17,6 +18,7 @@ import UploadMemoryDialog from './components/upload-memory-dialog';
 
 export default function MemoryPage() {
   const router = useRouter();
+  const { t } = useTranslation('trip_memory');
   const me = useAppSelector((s) => s.profile.currentUser);
 
   const [openCreateModal, setOpenCreateModal] = React.useState(false);
@@ -53,7 +55,9 @@ export default function MemoryPage() {
   if (isError) {
     return (
       <Box p={4}>
-        <Typography color="error">เกิดข้อผิดพลาด: {(error as Error)?.message}</Typography>
+        <Typography color="error">
+          {t('error_prefix')}: {(error as Error)?.message}
+        </Typography>
       </Box>
     );
   }
@@ -63,9 +67,9 @@ export default function MemoryPage() {
       {/* HEADER */}
       <Box mb={3}>
         <Typography variant="h5" fontWeight={700}>
-          ความทรงจำ
+          {t('title')}
         </Typography>
-        <Typography color="text.secondary">เพิ่มอัลบั้มความทรงจำให้ทริปของคุณ</Typography>
+        <Typography color="text.secondary">{t('subtitle')}</Typography>
       </Box>
 
       {/* GRID */}
@@ -102,7 +106,7 @@ export default function MemoryPage() {
           >
             <ImagePlus size={42} />
             <Typography mt={3} fontWeight={600}>
-              สร้างอัลบั้ม
+              {t('create_album')}
             </Typography>
           </Box>
         </Card>
