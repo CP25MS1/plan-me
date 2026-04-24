@@ -54,7 +54,7 @@ const UserProfilePage = ({ params }: UserProfilePageProps) => {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  <TruncatedTooltip text={user?.username ?? 'User'} />
+                  <TruncatedTooltip text={user?.username ?? t('userFallback')} />
                 </Typography>
               </Box>
             </Box>
@@ -66,7 +66,7 @@ const UserProfilePage = ({ params }: UserProfilePageProps) => {
           ) : (
             <Avatar
               src={user?.profilePicUrl}
-              alt={user?.username ?? 'User'}
+              alt={user?.username ?? t('userFallback')}
               sx={{ width: 112, height: 112, border: `4px solid ${tokens.color.primary}` }}
             />
           )}
@@ -80,7 +80,7 @@ const UserProfilePage = ({ params }: UserProfilePageProps) => {
           ) : (
             <Box textAlign="center">
               <Typography variant="h6" fontWeight={600}>
-                {user?.username ?? 'User'}
+                {user?.username ?? t('userFallback')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {user?.email ?? '-'}

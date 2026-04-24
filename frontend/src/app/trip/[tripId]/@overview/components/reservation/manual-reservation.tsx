@@ -80,8 +80,8 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
     const apiMessage =
       error instanceof AxiosError
         ? error.response?.data?.message || error.response?.data?.error || error.message
-        : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
-    showError(apiMessage || 'เกิดข้อผิดพลาดบางอย่าง');
+        : t('reservation.validation.unknownError');
+    showError(apiMessage || t('reservation.validation.genericError'));
   };
 
   const handleChange = (name: string, val: string) => {
@@ -106,7 +106,7 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
 
   const handlePreview = () => {
     if (!typeValue) {
-      showError('กรุณาเลือกประเภทของข้อมูลการจอง');
+      showError(t('ManualReservation.placeholder'));
       return;
     }
     const typeFields = fieldsByType[typeValue];
@@ -149,7 +149,7 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
 
   const handleConfirm = () => {
     if (!typeValue || !formData) {
-      showError('ไม่สามารถบันทึกข้อมูลได้');
+      showError(t('reservation.validation.cannotSave'));
       return;
     }
 
@@ -189,7 +189,7 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
 
     createReservation.mutate(payload, {
       onSuccess: () => {
-        showSuccess('เพิ่มข้อมูลการจองสำเร็จ');
+        showSuccess(t('reservation.success.created'));
         setShowPreview(false);
         onClose();
       },
@@ -340,7 +340,7 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
           <Box sx={{ position: 'absolute', left: 8, top: 8 }}>
             <BackButton onBack={() => setShowPreview(false)} />
           </Box>
-          ตัวอย่างข้อมูลการจอง
+          {t('reservation.previewTitle')}
         </DialogTitle>
         <DialogContent
           sx={{
@@ -379,7 +379,7 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
             {createReservation.isPending ? (
               <CircularProgress size={20} color="inherit" />
             ) : (
-              'ยืนยัน'
+              t('reservation.confirm')
             )}
           </Button>
         </Box>

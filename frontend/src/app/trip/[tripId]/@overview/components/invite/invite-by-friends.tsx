@@ -11,8 +11,10 @@ import { useSnackbar } from '@/components/common/snackbar/snackbar';
 import { useGetFriends } from '../../hooks/invite/use-get-friends';
 import { useInviteTrip } from '../../hooks/invite/use-invite-trip';
 import { useGetTripmates } from '@/app/trip/[tripId]/@overview/hooks/invite/use-get-tripmates';
+import { useTranslation } from 'react-i18next';
 
 export default function InviteByFriends({ tripId }: { tripId: number }) {
+  const { t } = useTranslation('trip_overview');
   const { data } = useGetFriends();
   const { data: tripmates, refetch: refetchTripmates } = useGetTripmates(tripId);
   const { mutate, isPending } = useInviteTrip(tripId);
@@ -71,12 +73,12 @@ export default function InviteByFriends({ tripId }: { tripId: number }) {
       { receiverIds: selected },
       {
         onSuccess: () => {
-          showSuccess('ส่งคำเชิญสำเร็จ');
+          showSuccess(t('inviteDialog.byFriends.inviteSuccess'));
           setSelected([]);
         },
         onError: (err) => {
           console.error('Invite trip failed:', err);
-          showError('ไม่สามารถส่งคำเชิญได้');
+          showError(t('inviteDialog.byFriends.inviteFailed'));
         },
       }
     );
@@ -93,7 +95,7 @@ export default function InviteByFriends({ tripId }: { tripId: number }) {
         {/* ===== Search Box ===== */}
         <TextField
           fullWidth
-          placeholder="ค้นหาด้วยชื่อหรืออีเมล"
+          placeholder={t('inviteDialog.byFriends.searchPlaceholder')}
           value={searchKeyword}
           onChange={(e) => setSearchKeyword(e.target.value)}
           size="small"
@@ -178,19 +180,19 @@ export default function InviteByFriends({ tripId }: { tripId: number }) {
             ))
           ) : (
             <Typography textAlign="center" color="text.secondary" sx={{ py: 6 }}>
-              ไม่พบผู้ใช้ที่สามารถเชิญได้
+              {t('inviteDialog.byFriends.emptySearch')}
             </Typography>
           )
         ) : (
           <Typography textAlign="center" color="text.secondary" sx={{ py: 6 }}>
-            ยังไม่มีรายชื่อเพื่อน
+            {t('inviteDialog.byFriends.emptyFriends')}
           </Typography>
         )}
 
         {/* ===== Bottom action ===== */}
         <Box display="flex" justifyContent="space-between" alignItems="center" pt={2}>
           <Typography fontWeight={500} sx={{ color: tokens.color.primary }}>
-            {selected.length} เพื่อนที่เลือกแล้ว
+            {t('inviteDialog.byFriends.selectedCount', { count: selected.length })}
           </Typography>
 
           <Button
@@ -199,7 +201,7 @@ export default function InviteByFriends({ tripId }: { tripId: number }) {
             className="flex items-center justify-center gap-2 rounded-full px-12 py-4 text-white shadow-md disabled:opacity-50"
           >
             <Navigation size={18} />
-            ส่งคำเชิญ
+            {t('inviteDialog.byFriends.sendInvite')}
           </Button>
         </Box>
       </Box>

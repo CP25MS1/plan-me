@@ -24,6 +24,7 @@ import { useSnackbar } from '@/components/common/snackbar/snackbar';
 import { useDeleteTrip, useToggleTripVisibility } from '@/app/hooks';
 import { useAppSelector } from '@/store';
 import { Locale } from '@/store/i18n-slice';
+import { useDefaultObjectives, getDefaultObjectiveName } from '@/components/trip/objective-picker-dialog';
 
 interface TripListProps {
   trips?: TripSummary[];
@@ -35,13 +36,15 @@ interface TripListProps {
   currentUserId?: number;
 }
 
-const formatDate = (dateString?: string | null) => {
+const formatDate = (dateString?: string | null, locale: Locale = 'th') => {
   if (!dateString) return '';
 
   const date = new Date(dateString);
   if (Number.isNaN(date.getTime())) return '-';
 
-  return date.toLocaleDateString('th-TH', {
+  const formatLocale = locale === 'en' ? 'en-GB' : 'th-TH';
+
+  return date.toLocaleDateString(formatLocale, {
     day: '2-digit',
     month: '2-digit',
   });
@@ -58,7 +61,8 @@ export const TripList: React.FC<TripListProps> = ({
 }) => {
   const tripVisibilityById = useAppSelector((s) => s.tripDetail.tripVisibilityById);
   const locale = useAppSelector((s) => s.i18n.locale);
-  const { showSuccess, showError } = useSnackbar();
+  const { showError } = useSnackbar();
+  const defaultObjectives = useDefaultObjectives();
   const { mutate: mutateVisibility, isPending: isUpdatingVisibility } = useToggleTripVisibility();
   const { mutate: mutateDeleteTrip, isPending: isDeletingTrip } = useDeleteTrip();
 
@@ -75,9 +79,28 @@ export const TripList: React.FC<TripListProps> = ({
 
   const translate = React.useCallback((key: string) => t?.(key) ?? key, [t]);
 
+  const getObjectiveLabel = React.useCallback(
+    (objective: NonNullable<TripSummary['objectives']>[number]) => {
+      if ('boId' in objective) return getDefaultObjectiveName(locale, objective);
+
+      const matchedDefault = defaultObjectives.find(
+        (defaultObjective) =>
+          defaultObjective.TH === objective.name ||
+          defaultObjective.EN === objective.name ||
+          defaultObjective.name === objective.name
+      );
+
+      if (!matchedDefault) return objective.name;
+      return locale === 'en'
+        ? matchedDefault.EN || matchedDefault.TH || objective.name
+        : matchedDefault.TH || matchedDefault.EN || objective.name;
+    },
+    [defaultObjectives, locale]
+  );
+
   const getLocalizedErrorMessage = React.useCallback(
     (error: unknown): string => {
-      const defaultMessage = locale === 'en' ? 'Something went wrong' : 'เกิดข้อผิดพลาดบางอย่าง';
+      const defaultMessage = translate('errors.generic');
 
       if (!(error instanceof AxiosError)) return defaultMessage;
 
@@ -104,7 +127,7 @@ export const TripList: React.FC<TripListProps> = ({
 
       return data?.error || error.message || defaultMessage;
     },
-    [locale]
+    [locale, translate]
   );
 
   const selectedTripVisibility: TripVisibility = selectedTrip
@@ -186,11 +209,11 @@ export const TripList: React.FC<TripListProps> = ({
         }}
       >
         <Typography variant="h5" fontWeight={600}>
-          คุณยังไม่มีทริป
+          {translate('profile.trips.empty.title')}
         </Typography>
 
         <Typography variant="body2" color="text.secondary" mt={1}>
-          เริ่มสร้างทริปแรกของคุณได้เลย
+          {translate('profile.trips.empty.description')}
         </Typography>
       </Box>
     );
@@ -309,7 +332,7 @@ export const TripList: React.FC<TripListProps> = ({
                         textOverflow: 'ellipsis',
                       }}
                     >
-                      {formatDate(trip.startDate)} – {formatDate(trip.endDate)}
+                      {formatDate(trip.startDate, locale)} – {formatDate(trip.endDate, locale)}
                     </Typography>
                   </Stack>
 
@@ -353,7 +376,7 @@ export const TripList: React.FC<TripListProps> = ({
                     {trip.objectives.slice(0, 4).map((obj) => (
                       <Chip
                         key={obj.id ?? obj.name}
-                        label={obj.name}
+                        label={getObjectiveLabel(obj)}
                         size="small"
                         clickable={false}
                         sx={{

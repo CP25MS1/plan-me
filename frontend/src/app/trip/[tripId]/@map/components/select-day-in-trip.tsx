@@ -1,5 +1,6 @@
 import { Box, FormControl, MenuItem, Select } from '@mui/material';
 import { MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { DailyPlan } from '@/api/trips';
 
@@ -10,6 +11,8 @@ type SelectDayInTripProps = {
 };
 
 const SelectDayInTrip = ({ dailyPlans, selectedDay, onChange }: SelectDayInTripProps) => {
+  const { t } = useTranslation('trip_overview');
+
   return (
     <Box sx={{ marginLeft: 'auto', minWidth: '25%' }}>
       <FormControl fullWidth size="small">
@@ -17,7 +20,11 @@ const SelectDayInTrip = ({ dailyPlans, selectedDay, onChange }: SelectDayInTripP
           value={selectedDay}
           onChange={(e) => onChange(e.target.value as 'ALL' | number)}
           size="small"
-          renderValue={(value) => (value === 'ALL' ? 'ทั้งหมด' : `วันที่ ${Number(value) + 1}`)}
+          renderValue={(value) =>
+            value === 'ALL'
+              ? t('map.selectDay.all')
+              : t('map.selectDay.dayLabel', { day: Number(value) + 1 })
+          }
           sx={{
             '& .MuiSelect-icon': { display: 'none' },
             '& .MuiSelect-select': {
@@ -31,7 +38,7 @@ const SelectDayInTrip = ({ dailyPlans, selectedDay, onChange }: SelectDayInTripP
           {/* ALL */}
           <MenuItem value="ALL">
             <MapPin size={18} style={{ marginRight: 6 }} />
-            ทั้งหมด
+            {t('map.selectDay.all')}
           </MenuItem>
 
           {/* Days */}
@@ -44,7 +51,7 @@ const SelectDayInTrip = ({ dailyPlans, selectedDay, onChange }: SelectDayInTripP
                   color: day.pinColor,
                 }}
               />
-              วันที่ {index + 1}
+              {t('map.selectDay.dayLabel', { day: index + 1 })}
             </MenuItem>
           ))}
         </Select>

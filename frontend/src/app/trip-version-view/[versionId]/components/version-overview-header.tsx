@@ -8,6 +8,8 @@ import { BackButton } from '@/components/button';
 import { PublicTemplateObjective } from '@/api/trip-templates';
 import ApplyTemplateDialog from './apply-template-dialog';
 import { useRouter } from 'next/navigation';
+import { useDefaultObjectives } from '@/components/trip/objective-picker-dialog';
+import { useI18nSelector } from '@/store/selectors';
 
 type TemplateOverviewHeaderProps = {
   templateTripId: number;
@@ -24,7 +26,20 @@ const TemplateOverviewHeader = ({
 }: TemplateOverviewHeaderProps) => {
   const router = useRouter();
   const { t } = useTranslation('trip_overview');
+  const { locale } = useI18nSelector();
+  const defaultObjectives = useDefaultObjectives();
   const [openApply, setOpenApply] = useState(false);
+
+  const getObjectiveLabel = (name: string) => {
+    const matchedDefault = defaultObjectives.find(
+      (objective) => objective.TH === name || objective.EN === name || objective.name === name
+    );
+
+    if (!matchedDefault) return name;
+    return locale === 'en'
+      ? matchedDefault.EN || matchedDefault.TH || name
+      : matchedDefault.TH || matchedDefault.EN || name;
+  };
 
   const displayName = tripName?.trim() ? tripName : t('Header.defaultName');
 
@@ -32,7 +47,7 @@ const TemplateOverviewHeader = ({
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
         <BackButton onBack={() => router.push('/home')} />
-        
+
         <Box sx={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
           <Typography variant="h5" fontWeight={700} noWrap title={displayName} sx={{ px: 1 }}>
             {displayName}
@@ -54,7 +69,7 @@ const TemplateOverviewHeader = ({
             objectives.map((obj) => (
               <Chip
                 key={`${obj.name}-${obj.badgeColor}`}
-                label={obj.name}
+                label={getObjectiveLabel(obj.name)}
                 size="small"
                 sx={{ bgcolor: obj.badgeColor }}
               />
