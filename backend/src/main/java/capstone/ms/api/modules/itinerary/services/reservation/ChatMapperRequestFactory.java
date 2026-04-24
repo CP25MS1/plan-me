@@ -17,9 +17,11 @@ public class ChatMapperRequestFactory {
             Task: extract reservation fields according to the schemas below, include top-level fields, include details for the given type, validate fields, and output ONLY ONE JSON object. No prose, no extra characters.
             
             Exact output:
-            { "data": { "type": "...", "bookingRef": null|string, "contactTel": null|string, "contactEmail": null|string, "cost": number|null, "details": { ... } } }
+            { "typeMismatch": boolean, "data": { "type": "...", "bookingRef": null|string, "contactTel": null|string, "contactEmail": null|string, "cost": number|null, "details": { ... } } }
             
             Rules:
+            - **typeMismatch**: Set to `true` if the input text does NOT appear to be a reservation of the requested `type` (e.g., input is a grocery receipt but `type` is FLIGHT). Otherwise, set to `false`.
+            - **Always return the schema of the requested `type`**, even if `typeMismatch` is true or if fields are missing.
             - Always return top-level keys inside "data": "type", "bookingRef", "contactTel", "contactEmail", "cost", "details".
             - If found `cost` parse as number (≥0). If parse fails or not found set to null.
             - Map only fields relevant to provided `type` into `data.details`.
@@ -70,7 +72,7 @@ public class ChatMapperRequestFactory {
                 .model("typhoon-v2.5-30b-a3b-instruct")
                 .messages(List.of(systemInstruction, userInstruction))
                 .temperature(0.1)
-                .maxTokens(8000)
+                .maxTokens(2000)
                 .topP(0.8)
                 .frequencyPenalty(0.0)
                 .build();

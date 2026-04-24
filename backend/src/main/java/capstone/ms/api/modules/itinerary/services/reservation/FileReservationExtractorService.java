@@ -129,12 +129,6 @@ public class FileReservationExtractorService {
             ReservationDto dto = reservationMapper.toReservationDto(mapped);
             dto.setTripId(tripId);
 
-            // If LLM reported a different type, mark it as a type mismatch so UI can warn the user.
-            if (mapped.getData() != null && mapped.getData().getType() != null
-                    && !type.name().equalsIgnoreCase(mapped.getData().getType())) {
-                dto.setTypeMismatch(true);
-            }
-
             // Do not throw on validation failures for preview - return DTO so user can edit.
             if (!validationService.isReservationValid(dto)) {
                 log.info("Mapped reservation failed validation but will be returned for user edit: file={}, type={}", filename, type.name());
