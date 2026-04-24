@@ -47,6 +47,7 @@ import { useTripReservations } from '@/api/trips';
 import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
 import DynamicReservationFields from './shared/dynamic-reservation-fields';
 import FlightPassengerFields from './shared/flight-passenger-fields';
+import ExtractionLoading from './shared/extraction-loading';
 import {
   buildReservationFromForm,
   getFlightPassengers,
@@ -530,146 +531,151 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 1,
-              alignItems: 'center',
-              bgcolor: '#f5f5f5',
-              borderRadius: 2,
-              border: '1px solid #d0d0d0',
-              px: 1.5,
-              py: 1,
-              mb: 2,
-            }}
-          >
-            <Typography
-              sx={{
-                flexGrow: 1,
-                color: 'grey.700',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              cp25ms1+{tripId}@gmail.com
-            </Typography>
-            <Tooltip title="Copy">
-              <IconButton
-                onClick={() => copyToClipboard(`cp25ms1+${tripId}@gmail.com`)}
-                size="small"
-              >
-                <Copy size={18} />
-              </IconButton>
-            </Tooltip>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={!isFetching && <Mail size={18} />}
-            onClick={checkEmails}
-            disabled={isFetching || isPending}
-            sx={{ mb: 2, bgcolor: '#25CF7A', minWidth: 180, position: 'relative' }}
-          >
-            <span style={{ visibility: isFetching ? 'hidden' : 'visible' }}>
-              เช็คอีเมลที่เข้ามา
-            </span>
-            {isFetching && (
-              <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
-            )}
-          </Button>
-          {emails.length > 0 && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-              <Typography variant="subtitle2">
-                อีเมล ({selectedCount}/{emails.length})
-              </Typography>
+          {isPending ? (
+            <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <ExtractionLoading />
             </Box>
-          )}
-          <Box
-            ref={containerRef}
-            sx={{
-              flexGrow: 1,
-              overflowY: 'auto',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-            }}
-          >
-            {emails.map((item, index) => (
+          ) : (
+            <>
               <Box
-                key={item.emailId}
                 sx={{
-                  border: item.error ? '2px solid red' : '1px solid grey',
+                  display: 'flex',
+                  gap: 1,
+                  alignItems: 'center',
+                  bgcolor: '#f5f5f5',
                   borderRadius: 2,
-                  p: 2,
-                  position: 'relative',
+                  border: '1px solid #d0d0d0',
+                  px: 1.5,
+                  py: 1,
+                  mb: 2,
                 }}
               >
-                <IconButton
-                  onClick={() => removeEmail(index)}
-                  sx={{ position: 'absolute', right: 0, top: 0 }}
-                  size="small"
+                <Typography
+                  sx={{
+                    flexGrow: 1,
+                    color: 'grey.700',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
-                  <Trash2 size={18} />
-                </IconButton>
-                <Typography>{item.subject}</Typography>
-                <Typography sx={{ fontSize: 12, color: 'grey.600' }}>{item.receivedAt}</Typography>
-                <FormControl fullWidth sx={{ mt: 1 }}>
-                  <Select
-                    value={item.type || ''}
-                    displayEmpty
-                    onChange={(e) => handleTypeChange(index, e.target.value as ReservationType)}
-                    error={!!item.error}
-                    renderValue={(selected) =>
-                      selected ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {icons[selected as keyof typeof icons]}
-                          {t(`EmailReservation.Type.${selected}`)}
-                        </Box>
-                      ) : (
-                        t('ManualReservation.placeholder')
-                      )
-                    }
+                  cp25ms1+{tripId}@gmail.com
+                </Typography>
+                <Tooltip title="Copy">
+                  <IconButton
+                    onClick={() => copyToClipboard(`cp25ms1+${tripId}@gmail.com`)}
+                    size="small"
                   >
-                    {types.map((type) => {
-                      const IconComp = {
-                        LODGING: Building,
-                        RESTAURANT: Utensils,
-                        FLIGHT: Plane,
-                        TRAIN: Train,
-                        BUS: Bus,
-                        FERRY: Ship,
-                        CAR_RENTAL: Car,
-                      }[type] as ElementType;
-                      return (
-                        <MenuItem key={type} value={type} className="flex items-center gap-3">
-                          <IconComp size={18} color="#25CF7A" />
-                          {t(`EmailReservation.Type.${type}`)}
-                        </MenuItem>
-                      );
-                    })}
-                  </Select>
-                </FormControl>
+                    <Copy size={18} />
+                  </IconButton>
+                </Tooltip>
               </Box>
-            ))}
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Button
-              variant="contained"
-              startIcon={!isPending && <Eye size={18} />}
-              onClick={handleFetchPreviewData}
-              disabled={isPending || !isAllSelected}
-              sx={{
-                bgcolor: isAllSelected ? '#25CF7A' : 'grey.400',
-                minWidth: 150,
-                position: 'relative',
-              }}
-            >
-              <span style={{ visibility: isPending ? 'hidden' : 'visible' }}>แสดงตัวอย่าง</span>
-              {isPending && (
-                <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
+              <Button
+                variant="contained"
+                startIcon={!isFetching && <Mail size={18} />}
+                onClick={checkEmails}
+                disabled={isFetching || isPending}
+                sx={{ mb: 2, bgcolor: '#25CF7A', minWidth: 180, position: 'relative' }}
+              >
+                <span style={{ visibility: isFetching ? 'hidden' : 'visible' }}>
+                  เช็คอีเมลที่เข้ามา
+                </span>
+                {isFetching && (
+                  <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
+                )}
+              </Button>
+              {emails.length > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+                  <Typography variant="subtitle2">
+                    อีเมล ({selectedCount}/{emails.length})
+                  </Typography>
+                </Box>
               )}
-            </Button>
-          </Box>
+              <Box
+                ref={containerRef}
+                sx={{
+                  flexGrow: 1,
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                }}
+              >
+                {emails.map((item, index) => (
+                  <Box
+                    key={item.emailId}
+                    sx={{
+                      border: item.error ? '2px solid red' : '1px solid grey',
+                      borderRadius: 2,
+                      p: 2,
+                      position: 'relative',
+                    }}
+                  >
+                    <IconButton
+                      onClick={() => removeEmail(index)}
+                      sx={{ position: 'absolute', right: 0, top: 0 }}
+                      size="small"
+                    >
+                      <Trash2 size={18} />
+                    </IconButton>
+                    <Typography>{item.subject}</Typography>
+                    <Typography sx={{ fontSize: 12, color: 'grey.600' }}>{item.receivedAt}</Typography>
+                    <FormControl fullWidth sx={{ mt: 1 }}>
+                      <Select
+                        value={item.type || ''}
+                        displayEmpty
+                        onChange={(e) => handleTypeChange(index, e.target.value as ReservationType)}
+                        error={!!item.error}
+                        renderValue={(selected) =>
+                          selected ? (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              {icons[selected as keyof typeof icons]}
+                              {t(`EmailReservation.Type.${selected}`)}
+                            </Box>
+                          ) : (
+                            t('ManualReservation.placeholder')
+                          )
+                        }
+                      >
+                        {types.map((type) => {
+                          const IconComp = {
+                            LODGING: Building,
+                            RESTAURANT: Utensils,
+                            FLIGHT: Plane,
+                            TRAIN: Train,
+                            BUS: Bus,
+                            FERRY: Ship,
+                            CAR_RENTAL: Car,
+                          }[type] as ElementType;
+                          return (
+                            <MenuItem key={type} value={type} className="flex items-center gap-3">
+                              <IconComp size={18} color="#25CF7A" />
+                              {t(`EmailReservation.Type.${type}`)}
+                            </MenuItem>
+                          );
+                        })}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                ))}
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <Button
+                  variant="contained"
+                  startIcon={<Eye size={18} />}
+                  onClick={handleFetchPreviewData}
+                  disabled={isPending || !isAllSelected}
+                  sx={{
+                    bgcolor: isAllSelected ? '#25CF7A' : 'grey.400',
+                    minWidth: 150,
+                    position: 'relative',
+                  }}
+                >
+                  แสดงตัวอย่าง
+                </Button>
+              </Box>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 

@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @Data
 public class MappedReservationResponse {
     private Result data;
+    private Boolean typeMismatch;
 
     @Data
     public static class Result {

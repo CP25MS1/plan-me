@@ -196,5 +196,6 @@ public interface ReservationMapper {
     @Mapping(target = "contactEmail", source = "data.contactEmail")
     @Mapping(target = "cost", source = "data.cost")
     @Mapping(target = "details", source = "data.details")
+    @Mapping(target = "typeMismatch", source = "typeMismatch")
     ReservationDto toReservationDto(MappedReservationResponse response);
 }
