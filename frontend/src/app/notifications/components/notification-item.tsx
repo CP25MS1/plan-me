@@ -10,10 +10,14 @@ import { useInvitationFromNotification } from '@/app/notifications/helpers/use-i
 import { useReadNotification } from '@/app/hooks/use-read-notification';
 import { useDispatch } from 'react-redux';
 import { updateNotification } from '@/store/notifications-slice';
+import { useTranslation } from 'react-i18next';
+import { useI18nSelector } from '@/store/selectors';
 
 export const NotificationItem = ({ notification }: { notification: NotificationDto }) => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const { t } = useTranslation('common');
+  const { locale } = useI18nSelector();
 
   const notificationId = notification.id;
   const isUnread = !notification.isRead;
@@ -94,7 +98,7 @@ export const NotificationItem = ({ notification }: { notification: NotificationD
           </Typography>
 
           <Typography fontSize={12} color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
-            {dayjs(notification.createdAt).fromNow()}
+            {dayjs(notification.createdAt).locale(locale).fromNow()}
           </Typography>
         </Box>
 
@@ -109,7 +113,7 @@ export const NotificationItem = ({ notification }: { notification: NotificationD
             overflow: 'hidden',
           }}
         >
-          {getNotificationMessage(notification)}
+          {getNotificationMessage(notification, t)}
         </Typography>
       </Box>
     </Box>

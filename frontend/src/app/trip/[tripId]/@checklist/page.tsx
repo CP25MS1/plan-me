@@ -265,7 +265,10 @@ export default function ChecklistPage() {
           title={t('title')}
           asEmpty={!isLoading && items.length === 0 && !isAdding}
           titleAdornment={
-            <SectionPresenceGroup users={checklistUsers} dialogTitle={`กำลังใช้งาน: ${t('title')}`} />
+            <SectionPresenceGroup
+              users={checklistUsers}
+              dialogTitle={t('trip_overview:presence.in_section', { section: t('title') })}
+            />
           }
         >
           {/* ===== List ===== */}
@@ -356,7 +359,7 @@ export default function ChecklistPage() {
 
                 const lock = locksMap[`CHECKLIST_ITEM:${it.id}`];
                 const lockedByOther = Boolean(lock) && Boolean(me) && lock!.owner.id !== me?.id;
-                
+
                 const isHighlighted =
                   duplicateWarningFor &&
                   it.name.trim().toLowerCase() === duplicateWarningFor.trim().toLowerCase()
@@ -376,9 +379,9 @@ export default function ChecklistPage() {
                         boxShadow: '0 6px 14px rgba(0,0,0,0.06)',
                         border: isHighlighted
                           ? `2px solid ${tokens.color.warning}`
-                          : lockedByOther 
-                          ? `2px solid ${tokens.color.warning}`
-                          : '2px solid transparent',
+                          : lockedByOther
+                            ? `2px solid ${tokens.color.warning}`
+                            : '2px solid transparent',
                       }}
                     >
                       {/* Left */}
@@ -391,53 +394,72 @@ export default function ChecklistPage() {
                         <IconButton onClick={() => handleToggleComplete(it)} disabled={!canToggle}>
                           {it.completed ? <CheckBox /> : <CheckBoxOutlineBlank />}
                         </IconButton>
-  
-                          {editingId === it.id ? (
-                            <Box sx={{ flex: 1 }}>
-                              <TextField
-                                size="small"
-                                autoFocus
-                                fullWidth
-                                value={editingName}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setEditingName(val);
-                                  const trimmed = val.trim().toLowerCase();
-                                  if (trimmed && items.some(xi => xi.id !== it.id && xi.name.trim().toLowerCase() === trimmed)) {
-                                    setDuplicateWarningFor(val.trim());
-                                  } else {
-                                    setDuplicateWarningFor(null);
-                                  }
-                                }}
-                                onBlur={() => {
+
+                        {editingId === it.id ? (
+                          <Box sx={{ flex: 1 }}>
+                            <TextField
+                              size="small"
+                              autoFocus
+                              fullWidth
+                              value={editingName}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setEditingName(val);
+                                const trimmed = val.trim().toLowerCase();
+                                if (
+                                  trimmed &&
+                                  items.some(
+                                    (xi) =>
+                                      xi.id !== it.id && xi.name.trim().toLowerCase() === trimmed
+                                  )
+                                ) {
+                                  setDuplicateWarningFor(val.trim());
+                                } else {
+                                  setDuplicateWarningFor(null);
+                                }
+                              }}
+                              onBlur={() => {
+                                handleInlineUpdate(it.id);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
                                   handleInlineUpdate(it.id);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    handleInlineUpdate(it.id);
-                                  }
-                                }}
-                                inputProps={{ maxLength: 30 }}
-                                InputProps={{
-                                  endAdornment: (
-                                    <Typography
-                                      variant="caption"
-                                      sx={{ ml: 1, color: tokens.color.textSecondary }}
-                                    >
-                                      {editingName.length}/30
-                                    </Typography>
-                                  ),
-                                  sx: {
-                                    '& fieldset': {
-                                      borderColor: duplicateWarningFor === editingName.trim() && editingName.trim() !== '' ? `${tokens.color.warning} !important` : undefined,
-                                    },
-                                  }
-                                }}
-                              />
-                              {duplicateWarningFor === editingName.trim() && editingName.trim() !== '' && (
-                                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
+                                }
+                              }}
+                              inputProps={{ maxLength: 30 }}
+                              InputProps={{
+                                endAdornment: (
+                                  <Typography
+                                    variant="caption"
+                                    sx={{ ml: 1, color: tokens.color.textSecondary }}
+                                  >
+                                    {editingName.length}/30
+                                  </Typography>
+                                ),
+                                sx: {
+                                  '& fieldset': {
+                                    borderColor:
+                                      duplicateWarningFor === editingName.trim() &&
+                                      editingName.trim() !== ''
+                                        ? `${tokens.color.warning} !important`
+                                        : undefined,
+                                  },
+                                },
+                              }}
+                            />
+                            {duplicateWarningFor === editingName.trim() &&
+                              editingName.trim() !== '' && (
+                                <Stack
+                                  direction="row"
+                                  spacing={0.5}
+                                  alignItems="center"
+                                  sx={{ mt: 0.5 }}
+                                >
                                   <AlertCircle size={14} color={tokens.color.warning} />
-                                  <Typography variant="caption" sx={{ color: tokens.color.warning, fontWeight: 500 }}>
+                                  <Typography
+                                    variant="caption"
+                                    sx={{ color: tokens.color.warning, fontWeight: 500 }}
+                                  >
                                     {t('hints.duplicateName')}
                                   </Typography>
                                 </Stack>
@@ -476,7 +498,7 @@ export default function ChecklistPage() {
                             </Typography>
                           )}
                       </Stack>
-  
+
                       {/* Right */}
                       <Stack direction="row" spacing={1} alignItems="center">
                         {/* ===== Assign Button ===== */}
@@ -484,13 +506,13 @@ export default function ChecklistPage() {
                           <Box
                             sx={{
                               position: 'relative',
-  
+
                               '& .remove-btn': {
                                 opacity: 0,
                                 pointerEvents: 'none',
                                 transition: '0.15s',
                               },
-  
+
                               '&:hover .remove-btn': {
                                 opacity: 1,
                                 pointerEvents: 'auto',
@@ -536,7 +558,7 @@ export default function ChecklistPage() {
                                   }}
                                   onClick={(e) => {
                                     if (isLocked || lockedByOther) return;
-  
+
                                     setAssignTarget(it);
                                     setAssignAnchor(e.currentTarget);
                                   }}
@@ -559,11 +581,14 @@ export default function ChecklistPage() {
                             </span>
                           </Tooltip>
                         )}
-  
+
                         {/* Delete */}
                         <Tooltip title={isLocked ? completedLockedTooltip : t('tooltips.delete')}>
                           <span>
-                            <IconButton disabled={isLocked || lockedByOther} onClick={() => handleDelete(it.id)}>
+                            <IconButton
+                              disabled={isLocked || lockedByOther}
+                              onClick={() => handleDelete(it.id)}
+                            >
                               <Trash2 size={18} />
                             </IconButton>
                           </span>
@@ -586,9 +611,10 @@ export default function ChecklistPage() {
                       borderRadius: 3,
                       p: 2,
                       boxShadow: '0 6px 14px rgba(0,0,0,0.06)',
-                      border: duplicateWarningFor === addingName.trim() && addingName.trim() !== ''
-                        ? `2px solid ${tokens.color.warning}`
-                        : '2px solid transparent',
+                      border:
+                        duplicateWarningFor === addingName.trim() && addingName.trim() !== ''
+                          ? `2px solid ${tokens.color.warning}`
+                          : '2px solid transparent',
                     }}
                   >
                     <TextField
@@ -601,7 +627,10 @@ export default function ChecklistPage() {
                         const val = e.target.value;
                         setAddingName(val);
                         const trimmed = val.trim().toLowerCase();
-                        if (trimmed && items.some(it => it.name.trim().toLowerCase() === trimmed)) {
+                        if (
+                          trimmed &&
+                          items.some((it) => it.name.trim().toLowerCase() === trimmed)
+                        ) {
                           setDuplicateWarningFor(val.trim());
                         } else {
                           setDuplicateWarningFor(null);
@@ -627,15 +656,21 @@ export default function ChecklistPage() {
                         ),
                         sx: {
                           '& fieldset': {
-                            borderColor: duplicateWarningFor === addingName.trim() && addingName.trim() !== '' ? `${tokens.color.warning} !important` : undefined,
+                            borderColor:
+                              duplicateWarningFor === addingName.trim() && addingName.trim() !== ''
+                                ? `${tokens.color.warning} !important`
+                                : undefined,
                           },
-                        }
+                        },
                       }}
                     />
                     {duplicateWarningFor === addingName.trim() && addingName.trim() !== '' && (
                       <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5 }}>
                         <AlertCircle size={14} color={tokens.color.warning} />
-                        <Typography variant="caption" sx={{ color: tokens.color.warning, fontWeight: 500 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: tokens.color.warning, fontWeight: 500 }}
+                        >
                           {t('hints.duplicateName')}
                         </Typography>
                       </Stack>
@@ -666,7 +701,7 @@ export default function ChecklistPage() {
           if (assignTarget) handleAssign(assignTarget, userId);
         }}
       />
-      
+
     </Box>
   );
 }

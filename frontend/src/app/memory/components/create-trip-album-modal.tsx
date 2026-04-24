@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 
 import { useGetAllTrips } from '@/app/profile/all-trip/hooks/use-get-all-trips';
+import { useTranslation } from 'react-i18next';
 import { TripSummary } from '@/api/all';
 import { getMyAccessibleAlbums } from '@/api/memory/api';
 import { ListAlbumsResponseDto } from '@/api/memory/type';
@@ -30,6 +31,7 @@ interface CreateTripAlbumModalProps {
 }
 
 export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumModalProps) {
+  const { t } = useTranslation('trip_memory');
   const me = useAppSelector((s) => s.profile.currentUser);
 
   const [selectedTripId, setSelectedTripId] = React.useState<number | null>(null);
@@ -67,7 +69,7 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
     const selectedTrip = availableTrips.find((t) => t.id === selectedTripId);
 
     const formData = new FormData();
-    formData.append('name', selectedTrip?.name ?? 'Album');
+    formData.append('name', selectedTrip?.name ?? t('default_album_name'));
 
     createAlbum(
       { tripId: Number(selectedTripId), formData },
@@ -94,7 +96,7 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
       fullWidth
       maxWidth="xs"
     >
-      <DialogTitle fontWeight={700}>กรุณาเลือกทริปที่ต้องการสร้างอัลบั้ม</DialogTitle>
+      <DialogTitle fontWeight={700}>{t('modal.select_trip_title')}</DialogTitle>
 
       <DialogContent>
         {isLoading ? (
@@ -105,14 +107,14 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
           <>
             {availableTrips.length === 0 ? (
               <Box display="flex" justifyContent="center" alignItems="center">
-                <Typography color="text.secondary">ไม่มีทริปที่สามารถสร้างอัลบั้มได้</Typography>
+                <Typography color="text.secondary">{t('modal.no_available_trip')}</Typography>
               </Box>
             ) : (
               <FormControl fullWidth sx={{ mt: 2 }}>
-                <InputLabel>เลือกทริป</InputLabel>
+                <InputLabel>{t('modal.select_trip_label')}</InputLabel>
                 <Select
                   value={selectedTripId}
-                  label="เลือกทริป"
+                  label={t('modal.select_trip_label')}
                   onChange={(e) => setSelectedTripId(Number(e.target.value))}
                 >
                   {availableTrips.map((trip) => (
@@ -129,14 +131,14 @@ export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumM
 
       <DialogActions sx={{ px: 3, pb: 3 }}>
         <Button onClick={onClose} disabled={isPending}>
-          ยกเลิก
+          {t('common:cancel')}
         </Button>
 
         <Button variant="contained" onClick={handleCreate} disabled={!selectedTripId || isPending}>
           {isPending ? (
             <CircularProgress size={20} thickness={5} sx={{ color: '#fff' }} />
           ) : (
-            'ยืนยัน'
+            t('common:confirm')
           )}
         </Button>
       </DialogActions>

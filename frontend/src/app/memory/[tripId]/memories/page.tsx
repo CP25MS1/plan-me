@@ -30,9 +30,11 @@ import MemoryViewer from '../../components/memory-viewer';
 import UploadMemoryDialog from '../../components/upload-memory-dialog';
 import { useAppSelector } from '@/store';
 import { downloadBlobAndSave } from '../../utils/download-blob';
+import { useTranslation } from 'react-i18next';
 export default function AlbumMemoriesPage() {
   const router = useRouter();
   const params = useParams();
+  const { t } = useTranslation('trip_memory');
 
   const tripId = Number(params.tripId);
 
@@ -99,7 +101,7 @@ export default function AlbumMemoriesPage() {
     isDeletingAlbum;
 
   if (!tripId || Number.isNaN(tripId)) {
-    return <Typography color="error">TripId ไม่ถูกต้อง</Typography>;
+    return <Typography color="error">{t('album_page.invalid_trip_id')}</Typography>;
   }
 
   if (albumsLoading || memoriesLoading) {
@@ -111,7 +113,7 @@ export default function AlbumMemoriesPage() {
   }
 
   if (isError) {
-    return <Typography color="error">โหลดไม่สำเร็จ</Typography>;
+    return <Typography color="error">{t('album_page.load_failed')}</Typography>;
   }
 
   const handleDownloadAlbum = async () => {
@@ -202,7 +204,7 @@ export default function AlbumMemoriesPage() {
               <ListItemIcon>
                 <AddIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText>เพิ่มความทรงจำ</ListItemText>
+              <ListItemText>{t('add_memory')}</ListItemText>
             </MenuItem>
 
             <MenuItem
@@ -219,7 +221,7 @@ export default function AlbumMemoriesPage() {
                 )}
               </ListItemIcon>
               <ListItemText>
-                ดาวน์โหลดอัลบั้ม
+                {t('download_album')}
                 {downloadProgress ? ` (${downloadProgress.done}/${downloadProgress.total})` : ''}
               </ListItemText>
             </MenuItem>
@@ -234,7 +236,7 @@ export default function AlbumMemoriesPage() {
                 <ListItemIcon>
                   <DeleteIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>ลบอัลบั้ม</ListItemText>
+                <ListItemText>{t('delete_album')}</ListItemText>
               </MenuItem>
             )}
           </Menu>
@@ -243,14 +245,14 @@ export default function AlbumMemoriesPage() {
 
       {/* Metadata */}
       <Typography variant="body2" color="text.secondary" mb={2}>
-        {imageCount} รูป {videoCount} วิดีโอ
+        {t('media_count', { imageCount, videoCount })}
       </Typography>
 
       {/* Empty */}
       {memories.length === 0 && (
         <Box textAlign="center" mt={10}>
           <Typography variant="h6" mb={1}>
-            ยังไม่มีความทรงจำ
+            {t('album_page.no_memories')}
           </Typography>
         </Box>
       )}
@@ -394,17 +396,23 @@ function ConfirmDeleteAlbumDialog({
   onClose: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useTranslation('memory');
+
   return (
     <Dialog open={open} onClose={() => !loading && onClose()}>
       <Box sx={{ p: 2 }}>
-        <Typography mb={2}>คุณต้องการลบอัลบั้มนี้ใช่หรือไม่?</Typography>
+        <Typography mb={2}>{t('delete_confirm')}</Typography>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
           <Button onClick={onClose} disabled={loading}>
-            ยกเลิก
+            {t('common:cancel')}
           </Button>
 
           <Button color="error" variant="contained" onClick={onConfirm} disabled={loading}>
-            {loading ? <CircularProgress size={18} sx={{ color: 'white' }} /> : 'ลบ'}
+            {loading ? (
+              <CircularProgress size={18} sx={{ color: 'white' }} />
+            ) : (
+              t('album_page.delete_action')
+            )}
           </Button>
         </Box>
       </Box>

@@ -35,9 +35,19 @@ interface Props {
 }
 
 export default function UploadMemoryDialog({ open, onClose, tripId, existingTotalBytes }: Props) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('trip_memory');
   const { showSuccess, showError } = useSnackbar();
   const [files, setFiles] = useState<File[]>([]);
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+    duration?: number;
+  }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const { mutateAsync, isPending } = useUploadMemories();
 
@@ -125,12 +135,17 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
         }}
       >
         <DialogTitle
-          sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          sx={{
+            fontWeight: 700,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
         >
-          <Box>{t('memory.add_memory', { defaultValue: 'เพิ่มความทรงจำ' })}</Box>
+          <Box>{t('upload.title')}</Box>
           {files.length > 0 && (
             <Typography variant="body2" color="text.secondary" fontWeight={500}>
-              ขนาดทั้งหมด: {formatFileSize(totalSelectedSize)}
+              {t('upload.total_size')}: {formatFileSize(totalSelectedSize)}
             </Typography>
           )}
         </DialogTitle>
@@ -158,11 +173,11 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
               }}
             >
               <Typography variant="h6" fontWeight={600} mb={1}>
-                กดเพื่อเลือกไฟล์
+                {t('upload.pick_files')}
               </Typography>
 
               <Typography variant="body2" color="text.secondary" mb={1}>
-                รองรับไฟล์ประเภท
+                {t('upload.supported_types')}
               </Typography>
 
               <Typography variant="body2" color="text.secondary" mb={1}>
@@ -170,7 +185,7 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
               </Typography>
 
               <Typography variant="body2" color="text.secondary">
-                สูงสุดทั้งหมดไม่เกิน 1 GB ต่อครั้ง (ไม่เกิน 3 GB ต่ออัลบั้ม)
+                {t('upload.limit_notice')}
               </Typography>
 
               <input
@@ -275,7 +290,7 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
 
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={onClose} disabled={isPending} sx={{ fontWeight: 600 }}>
-            {t('common.cancel')}
+            {t('common:cancel')}
           </Button>
 
           <Button
@@ -292,7 +307,7 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
             {isPending ? (
               <CircularProgress size={20} thickness={5} sx={{ color: '#fff' }} />
             ) : (
-              'อัปโหลด'
+              t('upload.submit')
             )}
           </Button>
         </DialogActions>

@@ -17,6 +17,7 @@ import { DailyPlanContext } from './context/daily-plan-context';
 import { useOpeningDialogContext } from './context/opening-dialog-context';
 import { useUpdateScheduledPlace } from './hooks/use-scheduled-place-mutation';
 import { useParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import TravelSegmentSelect from './components/travel-segment-select';
 import { sanitizeStyle } from './helpers/sanitize-transform';
 import EmptyDailyPlanState from './components/empty-daily-plan-state';
@@ -29,6 +30,7 @@ import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 const DailyPlanPage = () => {
   const { locale } = useI18nSelector();
+  const { t } = useTranslation('trip_overview');
   const params = useParams<{ tripId: string }>();
   const tripId = Number(params.tripId);
 
@@ -170,8 +172,7 @@ const DailyPlanPage = () => {
       <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <Box sx={{ mt: 2 }}>
           {sortByDateAsc(dailyPlans).map((plan, index) => {
-            const titlePrefix = locale === 'en' ? 'Day' : 'วันที่';
-            const planTitle = `${titlePrefix} ${index + 1}: ${formatDateByLocale(plan.date, locale)}`;
+            const planTitle = `${t('daily.day_label', { day: index + 1 })}: ${formatDateByLocale(plan.date, locale)}`;
             const scheduledPlaces = plan.scheduledPlaces;
             const hasPlace = !!scheduledPlaces?.length;
             return (
@@ -185,7 +186,9 @@ const DailyPlanPage = () => {
                       titleEndAdornment={
                         <SectionPresenceGroup
                           users={getSectionUsersForPlan(plan.id)}
-                          dialogTitle={`กำลังใช้งาน: Day ${index + 1}`}
+                          dialogTitle={t('presence.in_section', {
+                            section: t('daily.day_label', { day: index + 1 }),
+                          })}
                         />
                       }
                     >
@@ -248,12 +251,12 @@ const DailyPlanPage = () => {
                             onClick={() => handleOpenDialog(plan.id)}
                             startIcon={<Plus />}
                           >
-                            {'เพิ่มสถานที่'}
+                            {t('daily.add_place')}
                           </Button>
                         </>
                       ) : (
                         <AddItemButton
-                          label={'เพิ่มสถานที่'}
+                          label={t('daily.add_place')}
                           onClick={() => handleOpenDialog(plan.id)}
                         />
                       )}

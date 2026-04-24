@@ -18,6 +18,7 @@ import { useAppSelector } from '@/store';
 
 import { useVersionTrip } from './hooks/use-version-trip';
 import ApplyVersionDialog from './components/apply-version-dialog';
+import { useI18nSelector } from '@/store/selectors';
 
 type VersionLayoutProps = {
   overview: ReactNode;
@@ -31,6 +32,7 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation('trip_overview');
+  const { locale } = useI18nSelector();
   const queryClient = useQueryClient();
   const params = useParams<{ versionId: string }>();
   const tabParam = searchParams.get('tab');
@@ -106,7 +108,7 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
     );
   }
 
-  const createdAtText = dayjs(version.createdAt).format('DD MMM YYYY HH:mm');
+  const createdAtText = dayjs(version.createdAt).locale(locale).format('DD MMM YYYY HH:mm');
 
   return (
     <>
@@ -204,8 +206,8 @@ const VersionLayout = ({ overview, daily, checklist, map }: VersionLayoutProps) 
 
               <Typography variant="body2" color="text.secondary">
                 {t('version.viewLayout.dateLabel')}{' '}
-                {snapshot.startDate ? dayjs(snapshot.startDate).format('DD/MM/YYYY') : '-'}{' '}
-                - {snapshot.endDate ? dayjs(snapshot.endDate).format('DD/MM/YYYY') : '-'}
+                {snapshot.startDate ? dayjs(snapshot.startDate).locale(locale).format('DD/MM/YYYY') : '-'}{' '}
+                - {snapshot.endDate ? dayjs(snapshot.endDate).locale(locale).format('DD/MM/YYYY') : '-'}
               </Typography>
 
               <Stack direction="row" flexWrap="wrap" spacing={1} sx={{ gap: '8px', rowGap: '6px' }}>

@@ -16,6 +16,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import type { TripRealtimeUser } from '@/api/realtime';
 
@@ -30,9 +31,11 @@ const getInitial = (username?: string | null) => (username?.trim()?.[0] ?? '?').
 export const SectionPresenceGroup = ({
   users,
   max = 4,
-  dialogTitle = 'กำลังใช้งานอยู่',
+  dialogTitle,
 }: SectionPresenceGroupProps) => {
+  const { t } = useTranslation('trip_overview');
   const [open, setOpen] = useState(false);
+  const resolvedDialogTitle = dialogTitle ?? t('presence.active_users');
 
   const visibleUsers = useMemo(() => users.filter(Boolean), [users]);
   if (visibleUsers.length === 0) return null;
@@ -72,7 +75,7 @@ export const SectionPresenceGroup = ({
         maxWidth="xs"
       >
         <DialogTitle sx={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ flex: 1 }}>{dialogTitle}</Box>
+          <Box sx={{ flex: 1 }}>{resolvedDialogTitle}</Box>
           <IconButton onClick={() => setOpen(false)} aria-label="close">
             <X size={18} />
           </IconButton>

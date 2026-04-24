@@ -1,0 +1,54 @@
+{
+  "title": "ความทรงจำ",
+  "subtitle": "เพิ่มอัลบั้มความทรงจำให้ทริปของคุณ",
+  "create_album": "สร้างอัลบั้ม",
+  "error_prefix": "เกิดข้อผิดพลาด",
+  "add_memory": "เพิ่มความทรงจำ",
+  "download_album": "ดาวน์โหลดอัลบั้ม",
+  "delete_album": "ลบอัลบั้ม",
+  "media_count": "{{imageCount}} รูป {{videoCount}} วิดีโอ",
+  "created_by": "สร้างโดย {{username}}",
+  "delete_confirm": "คุณต้องการลบอัลบั้มนี้ใช่หรือไม่?",
+  "default_album_name": "อัลบั้ม",
+  "album_page": {
+    "invalid_trip_id": "TripId ไม่ถูกต้อง",
+    "load_failed": "โหลดไม่สำเร็จ",
+    "no_memories": "ยังไม่มีความทรงจำ",
+    "delete_action": "ลบ"
+  },
+  "viewer": {
+    "uploaded_by": "อัปโหลดโดย {{username}}",
+    "menu": {
+      "details": "รายละเอียด",
+      "delete_media": "ลบรูป/วิดีโอ"
+    },
+    "info": {
+      "title": "รายละเอียดไฟล์",
+      "uploaded_by": "อัปโหลดโดย: {{username}}",
+      "uploaded_at": "วันที่อัปโหลด: {{date}}",
+      "file_size": "ขนาดไฟล์: {{size}}",
+      "file_type": "ประเภทไฟล์: {{type}}",
+      "close": "ปิด"
+    },
+    "delete_confirm": "คุณต้องการลบรูปภาพหรือวิดีโอนี้ใช่หรือไม่?"
+  },
+  "modal": {
+    "select_trip_title": "กรุณาเลือกทริปที่ต้องการสร้างอัลบั้ม",
+    "no_available_trip": "ไม่มีทริปที่สามารถสร้างอัลบั้มได้",
+    "select_trip_label": "เลือกทริป"
+  },
+  "upload": {
+    "title": "เพิ่มความทรงจำ",
+    "total_size": "ขนาดทั้งหมด",
+    "pick_files": "กดเพื่อเลือกไฟล์",
+    "supported_types": "รองรับไฟล์ประเภท",
+    "limit_notice": "สูงสุดทั้งหมดไม่เกิน 1 GB ต่อครั้ง (ไม่เกิน 3 GB ต่ออัลบั้ม)",
+    "submit": "อัปโหลด",
+    "success": "อัปโหลดสำเร็จ",
+    "failed": "อัปโหลดไม่สำเร็จ",
+    "errors": {
+      "over_batch_limit": "ไม่สามารถอัปโหลดได้เนื่องจากขนาดไฟล์ทั้งหมดเกิน 1 GB",
+      "over_album_limit": "ไม่สามารถอัปโหลดได้เนื่องจากขนาดไฟล์ทั้งหมดในอัลบั้มต้องไม่เกิน 3 GB"
+    }
+  }
+}

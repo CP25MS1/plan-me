@@ -54,6 +54,48 @@
     "en": "EN"
   },
 
+  "home": {
+    "notifications": "Notifications",
+    "shared_trip_templates": "Shared trip templates",
+    "shared_trip_templates_load_error": "Unable to load shared trip templates.",
+    "shared_trip_templates_empty": "No shared trips yet"
+  },
+
+  "notification": {
+    "title": "Notifications",
+    "filter": {
+      "all": "All",
+      "unread": "Unread"
+    },
+    "empty": {
+      "title": "No notifications yet",
+      "body": "We will notify you when there is activity"
+    },
+    "group": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "this_week": "This week",
+      "this_month": "This month",
+      "this_year": "This year"
+    },
+    "trip": {
+      "named": "trip \"{{tripName}}\"",
+      "yours": "your trip"
+    },
+    "message": {
+      "invite_pending": "{{name}} invited you to join {{tripName}}",
+      "invite_accepted": "{{name}} accepted the invitation to join {{tripName}}",
+      "invite_rejected": "{{name}} rejected the invitation to join {{tripName}}",
+      "new": "You have a new notification"
+    },
+    "detail": {
+      "action": {
+        "accepted": "Accepted the trip invitation",
+        "rejected": "Rejected the trip invitation"
+      }
+    }
+  },
+
   "placeholder": {
     "search": "Search users"
   },
