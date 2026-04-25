@@ -32,6 +32,7 @@ export const WishlistPlaceCard = ({ tripId, data, onOpenDetailAction }: Wishlist
   const { t: tCommon } = useTranslation('common');
   const removeMutation = useRemoveWishlistPlace(tripId);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const { showWarning } = useSnackbar();
 
   const deleteReleaseRef = useRef<null | (() => Promise<void>)>(null);
