@@ -75,7 +75,7 @@ export const AppSnackbar: React.FC<AppSnackbarProps> = ({
     return () => clearInterval(timer);
   }, [open, duration]);
 
-  const styles = severityStyles[severity];
+  const styles = severityStyles[severity] || severityStyles.info;
 
   return (
     <Snackbar
@@ -151,3 +151,81 @@ export const AppSnackbar: React.FC<AppSnackbarProps> = ({
     </Snackbar>
   );
 };
+
+// --- Context & Provider ---
+
+interface SnackbarOptions {
+  message: string;
+  severity?: AlertColor;
+  duration?: number;
+  actionLabel?: string;
+  onAction?: () => void;
+}
+
+interface SnackbarContextType {
+  showSnackbar: (options: SnackbarOptions) => void;
+  showSuccess: (message: string, duration?: number) => void;
+  showError: (message: string, duration?: number) => void;
+  showInfo: (message: string, duration?: number) => void;
+  showWarning: (message: string, duration?: number) => void;
+}
+
+const SnackbarContext = React.createContext<SnackbarContextType | undefined>(undefined);
+
+export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [open, setOpen] = React.useState(false);
+  const [options, setOptions] = React.useState<SnackbarOptions>({
+    message: '',
+    severity: 'success',
+  });
+
+  const showSnackbar = React.useCallback((newOptions: SnackbarOptions) => {
+    setOptions(newOptions);
+    setOpen(true);
+  }, []);
+
+  const showSuccess = React.useCallback(
+    (message: string, duration?: number) => showSnackbar({ message, severity: 'success', duration }),
+    [showSnackbar]
+  );
+  const showError = React.useCallback(
+    (message: string, duration?: number) => showSnackbar({ message, severity: 'error', duration }),
+    [showSnackbar]
+  );
+  const showInfo = React.useCallback(
+    (message: string, duration?: number) => showSnackbar({ message, severity: 'info', duration }),
+    [showSnackbar]
+  );
+  const showWarning = React.useCallback(
+    (message: string, duration?: number) => showSnackbar({ message, severity: 'warning', duration }),
+    [showSnackbar]
+  );
+
+  const handleClose = () => setOpen(false);
+
+  return (
+    <SnackbarContext.Provider
+      value={{ showSnackbar, showSuccess, showError, showInfo, showWarning }}
+    >
+      {children}
+      <AppSnackbar
+        open={open}
+        onClose={handleClose}
+        message={options.message}
+        severity={options.severity}
+        duration={options.duration}
+        actionLabel={options.actionLabel}
+        onAction={options.onAction}
+      />
+    </SnackbarContext.Provider>
+  );
+};
+
+export const useSnackbar = () => {
+  const context = React.useContext(SnackbarContext);
+  if (!context) {
+    throw new Error('useSnackbar must be used within a SnackbarProvider');
+  }
+  return context;
+};
+

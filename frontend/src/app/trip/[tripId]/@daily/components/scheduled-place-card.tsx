@@ -22,7 +22,7 @@ import {
 import PlaceDetailsDialog from '@/app/trip/[tripId]/components/place-details/place-details-dialog';
 import { useOpeningDialogContext } from '@/app/trip/[tripId]/@daily/context/opening-dialog-context';
 import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 type ScheduledPlaceCardProps = {
   planId: number;
@@ -53,7 +53,7 @@ const ScheduledPlaceCard = ({
   const tripIdParam = (params as { tripId?: string }).tripId;
   const tripId = Number(tripIdParam);
   const { acquireLease } = useTripLockLease(tripId);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
+  const { showWarning } = useSnackbar();
 
   const lockLabel = disabled ? `Locked by ${lockOwnerName ?? 'someone'}` : '';
   const deleteReleaseRef = useRef<null | (() => Promise<void>)>(null);
@@ -97,7 +97,7 @@ const ScheduledPlaceCard = ({
       aria-label="delete place"
       onClick={() => {
         if (disabled) {
-          setSnackbar({ open: true, message: lockLabel });
+          showWarning(lockLabel);
           return;
         }
 
@@ -109,10 +109,7 @@ const ScheduledPlaceCard = ({
           });
 
           if (lease.status === 'conflict') {
-            setSnackbar({
-              open: true,
-              message: `Locked by ${lease.lock.owner.username}`,
-            });
+            showWarning(`Locked by ${lease.lock.owner.username}`);
             return;
           }
 
@@ -326,7 +323,7 @@ const ScheduledPlaceCard = ({
                   onSave: handleUpdateNotes,
                   onBeginEdit: async () => {
                     if (disabled) {
-                      setSnackbar({ open: true, message: lockLabel });
+                      showWarning(lockLabel);
                       return false;
                     }
                     const lease = await acquireLease({
@@ -335,10 +332,7 @@ const ScheduledPlaceCard = ({
                       purpose: 'EDIT',
                     });
                     if (lease.status === 'conflict') {
-                      setSnackbar({
-                        open: true,
-                        message: `Locked by ${lease.lock.owner.username}`,
-                      });
+                      showWarning(`Locked by ${lease.lock.owner.username}`);
                       return false;
                     }
                     notesReleaseRef.current = lease.release;
@@ -369,12 +363,6 @@ const ScheduledPlaceCard = ({
         />
       )}
 
-      <AppSnackbar
-        open={Boolean(snackbar?.open)}
-        message={snackbar?.message ?? ''}
-        severity="warning"
-        onClose={() => setSnackbar(null)}
-      />
     </>
   );
 };

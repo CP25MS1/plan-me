@@ -38,7 +38,7 @@ import { useGetPreviewsReservation } from '@/app/trip/[tripId]/@overview/hooks/r
 import { ReservationDto, ReservationEmailInfo, ReservationType } from '@/api/reservations/type';
 import { useCreateReservationBulk } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-create-reservation-bulk';
 import { useReadEmailInbox } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-read-email-inbox';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -157,7 +157,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
 
   useTripAddPresenceEffect({ tripId, enabled: open, section: 'OVERVIEW_RESERVATIONS' });
 
-  const [copiedAlert, setCopiedAlert] = useState(false);
+  const { showSuccess, showError, showInfo } = useSnackbar();
   const containerRef = useRef<HTMLDivElement>(null);
   const editableContainerRef = useRef<HTMLDivElement>(null);
   const editableFieldRefs = useRef<Record<string, Record<string, HTMLDivElement | null>>>({});
@@ -174,7 +174,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    setCopiedAlert(true);
+    showInfo('Copied to clipboard');
   };
 
   const checkEmails = async () => {
@@ -201,18 +201,12 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     setEmails((prev) => prev.filter((_, emailIndex) => emailIndex !== index));
   };
 
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: AlertColor;
-    duration?: number;
-  }>({ open: false, message: '', severity: 'error' });
 
   const showErrorSnackbar = (error: unknown) => {
     if (!(error instanceof AxiosError)) return;
     const thMessage = error.response?.data?.message?.TH;
     if (typeof thMessage === 'string') {
-      setSnackbar({ open: true, message: thMessage, severity: 'error' });
+      showError(thMessage);
     }
   };
 
@@ -272,12 +266,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
     setEmails(updatedEmails);
 
     if (hasError) {
-      setSnackbar({
-        open: true,
-        message: 'เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก',
-        severity: 'error',
-        duration: 5000,
-      });
+      showError('เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก');
       return;
     }
 
@@ -308,12 +297,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
       buildEditableReservations(updatedEmails, reservationsByEmailId);
     } catch (error) {
       showErrorSnackbar(error);
-      setSnackbar({
-        open: true,
-        message: 'เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก',
-        severity: 'error',
-        duration: 5000,
-      });
+      showError('เกิดข้อผิดพลาด หรือเนื้อหาในอีเมลไม่สอดคล้องกับประเภทการจองที่เลือก');
     }
   };
 
@@ -477,11 +461,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   const proceedConfirm = async () => {
     try {
       await createBulk(previewReservations);
-      setSnackbar({
-        open: true,
-        message: 'เพิ่มข้อมูลการจองสำเร็จ',
-        severity: 'success',
-      });
+      showSuccess('เพิ่มข้อมูลการจองสำเร็จ');
       setStep('select');
       onClose();
       await readEmailInbox({ emailIds: emails.map((email) => email.emailId) });
@@ -860,19 +840,6 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         </DialogContent>
       </Dialog>
 
-      <AppSnackbar
-        open={copiedAlert}
-        message="เพิ่มข้อมูลการจองสำเร็จ"
-        severity="success"
-        onClose={() => setCopiedAlert(false)}
-      />
-      <AppSnackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        duration={snackbar.duration}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-      />
 
       <ConfirmDialog
         open={showDuplicateWarning}

@@ -18,7 +18,7 @@ import { Building, Bus, Car, Eye, Plane, Ship, Train, Utensils, X } from 'lucide
 import CircularProgress from '@mui/material/CircularProgress';
 import { BackButton } from '@/components/button';
 import { fieldsByType } from '../fields-by-type';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -74,18 +74,14 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
     setPassengers([{ passengerName: '', seatNo: '' }]);
   }, [open]);
 
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: AlertColor;
-  }>({ open: false, message: '', severity: 'error' });
+  const { showSuccess, showError } = useSnackbar();
 
   const showErrorSnackbar = (error: unknown) => {
     const apiMessage =
       error instanceof AxiosError
         ? error.response?.data?.message || error.response?.data?.error || error.message
         : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
-    setSnackbar({ open: true, message: apiMessage || 'เกิดข้อผิดพลาดบางอย่าง', severity: 'error' });
+    showError(apiMessage || 'เกิดข้อผิดพลาดบางอย่าง');
   };
 
   const handleChange = (name: string, val: string) => {
@@ -110,7 +106,7 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
 
   const handlePreview = () => {
     if (!typeValue) {
-      setSnackbar({ open: true, message: 'กรุณาเลือกประเภทของข้อมูลการจอง', severity: 'error' });
+      showError('กรุณาเลือกประเภทของข้อมูลการจอง');
       return;
     }
     const typeFields = fieldsByType[typeValue];
@@ -153,7 +149,7 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
 
   const handleConfirm = () => {
     if (!typeValue || !formData) {
-      setSnackbar({ open: true, message: 'ไม่สามารถบันทึกข้อมูลได้', severity: 'error' });
+      showError('ไม่สามารถบันทึกข้อมูลได้');
       return;
     }
 
@@ -193,7 +189,7 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
 
     createReservation.mutate(payload, {
       onSuccess: () => {
-        setSnackbar({ open: true, message: 'เพิ่มข้อมูลการจองสำเร็จ', severity: 'success' });
+        showSuccess('เพิ่มข้อมูลการจองสำเร็จ');
         setShowPreview(false);
         onClose();
       },
@@ -389,12 +385,6 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
         </Box>
       </Dialog>
 
-      <AppSnackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-      />
 
       <ConfirmDialog
         open={showDuplicateWarning}

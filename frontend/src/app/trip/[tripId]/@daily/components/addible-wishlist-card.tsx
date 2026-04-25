@@ -16,7 +16,7 @@ import AddScheduledPlaceBtn from '@/app/trip/[tripId]/@daily/components/add-sche
 import { useDailyPlanContext } from '@/app/trip/[tripId]/@daily/context/daily-plan-context';
 import { useOpeningDialogContext } from '@/app/trip/[tripId]/@daily/context/opening-dialog-context';
 import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 type CardProps = {
   ggmpId: string;
@@ -44,7 +44,7 @@ const AddibleWishlistCard = ({
   const removeMut = useRemoveWishlistPlace(tripId);
 
   const deleteReleaseRef = useRef<null | (() => Promise<void>)>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
+  const { showWarning } = useSnackbar();
 
   const wishlistAction = (event: MouseEvent) => {
     event.stopPropagation();
@@ -57,7 +57,7 @@ const AddibleWishlistCard = ({
         });
 
         if (lease.status === 'conflict') {
-          setSnackbar({ open: true, message: `Locked by ${lease.lock.owner.username}` });
+          showWarning(`Locked by ${lease.lock.owner.username}`);
           return;
         }
 
@@ -139,12 +139,6 @@ const AddibleWishlistCard = ({
         />
       )}
 
-      <AppSnackbar
-        open={Boolean(snackbar?.open)}
-        message={snackbar?.message ?? ''}
-        severity="warning"
-        onClose={() => setSnackbar(null)}
-      />
     </>
   );
 };
