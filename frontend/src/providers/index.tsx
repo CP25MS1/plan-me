@@ -16,6 +16,7 @@ import { type Locale, setLocale } from '@/store/i18n-slice';
 import { getProfile } from '@/api/users';
 import { getDefaultObjectives } from '@/api/trips';
 import ThemeProvider from './theme/theme-provider';
+import { SnackbarProvider } from '@/components/common/snackbar/snackbar';
 
 export const QueryProvider = ({ children }: { children: ReactNode }) => {
   const [client] = useState(
@@ -113,7 +114,9 @@ const AppProvider = ({ children }: { children: ReactNode }) => {
   return (
     <QueryProvider>
       <ReduxProvider>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <SnackbarProvider>{children}</SnackbarProvider>
+        </ThemeProvider>
       </ReduxProvider>
     </QueryProvider>
   );

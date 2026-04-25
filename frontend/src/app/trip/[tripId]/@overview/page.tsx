@@ -47,7 +47,7 @@ import { useTripRealtimeLocksMap, useTripSectionUsers } from '@/store/selectors'
 import { RootState } from '@/store';
 import SectionPresenceGroup from '@/app/trip/[tripId]/realtime/components/section-presence-group';
 import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 const TripOverviewPage = () => {
   const router = useRouter();
@@ -72,7 +72,7 @@ const TripOverviewPage = () => {
 
   const { t } = useTranslation('trip_overview');
 
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
+  const { showWarning } = useSnackbar();
 
   const reservationEditReleaseRef = useRef<null | (() => Promise<void>)>(null);
   const reservationDeleteReleaseRef = useRef<null | (() => Promise<void>)>(null);
@@ -111,10 +111,7 @@ const TripOverviewPage = () => {
           });
 
           if (lease.status === 'conflict') {
-            setSnackbar({
-              open: true,
-              message: `Locked by ${lease.lock.owner.username}`,
-            });
+            showWarning(`Locked by ${lease.lock.owner.username}`);
             return;
           }
 
@@ -222,10 +219,7 @@ const TripOverviewPage = () => {
                                     });
 
                                     if (lease.status === 'conflict') {
-                                      setSnackbar({
-                                        open: true,
-                                        message: `Locked by ${lease.lock.owner.username}`,
-                                      });
+                                      showWarning(`Locked by ${lease.lock.owner.username}`);
                                       return;
                                     }
 
@@ -275,10 +269,7 @@ const TripOverviewPage = () => {
                                 });
 
                                 if (lease.status === 'conflict') {
-                                  setSnackbar({
-                                    open: true,
-                                    message: `Locked by ${lease.lock.owner.username}`,
-                                  });
+                                  showWarning(`Locked by ${lease.lock.owner.username}`);
                                   return;
                                 }
 
@@ -446,13 +437,6 @@ const TripOverviewPage = () => {
         tripId={tripId}
         wishlistPlaceId={selectedWishlistPlaceId}
         onClose={closeWishlistDetails}
-      />
-
-      <AppSnackbar
-        open={Boolean(snackbar?.open)}
-        message={snackbar?.message ?? ''}
-        severity="warning"
-        onClose={() => setSnackbar(null)}
       />
     </>
   );

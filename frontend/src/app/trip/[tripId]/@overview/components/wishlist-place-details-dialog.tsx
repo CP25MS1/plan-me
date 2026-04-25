@@ -8,7 +8,7 @@ import { useTripWishlistPlaces } from '@/api/trips';
 import PlaceDetailsDialog from '@/app/trip/[tripId]/components/place-details/place-details-dialog';
 import { useUpdateWishlistPlace } from '@/app/trip/[tripId]/@overview/hooks';
 import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 import { RootState } from '@/store';
 import { useTripRealtimeLocksMap } from '@/store/selectors';
 
@@ -36,7 +36,7 @@ export const WishlistPlaceDetailsDialog = ({
   const { acquireLease } = useTripLockLease(tripId);
 
   const editReleaseRef = useRef<null | (() => Promise<void>)>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
+  const { showWarning } = useSnackbar();
 
   useEffect(() => {
     return () => {
@@ -102,7 +102,7 @@ export const WishlistPlaceDetailsDialog = ({
             });
 
             if (lease.status === 'conflict') {
-              setSnackbar({ open: true, message: `Locked by ${lease.lock.owner.username}` });
+              showWarning(`Locked by ${lease.lock.owner.username}`);
               return false;
             }
 
@@ -116,12 +116,6 @@ export const WishlistPlaceDetailsDialog = ({
         }}
       />
 
-      <AppSnackbar
-        open={Boolean(snackbar?.open)}
-        message={snackbar?.message ?? ''}
-        severity="warning"
-        onClose={() => setSnackbar(null)}
-      />
     </>
   );
 };

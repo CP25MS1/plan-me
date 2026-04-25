@@ -1,5 +1,6 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
+import { useTranslation } from 'react-i18next';
 
 import {
   applyTripVersion,
@@ -68,33 +69,52 @@ export const useTripVersions = (
 
 export const useCreateTripVersion = () => {
   const queryClient = useQueryClient();
+  const { showSuccess, showError } = useSnackbar();
+  const { t } = useTranslation('common');
+
   return useMutation({
     mutationFn: ({ tripId, versionName }: { tripId: number; versionName: string }) =>
       createTripVersion(tripId, { versionName }),
 
     onSuccess: async (_, { tripId }) => {
+      showSuccess(t('notification.success.save_version'));
       await queryClient.invalidateQueries({
         queryKey: ['trip-versions', tripId],
       });
+    },
+    onError: () => {
+      showError(t('notification.error.save_version'));
     },
   });
 };
 
 export const useDeleteTripVersion = () => {
+  const { showSuccess, showError } = useSnackbar();
+  const { t } = useTranslation('common');
+
   return useMutation({
     mutationFn: ({ tripId, versionId }: { tripId: number; versionId: number }) =>
       deleteTripVersion(tripId, versionId),
+    onSuccess: () => {
+      showSuccess(t('notification.success.delete_version'));
+    },
+    onError: () => {
+      showError(t('notification.error.delete_version'));
+    },
   });
 };
 
 export const useApplyTripVersion = () => {
   const queryClient = useQueryClient();
+  const { showSuccess, showError } = useSnackbar();
+  const { t } = useTranslation('common');
 
   return useMutation({
     mutationFn: ({ tripId, versionId }: { tripId: number; versionId: number }) =>
       applyTripVersion(tripId, versionId),
 
     onSuccess: async (_, { tripId }) => {
+      showSuccess(t('notification.success.apply_version'));
       await queryClient.invalidateQueries({
         queryKey: ['trip-versions', tripId],
       });
@@ -117,6 +137,9 @@ export const useApplyTripVersion = () => {
       await queryClient.invalidateQueries({
         queryKey: ['trip-checklist', tripId],
       });
+    },
+    onError: () => {
+      showError(t('notification.error.apply_version'));
     },
   });
 };

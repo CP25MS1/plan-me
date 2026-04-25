@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 import DateRangePicker, { DateRange } from '@/components/common/date-time/date-range-picker';
 import { useCreateTripFromPublicTemplate } from '@/app/hooks';
 import { useCreateTripAlbum } from '@/app/memory/hooks/use-create-trip-album';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 type ApplyTemplateDialogProps = {
   open: boolean;
@@ -42,6 +42,7 @@ const ApplyTemplateDialog = ({
 }: ApplyTemplateDialogProps) => {
   const router = useRouter();
   const { t } = useTranslation('trip_overview');
+  const { showError } = useSnackbar();
 
   const { mutate: createFromTemplate, isPending: isCreatingTrip } =
     useCreateTripFromPublicTemplate();
@@ -51,15 +52,6 @@ const ApplyTemplateDialog = ({
   const [dateRange, setDateRange] = useState<DateRange>([null, null]);
   const [nameError, setNameError] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
-  const [snack, setSnack] = useState<{
-    open: boolean;
-    message: string;
-    severity?: 'success' | 'error';
-  }>({
-    open: false,
-    message: '',
-    severity: 'error',
-  });
 
   const isPending = isCreatingTrip || isCreatingAlbum;
 
@@ -127,11 +119,7 @@ const ApplyTemplateDialog = ({
       {
         onSuccess: (data) => {
           if (!data?.id) {
-            setSnack({
-              open: true,
-              message: t('template.apply.errors.generic'),
-              severity: 'error',
-            });
+            showError(t('template.apply.errors.generic'));
             return;
           }
 
@@ -147,91 +135,74 @@ const ApplyTemplateDialog = ({
                 router.push(`/trip/${tripId}?tab=overview` as Route);
               },
               onError: () => {
-                setSnack({
-                  open: true,
-                  message: t('template.apply.errors.albumFailed'),
-                  severity: 'error',
-                });
+                showError(t('template.apply.errors.albumFailed'));
               },
             }
           );
         },
         onError: () => {
-          setSnack({
-            open: true,
-            message: t('template.apply.errors.generic'),
-            severity: 'error',
-          });
+          showError(t('template.apply.errors.generic'));
         },
       }
     );
   };
 
   return (
-    <>
-      <Dialog open={open} onClose={isPending ? undefined : onClose} fullWidth maxWidth="xs">
-        <DialogTitle fontWeight={700}>{t('template.apply.title')}</DialogTitle>
+    <Dialog open={open} onClose={isPending ? undefined : onClose} fullWidth maxWidth="xs">
+      <DialogTitle fontWeight={700}>{t('template.apply.title')}</DialogTitle>
 
-        <DialogContent sx={{ pt: 2 }}>
-          <FormControl fullWidth sx={{ mt: 1 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              {t('template.apply.fields.name')}
-              <Box component="span" color="error.main">
-                {' '}
-                *
-              </Box>
-            </Typography>
+      <DialogContent sx={{ pt: 2 }}>
+        <FormControl fullWidth sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            {t('template.apply.fields.name')}
+            <Box component="span" color="error.main">
+              {' '}
+              *
+            </Box>
+          </Typography>
 
-            <TextField
-              value={tripName}
-              onChange={(e) => handleTripNameChange(e.target.value)}
-              placeholder={t('template.apply.placeholders.name')}
-              error={!!nameError}
-              helperText={nameError ?? ' '}
-              disabled={isPending}
-            />
-          </FormControl>
+          <TextField
+            value={tripName}
+            onChange={(e) => handleTripNameChange(e.target.value)}
+            placeholder={t('template.apply.placeholders.name')}
+            error={!!nameError}
+            helperText={nameError ?? ' '}
+            disabled={isPending}
+          />
+        </FormControl>
 
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <DateRangePicker
-              label={t('template.apply.fields.date', { dayCount })}
-              required
-              value={dateRange}
-              onChange={handleDateChange}
-              disabled={isPending}
-            />
-            <Typography
-              variant="caption"
-              color={dateError ? 'error' : 'text.secondary'}
-              sx={{ margin: '3px 14px 0px', display: 'block', minHeight: 18 }}
-            >
-              {dateError ?? ' '}
-            </Typography>
-          </FormControl>
-        </DialogContent>
+        <FormControl fullWidth sx={{ mt: 2 }}>
+          <DateRangePicker
+            label={t('template.apply.fields.date', { dayCount })}
+            required
+            value={dateRange}
+            onChange={handleDateChange}
+            disabled={isPending}
+          />
+          <Typography
+            variant="caption"
+            color={dateError ? 'error' : 'text.secondary'}
+            sx={{ margin: '3px 14px 0px', display: 'block', minHeight: 18 }}
+          >
+            {dateError ?? ' '}
+          </Typography>
+        </FormControl>
+      </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={onClose} disabled={isPending}>
-            {t('template.apply.actions.cancel')}
-          </Button>
+      <DialogActions sx={{ px: 3, pb: 3 }}>
+        <Button onClick={onClose} disabled={isPending}>
+          {t('template.apply.actions.cancel')}
+        </Button>
 
-          <Button variant="contained" onClick={handleSubmit} disabled={isPending}>
-            {isPending ? (
-              <CircularProgress size={20} thickness={5} sx={{ color: '#fff' }} />
-            ) : (
-              t('template.apply.actions.submit')
-            )}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <AppSnackbar
-        open={snack.open}
-        message={snack.message}
-        severity={snack.severity}
-        onClose={() => setSnack((s) => ({ ...s, open: false }))}
-      />
-    </>
+        <Button variant="contained" onClick={handleSubmit} disabled={isPending}>
+          {isPending ? (
+            <CircularProgress size={20} thickness={5} sx={{ color: '#fff' }} />
+          ) : (
+            t('template.apply.actions.submit')
+          )}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 

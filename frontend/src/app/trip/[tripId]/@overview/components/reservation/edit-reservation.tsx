@@ -26,7 +26,7 @@ import { useUpdateReservation } from '@/app/trip/[tripId]/@overview/hooks/reserv
 import { fieldsByType } from '../fields-by-type';
 import { useTripReservations } from '@/api/trips';
 import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -80,11 +80,11 @@ export default function EditReservation({
     setErrors({});
   }, [open, reservation]);
 
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: AlertColor }>({ open: false, message: '', severity: 'error' });
+  const { showError } = useSnackbar();
 
   const showErrorSnackbar = (error: unknown) => {
     const apiMessage = error instanceof AxiosError ? error.response?.data?.message || error.response?.data?.error || error.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
-    setSnackbar({ open: true, message: apiMessage || 'เกิดข้อผิดพลาดบางอย่าง', severity: 'error' });
+    showError(apiMessage || 'เกิดข้อผิดพลาดบางอย่าง');
   };
 
   const hasChanges = originalRef.current !== JSON.stringify({ formData, passengers });
@@ -205,7 +205,6 @@ export default function EditReservation({
           </Button>
         </Box>
       </DialogContent>
-      <AppSnackbar open={snackbar.open} message={snackbar.message} severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))} />
       <ConfirmDialog open={showDuplicateWarning} onClose={() => setShowDuplicateWarning(false)} onConfirm={() => { setShowDuplicateWarning(false); proceedConfirm(); }}
         confirmLoading={updateReservation.isPending} color="warning"
         content={<Box><Typography variant="h6" fontWeight={600} mb={1}>{t('ManualReservation.duplicateWarning.title')}</Typography><Typography>{t('ManualReservation.duplicateWarning.message')}</Typography></Box>}
