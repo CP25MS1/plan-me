@@ -115,7 +115,13 @@
       "remove": "Successfully removed",
       "save_version": "Version saved successfully",
       "delete_version": "Version deleted successfully",
-      "apply_version": "Version applied successfully"
+      "apply_version": "Version applied successfully",
+      "accept_invite": "Invitation accepted successfully",
+      "reject_invite": "Invitation rejected successfully",
+      "respond_invite": "Response sent successfully",
+      "create_from_template": "Trip created from template successfully",
+      "add_wishlist": "Added to wishlist successfully",
+      "remove_wishlist": "Removed from wishlist successfully"
     },
     "error": {
       "generic": "Something went wrong. Please try again.",
@@ -132,6 +138,12 @@
       "save_version": "Failed to save version",
       "delete_version": "Failed to delete version",
       "apply_version": "Failed to apply version",
+      "accept_invite": "Failed to accept invitation",
+      "reject_invite": "Failed to reject invitation",
+      "respond_invite": "Failed to respond to invitation",
+      "create_from_template": "Failed to create trip from template",
+      "add_wishlist": "Failed to add to wishlist",
+      "remove_wishlist": "Failed to remove from wishlist",
       "upload_limit_exceeded": "Cannot upload because the total file size exceeds 1 GB",
       "album_limit_exceeded": "Cannot upload because the total file size in the album must not exceed 3 GB"
     }
