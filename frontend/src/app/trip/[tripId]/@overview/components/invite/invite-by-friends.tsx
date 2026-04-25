@@ -6,7 +6,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Navigation, Search } from 'lucide-react';
 import { TruncatedTooltip } from '@/components/atoms';
 import { tokens } from '@/providers/theme/design-tokens';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 import { useGetFriends } from '../../hooks/invite/use-get-friends';
 import { useInviteTrip } from '../../hooks/invite/use-invite-trip';
@@ -20,15 +20,7 @@ export default function InviteByFriends({ tripId }: { tripId: number }) {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selected, setSelected] = useState<number[]>([]);
 
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error';
-  }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
+  const { showSuccess, showError } = useSnackbar();
 
   useEffect(() => {
     setSearchKeyword('');
@@ -79,22 +71,12 @@ export default function InviteByFriends({ tripId }: { tripId: number }) {
       { receiverIds: selected },
       {
         onSuccess: () => {
-          setSnackbar({
-            open: true,
-            message: 'ส่งคำเชิญสำเร็จ',
-            severity: 'success',
-          });
-
+          showSuccess('ส่งคำเชิญสำเร็จ');
           setSelected([]);
         },
         onError: (err) => {
           console.error('Invite trip failed:', err);
-
-          setSnackbar({
-            open: true,
-            message: 'ไม่สามารถส่งคำเชิญได้',
-            severity: 'error',
-          });
+          showError('ไม่สามารถส่งคำเชิญได้');
         },
       }
     );
@@ -222,18 +204,6 @@ export default function InviteByFriends({ tripId }: { tripId: number }) {
         </Box>
       </Box>
 
-      {/* ===== Snackbar ===== */}
-      <AppSnackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        onClose={() =>
-          setSnackbar((prev) => ({
-            ...prev,
-            open: false,
-          }))
-        }
-      />
     </>
   );
 }

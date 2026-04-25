@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 import DateRangePicker, { DateRange } from '@/components/common/date-time/date-range-picker';
 import { useCreateTripFromPublicTemplate } from '@/app/hooks';
 import { useCreateTripAlbum } from '@/app/memory/hooks/use-create-trip-album';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 type ApplyTemplateDialogProps = {
   open: boolean;
@@ -51,15 +51,7 @@ const ApplyTemplateDialog = ({
   const [dateRange, setDateRange] = useState<DateRange>([null, null]);
   const [nameError, setNameError] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
-  const [snack, setSnack] = useState<{
-    open: boolean;
-    message: string;
-    severity?: 'success' | 'error';
-  }>({
-    open: false,
-    message: '',
-    severity: 'error',
-  });
+  const { showError } = useSnackbar();
 
   const isPending = isCreatingTrip || isCreatingAlbum;
 
@@ -127,11 +119,7 @@ const ApplyTemplateDialog = ({
       {
         onSuccess: (data) => {
           if (!data?.id) {
-            setSnack({
-              open: true,
-              message: t('template.apply.errors.generic'),
-              severity: 'error',
-            });
+            showError(t('template.apply.errors.generic'));
             return;
           }
 
@@ -147,21 +135,13 @@ const ApplyTemplateDialog = ({
                 router.push(`/trip/${tripId}?tab=overview` as Route);
               },
               onError: () => {
-                setSnack({
-                  open: true,
-                  message: t('template.apply.errors.albumFailed'),
-                  severity: 'error',
-                });
+                showError(t('template.apply.errors.albumFailed'));
               },
             }
           );
         },
         onError: () => {
-          setSnack({
-            open: true,
-            message: t('template.apply.errors.generic'),
-            severity: 'error',
-          });
+          showError(t('template.apply.errors.generic'));
         },
       }
     );
@@ -225,12 +205,6 @@ const ApplyTemplateDialog = ({
         </DialogActions>
       </Dialog>
 
-      <AppSnackbar
-        open={snack.open}
-        message={snack.message}
-        severity={snack.severity}
-        onClose={() => setSnack((s) => ({ ...s, open: false }))}
-      />
     </>
   );
 };

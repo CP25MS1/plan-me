@@ -43,7 +43,7 @@ import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-tri
 import SectionPresenceGroup from '@/app/trip/[tripId]/realtime/components/section-presence-group';
 import { useTripSectionUsers, useTripRealtimeLocksMap } from '@/store/selectors';
 import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 export default function ChecklistPage() {
   const params = useParams();
@@ -82,7 +82,7 @@ export default function ChecklistPage() {
   const [editingName, setEditingName] = useState('');
 
   const [duplicateWarningFor, setDuplicateWarningFor] = useState<string | null>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity?: 'error' | 'warning' | 'info' | 'success' } | null>(null);
+  const { showWarning } = useSnackbar();
 
   useTripAddPresenceEffect({
     tripId,
@@ -193,11 +193,7 @@ export default function ChecklistPage() {
         purpose: 'DELETE',
       });
       if (lease.status === 'conflict') {
-        setSnackbar({
-          open: true,
-          message: `Locked by ${lease.lock.owner.username}`,
-          severity: 'warning',
-        });
+        showWarning(`Locked by ${lease.lock.owner.username}`);
         return;
       }
       deleteMut.mutate(id, {
@@ -467,11 +463,7 @@ export default function ChecklistPage() {
                                     purpose: 'EDIT',
                                   });
                                   if (lease.status === 'conflict') {
-                                    setSnackbar({
-                                      open: true,
-                                      message: `Locked by ${lease.lock.owner.username}`,
-                                      severity: 'warning',
-                                    });
+                                    showWarning(`Locked by ${lease.lock.owner.username}`);
                                     return;
                                   }
                                   checklistEditReleaseRef.current = lease.release;
@@ -675,12 +667,6 @@ export default function ChecklistPage() {
         }}
       />
       
-      <AppSnackbar
-        open={Boolean(snackbar?.open)}
-        message={snackbar?.message ?? ''}
-        severity={snackbar?.severity ?? 'error'}
-        onClose={() => setSnackbar(null)}
-      />
     </Box>
   );
 }

@@ -25,7 +25,7 @@ import SectionPresenceGroup from '@/app/trip/[tripId]/realtime/components/sectio
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { useTripLockLease } from '@/app/trip/[tripId]/realtime/hooks/use-trip-lock-lease';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 const DailyPlanPage = () => {
   const { locale } = useI18nSelector();
@@ -57,7 +57,7 @@ const DailyPlanPage = () => {
 
   const { mutate: updateScheduledPlace } = useUpdateScheduledPlace(tripId);
 
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string } | null>(null);
+  const { showWarning } = useSnackbar();
 
   const releaseDragLease = async () => {
     if (!dragLeaseRef.current) return;
@@ -113,7 +113,7 @@ const DailyPlanPage = () => {
       if (!acquired) return;
 
       if (acquired.status === 'conflict') {
-        setSnackbar({ open: true, message: `Locked by ${acquired.lock.owner.username}` });
+        showWarning(`Locked by ${acquired.lock.owner.username}`);
         return;
       }
 
@@ -273,12 +273,6 @@ const DailyPlanPage = () => {
         />
       </DailyPlanContext.Provider>
 
-      <AppSnackbar
-        open={Boolean(snackbar?.open)}
-        message={snackbar?.message ?? ''}
-        severity="warning"
-        onClose={() => setSnackbar(null)}
-      />
     </>
   ) : (
     <EmptyDailyPlanState />

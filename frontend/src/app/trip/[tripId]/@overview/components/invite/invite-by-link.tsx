@@ -5,7 +5,7 @@ import { Copy } from 'lucide-react';
 
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Box, IconButton, Tooltip } from '@mui/material';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 import { TruncatedTooltip } from '@/components/atoms';
 import { encodeBase64Json } from '@/lib/base64-json';
 import { InvitationByCodeParams } from '@/app/invitations/invitation-by-code-client';
@@ -19,10 +19,10 @@ export default function InviteTripModal({ tripId }: { tripId: number }) {
   const { data: tripHeader } = useTripHeader(tripId);
   const { data: invitationCode } = useGetTripInvitationCode(tripId);
 
-  const [copied, setCopied] = useState(false);
+  const { showSuccess } = useSnackbar();
   const copy = async () => {
     await navigator.clipboard.writeText(inviteLink);
-    setCopied(true);
+    showSuccess('คัดลอกลิงก์เชิญแล้ว');
   };
 
   if (!tripHeader || !currentUser || !invitationCode) return null;
@@ -72,13 +72,6 @@ export default function InviteTripModal({ tripId }: { tripId: number }) {
         </TabsContent>
       </Tabs>
 
-      {/* Snackbar */}
-      <AppSnackbar
-        open={copied}
-        message="คัดลอกลิงก์เชิญแล้ว"
-        severity="success"
-        onClose={() => setCopied(false)}
-      />
     </div>
   );
 }

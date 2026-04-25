@@ -20,7 +20,7 @@ import { TripSummary } from '@/api/all';
 import { TripVisibility } from '@/api/trips';
 import { TruncatedTooltip } from '@/components/atoms';
 import { ConfirmDialog } from '@/components/common/dialog';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 import { useDeleteTrip, useToggleTripVisibility } from '@/app/hooks';
 import { useAppSelector } from '@/store';
 import { Locale } from '@/store/i18n-slice';
@@ -58,6 +58,7 @@ export const TripList: React.FC<TripListProps> = ({
 }) => {
   const tripVisibilityById = useAppSelector((s) => s.tripDetail.tripVisibilityById);
   const locale = useAppSelector((s) => s.i18n.locale);
+  const { showSuccess, showError } = useSnackbar();
   const { mutate: mutateVisibility, isPending: isUpdatingVisibility } = useToggleTripVisibility();
   const { mutate: mutateDeleteTrip, isPending: isDeletingTrip } = useDeleteTrip();
 
@@ -65,15 +66,6 @@ export const TripList: React.FC<TripListProps> = ({
   const [selectedTrip, setSelectedTrip] = React.useState<TripSummary | null>(null);
   const [openShareConfirm, setOpenShareConfirm] = React.useState(false);
   const [openDeleteConfirm, setOpenDeleteConfirm] = React.useState(false);
-  const [snackbar, setSnackbar] = React.useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error';
-  }>({
-    open: false,
-    message: '',
-    severity: 'error',
-  });
 
   const resolveVisibility = React.useCallback(
     (trip: TripSummary): TripVisibility =>
@@ -154,11 +146,7 @@ export const TripList: React.FC<TripListProps> = ({
           setOpenShareConfirm(false);
         },
         onError: (error) => {
-          setSnackbar({
-            open: true,
-            message: getLocalizedErrorMessage(error),
-            severity: 'error',
-          });
+          showError(getLocalizedErrorMessage(error));
         },
       }
     );
@@ -172,6 +160,9 @@ export const TripList: React.FC<TripListProps> = ({
         onSuccess: () => {
           setOpenDeleteConfirm(false);
           setSelectedTrip(null);
+        },
+        onError: (error) => {
+          showError(getLocalizedErrorMessage(error));
         },
       }
     );
@@ -458,13 +449,6 @@ export const TripList: React.FC<TripListProps> = ({
             </Box>
           </Stack>
         }
-      />
-
-      <AppSnackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
       />
     </Box>
   );

@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useAppSelector } from '@/store';
 import { isTripOwner } from '../../utils/is-trip-owner';
 import type { ExpenseSplitType, TripExpenseDto } from '@/api/budget/type';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 import { useGetTripOverview } from '../hooks/use-get-trip-overview';
 import { useGetTripBudget } from './hooks/use-get-trip-budget';
@@ -41,6 +41,7 @@ export default function BudgetPage() {
 
   const { data: budgetData, isLoading: budgetLoading, isError, error } = useGetTripBudget(tripId);
 
+  const { showSnackbar } = useSnackbar();
   const [tab, setTab] = React.useState<'category' | 'day'>('category');
   const [openSetBudget, setOpenSetBudget] = React.useState(false);
   const [openAddExpense, setOpenAddExpense] = React.useState(false);
@@ -49,7 +50,6 @@ export default function BudgetPage() {
   >(undefined);
   const [addFormContext, setAddFormContext] = React.useState<'default' | 'personal'>('default');
   const [hasNewNoSplit, setHasNewNoSplit] = React.useState(false);
-  const [noSplitCreatedSnackbarOpen, setNoSplitCreatedSnackbarOpen] = React.useState(false);
   const [pendingOpenNoSplitCreate, setPendingOpenNoSplitCreate] = React.useState(false);
 
   const dialogKey = searchParams.get('budgetDialog');
@@ -82,7 +82,6 @@ export default function BudgetPage() {
 
   const openNoSplitDialog = () => {
     setHasNewNoSplit(false);
-    setNoSplitCreatedSnackbarOpen(false);
 
     const next = new URLSearchParams(searchParams.toString());
     next.set('tab', 'budget');
@@ -109,7 +108,12 @@ export default function BudgetPage() {
   const onExpenseCreated = (expense: TripExpenseDto) => {
     if (expense.splitType === 'NO_SPLIT') {
       setHasNewNoSplit(true);
-      setNoSplitCreatedSnackbarOpen(true);
+      showSnackbar({
+        message: t('budget.snackbar.noSplitCreated'),
+        severity: 'info',
+        actionLabel: t('budget.snackbar.viewPersonal'),
+        onAction: openNoSplitDialog,
+      });
     }
   };
 
@@ -178,14 +182,6 @@ export default function BudgetPage() {
         isOwner={isOwner}
       />
 
-      <AppSnackbar
-        open={noSplitCreatedSnackbarOpen}
-        message={t('budget.snackbar.noSplitCreated')}
-        severity="info"
-        onClose={() => setNoSplitCreatedSnackbarOpen(false)}
-        actionLabel={t('budget.snackbar.viewPersonal')}
-        onAction={openNoSplitDialog}
-      />
     </Box>
   );
 }
