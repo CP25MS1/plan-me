@@ -100,5 +100,40 @@
   },
 
   "confirm": "Confirm",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "notification": {
+    "success": {
+      "save": "Successfully saved",
+      "create": "Successfully created",
+      "delete": "Successfully deleted",
+      "update": "Successfully updated",
+      "upload": "Successfully uploaded",
+      "copy": "Successfully copied",
+      "send": "Successfully sent",
+      "follow": "Successfully followed",
+      "unfollow": "Successfully unfollowed",
+      "remove": "Successfully removed",
+      "save_version": "Version saved successfully",
+      "delete_version": "Version deleted successfully",
+      "apply_version": "Version applied successfully"
+    },
+    "error": {
+      "generic": "Something went wrong. Please try again.",
+      "save": "Failed to save",
+      "create": "Failed to create",
+      "delete": "Failed to delete",
+      "update": "Failed to update",
+      "upload": "Failed to upload",
+      "copy": "Failed to copy",
+      "send": "Failed to send",
+      "follow": "Failed to follow",
+      "unfollow": "Failed to unfollow",
+      "remove": "Failed to remove",
+      "save_version": "Failed to save version",
+      "delete_version": "Failed to delete version",
+      "apply_version": "Failed to apply version",
+      "upload_limit_exceeded": "Cannot upload because the total file size exceeds 1 GB",
+      "album_limit_exceeded": "Cannot upload because the total file size in the album must not exceed 3 GB"
+    }
+  }
 }

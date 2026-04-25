@@ -34,7 +34,7 @@ import { useGetPreviewReservationsFromFiles } from '@/app/trip/[tripId]/@overvie
 import { useCreateReservationBulk } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-create-reservation-bulk';
 import { ReservationDto, ReservationType } from '@/api/reservations/type';
 import { useParams } from 'next/navigation';
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
 import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-trip-add-presence';
@@ -130,21 +130,13 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
 
   useTripAddPresenceEffect({ tripId, enabled: open, section: 'OVERVIEW_RESERVATIONS' });
 
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: AlertColor;
-  }>({
-    open: false,
-    message: '',
-    severity: 'error',
-  });
+  const { showError } = useSnackbar();
 
   const showErrorSnackbar = (error: unknown) => {
     if (!(error instanceof AxiosError)) return;
     const thMessage = error.response?.data?.message?.TH;
     if (typeof thMessage === 'string') {
-      setSnackbar({ open: true, message: thMessage, severity: 'error' });
+      showError(thMessage);
     }
   };
 
@@ -156,22 +148,14 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
         (file) => !['application/pdf', 'image/png', 'image/jpeg'].includes(file.type)
       )
     ) {
-      setSnackbar({
-        open: true,
-        message: 'โปรดอัปโหลดไฟล์ประเภท .pdf, .png, .jpg, .jpeg',
-        severity: 'error',
-      });
+      showError('โปรดอัปโหลดไฟล์ประเภท .pdf, .png, .jpg, .jpeg');
       return;
     }
     const totalSize =
       files.reduce((size, item) => size + item.file.size, 0) +
       selectedFiles.reduce((size, file) => size + file.size, 0);
     if (totalSize > 20 * 1024 * 1024) {
-      setSnackbar({
-        open: true,
-        message: 'ขนาดไฟล์รวมต้องไม่เกิน 20 MB',
-        severity: 'error',
-      });
+      showError('ขนาดไฟล์รวมต้องไม่เกิน 20 MB');
       return;
     }
     setFiles((prev) => [
@@ -727,12 +711,6 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
         </DialogContent>
       </Dialog>
 
-      <AppSnackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-      />
       <ConfirmDialog
         open={showDuplicateWarning}
         onClose={() => setShowDuplicateWarning(false)}

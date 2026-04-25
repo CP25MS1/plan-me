@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import { useTranslation } from 'react-i18next';
 
 import { useUploadMemories } from '../hooks/use-upload-memories';
 import {
@@ -24,7 +25,7 @@ import {
 } from '../utils/file';
 import { formatFileSize } from '../utils/format-file-size';
 
-import { AppSnackbar } from '@/components/common/snackbar/snackbar';
+import { useSnackbar } from '@/components/common/snackbar/snackbar';
 
 interface Props {
   open: boolean;
@@ -34,17 +35,9 @@ interface Props {
 }
 
 export default function UploadMemoryDialog({ open, onClose, tripId, existingTotalBytes }: Props) {
+  const { t } = useTranslation('common');
+  const { showSuccess, showError } = useSnackbar();
   const [files, setFiles] = useState<File[]>([]);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error';
-    duration?: number;
-  }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
 
   const { mutateAsync, isPending } = useUploadMemories();
 
@@ -94,17 +87,9 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
     }
 
     if (limitExceeded) {
-      setSnackbar({
-        open: true,
-        message: 'ไม่สามารถอัปโหลดได้เนื่องจากขนาดไฟล์ทั้งหมดเกิน 1 GB',
-        severity: 'error',
-      });
+      showError(t('notification.error.upload_limit_exceeded'));
     } else if (albumLimitExceeded) {
-      setSnackbar({
-        open: true,
-        message: 'ไม่สามารถอัปโหลดได้เนื่องจากขนาดไฟล์ทั้งหมดในอัลบั้มต้องไม่เกิน 3 GB',
-        severity: 'error',
-      });
+      showError(t('notification.error.album_limit_exceeded'));
     }
 
     setFiles(validFiles);
@@ -119,20 +104,12 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
     try {
       await mutateAsync({ tripId, formData });
 
-      setSnackbar({
-        open: true,
-        message: 'อัปโหลดสำเร็จ',
-        severity: 'success',
-      });
+      showSuccess(t('notification.success.upload'));
 
       setFiles([]);
       onClose();
     } catch {
-      setSnackbar({
-        open: true,
-        message: 'อัปโหลดไม่สำเร็จ',
-        severity: 'error',
-      });
+      showError(t('notification.error.upload'));
     }
   };
 
@@ -150,7 +127,7 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
         <DialogTitle
           sx={{ fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
         >
-          <Box>เพิ่มความทรงจำ</Box>
+          <Box>{t('memory.add_memory', { defaultValue: 'เพิ่มความทรงจำ' })}</Box>
           {files.length > 0 && (
             <Typography variant="body2" color="text.secondary" fontWeight={500}>
               ขนาดทั้งหมด: {formatFileSize(totalSelectedSize)}
@@ -298,7 +275,7 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
 
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={onClose} disabled={isPending} sx={{ fontWeight: 600 }}>
-            ยกเลิก
+            {t('common.cancel')}
           </Button>
 
           <Button
@@ -320,20 +297,6 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* ===== Snackbar ===== */}
-      <AppSnackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        duration={snackbar.duration}
-        onClose={() =>
-          setSnackbar((prev) => ({
-            ...prev,
-            open: false,
-          }))
-        }
-      />
     </>
   );
 }
