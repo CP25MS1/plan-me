@@ -121,7 +121,15 @@
       "respond_invite": "Response sent successfully",
       "create_from_template": "Trip created from template successfully",
       "add_wishlist": "Added to wishlist successfully",
-      "remove_wishlist": "Removed from wishlist successfully"
+      "remove_wishlist": "Removed from wishlist successfully",
+      "add_place": "Place added to plan successfully",
+      "remove_place": "Place removed from plan successfully",
+      "add_reservation": "Reservation added successfully",
+      "remove_reservation": "Reservation removed successfully",
+      "add_expense": "Expense added successfully",
+      "remove_expense": "Expense removed successfully",
+      "add_checklist_item": "Item added to checklist successfully",
+      "remove_checklist_item": "Item removed from checklist successfully"
     },
     "error": {
       "generic": "Something went wrong. Please try again.",
@@ -144,6 +152,14 @@
       "create_from_template": "Failed to create trip from template",
       "add_wishlist": "Failed to add to wishlist",
       "remove_wishlist": "Failed to remove from wishlist",
+      "add_place": "Failed to add place to plan",
+      "remove_place": "Failed to remove place from plan",
+      "add_reservation": "Failed to add reservation",
+      "remove_reservation": "Failed to remove reservation",
+      "add_expense": "Failed to add expense",
+      "remove_expense": "Failed to remove expense",
+      "add_checklist_item": "Failed to add item to checklist",
+      "remove_checklist_item": "Failed to remove item from checklist",
       "upload_limit_exceeded": "Cannot upload because the total file size exceeds 1 GB",
       "album_limit_exceeded": "Cannot upload because the total file size in the album must not exceed 3 GB"
     }
