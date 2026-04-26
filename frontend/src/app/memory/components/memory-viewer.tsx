@@ -40,7 +40,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function MemoryViewer({ memories, currentIndex, tripName, tripId, onClose }: Props) {
+export default function MemoryViewer({ memories, currentIndex, tripName, tripId, onClose }: Readonly<Props>) {
   const { t } = useTranslation('trip_memory');
   const { locale } = useI18nSelector();
   const [index, setIndex] = useState<number>(currentIndex);

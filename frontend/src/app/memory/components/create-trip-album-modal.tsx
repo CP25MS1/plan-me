@@ -30,7 +30,7 @@ interface CreateTripAlbumModalProps {
   onClose: () => void;
 }
 
-export default function CreateTripAlbumModal({ open, onClose }: CreateTripAlbumModalProps) {
+export default function CreateTripAlbumModal({ open, onClose }: Readonly<CreateTripAlbumModalProps>) {
   const { t } = useTranslation('trip_memory');
   const me = useAppSelector((s) => s.profile.currentUser);
 

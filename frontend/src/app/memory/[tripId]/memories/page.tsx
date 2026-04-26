@@ -152,7 +152,7 @@ export default function AlbumMemoriesPage() {
   const handleDeleteAlbum = () => {
     if (!currentAlbum) return;
     deleteAlbum(
-      { albumId: currentAlbum.albumId },
+      { tripId: currentAlbum.tripId },
       {
         onSuccess: () => {
           setOpenDeleteAlbumConfirm(false);
@@ -390,13 +390,13 @@ function ConfirmDeleteAlbumDialog({
   loading,
   onClose,
   onConfirm,
-}: {
+}: Readonly<{
   open: boolean;
   loading: boolean;
   onClose: () => void;
   onConfirm: () => void;
-}) {
-  const { t } = useTranslation('memory');
+}>) {
+  const { t } = useTranslation('trip_memory');
 
   return (
     <Dialog open={open} onClose={() => !loading && onClose()}>

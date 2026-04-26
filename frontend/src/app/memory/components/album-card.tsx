@@ -35,7 +35,7 @@ type AlbumCardProps = {
   onOpenAlbum: (tripId: number) => void;
 };
 
-export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }: AlbumCardProps) {
+export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }: Readonly<AlbumCardProps>) {
   const { t } = useTranslation('trip_memory');
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -61,7 +61,7 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
 
   const handleDelete = () => {
     deleteAlbum(
-      { albumId: album.tripId },
+      { tripId: album.tripId },
       {
         onSuccess: () => {
           setOpenDeleteDialog(false);
@@ -86,8 +86,8 @@ export default function AlbumCard({ album, isOwner, onOpenUpload, onOpenAlbum }:
       const signed = signedData ?? (await refetchSignedUrls().then((r) => r.data));
       const items = signed?.items ?? [];
 
-      for (let i = 0; i < items.length; i++) {
-        const it = items[i];
+      for (const element of items) {
+        const it = element;
 
         try {
           await downloadBlobAndSave(it.signedUrl, it.originalFilename);
