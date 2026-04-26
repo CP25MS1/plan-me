@@ -25,6 +25,7 @@ export const useToggleTripVisibility = () => {
       dispatch(setTripVisibility({ tripId: data.tripId, visibility: data.visibility }));
       queryClient.invalidateQueries({ queryKey: ['trip-overview', data.tripId] });
       queryClient.invalidateQueries({ queryKey: ['all-trips'] });
+      queryClient.invalidateQueries({ queryKey: ['public-trip-templates'] });
     },
     onError: () => {
       showError(t('notification.error.update'));
