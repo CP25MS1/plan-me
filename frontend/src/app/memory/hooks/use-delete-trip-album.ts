@@ -8,17 +8,17 @@ export const useDeleteTripAlbum = () => {
   const { t } = useTranslation('common');
   const { showSuccess, showError } = useSnackbar();
 
-  return useMutation<void, Error, { albumId: number }>({
-    mutationFn: ({ albumId }) => deleteTripAlbum(albumId),
+  return useMutation<void, Error, { tripId: number }>({
+    mutationFn: ({ tripId }) => deleteTripAlbum(tripId),
 
-    onSuccess: (_, { albumId }) => {
+    onSuccess: (_, { tripId }) => {
       showSuccess(t('notification.success.delete'));
       queryClient.invalidateQueries({
         queryKey: ['my-accessible-albums'],
       });
 
       queryClient.invalidateQueries({
-        queryKey: ['memories-in-album', albumId],
+        queryKey: ['memories-in-album', tripId],
       });
     },
     onError: () => {

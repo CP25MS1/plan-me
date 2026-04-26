@@ -1,16 +1,16 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
   Box,
-  Typography,
-  IconButton,
+  Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -34,20 +34,10 @@ interface Props {
   existingTotalBytes: number;
 }
 
-export default function UploadMemoryDialog({ open, onClose, tripId, existingTotalBytes }: Props) {
+export default function UploadMemoryDialog({ open, onClose, tripId, existingTotalBytes }: Readonly<Props>) {
   const { t } = useTranslation('trip_memory');
   const { showSuccess, showError } = useSnackbar();
   const [files, setFiles] = useState<File[]>([]);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error';
-    duration?: number;
-  }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
 
   const { mutateAsync, isPending } = useUploadMemories();
 
@@ -97,9 +87,9 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
     }
 
     if (limitExceeded) {
-      showError(t('notification.error.upload_limit_exceeded'));
+      showError(t('common:notification.error.upload_limit_exceeded'));
     } else if (albumLimitExceeded) {
-      showError(t('notification.error.album_limit_exceeded'));
+      showError(t('common:notification.error.album_limit_exceeded'));
     }
 
     setFiles(validFiles);
@@ -114,204 +104,200 @@ export default function UploadMemoryDialog({ open, onClose, tripId, existingTota
     try {
       await mutateAsync({ tripId, formData });
 
-      showSuccess(t('notification.success.upload'));
+      showSuccess(t('common:notification.success.upload'));
 
       setFiles([]);
       onClose();
     } catch {
-      showError(t('notification.error.upload'));
+      showError(t('common:notification.error.upload'));
     }
   };
 
   return (
-    <>
-      <Dialog
-        open={open}
-        onClose={isPending ? undefined : onClose}
-        disableEscapeKeyDown={isPending}
-        fullWidth
-        PaperProps={{
-          sx: { borderRadius: 3, p: 1 },
+    <Dialog
+      open={open}
+      onClose={isPending ? undefined : onClose}
+      disableEscapeKeyDown={isPending}
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 3, p: 1 },
+      }}
+    >
+      <DialogTitle
+        sx={{
+          fontWeight: 700,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
-        <DialogTitle
-          sx={{
-            fontWeight: 700,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Box>{t('upload.title')}</Box>
-          {files.length > 0 && (
-            <Typography variant="body2" color="text.secondary" fontWeight={500}>
-              {t('upload.total_size')}: {formatFileSize(totalSelectedSize)}
-            </Typography>
-          )}
-        </DialogTitle>
+        <Box>{t('upload.title')}</Box>
+        {files.length > 0 && (
+          <Typography variant="body2" color="text.secondary" fontWeight={500}>
+            {t('upload.total_size')}: {formatFileSize(totalSelectedSize)}
+          </Typography>
+        )}
+      </DialogTitle>
 
-        <DialogContent>
-          {/* Upload Area */}
-          {files.length === 0 && (
-            <Box
-              component="label"
-              sx={{
-                display: 'block',
-                width: '100%',
-                border: '2px dashed',
-                borderColor: 'primary.main',
-                borderRadius: 3,
-                p: 4,
-                textAlign: 'center',
-                cursor: 'pointer',
-                bgcolor: '#fafafa',
-                mb: 3,
-                transition: '0.2s',
-                '&:hover': {
-                  bgcolor: '#f0f0f0',
-                },
-              }}
-            >
-              <Typography variant="h6" fontWeight={600} mb={1}>
-                {t('upload.pick_files')}
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary" mb={1}>
-                {t('upload.supported_types')}
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary" mb={1}>
-                .png, .jpg, .jpeg, .mov, .mp4
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary">
-                {t('upload.limit_notice')}
-              </Typography>
-
-              <input
-                hidden
-                type="file"
-                multiple
-                onChange={(e) =>
-                  handleSelectFiles(e.target.files ? Array.from(e.target.files) : [])
-                }
-              />
-            </Box>
-          )}
-
-          {/* ===== Preview Grid ===== */}
-          {previews.length > 0 && (
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 2,
-              }}
-            >
-              {previews.map((preview, index) => (
-                <Box
-                  key={index}
-                  sx={{
-                    position: 'relative',
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                  }}
-                >
-                  {preview.isVideo ? (
-                    <Box
-                      component="video"
-                      src={preview.url}
-                      muted
-                      preload="metadata"
-                      sx={{
-                        width: '100%',
-                        height: 120,
-                        objectFit: 'cover',
-                      }}
-                    />
-                  ) : (
-                    <Box
-                      component="img"
-                      src={preview.url}
-                      sx={{
-                        width: '100%',
-                        height: 120,
-                        objectFit: 'cover',
-                      }}
-                    />
-                  )}
-
-                  {/* Remove button */}
-                  <IconButton
-                    size="small"
-                    onClick={() => removeFile(index)}
-                    disabled={isPending}
-                    sx={{
-                      position: 'absolute',
-                      top: 6,
-                      right: 6,
-                      bgcolor: 'rgba(0,0,0,0.6)',
-                      color: 'white',
-                      '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' },
-                    }}
-                  >
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-
-                  {/* Video overlay */}
-                  {preview.isVideo && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: 'rgba(0,0,0,0.25)',
-                        pointerEvents: 'none',
-                      }}
-                    >
-                      <PlayArrowIcon
-                        sx={{
-                          fontSize: 40,
-                          color: 'white',
-                          bgcolor: 'rgba(0,0,0,0.4)',
-                          borderRadius: '50%',
-                          p: 0.5,
-                        }}
-                      />
-                    </Box>
-                  )}
-                </Box>
-              ))}
-            </Box>
-          )}
-        </DialogContent>
-
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={onClose} disabled={isPending} sx={{ fontWeight: 600 }}>
-            {t('common:cancel')}
-          </Button>
-
-          <Button
-            variant="contained"
-            disabled={isPending || files.length === 0}
-            onClick={handleUpload}
+      <DialogContent>
+        {/* Upload Area */}
+        {files.length === 0 && (
+          <Box
+            component="label"
             sx={{
-              borderRadius: 2,
-              px: 3,
-              fontWeight: 600,
-              minWidth: 120,
+              display: 'block',
+              width: '100%',
+              border: '2px dashed',
+              borderColor: 'primary.main',
+              borderRadius: 3,
+              p: 4,
+              textAlign: 'center',
+              cursor: 'pointer',
+              bgcolor: '#fafafa',
+              mb: 3,
+              transition: '0.2s',
+              '&:hover': {
+                bgcolor: '#f0f0f0',
+              },
             }}
           >
-            {isPending ? (
-              <CircularProgress size={20} thickness={5} sx={{ color: '#fff' }} />
-            ) : (
-              t('upload.submit')
-            )}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
+            <Typography variant="h6" fontWeight={600} mb={1}>
+              {t('upload.pick_files')}
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary" mb={1}>
+              {t('upload.supported_types')}
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary" mb={1}>
+              .png, .jpg, .jpeg, .mov, .mp4
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary">
+              {t('upload.limit_notice')}
+            </Typography>
+
+            <input
+              hidden
+              type="file"
+              multiple
+              onChange={(e) => handleSelectFiles(e.target.files ? Array.from(e.target.files) : [])}
+            />
+          </Box>
+        )}
+
+        {/* ===== Preview Grid ===== */}
+        {previews.length > 0 && (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: 2,
+            }}
+          >
+            {previews.map((preview, index) => (
+              <Box
+                key={index}
+                sx={{
+                  position: 'relative',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                {preview.isVideo ? (
+                  <Box
+                    component="video"
+                    src={preview.url}
+                    muted
+                    preload="metadata"
+                    sx={{
+                      width: '100%',
+                      height: 120,
+                      objectFit: 'cover',
+                    }}
+                  />
+                ) : (
+                  <Box
+                    component="img"
+                    src={preview.url}
+                    sx={{
+                      width: '100%',
+                      height: 120,
+                      objectFit: 'cover',
+                    }}
+                  />
+                )}
+
+                {/* Remove button */}
+                <IconButton
+                  size="small"
+                  onClick={() => removeFile(index)}
+                  disabled={isPending}
+                  sx={{
+                    position: 'absolute',
+                    top: 6,
+                    right: 6,
+                    bgcolor: 'rgba(0,0,0,0.6)',
+                    color: 'white',
+                    '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' },
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+
+                {/* Video overlay */}
+                {preview.isVideo && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(0,0,0,0.25)',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <PlayArrowIcon
+                      sx={{
+                        fontSize: 40,
+                        color: 'white',
+                        bgcolor: 'rgba(0,0,0,0.4)',
+                        borderRadius: '50%',
+                        p: 0.5,
+                      }}
+                    />
+                  </Box>
+                )}
+              </Box>
+            ))}
+          </Box>
+        )}
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose} disabled={isPending} sx={{ fontWeight: 600 }}>
+          {t('common:cancel')}
+        </Button>
+
+        <Button
+          variant="contained"
+          disabled={isPending || files.length === 0}
+          onClick={handleUpload}
+          sx={{
+            borderRadius: 2,
+            px: 3,
+            fontWeight: 600,
+            minWidth: 120,
+          }}
+        >
+          {isPending ? (
+            <CircularProgress size={20} thickness={5} sx={{ color: '#fff' }} />
+          ) : (
+            t('upload.submit')
+          )}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

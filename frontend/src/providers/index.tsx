@@ -17,6 +17,7 @@ import { getProfile } from '@/api/users';
 import { getDefaultObjectives } from '@/api/trips';
 import ThemeProvider from './theme/theme-provider';
 import { SnackbarProvider } from '@/components/common/snackbar/snackbar';
+import PullToRefresh from '@/components/pull-to-refresh';
 
 export const QueryProvider = ({ children }: { children: ReactNode }) => {
   const [client] = useState(
@@ -115,7 +116,10 @@ const AppProvider = ({ children }: { children: ReactNode }) => {
     <QueryProvider>
       <ReduxProvider>
         <ThemeProvider>
-          <SnackbarProvider>{children}</SnackbarProvider>
+          <SnackbarProvider>
+            <PullToRefresh />
+            {children}
+          </SnackbarProvider>
         </ThemeProvider>
       </ReduxProvider>
     </QueryProvider>
