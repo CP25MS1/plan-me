@@ -5,6 +5,7 @@ import { PlusIcon } from 'lucide-react';
 
 import { useAddScheduledPlace } from '@/app/trip/[tripId]/@daily/hooks/use-scheduled-place-mutation';
 import type { CreateScheduledPlaceRequest } from '@/api/daily-plan';
+import { useTranslation } from 'react-i18next';
 
 type AddScheduledPlaceProps = {
   tripId: number;
@@ -13,6 +14,7 @@ type AddScheduledPlaceProps = {
 };
 
 const AddScheduledPlaceBtn = ({ tripId, payload, onSuccess }: AddScheduledPlaceProps) => {
+  const { t } = useTranslation('trip_overview');
   const { mutate, isPending } = useAddScheduledPlace(tripId);
 
   return (
@@ -22,7 +24,7 @@ const AddScheduledPlaceBtn = ({ tripId, payload, onSuccess }: AddScheduledPlaceP
       onClick={() => mutate(payload, { onSuccess })}
       disabled={isPending}
     >
-      เพิ่มสถานที่
+      {t('daily.add_place')}
     </Button>
   );
 };
