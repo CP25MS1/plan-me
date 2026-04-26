@@ -104,13 +104,13 @@ const types: ReservationType[] = [
   'CAR_RENTAL',
 ];
 const icons: Record<ReservationType, ReactNode> = {
-  LODGING: <Building size={18} color="#25CF7A" />,
-  RESTAURANT: <Utensils size={18} color="#25CF7A" />,
-  FLIGHT: <Plane size={18} color="#25CF7A" />,
-  TRAIN: <Train size={18} color="#25CF7A" />,
-  BUS: <Bus size={18} color="#25CF7A" />,
-  FERRY: <Ship size={18} color="#25CF7A" />,
-  CAR_RENTAL: <Car size={18} color="#25CF7A" />,
+  LODGING: <Building size={18} color="#3b82f6" />,
+  RESTAURANT: <Utensils size={18} color="#ec4899" />,
+  FLIGHT: <Plane size={18} color="#22c55e" />,
+  TRAIN: <Train size={18} color="#ef4444" />,
+  BUS: <Bus size={18} color="#f97316" />,
+  FERRY: <Ship size={18} color="#a855f7" />,
+  CAR_RENTAL: <Car size={18} color="#14b8a6" />,
 };
 
 const isReservationRecord = (value: unknown): value is Partial<ReservationDto> => {

@@ -1,8 +1,8 @@
 'use client';
 
 import { ReservationDto, RestaurantDetails } from '@/api/reservations';
-import { Box, Typography, Divider, Tooltip, Stack } from '@mui/material';
-import { Utensils, Phone, Mail, UserRound, Clock, Table, Ticket, Users } from 'lucide-react';
+import { Box, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { Clock, Mail, Phone, Table, Ticket, UserRound, Users, Utensils } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatCurrencyTHB } from '@/lib/string';
 
@@ -52,7 +52,9 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
       }}
     >
       {data?.typeMismatch && (
-        <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}>
+        <Box
+          sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}
+        >
           <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
             {t('Reservation.typeMismatchWarning')}
           </Typography>
@@ -61,8 +63,8 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-          <Utensils size={18} color="#25CF7A" />
-          <Typography variant="subtitle2" fontWeight={600}>
+          <Utensils size={18} color="#ec4899" />
+          <Typography variant="subtitle2" fontWeight={600} sx={{ color: '#ec4899' }}>
             {t('ManualReservation.Type.Restaurant')}
           </Typography>
         </Box>
@@ -74,7 +76,7 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
       {/* Main */}
       <Box sx={{ display: 'flex', gap: 1.5, minWidth: 0 }}>
         {/* Left */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
           <Tooltip title={restaurant.restaurantName} arrow disableInteractive>
             <Typography
               variant="subtitle2"
@@ -110,7 +112,7 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
 
           <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-              <Phone size={14} />
+              <Phone size={14} color="#ec4899" />
               <Tooltip title={restaurant.contactTel} arrow disableInteractive>
                 <Typography
                   variant="caption"
@@ -127,7 +129,7 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-              <Mail size={14} />
+              <Mail size={14} color="#ec4899" />
               <Tooltip title={restaurant.contactEmail} arrow disableInteractive>
                 <Typography
                   variant="caption"
@@ -145,7 +147,7 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
           </Box>
 
           <Box sx={{ mt: 1 }}>
-            <Stack direction="column" alignItems="flex-center" textAlign="center" spacing={0.5}>
+            <Stack direction="column" alignItems="flex-center" textAlign="left" spacing={0.5}>
               <Typography variant="caption" fontWeight={600}>
                 {t('reservation.fields.bookingRef.label')}
               </Typography>
@@ -161,18 +163,21 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
 
         {/* Right */}
         <Box sx={{ width: 150, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          <Info icon={<Clock size={14} />} text={formatTime(restaurant.reservationTime)} />
-          <Info icon={<UserRound size={14} />} text={restaurant.underName} />
           <Info
-            icon={<Table size={14} />}
+            icon={<Clock size={14} color="#ec4899" />}
+            text={formatTime(restaurant.reservationTime)}
+          />
+          <Info icon={<UserRound size={14} color="#ec4899" />} text={restaurant.underName} />
+          <Info
+            icon={<Table size={14} color="#ec4899" />}
             text={`${t('reservation.fields.tableNo.label')} ${restaurant.tableNo || '-'}`}
           />
           <Info
-            icon={<Ticket size={14} />}
+            icon={<Ticket size={14} color="#ec4899" />}
             text={`${t('reservation.fields.queueNo.label')} ${restaurant.queueNo || '-'}`}
           />
           <Info
-            icon={<Users size={14} />}
+            icon={<Users size={14} color="#ec4899" />}
             text={`${t('reservation.fields.partySize.label')} ${restaurant.partySize ?? '-'}`}
           />
 
@@ -181,7 +186,8 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
               variant="caption"
               sx={{
                 fontWeight: 700,
-                background: '#F5F5F5',
+                color: '#ec4899',
+                background: '#fce7f3',
                 px: 1.5,
                 py: 0.25,
                 borderRadius: 1,

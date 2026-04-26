@@ -103,18 +103,20 @@ export default function TrainCard({ data }: { data: ReservationDto | null }) {
         gap: 0.8,
       }}
     >
-          {data?.typeMismatch && (
-            <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}>
-              <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
-                {t('Reservation.typeMismatchWarning')}
-              </Typography>
-            </Box>
-          )}
+      {data?.typeMismatch && (
+        <Box
+          sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}
+        >
+          <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
+            {t('Reservation.typeMismatchWarning')}
+          </Typography>
+        </Box>
+      )}
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Train size={16} color="#25CF7A" />
-          <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
+          <Train size={16} color="#ef4444" />
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#ef4444' }}>
             {t('ManualReservation.Type.Train')}
           </Typography>
         </Box>
@@ -123,7 +125,8 @@ export default function TrainCard({ data }: { data: ReservationDto | null }) {
           variant="caption"
           sx={{
             fontWeight: 700,
-            background: '#F5F5F5',
+            color: '#ef4444',
+            background: '#fee2e2',
             px: 0.8,
             py: 0.2,
             borderRadius: 1,

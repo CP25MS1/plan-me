@@ -61,18 +61,20 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
         boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
       }}
     >
-        {data?.typeMismatch && (
-          <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}>
-            <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
-              {t('Reservation.typeMismatchWarning')}
-            </Typography>
-          </Box>
-        )}
+      {data?.typeMismatch && (
+        <Box
+          sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}
+        >
+          <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
+            {t('Reservation.typeMismatchWarning')}
+          </Typography>
+        </Box>
+      )}
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-          <Building size={18} color="#25CF7A" />
-          <Typography variant="subtitle2" fontWeight={600}>
+          <Building size={18} color="#3b82f6" />
+          <Typography variant="subtitle2" fontWeight={600} sx={{ color: '#3b82f6' }}>
             {t('ManualReservation.Type.Lodging')}
           </Typography>
         </Box>
@@ -85,7 +87,7 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
       {/* Main */}
       <Box sx={{ display: 'flex', gap: 1.5, minWidth: 0 }}>
         {/* Left */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
           <Tooltip title={lodging.lodgingName} arrow disableInteractive>
             <Typography
               variant="subtitle2"
@@ -121,7 +123,7 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
 
           <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Phone size={14} />
+              <Phone size={14} color="#3b82f6" />
               <Tooltip title={lodging.contactTel} arrow disableInteractive>
                 <Typography
                   variant="caption"
@@ -137,7 +139,7 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Mail size={14} />
+              <Mail size={14} color="#3b82f6" />
               <Tooltip title={lodging.contactEmail} arrow disableInteractive>
                 <Typography
                   variant="caption"
@@ -154,7 +156,7 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
           </Box>
 
           <Box sx={{ mt: 1 }}>
-            <Stack direction="column" alignItems="flex-center" textAlign="center" spacing={0.5}>
+            <Stack direction="column" alignItems="flex-center" textAlign="left" spacing={0.5}>
               <Typography variant="caption" fontWeight={600}>
                 {t('reservation.fields.bookingRef.label')}
               </Typography>
@@ -171,18 +173,18 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
         {/* Right */}
         <Box sx={{ width: 150, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Info
-            icon={<UserRound size={14} />}
+            icon={<UserRound size={14} color="#3b82f6" />}
             label={t('reservation.fields.underName.label')}
             value={lodging.underName}
           />
           <Info
-            icon={<Clock size={14} />}
+            icon={<Clock size={14} color="#3b82f6" />}
             label={t('reservation.fields.checkinDate.label')}
             value={formatDateTime(lodging.checkinDate)}
           />
 
           <Info
-            icon={<Clock size={14} />}
+            icon={<Clock size={14} color="#3b82f6" />}
             label={t('reservation.fields.checkoutDate.label')}
             value={formatDateTime(lodging.checkoutDate)}
           />
@@ -191,7 +193,8 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
               variant="caption"
               sx={{
                 fontWeight: 700,
-                background: '#F5F5F5',
+                color: '#3b82f6',
+                background: '#dbeafe',
                 px: 1.5,
                 py: 0.25,
                 borderRadius: 1,
