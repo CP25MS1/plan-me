@@ -13,7 +13,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { ReactNode, ElementType, useEffect, useRef, useState } from 'react';
+import { ElementType, ReactNode, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -39,7 +39,6 @@ import { ReservationDto, ReservationEmailInfo, ReservationType } from '@/api/res
 import { useCreateReservationBulk } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-create-reservation-bulk';
 import { useReadEmailInbox } from '@/app/trip/[tripId]/@overview/hooks/reservations/use-read-email-inbox';
 import { useSnackbar } from '@/components/common/snackbar/snackbar';
-import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-trip-add-presence';
@@ -50,12 +49,12 @@ import FlightPassengerFields from './shared/flight-passenger-fields';
 import ExtractionLoading from './shared/extraction-loading';
 import {
   buildReservationFromForm,
+  type FlightPassengerFormValue,
   getFlightPassengers,
   hasAnyDuplicate,
   mergeReservationWithDetails,
   renderReservationCard,
   reservationTypeToUiType,
-  type FlightPassengerFormValue,
   type UiReservationType,
   validateReservationForm,
 } from './shared/reservation-utils';
@@ -202,7 +201,6 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
   const removeEmail = (index: number) => {
     setEmails((prev) => prev.filter((_, emailIndex) => emailIndex !== index));
   };
-
 
   const showErrorSnackbar = (error: unknown) => {
     if (!(error instanceof AxiosError)) return;
@@ -519,7 +517,9 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           {isPending ? (
-            <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Box
+              sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
+            >
               <ExtractionLoading />
             </Box>
           ) : (
@@ -548,7 +548,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                 >
                   cp25ms1+{tripId}@gmail.com
                 </Typography>
-                <Tooltip title="Copy">
+                <Tooltip title={t('inviteDialog.byLink.copyTooltip')}>
                   <IconButton
                     onClick={() => copyToClipboard(`cp25ms1+${tripId}@gmail.com`)}
                     size="small"
@@ -609,7 +609,9 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                       <Trash2 size={18} />
                     </IconButton>
                     <Typography>{item.subject}</Typography>
-                    <Typography sx={{ fontSize: 12, color: 'grey.600' }}>{item.receivedAt}</Typography>
+                    <Typography sx={{ fontSize: 12, color: 'grey.600' }}>
+                      {item.receivedAt}
+                    </Typography>
                     <FormControl fullWidth sx={{ mt: 1 }}>
                       <Select
                         value={item.type || ''}
@@ -652,7 +654,7 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <Button
                   variant="contained"
-                  startIcon={<Eye size={18} />}
+                  startIcon={!isPending && <Eye size={18} />}
                   onClick={handleFetchPreviewData}
                   disabled={isPending || !isAllSelected}
                   sx={{
@@ -661,7 +663,12 @@ export default function EmailReservation({ open, onClose }: EmailReservationProp
                     position: 'relative',
                   }}
                 >
-                  แสดงตัวอย่าง
+                  <span style={{ visibility: isPending ? 'hidden' : 'visible' }}>
+                    {t('EmailReservation.Button')}
+                  </span>
+                  {isPending && (
+                    <CircularProgress size={20} color="inherit" sx={{ position: 'absolute' }} />
+                  )}
                 </Button>
               </Box>
             </>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReservationDto, BusDetails } from '@/api/reservations';
+import { BusDetails, ReservationDto } from '@/api/reservations';
 import { Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Bus } from 'lucide-react';
@@ -26,10 +26,30 @@ const formatDate = (date: string) =>
 /* Train */
 const ColItem = ({ label, value }: { label: string; value?: string }) => (
   <Box sx={{ minWidth: 0 }}>
-    <Typography variant="caption" sx={{ fontSize: '9px', color: 'text.secondary' }} noWrap>
+    <Typography
+      variant="caption"
+      sx={{
+        fontSize: '9px',
+        color: 'text.secondary',
+        display: 'block',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+      }}
+      noWrap
+    >
       {label}
     </Typography>
-    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '11px' }} noWrap>
+    <Typography
+      variant="body2"
+      sx={{
+        fontWeight: 600,
+        fontSize: '11px',
+        display: 'block',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+      }}
+      noWrap
+    >
       {value || '-'}
     </Typography>
   </Box>
@@ -53,6 +73,7 @@ function Col({ children }: { children: React.ReactNode }) {
 
 export default function BusCard({ data }: { data: ReservationDto | null }) {
   const { t } = useTranslation('trip_overview');
+
   const busDetails = (data?.details as BusDetails | undefined) ?? (data as unknown as BusDetails);
 
   const bus = {
@@ -82,19 +103,21 @@ export default function BusCard({ data }: { data: ReservationDto | null }) {
         gap: 0.6,
       }}
     >
-          {data?.typeMismatch && (
-            <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}>
-              <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
-                {t('Reservation.typeMismatchWarning')}
-              </Typography>
-            </Box>
-          )}
+      {data?.typeMismatch && (
+        <Box
+          sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}
+        >
+          <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
+            {t('Reservation.typeMismatchWarning')}
+          </Typography>
+        </Box>
+      )}
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Bus size={18} color="#25CF7A" />
           <Typography variant="subtitle2" sx={{ fontSize: '13px', fontWeight: 700 }}>
-            รถทัวร์
+            {t('ManualReservation.Type.Bus')}
           </Typography>
         </Box>
 
@@ -116,26 +139,38 @@ export default function BusCard({ data }: { data: ReservationDto | null }) {
       {/* Columns layout */}
       <Box sx={{ display: 'flex', gap: 1, minWidth: 0 }}>
         <Col>
-          <ColItem label="ชื่อบริษัทรถ" value={bus.transportCompany} />
-          <ColItem label="ประเภทรถ" value={bus.busClass} />
-          <ColItem label="หมายเลขการจอง" value={bus.bookingRef} />
+          <ColItem
+            label={t('reservation.fields.transportCompany.label')}
+            value={bus.transportCompany}
+          />
+          <ColItem label={t('reservation.fields.busClass.label')} value={bus.busClass} />
+          <ColItem label={t('reservation.fields.bookingRef.label')} value={bus.bookingRef} />
         </Col>
 
         <Col>
-          <ColItem label="สถานีต้นทาง" value={bus.departureStation} />
-          <ColItem label="เวลาออกเดินทาง" value={formatTime(bus.departureTime)} />
-          <ColItem label="วันที่" value={formatDate(bus.departureTime)} />
+          <ColItem
+            label={t('reservation.fields.departureStation.label')}
+            value={bus.departureStation}
+          />
+          <ColItem
+            label={t('reservation.fields.departureTime.label')}
+            value={formatTime(bus.departureTime)}
+          />
+          <ColItem label={t('reservation.card.date')} value={formatDate(bus.departureTime)} />
         </Col>
 
         <Col>
-          <ColItem label="สถานีปลายทาง" value={bus.arrivalStation} />
-          <ColItem label="หมายเลขที่นั่ง" value={bus.seatNo} />
-          <ColItem label="ชื่อผู้โดยสาร" value={bus.passengerName} />
+          <ColItem
+            label={t('reservation.fields.arrivalStation.label')}
+            value={bus.arrivalStation}
+          />
+          <ColItem label={t('reservation.fields.seatNo.label')} value={bus.seatNo} />
+          <ColItem label={t('reservation.fields.passengerName.label')} value={bus.passengerName} />
         </Col>
 
         <Col>
-          <ColItem label="เบอร์ติดต่อ" value={bus.contactTel} />
-          <ColItem label="Email ติดต่อ" value={bus.contactEmail} />
+          <ColItem label={t('reservation.fields.contactTel.label')} value={bus.contactTel} />
+          <ColItem label={t('reservation.fields.contactEmail.label')} value={bus.contactEmail} />
         </Col>
       </Box>
     </Box>
