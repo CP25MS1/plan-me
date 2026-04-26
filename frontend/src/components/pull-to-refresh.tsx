@@ -6,8 +6,11 @@ const PullToRefresh = () => {
   const startY = useRef<number | null>(null);
 
   useEffect(() => {
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    if (!isIOS) return;
+
     const handleTouchStart = (e: TouchEvent) => {
-      if (globalThis.scrollY === 0) {
+      if (window.scrollY === 0) {
         startY.current = e.touches[0].clientY;
       }
     };
@@ -15,22 +18,21 @@ const PullToRefresh = () => {
     const handleTouchEnd = (e: TouchEvent) => {
       if (startY.current === null) return;
 
-      const endY = e.changedTouches[0].clientY;
-      const diff = endY - startY.current;
+      const diff = e.changedTouches[0].clientY - startY.current;
 
-      if (diff > 100 && globalThis.scrollY === 0) {
-        globalThis.location.reload();
+      if (diff > 120 && window.scrollY === 0) {
+        window.location.reload();
       }
 
       startY.current = null;
     };
 
-    globalThis.addEventListener('touchstart', handleTouchStart, { passive: true });
-    globalThis.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd);
 
     return () => {
-      globalThis.removeEventListener('touchstart', handleTouchStart);
-      globalThis.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
     };
   }, []);
 
