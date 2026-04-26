@@ -47,10 +47,6 @@
     "remove_follower_button": "Remove follower"
   },
 
-  "home": {
-    "welcome": "Hello,"
-  },
-
   "common": {
     "cancel": "Cancel"
   },
@@ -70,6 +66,7 @@
   },
 
   "home": {
+    "welcome": "Hello,",
     "notifications": "Notifications",
     "shared_trip_templates": "Shared trip templates",
     "shared_trip_templates_load_error": "Unable to load shared trip templates.",
