@@ -40,6 +40,9 @@ export default function CarRentalCard({ data }: { data: ReservationDto | null })
         sx={{
           fontSize: '9px',
           color: 'text.secondary',
+          display: 'block',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
         }}
       >
@@ -49,9 +52,10 @@ export default function CarRentalCard({ data }: { data: ReservationDto | null })
         sx={{
           fontSize: '11px',
           fontWeight: 600,
-          whiteSpace: 'nowrap',
+          display: 'block',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
         }}
       >
         {value || '-'}
@@ -84,7 +88,9 @@ export default function CarRentalCard({ data }: { data: ReservationDto | null })
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Car size={18} color="#25CF7A" />
-          <Typography sx={{ fontSize: '13px', fontWeight: 700 }}>รถเช่า</Typography>
+          <Typography sx={{ fontSize: '13px', fontWeight: 700 }}>
+            {t('ManualReservation.Type.CarRental')}
+          </Typography>
         </Box>
 
         <Typography
@@ -104,26 +110,38 @@ export default function CarRentalCard({ data }: { data: ReservationDto | null })
       {/* Columns (เหมือน Bus / Flight) */}
       <Box sx={{ display: 'flex', gap: 1, minWidth: 0 }}>
         <Col>
-          <ColItem label="บริษัท" value={car.rentalCompany} />
-          <ColItem label="รุ่นรถ" value={car.carModel} />
-          <ColItem label="CONF #" value={car.bookingRef} />
+          <ColItem label={t('reservation.fields.rentalCompany.label')} value={car.rentalCompany} />
+          <ColItem label={t('reservation.fields.carModel.label')} value={car.carModel} />
+          <ColItem label={t('reservation.fields.bookingRef.label')} value={car.bookingRef} />
         </Col>
 
         <Col>
-          <ColItem label="รับรถที่" value={car.pickupLocation} />
-          <ColItem label="เวลารับรถ" value={formatTime(car.pickupTime)} />
-          <ColItem label="โทรศัพท์" value={car.contactTel} />
+          <ColItem
+            label={t('reservation.fields.pickupLocation.label')}
+            value={car.pickupLocation}
+          />
+          <ColItem
+            label={t('reservation.fields.pickupTime.label')}
+            value={formatTime(car.pickupTime)}
+          />
+          <ColItem label={t('reservation.fields.contactTel.label')} value={car.contactTel} />
         </Col>
 
         <Col>
-          <ColItem label="คืนรถที่" value={car.dropoffLocation} />
-          <ColItem label="เวลาคืนรถ" value={formatTime(car.dropoffTime)} />
-          <ColItem label="Email" value={car.contactEmail} />
+          <ColItem
+            label={t('reservation.fields.dropoffLocation.label')}
+            value={car.dropoffLocation}
+          />
+          <ColItem
+            label={t('reservation.fields.dropoffTime.label')}
+            value={formatTime(car.dropoffTime)}
+          />
+          <ColItem label={t('reservation.fields.contactEmail.label')} value={car.contactEmail} />
         </Col>
 
         <Col>
-          <ColItem label="ทะเบียน" value={car.vrn} />
-          <ColItem label="ผู้เช่า" value={car.renterName} />
+          <ColItem label={t('reservation.fields.vrn.label')} value={car.vrn} />
+          <ColItem label={t('reservation.fields.renterName.label')} value={car.renterName} />
         </Col>
       </Box>
     </Box>
