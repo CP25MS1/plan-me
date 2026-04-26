@@ -327,15 +327,15 @@ const TripOverviewPage = () => {
                       {t('sectionCard.reservation.dropdown.Email')}
                     </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={openUploadReservationDialog}>
-                  <Upload size={18} />
-                  {t('sectionCard.reservation.dropdown.Upload')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </Box>
-        )}
-        {!hasReservation && (
+                    <DropdownMenuItem onClick={openUploadReservationDialog}>
+                      <Upload size={18} />
+                      {t('sectionCard.reservation.dropdown.Upload')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </Box>
+            )}
+            {!hasReservation && (
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

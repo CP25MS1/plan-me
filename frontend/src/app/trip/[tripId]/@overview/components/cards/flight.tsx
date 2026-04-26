@@ -90,18 +90,23 @@ export default function FlightCard({
         gap: 0.5,
       }}
     >
-          {data?.typeMismatch && (
-            <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}>
-              <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
-                {t('Reservation.typeMismatchWarning')}
-              </Typography>
-            </Box>
-          )}
+      {data?.typeMismatch && (
+        <Box
+          sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}
+        >
+          <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
+            {t('Reservation.typeMismatchWarning')}
+          </Typography>
+        </Box>
+      )}
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Plane size={16} color="#25CF7A" />
-          <Typography variant="subtitle2" sx={{ fontSize: '13px', fontWeight: 700 }}>
+          <Plane size={16} color="#22c55e" />
+          <Typography
+            variant="subtitle2"
+            sx={{ fontSize: '13px', fontWeight: 700, color: '#22c55e' }}
+          >
             {t('ManualReservation.Type.Flight')}
           </Typography>
         </Box>
@@ -110,7 +115,8 @@ export default function FlightCard({
           variant="caption"
           sx={{
             fontWeight: 700,
-            background: '#F5F5F5',
+            color: '#22c55e',
+            background: '#dcfce7',
             px: 0.8,
             py: 0.2,
             borderRadius: 1,

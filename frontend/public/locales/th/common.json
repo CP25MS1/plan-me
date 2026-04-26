@@ -47,6 +47,10 @@
     "remove_follower_button": "ลบผู้ติดตาม"
   },
 
+  "home": {
+    "welcome": "สวัสดี,"
+  },
+
   "common": {
     "cancel": "ยกเลิก"
   },

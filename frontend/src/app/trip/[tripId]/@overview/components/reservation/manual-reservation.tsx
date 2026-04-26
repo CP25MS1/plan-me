@@ -224,13 +224,13 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
   };
 
   const icons = {
-    Lodging: <Building size={18} color="#25CF7A" />,
-    Restaurant: <Utensils size={18} color="#25CF7A" />,
-    Flight: <Plane size={18} color="#25CF7A" />,
-    Train: <Train size={18} color="#25CF7A" />,
-    Bus: <Bus size={18} color="#25CF7A" />,
-    Ferry: <Ship size={18} color="#25CF7A" />,
-    CarRental: <Car size={18} color="#25CF7A" />,
+    Lodging: <Building size={18} color="#3b82f6" />,
+    Restaurant: <Utensils size={18} color="#ec4899" />,
+    Flight: <Plane size={18} color="#22c55e" />,
+    Train: <Train size={18} color="#ef4444" />,
+    Bus: <Bus size={18} color="#f97316" />,
+    Ferry: <Ship size={18} color="#a855f7" />,
+    CarRental: <Car size={18} color="#14b8a6" />,
   };
 
   return (
@@ -274,6 +274,15 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
                 }
               >
                 {Object.keys(fieldsByType).map((type) => {
+                  const iconColors: Record<string, string> = {
+                    Lodging: '#3b82f6',
+                    Restaurant: '#ec4899',
+                    Flight: '#22c55e',
+                    Train: '#ef4444',
+                    Bus: '#f97316',
+                    Ferry: '#a855f7',
+                    CarRental: '#14b8a6',
+                  };
                   const IconComp = {
                     Lodging: Building,
                     Restaurant: Utensils,
@@ -285,7 +294,8 @@ export default function ManualReservation({ open, onClose, tripId }: ManualReser
                   }[type] as ElementType;
                   return (
                     <MenuItem key={type} value={type} className="flex items-center gap-3">
-                      <IconComp size={18} color="#25CF7A" /> {t(`ManualReservation.Type.${type}`)}
+                      <IconComp size={18} color={iconColors[type]} />{' '}
+                      {t(`ManualReservation.Type.${type}`)}
                     </MenuItem>
                   );
                 })}

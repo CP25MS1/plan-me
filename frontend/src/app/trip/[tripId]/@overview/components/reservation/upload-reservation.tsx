@@ -1,29 +1,29 @@
 'use client';
 
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
-  Typography,
-  Button,
   Box,
-  Select,
-  MenuItem,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   FormControl,
+  IconButton,
+  MenuItem,
+  Select,
+  Typography,
 } from '@mui/material';
-import { useState, useRef, useEffect, ElementType } from 'react';
+import { ElementType, useEffect, useRef, useState } from 'react';
 import {
   Building,
-  Utensils,
-  Plane,
-  Train,
   Bus,
-  Ship,
   Car,
   Eye,
+  Plane,
+  Ship,
+  Train,
   Trash2,
   Upload,
+  Utensils,
   X,
 } from 'lucide-react';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -35,7 +35,6 @@ import { useCreateReservationBulk } from '@/app/trip/[tripId]/@overview/hooks/re
 import { ReservationDto, ReservationType } from '@/api/reservations/type';
 import { useParams } from 'next/navigation';
 import { useSnackbar } from '@/components/common/snackbar/snackbar';
-import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
 import useTripAddPresenceEffect from '@/app/trip/[tripId]/realtime/hooks/use-trip-add-presence';
 import { useTripReservations } from '@/api/trips';
@@ -45,12 +44,12 @@ import FlightPassengerFields from './shared/flight-passenger-fields';
 import ExtractionLoading from './shared/extraction-loading';
 import {
   buildReservationFromForm,
+  type FlightPassengerFormValue,
   getFlightPassengers,
   hasAnyDuplicate,
   mergeReservationWithDetails,
   renderReservationCard,
   reservationTypeToUiType,
-  type FlightPassengerFormValue,
   type UiReservationType,
   validateReservationForm,
 } from './shared/reservation-utils';
@@ -79,6 +78,16 @@ const typeIcons: Record<ReservationType, ElementType> = {
   BUS: Bus,
   FERRY: Ship,
   CAR_RENTAL: Car,
+};
+
+const typeColors: Record<ReservationType, string> = {
+  LODGING: '#3b82f6',
+  RESTAURANT: '#ec4899',
+  FLIGHT: '#22c55e',
+  TRAIN: '#ef4444',
+  BUS: '#f97316',
+  FERRY: '#a855f7',
+  CAR_RENTAL: '#14b8a6',
 };
 
 type UploadStep = 'select' | 'edit' | 'preview';
@@ -419,7 +428,9 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1, p: 2 }}>
           {isPreviewing ? (
-            <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <Box
+              sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', justifyContent: 'center' }}
+            >
               <ExtractionLoading />
             </Box>
           ) : (
@@ -499,7 +510,11 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                               setFiles((prev) =>
                                 prev.map((file, fileIndex) =>
                                   fileIndex === index
-                                    ? { ...file, type: e.target.value as ReservationType, error: false }
+                                    ? {
+                                        ...file,
+                                        type: e.target.value as ReservationType,
+                                        error: false,
+                                      }
                                     : file
                                 )
                               )
@@ -510,7 +525,7 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                               const Icon = typeIcons[selected as ReservationType];
                               return (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Icon size={18} color="#25CF7A" />
+                                  <Icon size={18} color={typeColors[selected as ReservationType]} />
                                   {t(`UploadReservation.Type.${selected}`)}
                                 </Box>
                               );
@@ -519,7 +534,9 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                             {types.map((type) => (
                               <MenuItem key={type} value={type}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                  {((Icon) => <Icon size={18} color="#25CF7A" />)(typeIcons[type])}
+                                  {((Icon) => <Icon size={18} color={typeColors[type]} />)(
+                                    typeIcons[type]
+                                  )}
                                   {t(`UploadReservation.Type.${type}`)}
                                 </Box>
                               </MenuItem>
@@ -627,7 +644,16 @@ export default function UploadReservation({ open, onClose }: UploadReservationPr
                     </Box>
 
                     {reservation.formData?.typeMismatch && (
-                      <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1, mb: 1 }}>
+                      <Box
+                        sx={{
+                          bgcolor: '#fff3cd',
+                          border: '1px solid #ffeeba',
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                          mb: 1,
+                        }}
+                      >
                         <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
                           {t('Reservation.typeMismatchWarning')}
                         </Typography>
