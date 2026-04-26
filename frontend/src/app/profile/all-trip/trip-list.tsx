@@ -226,7 +226,7 @@ export const TripList: React.FC<TripListProps> = ({
           p: 4,
           width: '100%',
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: 'repeat(1fr)',
           gap: 2.5,
         }}
       >
@@ -245,13 +245,28 @@ export const TripList: React.FC<TripListProps> = ({
               boxShadow: 2,
             }}
           >
-            <Stack spacing={1}>
-              <Skeleton variant="text" width="70%" height={28} />
-              <Skeleton variant="text" width="50%" height={20} />
-              <Stack direction="row" spacing={1} mt={1}>
-                <Skeleton variant="rounded" width={50} height={22} />
-                <Skeleton variant="rounded" width={60} height={22} />
-                <Skeleton variant="rounded" width={45} height={22} />
+            <Stack spacing={1.5}>
+              {/* Top Row (Title + Menu button) */}
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Skeleton variant="text" width="40%" height={26} />
+                <Skeleton variant="circular" width={28} height={28} />
+              </Stack>
+
+              {/* Date + Visibility */}
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Skeleton variant="circular" width={16} height={16} />
+                  <Skeleton variant="text" width={100} height={18} />
+                </Stack>
+
+                <Skeleton variant="rounded" width={70} height={24} sx={{ borderRadius: 999 }} />
+              </Stack>
+
+              {/* Tags */}
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Skeleton variant="rounded" width={80} height={22} sx={{ borderRadius: 999 }} />
+                <Skeleton variant="rounded" width={60} height={22} sx={{ borderRadius: 999 }} />
+                <Skeleton variant="rounded" width={90} height={22} sx={{ borderRadius: 999 }} />
               </Stack>
             </Stack>
           </Card>

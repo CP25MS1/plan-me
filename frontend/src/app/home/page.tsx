@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Badge, Box, IconButton, Typography, CircularProgress } from '@mui/material';
 import { Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -10,6 +11,8 @@ import { useNotificationsSelector } from '@/store/selectors';
 import { useGetNotifications } from '@/app/hooks/use-get-notifications';
 import { useGetMyReceivedInvitations } from '@/app/hooks';
 import { useListPublicTripTemplates } from '@/app/hooks/use-list-public-trip-templates';
+import { useAppSelector } from '@/store';
+import { tokens } from '@/providers/theme/design-tokens';
 
 import PublicTripTemplateCard from '@/app/home/components/public-trip-template-card';
 
@@ -17,6 +20,7 @@ const HomePage: React.FC = () => {
   const router = useRouter();
   const { t } = useTranslation('common');
   const { unreadCount } = useNotificationsSelector();
+  const currentUser = useAppSelector((s) => s.profile.currentUser);
 
   useGetMyReceivedInvitations();
   useGetNotifications();
@@ -34,7 +38,6 @@ const HomePage: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        py: 2,
         minHeight: 0,
       }}
     >
@@ -42,14 +45,95 @@ const HomePage: React.FC = () => {
       <Box
         component="header"
         sx={{
-          height: 50,
           px: 2,
+          py: 1.25,
+          minHeight: 72,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-end',
+          justifyContent: 'space-between',
           flexShrink: 0,
+
+          bgcolor: tokens.color.primary,
+          boxShadow: '0 6px 20px rgba(0,0,0,0.08)',
         }}
       >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            gap: 1.5,
+            px: 0,
+            py: 0.75,
+            borderRadius: 999,
+          }}
+        >
+          <Box
+            component="button"
+            type="button"
+            onClick={() => router.push('/profile')}
+            aria-label="Go to profile"
+            sx={{
+              position: 'relative',
+              width: 44,
+              height: 44,
+              flexShrink: 0,
+              overflow: 'hidden',
+              borderRadius: '50%',
+              boxShadow: 1,
+              cursor: 'pointer',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '50%',
+                boxShadow: 'inset 0 0 0 2px #000',
+                pointerEvents: 'none',
+              },
+              '&:hover': {
+                transform: 'translateY(-1px)',
+                boxShadow: 3,
+              },
+              '&:active': {
+                transform: 'scale(0.98)',
+              },
+              '&:focus-visible': {
+                outline: '2px solid',
+                outlineColor: 'primary.main',
+                outlineOffset: 2,
+              },
+              bgcolor: 'transparent',
+              p: 0,
+            }}
+          >
+            <Image
+              src={currentUser?.profilePicUrl ?? ''}
+              alt="Profile picture"
+              fill
+              className="object-cover"
+            />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
+            <Typography
+              variant="body2"
+              sx={{ color: tokens.color.background, fontSize: '1rem', fontWeight: 500 }}
+            >
+              {t('home.welcome')}
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                fontWeight: 500,
+                fontSize: '0.98rem',
+                color: tokens.color.background,
+              }}
+            >
+              {currentUser?.username || ''}
+            </Typography>
+          </Box>
+        </Box>
+
         <IconButton
           aria-label={t('home.notifications')}
           onClick={() => router.push('/notifications')}
@@ -60,14 +144,16 @@ const HomePage: React.FC = () => {
             color="error"
             overlap="circular"
           >
-            <Bell size={22} />
+            <Bell size={22} color="#fff" />
           </Badge>
         </IconButton>
       </Box>
 
       {/* title */}
-      <Box sx={{ px: 2, mb: 2, display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+      <Box
+        sx={{ px: 2, mb: 0.5, display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0, mt: 1 }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
           {t('home.shared_trip_templates')}
         </Typography>
 
@@ -92,7 +178,7 @@ const HomePage: React.FC = () => {
           component="section"
           sx={{
             px: 2,
-            pb: 8,
+            pb: 10,
             display: 'flex',
             flexDirection: 'column',
             gap: 2,

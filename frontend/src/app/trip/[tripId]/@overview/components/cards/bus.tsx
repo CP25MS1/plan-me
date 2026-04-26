@@ -115,8 +115,11 @@ export default function BusCard({ data }: { data: ReservationDto | null }) {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Bus size={18} color="#25CF7A" />
-          <Typography variant="subtitle2" sx={{ fontSize: '13px', fontWeight: 700 }}>
+          <Bus size={18} color="#f97316" />
+          <Typography
+            variant="subtitle2"
+            sx={{ fontSize: '13px', fontWeight: 700, color: '#f97316' }}
+          >
             {t('ManualReservation.Type.Bus')}
           </Typography>
         </Box>
@@ -125,7 +128,8 @@ export default function BusCard({ data }: { data: ReservationDto | null }) {
           variant="caption"
           sx={{
             fontWeight: 700,
-            background: '#F5F5F5',
+            color: '#f97316',
+            background: '#ffedd5',
             px: 0.8,
             py: 0.2,
             borderRadius: 1,
