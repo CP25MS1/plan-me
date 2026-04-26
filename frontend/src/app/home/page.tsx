@@ -28,7 +28,7 @@ const HomePage: React.FC = () => {
   const { data, isLoading, isError, isFetching } = useListPublicTripTemplates();
 
   const templates = React.useMemo(() => {
-    return (data?.items ?? []).slice().sort((a, b) => a.templateTripId - b.templateTripId);
+    return (data?.items ?? []).slice().sort((a, b) => b.templateTripId - a.templateTripId);
   }, [data]);
 
   return (
