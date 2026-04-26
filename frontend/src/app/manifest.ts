@@ -8,19 +8,12 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'A trip planning app that helps you organize your travels.',
     start_url: '/capstone25/cp25ms1/home',
     // start_url: '/',
-    scope: '/capstone25/cp25ms1/',
     // scope: '/',
     display: 'standalone',
     orientation: 'portrait',
     background_color: '#ffffff',
     theme_color: '#25cf7a',
     icons: [
-      {
-        src: '/capstone25/cp25ms1/images/plan-me-logo.png',
-        sizes: '275x259',
-        type: 'image/png',
-        purpose: 'any',
-      },
       {
         src: '/capstone25/cp25ms1/images/plan-me-logo.png',
         sizes: '275x259',

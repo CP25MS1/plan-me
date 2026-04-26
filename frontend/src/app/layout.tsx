@@ -7,7 +7,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import AppProvider from '../providers';
 import Navbar from '@/components/navbar';
-import ServiceWorkerRegistration from '@/components/service-worker-registration';
 // import PullToRefresh from '@/components/pull-to-refresh';
 
 const sarabun = Sarabun({
@@ -53,7 +52,6 @@ const RootLayout = async ({
             <Navbar />
           </div>
         </AppProvider>
-        <ServiceWorkerRegistration />
         <Script
           src="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/license.min.js"
           strategy="afterInteractive"
