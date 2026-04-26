@@ -47,10 +47,6 @@
     "remove_follower_button": "ลบผู้ติดตาม"
   },
 
-  "home": {
-    "welcome": "สวัสดี,"
-  },
-
   "common": {
     "cancel": "ยกเลิก"
   },
@@ -70,6 +66,7 @@
   },
 
   "home": {
+    "welcome": "สวัสดี,",
     "notifications": "การแจ้งเตือน",
     "shared_trip_templates": "เทมเพลตทริปที่ถูกแชร์",
     "shared_trip_templates_load_error": "ไม่สามารถโหลดข้อมูลทริปที่ถูกแชร์ได้",
@@ -91,41 +88,6 @@
       "404": "ไม่พบหน้านี้",
       "403": "คุณไม่มีสิทธิ์เข้าถึงหน้านี้",
       "generic": "เกิดข้อผิดพลาด"
-    }
-  },
-
-  "notification": {
-    "title": "การแจ้งเตือน",
-    "filter": {
-      "all": "ทั้งหมด",
-      "unread": "ยังไม่ได้อ่าน"
-    },
-    "empty": {
-      "title": "ยังไม่มีการแจ้งเตือน",
-      "body": "เมื่อมีความเคลื่อนไหว เราจะแจ้งให้คุณทราบ"
-    },
-    "group": {
-      "today": "วันนี้",
-      "yesterday": "เมื่อวาน",
-      "this_week": "สัปดาห์นี้",
-      "this_month": "เดือนนี้",
-      "this_year": "ปีนี้"
-    },
-    "trip": {
-      "named": "ทริป \"{{tripName}}\"",
-      "yours": "ทริปของคุณ"
-    },
-    "message": {
-      "invite_pending": "{{name}} เชิญคุณเข้าร่วม {{tripName}}",
-      "invite_accepted": "{{name}} ตอบรับคำเชิญเข้าร่วม {{tripName}}",
-      "invite_rejected": "{{name}} ปฏิเสธคำเชิญเข้าร่วม {{tripName}}",
-      "new": "มีการแจ้งเตือนใหม่"
-    },
-    "detail": {
-      "action": {
-        "accepted": "ตอบรับคำเชิญเข้าร่วมทริป",
-        "rejected": "ปฏิเสธคำเชิญเข้าร่วมทริป"
-      }
     }
   },
 
@@ -177,6 +139,38 @@
   "confirm": "ยืนยัน",
   "cancel": "ยกเลิก",
   "notification": {
+    "title": "การแจ้งเตือน",
+    "filter": {
+      "all": "ทั้งหมด",
+      "unread": "ยังไม่ได้อ่าน"
+    },
+    "empty": {
+      "title": "ยังไม่มีการแจ้งเตือน",
+      "body": "เมื่อมีความเคลื่อนไหว เราจะแจ้งให้คุณทราบ"
+    },
+    "group": {
+      "today": "วันนี้",
+      "yesterday": "เมื่อวาน",
+      "this_week": "สัปดาห์นี้",
+      "this_month": "เดือนนี้",
+      "this_year": "ปีนี้"
+    },
+    "trip": {
+      "named": "ทริป \"{{tripName}}\"",
+      "yours": "ทริปของคุณ"
+    },
+    "message": {
+      "invite_pending": "{{name}} เชิญคุณเข้าร่วม {{tripName}}",
+      "invite_accepted": "{{name}} ตอบรับคำเชิญเข้าร่วม {{tripName}}",
+      "invite_rejected": "{{name}} ปฏิเสธคำเชิญเข้าร่วม {{tripName}}",
+      "new": "มีการแจ้งเตือนใหม่"
+    },
+    "detail": {
+      "action": {
+        "accepted": "ตอบรับคำเชิญเข้าร่วมทริป",
+        "rejected": "ปฏิเสธคำเชิญเข้าร่วมทริป"
+      }
+    },
     "success": {
       "save": "บันทึกสำเร็จ",
       "create": "สร้างสำเร็จ",
