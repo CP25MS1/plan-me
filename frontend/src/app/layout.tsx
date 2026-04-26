@@ -7,7 +7,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import AppProvider from '../providers';
 import Navbar from '@/components/navbar';
-// import PullToRefresh from '@/components/pull-to-refresh';
 
 const sarabun = Sarabun({
   weight: ['300', '400', '700'],
@@ -45,7 +44,6 @@ const RootLayout = async ({
         <link rel="apple-touch-icon" href={planMeLogoPath} />
       </head>
       <body className={`${sarabun.variable} antialiased`}>
-        {/* <PullToRefresh /> */}
         <AppProvider>
           <div className="flex flex-col min-h-screen">
             <div className="grow">{children}</div>
