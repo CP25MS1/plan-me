@@ -122,57 +122,7 @@
         "accepted": "Accepted the trip invitation",
         "rejected": "Rejected the trip invitation"
       }
-    }
-  },
-
-  "placeholder": {
-    "search": "Search users"
-  },
-
-  "empty": {
-    "no_users_found": "No users found",
-    "no_results": "No results",
-    "no_results_cta_text": "Try a different keyword or check your spelling.",
-    "image": "No image"
-  },
-  "trip": {
-    "visibility": {
-      "public": "Public",
-      "private": "Private"
     },
-    "actions": {
-      "share": "Share Trip",
-      "unshare": "Unshare Trip",
-      "delete": "Delete Trip"
-    },
-    "confirm": {
-      "share": {
-        "title": "Confirm sharing this trip",
-        "body": "The following trip data will be publicly shared:"
-      },
-      "unshare": {
-        "title": "Confirm unsharing this trip",
-        "body": "The following trip data will no longer be publicly visible:"
-      },
-      "delete": {
-        "title": "Confirm deleting this trip",
-        "body": "All data related to this trip will be permanently deleted."
-      },
-      "trip_name_label": "Trip name",
-      "data_items": {
-        "trip_name": "Trip name",
-        "objectives": "Objectives",
-        "wishlist_places": "Wishlist places",
-        "daily_plans": "Daily plans",
-        "checklist_items": "Checklist items"
-      },
-      "delete_warning": "This action cannot be undone."
-    }
-  },
-
-  "confirm": "Confirm",
-  "cancel": "Cancel",
-  "notification": {
     "success": {
       "save": "Successfully saved",
       "create": "Successfully created",
@@ -234,5 +184,53 @@
       "upload_limit_exceeded": "Cannot upload because the total file size exceeds 1 GB",
       "album_limit_exceeded": "Cannot upload because the total file size in the album must not exceed 3 GB"
     }
-  }
+  },
+
+  "placeholder": {
+    "search": "Search users"
+  },
+
+  "empty": {
+    "no_users_found": "No users found",
+    "no_results": "No results",
+    "no_results_cta_text": "Try a different keyword or check your spelling.",
+    "image": "No image"
+  },
+  "trip": {
+    "visibility": {
+      "public": "Public",
+      "private": "Private"
+    },
+    "actions": {
+      "share": "Share Trip",
+      "unshare": "Unshare Trip",
+      "delete": "Delete Trip"
+    },
+    "confirm": {
+      "share": {
+        "title": "Confirm sharing this trip",
+        "body": "The following trip data will be publicly shared:"
+      },
+      "unshare": {
+        "title": "Confirm unsharing this trip",
+        "body": "The following trip data will no longer be publicly visible:"
+      },
+      "delete": {
+        "title": "Confirm deleting this trip",
+        "body": "All data related to this trip will be permanently deleted."
+      },
+      "trip_name_label": "Trip name",
+      "data_items": {
+        "trip_name": "Trip name",
+        "objectives": "Objectives",
+        "wishlist_places": "Wishlist places",
+        "daily_plans": "Daily plans",
+        "checklist_items": "Checklist items"
+      },
+      "delete_warning": "This action cannot be undone."
+    }
+  },
+
+  "confirm": "Confirm",
+  "cancel": "Cancel"
 }

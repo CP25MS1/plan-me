@@ -151,7 +151,7 @@ export const SearchAddWishlistPlace = ({ tripId, onCloseAction }: SearchAddWishl
                       startIcon={<PlusIcon />}
                       onClick={() => handleAdd(p.ggmpId)}
                     >
-                      เพิ่มสถานที่
+                      {t('sectionCard.wishlistPlace.button')}
                     </Button>
                   </Box>
                 }
