@@ -16,6 +16,7 @@ const sarabun = Sarabun({
 });
 
 const planMeLogoPath = '/capstone25/cp25ms1/images/plan-me-logo.png';
+const pwaIconPath = '/capstone25/cp25ms1/images/icon-512x512.png';
 // const planMeLogoPath = '/images/plan-me-logo.png';
 
 export const metadata: Metadata = {
@@ -41,7 +42,7 @@ const RootLayout = async ({
           href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/all/all.min.css"
         />
         <link rel="manifest" href={manifestPath} />
-        <link rel="apple-touch-icon" href={planMeLogoPath} />
+        <link rel="apple-touch-icon" href={pwaIconPath} />
       </head>
       <body className={`${sarabun.variable} antialiased`}>
         <AppProvider>
