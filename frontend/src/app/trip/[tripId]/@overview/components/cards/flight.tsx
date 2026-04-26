@@ -48,10 +48,30 @@ export default function FlightCard({
 
   const ColItem = ({ label, value }: { label: string; value?: string }) => (
     <Box sx={{ minWidth: 0 }}>
-      <Typography variant="caption" sx={{ fontSize: '9px', color: 'text.secondary' }} noWrap>
+      <Typography
+        variant="caption"
+        sx={{
+          fontSize: '9px',
+          color: 'text.secondary',
+          display: 'block',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+        noWrap
+      >
         {label}
       </Typography>
-      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '11px' }} noWrap>
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 600,
+          fontSize: '11px',
+          display: 'block',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+        noWrap
+      >
         {value || '-'}
       </Typography>
     </Box>
@@ -82,7 +102,7 @@ export default function FlightCard({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Plane size={16} color="#25CF7A" />
           <Typography variant="subtitle2" sx={{ fontSize: '13px', fontWeight: 700 }}>
-            เที่ยวบิน
+            {t('ManualReservation.Type.Flight')}
           </Typography>
         </Box>
 
@@ -104,30 +124,45 @@ export default function FlightCard({
       {/* 4 Columns */}
       <Box sx={{ display: 'flex', gap: 1, minWidth: 0 }}>
         <Col>
-          <ColItem label="สายการบิน" value={flight.airline} />
-          <ColItem label="คลาส" value={flight.flightClass} />
-          <ColItem label="Gate" value={flight.gateNo} />
+          <ColItem label={t('reservation.fields.airline.label')} value={flight.airline} />
+          <ColItem label={t('reservation.fields.flightClass.label')} value={flight.flightClass} />
+          <ColItem label={t('reservation.fields.gateNo.label')} value={flight.gateNo} />
         </Col>
 
         <Col>
-          <ColItem label="เที่ยวบิน" value={flight.flightNo} />
-          <ColItem label="ที่นั่ง" value={flight.passengers[passengerIndex]?.seatNo || '-'} />
-          <ColItem label="หมายเลขการจอง" value={flight.bookingRef} />
-        </Col>
-
-        <Col>
-          <ColItem label="ต้นทาง" value={flight.departureAirport} />
-          <ColItem label="ปลายทาง" value={flight.arrivalAirport} />
-          <ColItem label="ผู้จอง" value={flight.passengers[passengerIndex]?.passengerName || '-'} />
+          <ColItem label={t('reservation.fields.flightNo.label')} value={flight.flightNo} />
+          <ColItem
+            label={t('reservation.fields.seatNo.label')}
+            value={flight.passengers[passengerIndex]?.seatNo || '-'}
+          />
+          <ColItem label={t('reservation.fields.bookingRef.label')} value={flight.bookingRef} />
         </Col>
 
         <Col>
           <ColItem
-            label="ขึ้นเครื่อง"
+            label={t('reservation.fields.departureAirport.label')}
+            value={flight.departureAirport}
+          />
+          <ColItem
+            label={t('reservation.fields.arrivalAirport.label')}
+            value={flight.arrivalAirport}
+          />
+          <ColItem
+            label={t('reservation.fields.passengerName.label')}
+            value={flight.passengers[passengerIndex]?.passengerName || '-'}
+          />
+        </Col>
+
+        <Col>
+          <ColItem
+            label={t('reservation.fields.boardingTime.label')}
             value={formatTime(flight.boardingTime || flight.departureTime)}
           />
-          <ColItem label="ถึง" value={formatTime(flight.arrivalTime)} />
-          <ColItem label="วันที่" value={formatDate(flight.departureTime)} />
+          <ColItem
+            label={t('reservation.fields.arrivalTime.label')}
+            value={formatTime(flight.arrivalTime)}
+          />
+          <ColItem label={t('reservation.card.date')} value={formatDate(flight.departureTime)} />
         </Col>
       </Box>
     </Box>

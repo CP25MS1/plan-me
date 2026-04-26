@@ -39,10 +39,30 @@ export default function FerryCard({ data }: { data: ReservationDto | null }) {
 
   const ColItem = ({ label, value }: { label: string; value?: string }) => (
     <Box sx={{ minWidth: 0 }}>
-      <Typography variant="caption" sx={{ fontSize: '9px', color: 'text.secondary' }} noWrap>
+      <Typography
+        variant="caption"
+        sx={{
+          fontSize: '9px',
+          color: 'text.secondary',
+          display: 'block',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+        noWrap
+      >
         {label}
       </Typography>
-      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '11px' }} noWrap>
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 600,
+          fontSize: '11px',
+          display: 'block',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+        noWrap
+      >
         {value || '-'}
       </Typography>
     </Box>
@@ -73,7 +93,7 @@ export default function FerryCard({ data }: { data: ReservationDto | null }) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Ship size={18} color="#25CF7A" />
           <Typography variant="subtitle2" sx={{ fontSize: '13px', fontWeight: 700 }}>
-            เรือข้ามฟาก
+            {t('ManualReservation.Type.Ferry')}
           </Typography>
         </Box>
 
@@ -95,26 +115,41 @@ export default function FerryCard({ data }: { data: ReservationDto | null }) {
       {/* Columns (เหมือน Flight / Bus) */}
       <Box sx={{ display: 'flex', gap: 1, minWidth: 0 }}>
         <Col>
-          <ColItem label="บริษัท" value={ferry.transportCompany} />
-          <ColItem label="ประเภทตั๋ว" value={ferry.ticketType} />
-          <ColItem label="CONF #" value={ferry.bookingRef} />
+          <ColItem
+            label={t('reservation.fields.transportCompany.label')}
+            value={ferry.transportCompany}
+          />
+          <ColItem label={t('reservation.fields.ticketType.label')} value={ferry.ticketType} />
+          <ColItem label={t('reservation.fields.bookingRef.label')} value={ferry.bookingRef} />
         </Col>
 
         <Col>
-          <ColItem label="ท่าเรือต้นทาง" value={ferry.departurePort} />
-          <ColItem label="ผู้โดยสาร" value={ferry.passengerName} />
-          <ColItem label="โทรศัพท์" value={ferry.contactTel} />
+          <ColItem
+            label={t('reservation.fields.departurePort.label')}
+            value={ferry.departurePort}
+          />
+          <ColItem
+            label={t('reservation.fields.passengerName.label')}
+            value={ferry.passengerName}
+          />
+          <ColItem label={t('reservation.fields.contactTel.label')} value={ferry.contactTel} />
         </Col>
 
         <Col>
-          <ColItem label="ท่าเรือปลายทาง" value={ferry.arrivalPort} />
-          <ColItem label="Email" value={ferry.contactEmail} />
+          <ColItem label={t('reservation.fields.arrivalPort.label')} value={ferry.arrivalPort} />
+          <ColItem label={t('reservation.fields.contactEmail.label')} value={ferry.contactEmail} />
         </Col>
 
         <Col>
-          <ColItem label="เวลาออกเรือ" value={formatTime(ferry.departureTime)} />
-          <ColItem label="เวลาถึง" value={formatTime(ferry.arrivalTime)} />
-          <ColItem label="วันที่" value={formatDate(ferry.departureTime)} />
+          <ColItem
+            label={t('reservation.fields.departureTime.label')}
+            value={formatTime(ferry.departureTime)}
+          />
+          <ColItem
+            label={t('reservation.fields.arrivalTime.label')}
+            value={formatTime(ferry.arrivalTime)}
+          />
+          <ColItem label={t('reservation.card.date')} value={formatDate(ferry.departureTime)} />
         </Col>
       </Box>
     </Box>
