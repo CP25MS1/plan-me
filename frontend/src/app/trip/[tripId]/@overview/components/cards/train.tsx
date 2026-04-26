@@ -32,6 +32,8 @@ const Item = ({ label, value }: { label: string; value: string }) => (
         color: 'text.secondary',
         height: 14,
         lineHeight: '14px',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
       }}
     >
@@ -43,6 +45,8 @@ const Item = ({ label, value }: { label: string; value: string }) => (
         fontSize: 11,
         fontWeight: 600,
         lineHeight: '16px',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
       }}
     >
@@ -110,7 +114,9 @@ export default function TrainCard({ data }: { data: ReservationDto | null }) {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           <Train size={16} color="#25CF7A" />
-          <Typography sx={{ fontSize: 13, fontWeight: 700 }}>รถไฟ</Typography>
+          <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
+            {t('ManualReservation.Type.Train')}
+          </Typography>
         </Box>
 
         <Typography
@@ -130,24 +136,33 @@ export default function TrainCard({ data }: { data: ReservationDto | null }) {
 
       {/* Rows */}
       <Row>
-        <Item label="หมายเลขขบวน" value={train.trainNo} />
-        <Item label="ชั้นโดยสาร" value={train.trainClass} />
-        <Item label="ที่นั่ง" value={train.seatNo} />
-        <Item label="ผู้โดยสาร" value={train.passengerName} />
+        <Item label={t('reservation.fields.trainNo.label')} value={train.trainNo} />
+        <Item label={t('reservation.fields.trainClass.label')} value={train.trainClass} />
+        <Item label={t('reservation.fields.seatNo.label')} value={train.seatNo} />
+        <Item label={t('reservation.fields.passengerName.label')} value={train.passengerName} />
       </Row>
 
       <Row>
-        <Item label="ต้นทาง" value={train.departureStation} />
-        <Item label="ประเภทที่นั่ง" value={train.seatClass} />
-        <Item label="เวลาออก" value={formatTime(train.departureTime)} />
-        <Item label="วันที่" value={formatDate(train.departureTime)} />
+        <Item
+          label={t('reservation.fields.departureStation.label')}
+          value={train.departureStation}
+        />
+        <Item label={t('reservation.fields.seatClass.label')} value={train.seatClass} />
+        <Item
+          label={t('reservation.fields.departureTime.label')}
+          value={formatTime(train.departureTime)}
+        />
+        <Item label={t('reservation.card.date')} value={formatDate(train.departureTime)} />
       </Row>
 
       <Row>
-        <Item label="ปลายทาง" value={train.arrivalStation} />
-        <Item label="ถึง" value={formatTime(train.arrivalTime)} />
-        <Item label="หมายเลขการจอง" value={train.bookingRef} />
-        <Item label="โทรศัพท์" value={train.contactTel} />
+        <Item label={t('reservation.fields.arrivalStation.label')} value={train.arrivalStation} />
+        <Item
+          label={t('reservation.fields.arrivalTime.label')}
+          value={formatTime(train.arrivalTime)}
+        />
+        <Item label={t('reservation.fields.bookingRef.label')} value={train.bookingRef} />
+        <Item label={t('reservation.fields.contactTel.label')} value={train.contactTel} />
       </Row>
     </Box>
   );

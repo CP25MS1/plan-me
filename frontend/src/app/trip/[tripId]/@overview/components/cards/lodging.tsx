@@ -73,7 +73,7 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
           <Building size={18} color="#25CF7A" />
           <Typography variant="subtitle2" fontWeight={600}>
-            ที่พัก
+            {t('ManualReservation.Type.Lodging')}
           </Typography>
         </Box>
 
@@ -156,7 +156,7 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
           <Box sx={{ mt: 1 }}>
             <Stack direction="column" alignItems="flex-center" textAlign="center" spacing={0.5}>
               <Typography variant="caption" fontWeight={600}>
-                หมายเลขการจอง
+                {t('reservation.fields.bookingRef.label')}
               </Typography>
 
               <Typography variant="caption" color="text.secondary">
@@ -170,16 +170,20 @@ export default function LodgingCard({ data }: { data: ReservationDto | null }) {
 
         {/* Right */}
         <Box sx={{ width: 150, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          <Info icon={<UserRound size={14} />} label="ชื่อผู้จอง" value={lodging.underName} />
+          <Info
+            icon={<UserRound size={14} />}
+            label={t('reservation.fields.underName.label')}
+            value={lodging.underName}
+          />
           <Info
             icon={<Clock size={14} />}
-            label="วันที่เช็คอิน"
+            label={t('reservation.fields.checkinDate.label')}
             value={formatDateTime(lodging.checkinDate)}
           />
 
           <Info
             icon={<Clock size={14} />}
-            label="วันที่เช็คเอ้าท์"
+            label={t('reservation.fields.checkoutDate.label')}
             value={formatDateTime(lodging.checkoutDate)}
           />
           <Box sx={{ mt: 0.5, textAlign: 'right' }}>
@@ -209,11 +213,21 @@ function Info({ icon, label, value }: { icon: React.ReactNode; label: string; va
       {icon}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Typography variant="caption" fontWeight={600}>
+        <Typography
+          variant="caption"
+          fontWeight={600}
+          sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
+          noWrap
+        >
           {label}
         </Typography>
 
-        <Typography variant="caption" color="text.secondary" noWrap>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
+          noWrap
+        >
           {value || '-'}
         </Typography>
       </Box>

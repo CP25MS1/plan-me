@@ -86,7 +86,7 @@
     "placeholder": "โปรดเลือกประเภทของข้อมูลการจอง",
     "checkInbox": "เช็คอีเมลที่เข้ามา",
     "emailCounter": "อีเมล ({{selected}}/{{total}})",
-    "editTitle": "ข้อมูลการจองจากอีเมล",
+    "editTitle": "ตรวจสอบข้อมูล",
     "confirmData": "ยืนยันข้อมูลการจอง",
     "copiedEmail": "คัดลอกอีเมลแล้ว",
     "validation": {
@@ -106,7 +106,7 @@
   "UploadReservation": {
     "title": "อัพโหลดข้อมูลการจอง",
     "placeholder": "โปรดเลือกประเภทของข้อมูลการจอง",
-    "editTitle": "ตัวอย่างข้อมูล",
+    "editTitle": "ตรวจสอบข้อมูล",
     "previewTitle": "ตัวอย่างข้อมูล",
     "fileCounter": "ไฟล์ ({{selected}}/{{total}})",
     "fileStatus": "ขนาด: {{size}} MB | ไฟล์อัพโหลดสมบูรณ์",
@@ -173,6 +173,9 @@
   "reservation": {
     "previewTitle": "ตัวอย่างข้อมูลการจอง",
     "confirm": "ยืนยัน",
+    "card": {
+      "date": "วันที่"
+    },
     "success": {
       "created": "เพิ่มข้อมูลการจองสำเร็จ"
     },

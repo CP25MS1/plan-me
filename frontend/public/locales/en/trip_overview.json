@@ -93,8 +93,8 @@
     "title": "Import bookings from email",
     "checkInbox": "Check incoming emails",
     "emailCounter": "Emails ({{selected}}/{{total}})",
-    "editTitle": "Booking data from emails",
-    "confirmData": "Confirm booking data",
+    "editTitle": "Verify the data",
+    "confirmData": "Confirm",
     "copiedEmail": "Email address copied",
     "validation": {
       "invalidContentTypeMismatch": "An error occurred, or the email content does not match the selected booking type."
@@ -113,7 +113,7 @@
   "UploadReservation": {
     "title": "Upload booking files",
     "placeholder": "Please select the type of booking information",
-    "editTitle": "Review booking data",
+    "editTitle": "Verify the data",
     "previewTitle": "Booking preview",
     "fileCounter": "Files ({{selected}}/{{total}})",
     "fileStatus": "Size: {{size}} MB | Uploaded",
@@ -173,6 +173,9 @@
   "reservation": {
     "previewTitle": "Booking preview",
     "confirm": "Confirm",
+    "card": {
+      "date": "Date"
+    },
     "success": {
       "created": "Booking added successfully"
     },

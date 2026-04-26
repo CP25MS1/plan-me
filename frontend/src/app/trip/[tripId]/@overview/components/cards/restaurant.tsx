@@ -63,7 +63,7 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
           <Utensils size={18} color="#25CF7A" />
           <Typography variant="subtitle2" fontWeight={600}>
-            ร้านอาหาร
+            {t('ManualReservation.Type.Restaurant')}
           </Typography>
         </Box>
         <Typography variant="caption" fontWeight={600}>
@@ -147,7 +147,7 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
           <Box sx={{ mt: 1 }}>
             <Stack direction="column" alignItems="flex-center" textAlign="center" spacing={0.5}>
               <Typography variant="caption" fontWeight={600}>
-                หมายเลขการจอง
+                {t('reservation.fields.bookingRef.label')}
               </Typography>
 
               <Typography variant="caption" color="text.secondary">
@@ -163,13 +163,17 @@ export default function RestaurantCard({ data }: { data: ReservationDto | null }
         <Box sx={{ width: 150, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Info icon={<Clock size={14} />} text={formatTime(restaurant.reservationTime)} />
           <Info icon={<UserRound size={14} />} text={restaurant.underName} />
-          <Info icon={<Table size={14} />} text={`หมายเลขโต๊ะ ${restaurant.tableNo}`} />
-          <Info icon={<Ticket size={14} />} text={`หมายเลขคิว ${restaurant.queueNo}`} />
+          <Info
+            icon={<Table size={14} />}
+            text={`${t('reservation.fields.tableNo.label')} ${restaurant.tableNo || '-'}`}
+          />
+          <Info
+            icon={<Ticket size={14} />}
+            text={`${t('reservation.fields.queueNo.label')} ${restaurant.queueNo || '-'}`}
+          />
           <Info
             icon={<Users size={14} />}
-            text={
-              restaurant.partySize != null ? `จำนวนสมาชิก ${restaurant.partySize}` : 'จำนวนสมาชิก'
-            }
+            text={`${t('reservation.fields.partySize.label')} ${restaurant.partySize ?? '-'}`}
           />
 
           <Box sx={{ mt: 0.5, textAlign: 'right' }}>
@@ -198,7 +202,7 @@ function Info({ icon, text }: { icon: React.ReactNode; text?: string }) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
       {icon}
-      <Typography variant="caption" noWrap>
+      <Typography variant="caption" noWrap sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {text || '-'}
       </Typography>
     </Box>
