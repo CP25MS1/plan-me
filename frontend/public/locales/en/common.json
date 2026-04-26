@@ -47,6 +47,10 @@
     "remove_follower_button": "Remove follower"
   },
 
+  "home": {
+    "welcome": "Hello,"
+  },
+
   "common": {
     "cancel": "Cancel"
   },

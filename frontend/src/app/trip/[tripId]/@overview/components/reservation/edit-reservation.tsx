@@ -1,23 +1,22 @@
 'use client';
 
 import {
+  Box,
+  Button,
+  CircularProgress,
   Dialog,
-  DialogTitle,
   DialogContent,
+  DialogTitle,
   IconButton,
   Typography,
-  Button,
-  Box,
-  CircularProgress,
 } from '@mui/material';
-import { Plane, Building, Utensils, Train, Ship, Bus, Car, X } from 'lucide-react';
+import { Building, Bus, Car, Plane, Ship, Train, Utensils, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { tokens } from '@/providers/theme/design-tokens';
 
 import {
   FlightDetails,
-  FlightPassenger,
   ReservationDetails,
   ReservationDto,
   ReservationType,
@@ -27,7 +26,6 @@ import { fieldsByType } from '../fields-by-type';
 import { useTripReservations } from '@/api/trips';
 import ConfirmDialog from '@/components/common/dialog/confirm-dialog';
 import { useSnackbar } from '@/components/common/snackbar/snackbar';
-import { AlertColor } from '@mui/material/Alert';
 import { AxiosError } from 'axios';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -88,7 +86,10 @@ export default function EditReservation({
   const { showError } = useSnackbar();
 
   const showErrorSnackbar = (error: unknown) => {
-    const apiMessage = error instanceof AxiosError ? error.response?.data?.message || error.response?.data?.error || error.message : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+    const apiMessage =
+      error instanceof AxiosError
+        ? error.response?.data?.message || error.response?.data?.error || error.message
+        : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
     showError(apiMessage || 'เกิดข้อผิดพลาดบางอย่าง');
   };
 
@@ -190,13 +191,13 @@ export default function EditReservation({
   if (!formData) return null;
 
   const icons = {
-    Lodging: <Building size={18} color="#25CF7A" />,
-    Restaurant: <Utensils size={18} color="#25CF7A" />,
-    Flight: <Plane size={18} color="#25CF7A" />,
-    Train: <Train size={18} color="#25CF7A" />,
-    Bus: <Bus size={18} color="#25CF7A" />,
-    Ferry: <Ship size={18} color="#25CF7A" />,
-    CarRental: <Car size={18} color="#25CF7A" />,
+    Lodging: <Building size={18} color="#3b82f6" />,
+    Restaurant: <Utensils size={18} color="#ec4899" />,
+    Flight: <Plane size={18} color="#22c55e" />,
+    Train: <Train size={18} color="#ef4444" />,
+    Bus: <Bus size={18} color="#f97316" />,
+    Ferry: <Ship size={18} color="#a855f7" />,
+    CarRental: <Car size={18} color="#14b8a6" />,
   };
 
   return (
@@ -268,10 +269,26 @@ export default function EditReservation({
           </Button>
         </Box>
       </DialogContent>
-      <ConfirmDialog open={showDuplicateWarning} onClose={() => setShowDuplicateWarning(false)} onConfirm={() => { setShowDuplicateWarning(false); proceedConfirm(); }}
-        confirmLoading={updateReservation.isPending} color="warning"
-        content={<Box><Typography variant="h6" fontWeight={600} mb={1}>{t('ManualReservation.duplicateWarning.title')}</Typography><Typography>{t('ManualReservation.duplicateWarning.message')}</Typography></Box>}
-        confirmLabel={t('ManualReservation.duplicateWarning.accept') as string} cancelLabel={t('ManualReservation.duplicateWarning.cancel') as string} />
+      <ConfirmDialog
+        open={showDuplicateWarning}
+        onClose={() => setShowDuplicateWarning(false)}
+        onConfirm={() => {
+          setShowDuplicateWarning(false);
+          proceedConfirm();
+        }}
+        confirmLoading={updateReservation.isPending}
+        color="warning"
+        content={
+          <Box>
+            <Typography variant="h6" fontWeight={600} mb={1}>
+              {t('ManualReservation.duplicateWarning.title')}
+            </Typography>
+            <Typography>{t('ManualReservation.duplicateWarning.message')}</Typography>
+          </Box>
+        }
+        confirmLabel={t('ManualReservation.duplicateWarning.accept') as string}
+        cancelLabel={t('ManualReservation.duplicateWarning.cancel') as string}
+      />
     </Dialog>
   );
 }

@@ -77,18 +77,20 @@ export default function CarRentalCard({ data }: { data: ReservationDto | null })
         gap: 0.6,
       }}
     >
-        {data?.typeMismatch && (
-          <Box sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}>
-            <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
-              {t('Reservation.typeMismatchWarning')}
-            </Typography>
-          </Box>
-        )}
+      {data?.typeMismatch && (
+        <Box
+          sx={{ bgcolor: '#fff3cd', border: '1px solid #ffeeba', px: 1, py: 0.5, borderRadius: 1 }}
+        >
+          <Typography variant="caption" sx={{ color: '#856404', fontWeight: 600 }}>
+            {t('Reservation.typeMismatchWarning')}
+          </Typography>
+        </Box>
+      )}
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Car size={18} color="#25CF7A" />
-          <Typography sx={{ fontSize: '13px', fontWeight: 700 }}>
+          <Car size={18} color="#14b8a6" />
+          <Typography sx={{ fontSize: '13px', fontWeight: 700, color: '#14b8a6' }}>
             {t('ManualReservation.Type.CarRental')}
           </Typography>
         </Box>
@@ -97,7 +99,8 @@ export default function CarRentalCard({ data }: { data: ReservationDto | null })
           sx={{
             fontSize: '10px',
             fontWeight: 700,
-            background: '#F5F5F5',
+            color: '#14b8a6',
+            background: '#ccfbf1',
             px: 0.8,
             py: 0.2,
             borderRadius: 1,
